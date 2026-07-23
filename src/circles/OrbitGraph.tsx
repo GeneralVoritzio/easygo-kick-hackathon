@@ -84,13 +84,15 @@ function UserNode(_: NodeProps) {
 
 function CircleNode({ data }: NodeProps) {
   const c = data as unknown as CircleInfo & { expanded: boolean }
-  const glow = c.live ? Math.round(10 + c.heat * 0.5) : 4
+  // heat drives the glow: both radius AND alpha, so 92° visibly outshines 57°
+  const blur = 8 + c.heat
+  const alpha = c.live ? 0.12 + (c.heat / 100) * 0.6 : 0.08
   return (
     <div
       className={`grid h-32 w-32 cursor-pointer place-items-center rounded-full border-2 bg-kick-panel text-center transition-all hover:scale-105 ${
         c.expanded ? 'border-kick' : c.live ? 'border-kick/50' : 'border-kick-border'
       }`}
-      style={{ boxShadow: `0 0 ${glow}px rgba(83,252,24,${c.live ? 0.5 : 0.15})` }}
+      style={{ boxShadow: `0 0 ${blur}px ${Math.round(c.heat / 8)}px rgba(83,252,24,${alpha.toFixed(2)})` }}
     >
       <div className="px-2">
         <div className="text-[12px] font-bold leading-tight">{c.name}</div>
@@ -146,7 +148,8 @@ function Graph() {
     const nodes: Node[] = [{ id: 'user', type: 'user', position: { x: -40, y: -40 }, data: {}, draggable: false }]
     const edges: Edge[] = []
     for (const c of CIRCLES) {
-      const p = polar(340, c.angle)
+      // hotter circles pull in closer to you: 92° orbits tight, quiet ones drift out
+      const p = polar(470 - c.heat * 2, c.angle)
       nodes.push({
         id: c.id, type: 'circle',
         position: { x: p.x - 64, y: p.y - 64 },

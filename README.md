@@ -12,7 +12,7 @@ state machine are real, deterministic, and unit-tested.
 ## Quickstart (60 seconds)
 
 ```bash
-git clone <REPO_URL>
+git clone https://github.com/GeneralVoritzio/hypeprops.git
 cd hypeprops
 npm install
 npm run dev

@@ -38,11 +38,12 @@ async function getLandmarker(): Promise<FaceLandmarker> {
  * Webcam + MediaPipe detection loop. Feeds the RAW (unmirrored) video into
  * detection; mirroring happens once in CSS on the shared video+canvas container.
  */
-export function useFaceTracker(videoRef: RefObject<HTMLVideoElement | null>) {
+export function useFaceTracker(videoRef: RefObject<HTMLVideoElement | null>, enabled = true) {
   const [status, setStatus] = useState<TrackerStatus>('starting')
   const [error, setError] = useState('')
 
   useEffect(() => {
+    if (!enabled) return
     const video = videoRef.current
     if (!video) return
     let cancelled = false
@@ -118,7 +119,7 @@ export function useFaceTracker(videoRef: RefObject<HTMLVideoElement | null>) {
       stream?.getTracks().forEach((t) => t.stop())
       video.srcObject = null
     }
-  }, [videoRef])
+  }, [videoRef, enabled])
 
   return { status, error }
 }

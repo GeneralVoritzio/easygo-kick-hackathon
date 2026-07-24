@@ -5,6 +5,7 @@ import StreamView from './stream/StreamView'
 import BrandConsole from './brand/BrandConsole'
 import SolutionPage from './circles/SolutionPage'
 import CirclesPage from './circles/CirclesPage'
+import BrowsePage from './browse/BrowsePage'
 
 export default function App() {
   useEffect(() => startEngineTick(), [])
@@ -17,6 +18,7 @@ export default function App() {
         <Route path="/brand" element={<BrandConsole />} />
         <Route path="/solution" element={<SolutionPage />} />
         <Route path="/circles" element={<CirclesPage />} />
+        <Route path="/browse" element={<BrowsePage />} />
       </Routes>
     </BrowserRouter>
   )

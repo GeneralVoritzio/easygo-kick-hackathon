@@ -1,7 +1,9 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import type { ChatMessage } from '../engine/types'
 import { useEngine } from '../engine/store'
+import { useInteraction } from '../engine/interactionStore'
 import { GearIcon, HeartIcon, PanelCollapseIcon, UsersIcon } from './icons'
+import RouletteOverlay from './RouletteOverlay'
 
 const KICK_GREEN = '#53fc18'
 const STICK_THRESHOLD_PX = 64
@@ -12,14 +14,65 @@ const LEADERBOARD = [
   { rank: 2, user: 'clipfarm3r', amount: 200, badge: '#d4d4d8' },
 ]
 
-function ChatRow({ message }: { message: ChatMessage }) {
+function ChatRow({
+  message,
+  acked,
+  onAck,
+}: {
+  message: ChatMessage
+  acked: boolean
+  onAck: (id: string) => void
+}) {
+  // "/interact <dare>" — render the command token in kick-green italics
+  const interact = message.text.match(/^(\/interact\s+)(.*)$/i)
+  // KICKBot narrator — the interaction engine's own voice in chat
+  const isBot = message.user === 'KICKBot'
+  // roulette outcome lines get an emphasized row treatment
+  const isSpinRow = message.text.startsWith('🎰')
+
   return (
-    <div className="animate-slide-up rounded px-1 py-0.5 text-[13px] leading-snug break-words hover:bg-white/[0.03]">
-      <span className="font-semibold" style={{ color: message.color }}>
-        {message.user}
-      </span>
-      <span className="text-kick-muted">: </span>
-      <span className="text-kick-text/90">{message.text}</span>
+    <div
+      className={`group/row animate-slide-up flex items-start gap-1 rounded px-1 py-0.5 text-[13px] leading-snug break-words hover:bg-white/[0.03] ${
+        isSpinRow ? 'border-l-2 border-kick bg-black/30 pl-1.5' : ''
+      }`}
+    >
+      <div className="min-w-0 flex-1">
+        {isBot ? (
+          <span className="font-semibold text-kick">
+            <span className="mr-0.5">✅</span>
+            {message.user}
+          </span>
+        ) : (
+          <span className="font-semibold" style={{ color: message.color }}>
+            {message.user}
+          </span>
+        )}
+        <span className="text-kick-muted">: </span>
+        {interact ? (
+          <>
+            <span className="italic text-kick">{interact[1]}</span>
+            <span className="text-kick-text/90">{interact[2]}</span>
+          </>
+        ) : (
+          <span className="text-kick-text/90">{message.text}</span>
+        )}
+        {acked && (
+          <span className="ml-1 text-kick" title="acknowledged">
+            ✓
+          </span>
+        )}
+      </div>
+
+      {/* deterministic ack fallback for when the mic isn't on */}
+      {!acked && (
+        <button
+          type="button"
+          onClick={() => onAck(message.id)}
+          className="pointer-events-auto shrink-0 rounded bg-kick-panel-2 px-1.5 py-0.5 text-[10px] font-semibold text-kick opacity-0 transition-opacity hover:bg-white/10 group-hover/row:opacity-100"
+        >
+          ✓ ack
+        </button>
+      )}
     </div>
   )
 }
@@ -27,6 +80,9 @@ function ChatRow({ message }: { message: ChatMessage }) {
 export default function Chat() {
   const chat = useEngine((s) => s.chat)
   const addChat = useEngine((s) => s.addChat)
+  const ackedIds = useInteraction((s) => s.ackedIds)
+  const ackMessage = useInteraction((s) => s.ackMessage)
+  const ackedSet = useMemo(() => new Set(ackedIds), [ackedIds])
   const [draft, setDraft] = useState('')
   const listRef = useRef<HTMLDivElement>(null)
   const stickToBottomRef = useRef(true)
@@ -87,9 +143,19 @@ export default function Chat() {
         ))}
       </div>
 
+      {/* interaction roulette card — pinned above the messages, does not scroll with them */}
+      <div className="shrink-0 px-2.5 pb-2">
+        <RouletteOverlay />
+      </div>
+
       <div ref={listRef} onScroll={handleScroll} className="min-h-0 flex-1 space-y-1.5 overflow-y-auto px-2.5 py-2">
         {chat.map((m) => (
-          <ChatRow key={m.id} message={m} />
+          <ChatRow
+            key={m.id}
+            message={m}
+            acked={ackedSet.has(m.id)}
+            onAck={(id) => ackMessage(id, 'explicit')}
+          />
         ))}
       </div>
 

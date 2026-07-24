@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { useEngine } from '../engine/store'
 import PropCanvas from './PropCanvas'
 import { useFaceTracker } from './useFaceTracker'
 
@@ -10,7 +11,10 @@ import { useFaceTracker } from './useFaceTracker'
 export default function FaceStage({ className = '' }: { className?: string }) {
   const containerRef = useRef<HTMLDivElement>(null)
   const videoRef = useRef<HTMLVideoElement>(null)
-  const { status, error } = useFaceTracker(videoRef)
+  const feedMode = useEngine((s) => s.feedMode)
+  const kickChannel = useEngine((s) => s.kickChannel)
+  // webcam + MediaPipe stay fully off while embedding a real stream
+  const { status, error } = useFaceTracker(videoRef, feedMode === 'webcam')
   const [videoAspect, setVideoAspect] = useState(16 / 9)
   const [box, setBox] = useState({ width: 0, height: 0 })
 
@@ -30,6 +34,21 @@ export default function FaceStage({ className = '' }: { className?: string }) {
     ro.observe(el)
     return () => ro.disconnect()
   }, [videoAspect])
+
+  if (feedMode === 'kick') {
+    return (
+      <div className={`relative h-full w-full overflow-hidden bg-black ${className}`}>
+        <iframe
+          src={`https://player.kick.com/${kickChannel}?autoplay=true&muted=true`}
+          title={`${kickChannel} live on Kick`}
+          className="absolute inset-0 h-full w-full border-0"
+          allow="autoplay; fullscreen; encrypted-media"
+          allowFullScreen
+          scrolling="no"
+        />
+      </div>
+    )
+  }
 
   return (
     <div ref={containerRef} className={`relative grid h-full w-full place-items-center overflow-hidden bg-black ${className}`}>

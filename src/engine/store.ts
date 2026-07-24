@@ -3,6 +3,7 @@ import type { Brand, BrandProp, ChatMessage, Hype, PropModel, Slot, SponsorEvent
 import { HYPE, cappedExtension, extensionFor, nextHype } from './hype'
 import { SLOT, isDone, nextSlotState } from './slotMachine'
 import { BRANDS, PROP_MODELS, SEED_BRAND_PROPS } from '../data/catalog'
+import { useInteraction } from './interactionStore'
 
 const WINDOW_MS = 3000
 
@@ -31,6 +32,9 @@ export type EngineStore = {
   viewers: number
   surgeUntil: number
   signedInBrandId: string | null
+  /** stage source: live Kick embed (interaction-engine demo) or webcam (face-props demo) */
+  feedMode: 'kick' | 'webcam'
+  kickChannel: string
 
   fireSponsorEvent: (brandPropId: string, amountUsd?: number) => void
   triggerHypeSurge: () => void
@@ -38,6 +42,8 @@ export type EngineStore = {
   addLikes: (n: number) => void
   saveBrandProp: (bp: BrandProp) => void
   signInBrand: (brandId: string | null) => void
+  setFeedMode: (mode: 'kick' | 'webcam') => void
+  setKickChannel: (slug: string) => void
   /** live anchor tuning (director panel) — logs a paste-ready catalog.ts line */
   nudgeAnchor: (modelId: string, delta: { y?: number; z?: number; tilt?: number; scale?: number }) => void
   tick: (now: number) => void
@@ -66,6 +72,8 @@ export const useEngine = create<EngineStore>((set, get) => ({
   viewers: 1247,
   surgeUntil: 0,
   signedInBrandId: null,
+  feedMode: 'kick',
+  kickChannel: 'maxholloway',
 
   fireSponsorEvent: (brandPropId, amountUsd) => {
     const { brandProps, brands, activeSlot, queue } = get()
@@ -114,6 +122,18 @@ export const useEngine = create<EngineStore>((set, get) => ({
     chatTs.push(now)
     const msg: ChatMessage = { id: uid('msg'), user, text, color, ts: now }
     set((s) => ({ chat: [...s.chat.slice(-59), msg] }))
+    // ingest boundary shaped like Kick's chat.message.sent webhook payload —
+    // on real Kick this is the webhook handler; on the clone we own the bus
+    const user_id = user.toLowerCase().replace(/[^a-z0-9]/g, '')
+    useInteraction.getState().ingestChat({
+      message_id: msg.id,
+      sender: { user_id, username: user, identity: { badges: [] } },
+      content: text,
+      created_at: now,
+    })
+    // `/interact <dare>` — roulette submission (one live entry per user)
+    const dare = text.trim().match(/^\/interact\s+(.+)/i)
+    if (dare) useInteraction.getState().submitDare(user_id, user, color, dare[1])
     // `!sponsor volt` — alt trigger, shaped like a chat command
     const m = text.trim().match(/^!sponsor\s+(\w+)/i)
     if (m) {
@@ -130,6 +150,8 @@ export const useEngine = create<EngineStore>((set, get) => ({
 
   saveBrandProp: (bp) => set((s) => ({ brandProps: [...s.brandProps, bp] })),
   signInBrand: (brandId) => set({ signedInBrandId: brandId }),
+  setFeedMode: (feedMode) => set({ feedMode }),
+  setKickChannel: (kickChannel) => set({ kickChannel }),
 
   nudgeAnchor: (modelId, delta) =>
     set((s) => ({

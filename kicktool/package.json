@@ -1,0 +1,17 @@
+{
+  "name": "kick-tool",
+  "version": "1.0.0",
+  "description": "Express server that handles Kick OAuth, receives webhooks, and logs chat messages",
+  "license": "ISC",
+  "author": "",
+  "type": "commonjs",
+  "main": "main.js",
+  "scripts": {
+    "start": "node --env-file-if-exists=.env main.js",
+    "dev": "node --watch --env-file-if-exists=.env main.js",
+    "test": "node check.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2"
+  }
+}

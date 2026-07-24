@@ -1,0 +1,6 @@
+node_modules/
+.env
+tokens.json
+tokens.bot.json
+overlay-key.json
+*.log

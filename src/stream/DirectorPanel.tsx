@@ -1,5 +1,9 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useEngine } from '../engine/store'
+import { formatOdds } from '../engine/ack'
+import { useInteraction } from '../engine/interactionStore'
+
+const ROUND_LENGTH_OPTIONS = [60, 150, 600]
 
 const FAKE_USERS = [
   'clipthat420',
@@ -49,6 +53,23 @@ export default function DirectorPanel() {
   const triggerHypeSurge = useEngine((s) => s.triggerHypeSurge)
   const addChat = useEngine((s) => s.addChat)
   const nudgeAnchor = useEngine((s) => s.nudgeAnchor)
+  const feedMode = useEngine((s) => s.feedMode)
+  const kickChannel = useEngine((s) => s.kickChannel)
+  const setFeedMode = useEngine((s) => s.setFeedMode)
+  const setKickChannel = useEngine((s) => s.setKickChannel)
+
+  const stats = useInteraction((s) => s.stats)
+  const phase = useInteraction((s) => s.phase)
+  const pool = useInteraction((s) => s.pool)
+  const filteredCount = useInteraction((s) => s.filteredCount)
+  const roundLengthSec = useInteraction((s) => s.roundLengthSec)
+  const transcriptEnabled = useInteraction((s) => s.transcriptEnabled)
+  const transcriptSupported = useInteraction((s) => s.transcriptSupported)
+  const simAcksEnabled = useInteraction((s) => s.simAcksEnabled)
+  const setTranscriptEnabled = useInteraction((s) => s.setTranscriptEnabled)
+  const setSimAcksEnabled = useInteraction((s) => s.setSimAcksEnabled)
+  const spinNow = useInteraction((s) => s.spinNow)
+  const setRoundLengthSec = useInteraction((s) => s.setRoundLengthSec)
 
   // tune the anchor of whatever prop is live right now
   const nudge = useCallback(
@@ -100,6 +121,10 @@ export default function DirectorPanel() {
         case 'C':
           spikeChat()
           break
+        case 'r':
+        case 'R':
+          spinNow()
+          break
         // live anchor tuning for the active prop (IJKL move, U/O tilt, -/= size)
         case 'i':
           nudge({ y: 0.4 })
@@ -129,7 +154,7 @@ export default function DirectorPanel() {
     }
     window.addEventListener('keydown', onKeyDown)
     return () => window.removeEventListener('keydown', onKeyDown)
-  }, [tipByIndex, triggerHypeSurge, spikeChat, nudge])
+  }, [tipByIndex, triggerHypeSurge, spikeChat, nudge, spinNow])
 
   if (!open) {
     return (
@@ -150,6 +175,36 @@ export default function DirectorPanel() {
         <button onClick={() => setOpen(false)} className="text-kick-muted transition-colors hover:text-kick-text">
           ✕
         </button>
+      </div>
+
+      <div className="mb-2 rounded-lg border border-kick-border bg-black/30 p-2">
+        <div className="mb-1.5 text-[10px] font-bold tracking-widest text-kick-muted">FEED</div>
+        <div className="flex gap-1.5">
+          <button
+            onClick={() => setFeedMode('kick')}
+            className={`flex-1 rounded-md px-2 py-1 text-[11px] font-semibold transition-colors ${
+              feedMode === 'kick' ? 'bg-kick text-black' : 'bg-kick-panel-2 text-kick-muted hover:text-kick-text'
+            }`}
+          >
+            📡 live kick
+          </button>
+          <button
+            onClick={() => setFeedMode('webcam')}
+            className={`flex-1 rounded-md px-2 py-1 text-[11px] font-semibold transition-colors ${
+              feedMode === 'webcam' ? 'bg-kick text-black' : 'bg-kick-panel-2 text-kick-muted hover:text-kick-text'
+            }`}
+          >
+            🎥 webcam + props
+          </button>
+        </div>
+        {feedMode === 'kick' && (
+          <input
+            value={kickChannel}
+            onChange={(e) => setKickChannel(e.target.value.trim().toLowerCase())}
+            placeholder="kick channel slug"
+            className="mt-1.5 w-full rounded-md border border-kick-border bg-black/40 px-2 py-1 text-[11px] text-kick-text outline-none focus:border-kick"
+          />
+        )}
       </div>
 
       <div className="space-y-1.5">
@@ -221,9 +276,72 @@ export default function DirectorPanel() {
           })()}
       </div>
 
+      <div className="mt-3 border-t border-kick-border pt-2">
+        <div className="mb-1.5 text-[10px] font-bold tracking-widest text-kick-muted">INTERACTION</div>
+
+        <div className="grid grid-cols-2 gap-1.5">
+          <button
+            onClick={() => setTranscriptEnabled(!transcriptEnabled)}
+            disabled={!transcriptSupported}
+            title={transcriptSupported ? undefined : 'Web Speech API unsupported in this browser'}
+            className="rounded-lg border border-kick-border bg-kick-panel-2 px-2.5 py-1.5 text-[12px] text-kick-text transition-colors hover:border-kick disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-kick-border"
+          >
+            🎙 Transcript {transcriptEnabled ? 'on' : 'off'}
+            {!transcriptSupported && <span className="block text-[9px] text-kick-muted">(unsupported)</span>}
+          </button>
+          <button
+            onClick={() => setSimAcksEnabled(!simAcksEnabled)}
+            className="rounded-lg border border-kick-border bg-kick-panel-2 px-2.5 py-1.5 text-[12px] text-kick-text transition-colors hover:border-kick"
+          >
+            Sim reads {simAcksEnabled ? 'on' : 'off'}
+          </button>
+        </div>
+
+        <button
+          onClick={spinNow}
+          disabled={phase !== 'collecting'}
+          className="mt-1.5 w-full rounded-lg border border-kick-border bg-kick-panel-2 px-2.5 py-1.5 text-[12px] font-bold text-kick transition-colors hover:border-kick disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-kick-border"
+        >
+          🎰 Spin now <span className="font-normal text-kick-muted">[r]</span>
+        </button>
+
+        <div className="mt-1.5 flex items-center gap-1.5">
+          <span className="text-[10px] text-kick-muted">Round:</span>
+          {ROUND_LENGTH_OPTIONS.map((sec) => (
+            <button
+              key={sec}
+              onClick={() => setRoundLengthSec(sec)}
+              className={`rounded-md border px-2 py-0.5 text-[11px] transition-colors ${
+                roundLengthSec === sec
+                  ? 'border-kick text-kick'
+                  : 'border-kick-border text-kick-muted hover:border-kick-text/40 hover:text-kick-text'
+              }`}
+            >
+              {sec}s
+            </button>
+          ))}
+        </div>
+
+        <div className="mt-2 space-y-1 rounded-lg border border-kick-border bg-black/30 p-2 text-[11px] text-kick-muted">
+          <div className="flex justify-between">
+            <span>Odds</span>
+            <span className="font-mono text-kick-text">{formatOdds(stats)}</span>
+          </div>
+          <div className="flex justify-between">
+            <span>Pool size</span>
+            <span className="font-mono text-kick-text">{pool.length}</span>
+          </div>
+          <div className="flex justify-between">
+            <span>Filtered</span>
+            <span className="font-mono text-kick-text">{filteredCount}</span>
+          </div>
+        </div>
+      </div>
+
       <div className="mt-2 text-[10px] leading-relaxed text-kick-muted">
         Shortcuts: <span className="text-kick-text">1/2/3</span> tip · <span className="text-kick-text">s</span> surge
-        · <span className="text-kick-text">c</span> chat spike · <span className="text-kick-text">`</span> toggle
+        · <span className="text-kick-text">c</span> chat spike · <span className="text-kick-text">r</span> spin ·{' '}
+        <span className="text-kick-text">`</span> toggle
         <br />
         Fit live prop: <span className="text-kick-text">i/k</span> up/down · <span className="text-kick-text">j/l</span>{' '}
         back/fwd · <span className="text-kick-text">u/o</span> tilt · <span className="text-kick-text">-/=</span> size —

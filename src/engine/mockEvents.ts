@@ -1,4 +1,5 @@
 import { useEngine } from './store'
+import { pickSimAckCandidate, setRouletteAnnouncer, useInteraction } from './interactionStore'
 
 /**
  * Kick-shaped simulated crowd: chat messages, like bursts.
@@ -62,6 +63,34 @@ const SPONSOR_REACT = [
 
 const pick = <T,>(arr: T[]): T => arr[Math.floor(Math.random() * arr.length)]
 
+// ── interaction-engine crowd shaping ──────────────────────────────────────
+// the badge is a rate over hundreds of messages: it needs a returning-regulars
+// population (USERS above) plus a first-timer trickle, or nothing is believable
+
+const FT_ADJ = ['quiet', 'sleepy', 'shiny', 'salty', 'turbo', 'mellow', 'crispy', 'lucky']
+const FT_NOUN = ['otter', 'goose', 'wizard', 'penguin', 'gremlin', 'raccoon', 'moth', 'pigeon']
+const FIRST_TIMER_MSGS = [
+  'first time here, this is great',
+  'new follower, whats the schedule?',
+  'how long have you been streaming?',
+  'just found this stream, W vibes',
+  'what mic do you use?',
+  'longtime lurker first time chatting',
+]
+
+const DARES = [
+  'speak in an accent for one minute',
+  'do 10 pushups on camera',
+  'let chat rename your next save file',
+  'freestyle rap about the last game you lost',
+  'hold a plank until the timer expires',
+  'compliment the next 3 chatters by name',
+  'attempt a magic trick with whatever is on your desk',
+  'chug a beer', // gets filtered on arrival — the moderation demo beat
+  'draw your own logo in 30 seconds',
+  'say the alphabet backwards',
+]
+
 export function startMockEvents(): () => void {
   const timers: ReturnType<typeof setTimeout>[] = []
   let stopped = false
@@ -102,18 +131,78 @@ export function startMockEvents(): () => void {
     }
   })
 
+  // first-timer trickle: fresh names, one or two messages, some are questions
+  const firstTimerLoop = () => {
+    if (stopped) return
+    const name = `${pick(FT_ADJ)}${pick(FT_NOUN)}${100 + Math.floor(Math.random() * 900)}`
+    const color = pick(USERS).color
+    useEngine.getState().addChat(name, pick(FIRST_TIMER_MSGS), color)
+    if (Math.random() < 0.3) {
+      timers.push(setTimeout(() => !stopped && useEngine.getState().addChat(name, 'this chat moves fast lol', color), 4000))
+    }
+    timers.push(setTimeout(firstTimerLoop, 15_000 + Math.random() * 20_000))
+  }
+
+  // simulated streamer reads: the baseline the live acks move on top of
+  const simAckLoop = () => {
+    if (stopped) return
+    if (useInteraction.getState().simAcksEnabled) {
+      const candidate = pickSimAckCandidate(Date.now(), Math.random() < 0.3)
+      if (candidate) useInteraction.getState().ackMessage(candidate, 'explicit')
+    }
+    timers.push(setTimeout(simAckLoop, 6_000 + Math.random() * 8_000))
+  }
+
+  // crowd dares trickle into the roulette pool via the same chat path
+  const dareLoop = () => {
+    if (stopped) return
+    const u = pick(USERS)
+    useEngine.getState().addChat(u.name, `/interact ${pick(DARES)}`, u.color)
+    timers.push(setTimeout(dareLoop, 25_000 + Math.random() * 20_000))
+  }
+
+  // KICKBot narrates roulette lifecycle into chat (submit / spin / outcome)
+  setRouletteAnnouncer((text) => useEngine.getState().addChat('KICKBot', text, '#53fc18'))
+
+  // seed a ~300-deep dare pool so every spin has real stakes (and no waiting):
+  // distinct users (one entry each), varied pity-weights so odds read organic
+  if (useInteraction.getState().pool.length < 250) {
+    const now = Date.now()
+    const seeds = Array.from({ length: 300 }, (_, i) => {
+      const name = `${pick(FT_ADJ)}${pick(FT_NOUN)}${i}${Math.floor(Math.random() * 10)}`
+      return {
+        user_id: name.toLowerCase(),
+        username: name,
+        color: pick(USERS).color,
+        text: pick(DARES.filter((d) => d !== 'chug a beer')),
+        submitted_at: now - Math.floor(Math.random() * 300_000),
+        rounds_waited: Math.random() < 0.35 ? Math.floor(Math.random() * 6) : 0,
+      }
+    })
+    useInteraction.getState().seedDares(seeds)
+  }
+
   chatLoop()
   likeLoop()
+  firstTimerLoop()
+  timers.push(setTimeout(simAckLoop, 3_000))
+  timers.push(setTimeout(dareLoop, 5_000))
 
   return () => {
     stopped = true
+    setRouletteAnnouncer(null)
     timers.forEach(clearTimeout)
     unsub()
   }
 }
 
-/** 10Hz engine tick — drives hype decay, velocities, and the slot state machine */
+/** 10Hz engine tick — drives hype decay, velocities, the slot state machine,
+ * and the interaction engine's rolling window + roulette round timer */
 export function startEngineTick(): () => void {
-  const id = setInterval(() => useEngine.getState().tick(Date.now()), 100)
+  const id = setInterval(() => {
+    const now = Date.now()
+    useEngine.getState().tick(now)
+    useInteraction.getState().tick(now, useEngine.getState().viewers)
+  }, 100)
   return () => clearInterval(id)
 }

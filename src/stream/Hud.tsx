@@ -13,14 +13,7 @@ function formatTime(totalSec: number): string {
   return `${m}:${String(r).padStart(2, '0')}`
 }
 
-function hypeGradient(score: number): string {
-  if (score < 0.5) return 'linear-gradient(90deg, #3fc411, #53fc18)'
-  if (score < 0.8) return 'linear-gradient(90deg, #53fc18, #facc15)'
-  return 'linear-gradient(90deg, #facc15, #f87171)'
-}
-
 export default function Hud() {
-  const hype = useEngine((s) => s.hype)
   const activeSlot = useEngine((s) => s.activeSlot)
   const queueLen = useEngine((s) => s.queue.length)
   const brands = useEngine((s) => s.brands)
@@ -67,24 +60,8 @@ export default function Hud() {
   const isExpiring = activeSlot?.state === 'expiring'
   const isExiting = activeSlot?.state === 'exiting'
 
-  const scorePct = Math.round(hype.score * 100)
-
   return (
     <div className="pointer-events-none absolute inset-0">
-      {/* Hype meter — always visible */}
-      <div className="absolute left-3 top-3 w-44 rounded-lg border border-kick-border bg-black/60 px-2.5 py-2 backdrop-blur-sm">
-        <div className="mb-1 flex items-center justify-between">
-          <span className="text-[10px] font-bold tracking-widest text-kick-muted">HYPE</span>
-          <span className="text-[11px] font-bold tabular-nums text-kick-text">{scorePct}%</span>
-        </div>
-        <div className="h-1.5 w-full overflow-hidden rounded-full bg-white/10">
-          <div
-            className="h-full rounded-full transition-[width] duration-150 ease-linear"
-            style={{ width: `${scorePct}%`, backgroundImage: hypeGradient(hype.score) }}
-          />
-        </div>
-      </div>
-
       {/* Queue badge — the live-auction beat */}
       {queueLen > 0 && (
         <div className="animate-slide-up absolute right-3 top-3 rounded-full border border-kick-border bg-black/60 px-3 py-1 text-[11px] font-semibold text-kick-text backdrop-blur-sm">

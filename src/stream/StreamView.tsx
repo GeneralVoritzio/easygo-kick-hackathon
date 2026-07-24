@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import { startMockEvents } from '../engine/mockEvents'
+import { useTranscript } from '../engine/useTranscript'
 import FaceStage from '../face/FaceStage'
 import Hud from './Hud'
 import Chat from './Chat'
@@ -7,9 +8,11 @@ import DirectorPanel from './DirectorPanel'
 import TopBar from './TopBar'
 import Sidebar from './Sidebar'
 import ChannelBar from './ChannelBar'
+import InteractionMeter from './InteractionMeter'
 
 export default function StreamView() {
   useEffect(() => startMockEvents(), [])
+  useTranscript()
 
   return (
     <div className="flex h-screen w-screen flex-col overflow-hidden bg-kick-dark text-kick-text">
@@ -27,6 +30,7 @@ export default function StreamView() {
             <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[2px] bg-kick" />
           </div>
 
+          <InteractionMeter />
           <ChannelBar />
         </main>
 

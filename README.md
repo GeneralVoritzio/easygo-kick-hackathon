@@ -1,13 +1,16 @@
-# HypeProps 🧢⚡
+# HypeProps 🧢⚡ — Kick hackathon monorepo
 
-**Brands don't buy flat sponsor reads — they tip 3D props onto a streamer's face-cam,
-and the crowd's hype decides how long the ad lives.**
+One Kick-accurate clone, three demos on top of it:
 
-A Kick-style live-stream demo: a verified brand tips a prop (cap, shades) that pins to
-the streamer's face in real time via MediaPipe + Three.js. A countdown runs; chat and
-like velocity feed a hype score, and sustained hype visibly extends the placement.
-Payments, KYC, and the Kick API are mocked — the event pipeline, hype engine, and slot
-state machine are real, deterministic, and unit-tested.
+1. **HypeProps** — brands tip 3D props onto a streamer's face-cam; crowd hype extends
+   how long the paid placement lives (MediaPipe + Three.js face tracking).
+2. **KICK Circles** — the official Easygo Mini Hackathon challenge (1 Aug 2026):
+   solution deck at `/solution`, interactive orbit prototype at `/circles`.
+3. **Interaction Engine** — response-odds badges that tell a viewer their chance of
+   being seen, plus the `/interact` dare roulette, running over a real live Kick embed.
+
+Payments, KYC, and the Kick API are mocked — but every pipeline is structurally real:
+Kick-webhook-shaped events, deterministic pure engines, 35 unit tests.
 
 ## Quickstart (60 seconds)
 
@@ -18,11 +21,25 @@ npm install
 npm run dev
 ```
 
-1. Open **http://localhost:5173** in **desktop Chrome** (GPU face tracking — Safari/iOS is flaky).
-2. Allow camera access. Your face appears in the Kick-style stream view.
-3. Press **`1`** → a sponsored cap lands on your head with a countdown.
-4. Let the timer run red… then press **`s`** → the crowd surges and the countdown
-   visibly jumps back up. That's the product.
+1. Open **http://localhost:5173** in **desktop Chrome**.
+2. `/stream` opens on a **real live Kick embed** (maxholloway by default) with the
+   interaction layer running: watch the roulette card in chat, type `/interact <dare>`,
+   press `r` to spin.
+3. For the face-props demo: open the director panel (`` ` ``) → FEED → **🎥 webcam +
+   props**, allow the camera, then press `1` — a sponsored cap lands on your head.
+   Let the timer run red, press `s`, watch the crowd rescue it.
+
+## The five routes
+
+| Route | What it is |
+|---|---|
+| `/stream` | The demo stage: live Kick embed (or webcam + 3D props), simulated chat crowd, sponsor lower-third + countdown, interaction stats strip, roulette card in chat |
+| `/browse` | Directory grid — the Interaction Engine's discovery surface, badges injected per channel (HypeKing's measured live) |
+| `/brand` | HypeProps brand console: mock KYC → design a prop → price it → ⚡ tip it into the stream |
+| `/solution` | KICK Circles 2-minute solution deck (8 slides, ← → keys) |
+| `/circles` | KICK Circles prototype: orbit map — click a Circle, its live streams fan out; click one to drop into `/stream` |
+
+State is in-memory; use in-app links between routes — a hard reload resets the world.
 
 ## Controls (on `/stream`)
 
@@ -38,98 +55,73 @@ npm run dev
 
 Chat input accepts `!sponsor volt` / `!sponsor nova` / `!sponsor byte` and
 `/interact <dare>` (one live roulette entry per person; resubmitting replaces it).
-The director panel also has: **FEED** toggle — 📡 live Kick embed (default,
-any channel slug) vs 🎥 webcam + face props — plus 🎙 transcript on/off,
-sim-reads on/off, and roulette round length.
+The director panel also has: **FEED** toggle (📡 live Kick embed, any channel slug ·
+🎥 webcam + face props), 🎙 transcript on/off, sim-reads on/off, and roulette round length.
 
 ## Interaction Engine
 
 An extension-style layer that tells a viewer their odds of being seen — and gives
 them a way to shorten them. All chat flows through a **Kick-webhook-shaped ingest
 boundary** (`chat.message.sent` payload), so the engine ports to real Kick without
-a rewrite.
+a rewrite. Full build spec: `docs/INTERACTION_ENGINE_SPEC.md`.
 
-- **Response odds** — acknowledged/total over a rolling 10-min window, always shown
-  as "1 in N". Median latency, attention spread (Gini), and first-timer share drive
-  three positive-only badges (Responsive · Reads everything · New-chatter friendly);
-  chat that's too fast to track shows a stated reason instead of a bad score. The
-  stats strip sits under the player; badges are injected on `/browse` tiles and
-  sidebar rows — HypeKing's are measured live, with your session receipt
-  ("N of M messages acknowledged tonight").
+- **Response odds** — acknowledged/total over a rolling 10-min window, always "1 in N".
+  Median latency, attention spread (Gini), and first-timer share drive three
+  positive-only badges (Responsive · Reads everything · New-chatter friendly); chat
+  that's too fast to track shows a stated reason instead of a bad score. Stats strip
+  under the player includes your session receipt ("N of M messages acknowledged tonight").
 - **Acknowledgement sources** — 🎙 live streamer-audio transcript (Web Speech API,
   verbatim username match in a rolling 60s window), hover-✓ on any chat row
   (deterministic stage fallback), and roulette outcomes.
 - **Dare roulette** — the Drops-style card pinned in chat: ~300-entry pool, ambient
   spinning reel, pity-timer odds (`1 + 0.5 × rounds_waited`), moderation on arrival
   (the wheel is built from survivors), accept/decline (declining is free — engagement
-  is the metric), submitter verification, and KICKBot narrating the loop in chat.
-- Engine math is pure and unit-tested (35 tests): `src/engine/ack.ts`,
-  `src/engine/roulette.ts`.
+  is the metric), submitter verification, KICKBot narration in chat.
 
-## Fit the props to YOUR face
+## HypeProps: fit the props to YOUR face
 
-Anchor offsets are tuned for one head — yours is different. With a prop live, use the
-fit keys above until it sits right. Every nudge logs a paste-ready line to the browser
-console like:
+Anchor offsets are tuned for one head. In webcam mode with a prop live, use the fit
+keys until it sits right — every nudge logs a paste-ready line to the console like:
 
 ```
 [tune cap] anchor: { position: [0, 6.8, -3.0], rotation: [-0.12, 0, 0], scale: 1.08 },
 ```
 
 Paste it over the matching `anchor:` in `src/data/catalog.ts` to make it permanent.
-Fit tuning is in-memory only until you do.
-
-**Hair sticking out over the cap?** That's physics, not a bug — video pixels can't be
-occluded away, so like every commercial filter we oversize the crown to swallow hair.
-Press `=` a couple of times if yours still escapes.
-
-## The two routes
-
-- **`/stream`** — the demo stage. Kick-dark layout, webcam + live 3D prop overlay,
-  simulated chat crowd, hype meter, "Sponsored ✓ Verified" lower-third, countdown,
-  queued-sponsor "live auction" badge.
-- **`/brand`** — the brand console. Mock-KYC sign-in → pick a base prop → skin it
-  (color, logo, matte/gloss/metallic) → price it → save → **⚡ Tip into stream**.
-  The 3D preview and the live overlay share one render path: what you design is
-  exactly what airs. Use the in-app links to switch routes — state is in-memory,
-  a hard reload resets the world.
-
-## Suggested 90-second pitch
-
-1. `/stream` — tilt your head: the prop tracking is real (MediaPipe facial
-   transformation matrix → Three.js, with a depth-only head occluder so props wrap
-   *around* your skull instead of drawing over it).
-2. `1` — a $2,000 VOLT tip lands. Lower-third, countdown, chat reacts.
-3. Wait for the red pulsing "expiring" state… `s` — the surge rescues it. Timer jumps.
-4. `2` mid-slot — second sponsor queues up: that's the auction pressure.
-5. `/brand` — design a prop live in 20 seconds, save, tip it in, watch it land on
-   your face. "The payment is faked; the system is not."
+Hair sticking out over the cap is physics, not a bug — press `=` to oversize the crown,
+same trick every commercial filter uses.
 
 ## How it works
 
 ```
-src/engine/   pure hype math + slot state machine (16 unit tests) + Zustand store
-              + Kick-webhook-shaped mock event generators
+src/engine/   pure engines, all unit-tested: hype + slot machine (HypeProps),
+              ack odds/badges + roulette (Interaction Engine), Zustand stores,
+              Kick-webhook-shaped simulated crowd (regulars, first-timers, dares)
 src/face/     webcam → MediaPipe FaceLandmarker → transient faceState singleton →
               R3F canvas applying the 4×4 face matrix (63° FOV camera at origin,
-              cm units, column-major, no transpose) + invisible skull occluder
-src/stream/   Kick UI shell, chat, HUD, director panel
+              cm units, column-major, no transpose) + invisible skull occluder,
+              OR a live player.kick.com iframe when FEED = kick
+src/stream/   Kick UI shell, chat (+ roulette card), HUD, stats strip, director panel
+src/browse/   directory grid with interaction-badge injection
 src/brand/    brand console: picker, skin editor, shared-path 3D preview, library
+src/circles/  KICK Circles solution deck + React Flow orbit prototype
+docs/         original specs (HypeProps, Interaction Engine) + full Kick API map
 ```
 
-Per-frame face pose never touches React state — it flows through a mutable module
-singleton straight into the render loop; React only sees discrete state at ≤10Hz.
-`npm test` runs the engine suite. `AUDIT.md` has the full spec audit and the
-reasoning behind every technical decision.
+Per-frame face pose never touches React state; chat events flow through one ingest
+boundary shaped like Kick's webhook payload. `npm test` runs the 35-test engine suite.
+`AUDIT.md` holds the HypeProps plan audit; `docs/KICK_API_MAP.md` maps every public
+Kick endpoint/webhook/scope to these products.
 
-## Troubleshooting
+## Demo-day dependencies & troubleshooting
 
-- **Black stage / "camera unavailable"** — allow camera permission, then reload.
-  Close other apps holding the webcam (Zoom, OBS).
-- **No prop on your face** — it only renders while a face is detected: face the
-  camera, add light. The prop hides within ~350ms of losing tracking (that's
-  intentional — no ghost props).
-- **Props misaligned** — don't touch the matrix math (it's verified); nudge the
-  `anchor` values with the fit keys instead.
-- **Sluggish tracking** — use Chrome; the GPU delegate falls back to CPU on some
-  browsers and it shows.
+- **Live embed is black** — the embedded channel must actually be live, and the venue
+  network must reach kick.com. Fallback: FEED → webcam + props (fully offline).
+- **DiceBear avatars missing** — they load from api.dicebear.com; offline they fall
+  back to colored circles. Everything else runs without internet.
+- **🎙 transcript not acking** — Chrome only, needs mic permission and a quiet-ish
+  room; say the username verbatim. Stage fallback: hover any chat row → ✓ ack.
+- **Camera issues (webcam mode)** — allow permission, close Zoom/OBS, add light.
+  Props hide within ~350ms of losing tracking (intentional — no ghost props).
+- **Props misaligned** — don't touch the matrix math (verified against MediaPipe
+  source); nudge `anchor` values with the fit keys instead.

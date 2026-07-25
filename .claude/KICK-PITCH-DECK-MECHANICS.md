@@ -77,6 +77,7 @@ pitch/
     main.tsx
     Deck.tsx
     tokens.css          Design System Section 9, copied verbatim
+    media.css           media colour and the two @font-face rules
     deck.css            layout only: the grid, the gutter, the type scale
     slides/
       Cold.tsx  Hook.tsx  Problem.tsx  Fix.tsx  Demo.tsx

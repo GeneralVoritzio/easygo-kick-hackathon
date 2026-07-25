@@ -1,6 +1,20 @@
-# KICK Design Spec
+# KICK Design System
 
 Our design system for the hackathon build. Goal: the judges should not be able to tell our UI from something KICK shipped.
+
+> **Read `.claude/KICK-BRAND-IDENTITY.md` first. Everything about the KICK brand is in there.**
+> It holds the verified colours, the two type systems, the flood rule, the graphic devices, the
+> measured motion curves, the voice, and the imagery and licence rules. It also names the sources
+> those values came from.
+>
+> **This file covers product UI only.** Buttons, inputs, cards, chat rows, badges, overlay layout,
+> focus rings and hit targets. If a question is about how the brand looks or sounds, and not about
+> a control a user operates, the answer is in the Brand Identity file, not here.
+>
+> **The Brand Identity file supersedes some values below.** It read the live DOM on kick.com and
+> about.kick.com, and it measured greys that differ from the 🔧 guesses in §1. See Brand Identity
+> §3, "Where the Design System disagrees". This file stays locked, so read both and prefer the ✅
+> value.
 
 ---
 

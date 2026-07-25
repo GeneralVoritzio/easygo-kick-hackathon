@@ -1,4 +1,4 @@
-# KICK Pitch Deck Spec
+# KICK Pitch Deck Mechanics
 
 How we build the pitch deck. Goal: the deck looks like KICK made it, and it never gets in the way of the live demo.
 
@@ -6,7 +6,7 @@ How we build the pitch deck. Goal: the deck looks like KICK made it, and it neve
 
 ## 0. Scope and status
 
-**This spec applies only to files in `pitch/`.** No other folder uses it. Code in `prototypes/`, `demo/` and `docs/` follows the Design Spec and the Working Agreement alone.
+**This file applies only to files in `pitch/`.** No other folder uses it. Code in `prototypes/`, `demo/` and `docs/` follows the Design System and the Working Agreement alone.
 
 ### Which file governs what
 
@@ -15,20 +15,20 @@ The deck is **media**, not interface. Three files stack on it.
 | File | What it decides here |
 |---|---|
 | `.claude/KICK-BRAND-IDENTITY.md` | **The look.** Colour, display type, voice, motion feel, backgrounds, graphic devices, footage |
-| `.claude/KICK-DESIGN-SPEC.md` | The token base, and every rule for **product UI shown on a slide** |
+| `.claude/KICK-DESIGN-SYSTEM.md` | The token base, and every rule for **product UI shown on a slide** |
 | **This file** | Deck mechanics only. Reveal, slide layout, the deck type scale, the run sheet |
 
 **This file does not restate the brand rules.** If you want to know what the deck looks like, read the Brand Identity file. If you want to know how the deck is built, read this one. A rule written twice goes stale in one place first.
 
 Confidence tags carry the same meaning as Brand Identity §0.
 
-**Open item.** We have no copy of a real KICK deck template. The [brand toolkit](https://about.kick.com/brand) sits behind a Brandfolder portal (Design Spec §0). Do not present our derived values to the judges as KICK's own.
+**Open item.** We have no copy of a real KICK deck template, and we have not read the official brand toolkit. It sits behind a [Brandfolder portal](https://brandfolder.com/portals/kick) that asks for a sign-in. Brand Identity §0 lists what the toolkit would settle, including every logo rule. Do not present a derived value to the judges as KICK's own.
 
 ---
 
 ## 1. The deck is not the product
 
-Hackathon Spec §2 rules out "concept pitches, mockups, slideware" as the submission. Presentation and Demo is worth 10% (Hackathon Spec §4). The live build carries the other 90%.
+Hackathon Brief §2 rules out "concept pitches, mockups, slideware" as the submission. Presentation and Demo is worth 10% (Hackathon Brief §4). The live build carries the other 90%.
 
 Three rules follow:
 
@@ -36,7 +36,7 @@ Three rules follow:
 2. **Never demo from a screenshot.** If a slide shows the product, it shows the running product.
 3. **The deck must survive being cut.** If we run out of time, we drop slides, not demo time.
 
-The deck carries the 90-second story in Hackathon Spec §8: who it is for, the moment it hurts, the fix, the proof.
+The deck carries the 90-second story in Hackathon Brief §8: who it is for, the moment it hurts, the fix, the proof.
 
 ---
 
@@ -51,11 +51,11 @@ The deck carries the 90-second story in Hackathon Spec §8: who it is for, the m
 | Icons | Lucide | `lucide-react` | ISC ✅ |
 | Type | Inter + Archivo, self hosted | local files | OFL ✅ |
 
-Every licence above is permissive. This satisfies Spec Test B3 (Hackathon Spec §7): each dependency is licensable onward to KICK under clause 7(f).
+Every licence above is permissive. This satisfies Spec Test B3 (Hackathon Brief §7): each dependency is licensable onward to KICK under clause 7(f).
 
 **Do not add a dependency to the deck without checking its licence first.** A restrictive licence on a slide library is a rules problem, not a taste problem.
 
-**No CSS framework in `pitch/`.** The deck uses plain CSS with the Design Spec §9 tokens. Tailwind is used in `prototypes/`, not here. A deck has about ten layouts, so a utility framework adds weight and no speed.
+**No CSS framework in `pitch/`.** The deck uses plain CSS with the Design System §9 tokens. Tailwind is used in `prototypes/`, not here. A deck has about ten layouts, so a utility framework adds weight and no speed.
 
 ---
 
@@ -103,7 +103,7 @@ pitch/
     assets/
 ```
 
-`tokens.css` is the Design Spec §9 block, copied verbatim, plus the deck additions in §5 below. Do not edit the copied values. If a token is wrong, fix it in the Design Spec first.
+`tokens.css` is the Design System §9 block, copied verbatim, plus the deck additions in §5 below. Do not edit the copied values. If a token is wrong, fix it in the Design System first.
 
 ---
 
@@ -144,7 +144,7 @@ Reveal mutates the deck: it adds classes, moves sections and clones nodes for ba
 
 ### Speaker notes
 
-Every slide carries an `<aside class="notes">` block. Load the `RevealNotes` plugin so the speaker view works. Each note starts with the name of the person who speaks that slide. Hackathon Spec §4 scores "evidence of a contribution from every team member", and §8 asks that every member speaks.
+Every slide carries an `<aside class="notes">` block. Load the `RevealNotes` plugin so the speaker view works. Each note starts with the name of the person who speaks that slide. Hackathon Brief §4 scores "evidence of a contribution from every team member", and §8 asks that every member speaks.
 
 ---
 
@@ -152,7 +152,7 @@ Every slide carries an `<aside class="notes">` block. Load the `RevealNotes` plu
 
 ### Tokens
 
-Use the Design Spec §9 tokens verbatim. Add these deck tokens on top. They are 🔧 derived.
+Use the Design System §9 tokens verbatim. Add these deck tokens on top. They are 🔧 derived.
 
 ```css
 :root{
@@ -181,7 +181,7 @@ Use the Design Spec §9 tokens verbatim. Add these deck tokens on top. They are 
 | `--d-caption` | 500, `--font-ui`, `--text-muted` | Captions, sources |
 | `--d-label` | 700, `0.08em`, uppercase | Eyebrow labels, badges |
 
-**The three display rows carry leading of exactly 1.0 and tracking of `normal`.** That is measured on KICK's own headings ✅ (Brand Identity §4). It replaces the Design Spec §2 rule that tightens tracking as size grows, which governs UI type.
+**The three display rows carry leading of exactly 1.0 and tracking of `normal`.** That is measured on KICK's own headings ✅ (Brand Identity §4). It replaces the Design System §2 rule that tightens tracking as size grows, which governs UI type.
 
 **Nothing on a slide goes below 24px at 1920 width.** A projector at the back of a room loses everything smaller.
 
@@ -194,7 +194,7 @@ Use the Design Spec §9 tokens verbatim. Add these deck tokens on top. They are 
 Two deck-specific limits sit on top:
 
 - **The deck gets two flood slides: the hook and the close.** That is the Brand Identity §3 ration, applied to a ten slide deck.
-- **Product UI on a slide keeps the Design Spec §1 green budget.** A screenshot of our overlay is interface, wherever it sits.
+- **Product UI on a slide keeps the Design System §1 green budget.** A screenshot of our overlay is interface, wherever it sits.
 
 The deck implements the devices as React components: `CropMarks`, `Sticker`, `CamcorderHud`.
 
@@ -217,7 +217,7 @@ No slide sets its own padding. If a layout needs different spacing, add a varian
 
 Two deck-specific limits sit on top:
 
-1. **No network at runtime.** Every asset is local and committed. The venue wifi is not a dependency (Hackathon Spec §2A.3).
+1. **No network at runtime.** Every asset is local and committed. The venue wifi is not a dependency (Hackathon Brief §2A.3).
 2. **One loud background in three slides, maximum.** A deck where every slide shouts reads as noise.
 
 `backgrounds/` holds one component per layer, so a slide composes them rather than writing CSS.
@@ -232,7 +232,7 @@ Motion One drives every animation inside a slide. Reveal drives the change betwe
 
 ### Tokens
 
-Use the Design Spec §6 motion tokens for UI, and the media curve for slide entry.
+Use the Design System §6 motion tokens for UI, and the media curve for slide entry.
 
 | Token | Value | Use in the deck |
 |---|---|---|
@@ -273,7 +273,7 @@ Rules:
 
 - Animate on enter. Do not animate on exit. Exit animation adds delay the presenter feels.
 - Total entry time per slide stays under 600ms. The presenter speaks over it, so it must finish first.
-- Respect `prefers-reduced-motion`. The Design Spec §9 block already disables transitions. `useSlideMotion` must also skip the animation and set the final state.
+- Respect `prefers-reduced-motion`. The Design System §9 block already disables transitions. `useSlideMotion` must also skip the animation and set the final state.
 
 ---
 
@@ -284,6 +284,18 @@ Rules:
 **Brand Identity §7 holds the licence gate and the imagery rules.** Every asset on a slide must pass it.
 
 `prototypes/hypeprops/src/assets` already holds `kick-logo.svg`. `prototypes/hypeprops/src/assets/fonts` holds `kick-font.ttf` with `kick-font-license.txt` next to it. Reuse those files. Copy the licence file with the font.
+
+### The KICK wordmark 🔧
+
+The close slide carries the wordmark (§9). **We hold no official logo rule, because the brand toolkit is gated (§0).** These rules are our construction. They are conservative, so a real toolkit is unlikely to contradict them. Replace them if we get access.
+
+- **Clear space is the height of the K on all four sides.** Nothing crosses it, text included.
+- **Minimum height is 48px at 1920 width.** The 24px floor is for type, not for a mark.
+- **Two colourways only.** Green `#53FC18` on a dark ground, or ink `#0B0B0C` on a green flood.
+- **Never modify the mark.** No recolour, rotation, stretch, outline, shadow, gradient or texture.
+- **Never set the mark over a loud background layer.** It needs a flat field.
+- **The wordmark appears twice, maximum**, and only on the cold open and the close.
+- **Never lock our own mark to the KICK mark.** A shared lockup claims a partnership we do not have.
 
 ### Device components
 
@@ -318,12 +330,12 @@ The Brand Identity §5 devices become React components in the deck.
 
 - **One idea per slide.** If a slide needs a comma to explain itself, it is two slides.
 - **25 words per slide, maximum.** The presenter carries the detail. The slide carries the point.
-- **8 to 10 slides.** The story in Hackathon Spec §8 fits in that. More slides eat demo time.
+- **8 to 10 slides.** The story in Hackathon Brief §8 fits in that. More slides eat demo time.
 - **All copy is ASD-STE100 Simplified Technical English**, per the Working Agreement. Active voice, present tense, one topic per sentence.
 - **No em dashes.** Use a comma, a colon, a full stop or brackets.
 - **Mock data on a slide follows the API Conventions Part 3.** Real names, funny handles, real chat energy. Never a placeholder. A judge reads the slide as closely as the fixture.
-- **Say the mock-data line out loud.** Hackathon Spec §2A.2 point 3 asks for it: same interface, live client behind it, deterministic fixture so the raid lands on cue. Put it on the "how it works" slide.
-- **Name the roles.** One slide lists every team member and what they built (Hackathon Spec §4, §8).
+- **Say the mock-data line out loud.** Hackathon Brief §2A.2 point 3 asks for it: same interface, live client behind it, deterministic fixture so the raid lands on cue. Put it on the "how it works" slide.
+- **Name the roles.** One slide lists every team member and what they built (Hackathon Brief §4, §8).
 
 ### Voice
 
@@ -355,14 +367,14 @@ The deck runs in a room we do not control. Plan for that.
 - **It runs offline.** Build it, then serve the `dist` folder locally. No CDN, no font service, no network call at runtime.
 - **Keep a PDF fallback.** Export with the Reveal `?print-pdf` query and commit the PDF before the pitch. If the laptop fails, the PDF opens on any machine.
 - **Test on the room projector, or on the nearest thing to it.** Check the 24px floor and the green at low brightness.
-- **Rehearse twice, timed, with the real build** (Hackathon Spec §8).
+- **Rehearse twice, timed, with the real build** (Hackathon Brief §8).
 - **Packaging is part of the run sheet.** Clause 3(h) needs the submission emailed, then every local copy deleted. Do not let this eat demo prep.
 
 ---
 
 ## 11. Accessibility and safety floor
 
-Design Spec §8 and Brand Identity §9 both apply. A projected deck adds one rule:
+Design System §8 and Brand Identity §9 both apply. A projected deck adds one rule:
 
 - **Test the contrast at projector brightness.** A room projector loses more contrast than any laptop screen. Check the 24px floor and the green at low brightness before the pitch.
 
@@ -373,11 +385,12 @@ Design Spec §8 and Brand Identity §9 both apply. A projected deck adds one rul
 Run this before the deck ships.
 
 - [ ] The deck passes the "is this KICK" test in Brand Identity §10
-- [ ] Every file in `pitch/` uses the Design Spec §9 tokens, plus the deck tokens in §5
+- [ ] Every file in `pitch/` uses the Design System §9 tokens, plus the deck tokens in §5
 - [ ] Product UI on a slide keeps green under 10% of visible pixels
 - [ ] The deck has exactly two flood frames: the hook and the close
 - [ ] `--sticker` appears once in the whole deck
 - [ ] Crop marks wrap the demo and the hero moment, and nothing else
+- [ ] The wordmark keeps its clear space, its size floor and one of the two colourways (§8)
 - [ ] Reveal runs `transition: 'none'`. No slide dissolves
 - [ ] No slide stacks two loud background layers
 - [ ] No banned enterprise word appears on a slide

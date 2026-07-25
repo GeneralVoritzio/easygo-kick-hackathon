@@ -13,7 +13,7 @@ KICK runs two visual systems. They share a palette and they share nothing else.
 | | **KICK UI** | **KICK media** |
 |---|---|---|
 | Where | kick.com, the player, the dashboard, any product screen | about.kick.com, brand films, social, decks, event graphics |
-| Governed by | `.claude/KICK-DESIGN-SPEC.md` | **This file** |
+| Governed by | `.claude/KICK-DESIGN-SYSTEM.md` | **This file** |
 | Type | Inter only | Booster Polygonal for display, Inter for body |
 | Green | Accent. Under 10% of pixels | Flood. Whole screens of it |
 | Motion | 150ms, neutral easing | Hard cuts, marquees, glitch |
@@ -23,14 +23,34 @@ KICK runs two visual systems. They share a palette and they share nothing else.
 
 **Which file applies?** Ask what the surface is. If a user operates it, it is UI. If a user watches it, it is media. Our overlay is UI. Our pitch deck is media. A screenshot of our overlay inside the deck stays UI.
 
-### Sources
+### Sources we read
 
 | Source | Read on | What it gives |
 |---|---|---|
-| [about.kick.com](https://about.kick.com) | 25 July 2026 | Brand values, mission copy, display type, flood colour, marquee |
+| [about.kick.com](https://about.kick.com) | 25 July 2026 | Brand values, mission copy, display type, flood colour, marquee. Every ✅ value in §1 to §4 |
 | [kick.com](https://kick.com) | 25 July 2026 | The UI half of the split, for contrast |
-| [KICK, "From Every Angle"](https://www.youtube.com/watch?v=02Vj-TkQhAI) | 30 second brand film | Footage culture, graphic devices, cut rate |
-| `.claude/KICK-DESIGN-SPEC.md` | | The token base this file extends |
+| [KICK, "From Every Angle"](https://www.youtube.com/watch?v=02Vj-TkQhAI) | 30 second brand film | Footage culture, graphic devices, cut rate. Every 🟡 value |
+| `.claude/KICK-DESIGN-SYSTEM.md` | | The token base this file extends |
+
+### The source we have not read 🔒
+
+| Source | Status | What it would settle |
+|---|---|---|
+| [Brandfolder portal](https://brandfolder.com/portals/kick) | **Gated. Sign-in required** | The official brand toolkit: logo lockups, clear space, minimum size, misuse rules, the real greys, confirmed type names |
+| [about.kick.com/brand](https://about.kick.com/brand) | **Blocked to us** | The same toolkit, linked from the public site |
+
+Checked 25 July 2026. The Brandfolder link resolves to an **Easygo** portal and it asks for a
+sign-in, so no value in this file comes from it. This is the reason §3 and §4 still carry 🔧 tags.
+
+**If a team member can sign in, read it and correct §3, §4 and §5 before 1 August.** These are the
+things we currently guess and a judge could check:
+
+1. Logo clear space, minimum size and the misuse rules. We hold no rule for any of them.
+2. The official secondary palette. We took cyan `#00FFFF` from the DOM, not from a toolkit.
+3. The display face and its licence terms, which decide if Archivo stays our substitute (§4).
+4. Whether the green to cyan gradient is a brand asset or one page's treatment.
+
+Until then, **do not tell a judge that a 🔧 or 🟡 value is KICK's own.** Say we measured it.
 
 ### Confidence tags
 
@@ -123,20 +143,20 @@ Green to cyan, left to right. KICK uses this on its own brand surfaces, and its 
 
 **In media, green is a paint roller.** KICK fills whole screens with `#53FC18` and sets `#0B0B0C` type on top. Its brand pattern plates are 4096px squares of green and cyan.
 
-This is the single biggest difference from the UI system, where Design Spec §1 caps green under 10% of pixels.
+This is the single biggest difference from the UI system, where Design System §1 caps green under 10% of pixels.
 
 Rules for a flood:
 
 - Type on green is always `#0B0B0C`. Never white.
 - A flood is a whole surface, never a panel. Half a green screen looks like a mistake.
 - **Floods are rationed.** In any one piece, two floods maximum: the open and the close. A third makes it wallpaper.
-- Product UI inside a media piece keeps the Design Spec §1 budget.
+- Product UI inside a media piece keeps the Design System §1 budget.
 
-### Where the Design Spec disagrees
+### Where the Design System disagrees
 
-The Design Spec is locked, so this file does not change it. These gaps are reported, not fixed. Design Spec §0 already asks for a DevTools pass to correct flagged values, and this is that pass.
+The Design System is locked, so this file does not change it. These gaps are reported, not fixed. Design System §0 already asks for a DevTools pass to correct flagged values, and this is that pass.
 
-| Token | Design Spec | Measured on KICK ✅ |
+| Token | Design System | Measured on KICK ✅ |
 |---|---|---|
 | `--kick-green` | `#53FC18` 🟡 | `#53FC18`. **Promote to verified** |
 | `--bg-base` | `#0B0E0F` 🔧 | `#0B0B0C` |
@@ -163,7 +183,7 @@ Booster is published by [Blaze Type](https://www.myfonts.com/collections/booster
 
 ### The licence problem
 
-**Booster is a commercial retail font. We cannot self-host it.** Hackathon Spec §5.2 and clause 7(f) require every asset to be licensable onward to KICK. We hold no Booster licence, so shipping the file fails the rules test.
+**Booster is a commercial retail font. We cannot self-host it.** Hackathon Brief §5.2 and clause 7(f) require every asset to be licensable onward to KICK. We hold no Booster licence, so shipping the file fails the rules test.
 
 Our substitute 🔧:
 
@@ -195,7 +215,7 @@ Measured on about.kick.com headings at 67px, 64px, 48px and 34px.
 }
 ```
 
-The Design Spec §2 rule that tracking tightens as size grows applies to **UI** type. Media display type does not do this. ✅ beats 🔧.
+The Design System §2 rule that tracking tightens as size grows applies to **UI** type. Media display type does not do this. ✅ beats 🔧.
 
 ### Stacked lockups 🟡
 
@@ -237,7 +257,7 @@ Loud devices do not stack. **One loud device per surface.** A slide with a flood
 
 `cubic-bezier(.87,0,.13,1)` sits still, then moves fast, then stops hard. That is the media curve. Use it for entrances on brand surfaces.
 
-The Design Spec `--ease:cubic-bezier(.2,.8,.2,1)` 🔧 is close to neither. Keep it for UI until the locked file is corrected, and use the measured curves for media.
+The Design System `--ease:cubic-bezier(.2,.8,.2,1)` 🔧 is close to neither. Keep it for UI until the locked file is corrected, and use the measured curves for media.
 
 ### Rules
 
@@ -245,7 +265,7 @@ The Design Spec `--ease:cubic-bezier(.2,.8,.2,1)` 🔧 is close to neither. Keep
 2. **Entrances are short.** Under 300ms. The viewer is listening to a person, so the motion must finish before the sentence does.
 3. **Animate in. Do not animate out.** Exit animation is delay the presenter feels.
 4. **One ambient loop per surface, maximum.** Period of 8 seconds or more, opacity change of 0.06 or less. 🔧
-5. **`prefers-reduced-motion` stops everything** and sets the final state. Design Spec §9 already disables transitions. Ambient loops and marquees must stop too.
+5. **`prefers-reduced-motion` stops everything** and sets the final state. Design System §9 already disables transitions. Ambient loops and marquees must stop too.
 
 ### The safety floor
 
@@ -268,7 +288,7 @@ Every shot in the brand film is creator-grade capture. Phone, action cam, 360 ri
 
 ### Our licence gate
 
-Hackathon Spec §5.2 and clause 7(f) put licensing on us. **We cannot copy KICK's approach directly, because KICK's footage is full of real creators and we hold no rights to any of it.**
+Hackathon Brief §5.2 and clause 7(f) put licensing on us. **We cannot copy KICK's approach directly, because KICK's footage is full of real creators and we hold no rights to any of it.**
 
 | ✅ Use | ❌ Do not use |
 |---|---|
@@ -320,13 +340,13 @@ Layers 5, 6 and 7 are the loud ones. **One of them per surface, never two.**
 
 **The background never competes with the text.** If you cannot read the surface with your eyes half closed, the background is too loud.
 
-Text over any busy background needs a carrier: a plate at `rgba(11,11,12,.82)` or a shadow of `0 2px 8px rgba(0,0,0,.9)`. This is Design Spec §7, and it applies to media too.
+Text over any busy background needs a carrier: a plate at `rgba(11,11,12,.82)` or a shadow of `0 2px 8px rgba(0,0,0,.9)`. This is Design System §7, and it applies to media too.
 
 ---
 
 ## 9. What this file does not govern
 
-**Product interface.** Buttons, inputs, cards, chat rows, viewer counts, the LIVE badge, overlay layout, focus rings, hit targets. All of that is `.claude/KICK-DESIGN-SPEC.md`, and none of it changes because of this file.
+**Product interface.** Buttons, inputs, cards, chat rows, viewer counts, the LIVE badge, overlay layout, focus rings, hit targets. All of that is `.claude/KICK-DESIGN-SYSTEM.md`, and none of it changes because of this file.
 
 Three rules survive into media unchanged, because they are floors and not styles:
 
@@ -356,4 +376,4 @@ Run a finished media surface against this. Four or more no answers means it is n
 
 ---
 
-*Written 25 July 2026. Values tagged ✅ were read from the live DOM on kick.com and about.kick.com on that date. Values tagged 🟡 come from KICK's "From Every Angle" brand film. Values tagged 🔧 are our construction, not KICK's. Check the [brand toolkit](https://about.kick.com/brand) before 1 August and correct §3 and §4 if we get access.*
+*Written 25 July 2026. Values tagged ✅ were read from the live DOM on kick.com and about.kick.com on that date. Values tagged 🟡 come from KICK's "From Every Angle" brand film. Values tagged 🔧 are our construction, not KICK's. The official brand toolkit is still unread, and §0 lists what it would settle.*

@@ -1,9 +1,9 @@
 /*
-  MockKickClient. The adapter layer from Hackathon Spec 2A.2: one interface,
+  MockKickClient. The adapter layer from Hackathon Brief 2A.2: one interface,
   two implementations. LiveKickClient has the same method names and returns the
   same shapes, so the app cannot tell which one it holds.
 
-  Field names come from the real API (.claude/KICK_API_MAP.md). Invented names
+  Field names come from the real API (.claude/KICK-API-MAP.md). Invented names
   follow KICK-API-CONVENTIONS Part 2.
 */
 (function (global) {

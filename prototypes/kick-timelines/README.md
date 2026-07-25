@@ -43,7 +43,7 @@ the chosen branch marked and the odds shown.
 **Go live exports.** Each overlay element is opt in. Each one is a separate
 browser source that the streamer adds to OBS, so it reaches every platform they
 stream to. The background is transparent, there is no audio, and no element
-sits in the lower third (Design Spec 7).
+sits in the lower third (Design System 7).
 
 ## Keyboard
 
@@ -111,7 +111,7 @@ beat in the pitch.
 | `js/timeline.js` | The curve, the peaks, the markers and the hover preview |
 | `js/roulette.js` | The weighted wheel |
 | `js/app.js` | Wiring, chat, polls, clips and the panels |
-| `css/tokens.css` | Design Spec 9 tokens, copied without change |
+| `css/tokens.css` | Design System 9 tokens, copied without change |
 | `css/app.css` | Components |
 
 ## Known gaps

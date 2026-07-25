@@ -5,7 +5,7 @@
 **Date:** 25 July 2026 · **Build window:** now → 1 August
 **Score:** 78 as originally stated · **~89 with the sharpening in §2 and §5**
 
-Companion documents — locked sources: `.claude/KICK-HACKATHON-SPEC.md` (rules and spec test) · `.claude/KICK-DESIGN-SPEC.md` (styling). Generated: `idea-docs/KICK-IDEA-BANK.md` (alternatives and API research) · `idea-docs/hackathon-scorer.html` (Idea Scorer)
+Companion documents — locked sources: `.claude/KICK-HACKATHON-BRIEF.md` (rules and spec test) · `.claude/KICK-DESIGN-SYSTEM.md` (styling). Generated: `idea-docs/KICK-IDEA-BANK.md` (alternatives and API research) · `idea-docs/hackathon-scorer.html` (Idea Scorer)
 
 ---
 
@@ -152,7 +152,7 @@ Technical Execution is capped at 20% and we're already near the top of it. A wee
 | C2 | Fun, energetic, loud | ✅ **Best in class** |
 | C3 | Non-intrusive | ⚠️ **Tension — §8.3** |
 | C4 | Cross-platform aware | ✅ **Best in class** — the export is designed for it |
-| C5 | KICK-native UI | 🔲 Per `.claude/KICK-DESIGN-SPEC.md` |
+| C5 | KICK-native UI | 🔲 Per `.claude/KICK-DESIGN-SYSTEM.md` |
 | C6 | Demoable on mock data | ✅ By construction |
 | C7 | 4-hour core loop | ⚠️ Waived with A1 — replaced by the §6 scope |
 | C8 | Parallelisable | ✅ **Strong** — five workstreams, §7 |

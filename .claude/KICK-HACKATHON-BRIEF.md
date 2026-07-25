@@ -1,4 +1,4 @@
-# KICK Hackathon — Team Spec
+# KICK Hackathon — Team Brief
 
 **Easygo Mini Hackathon, Powered by KICK**
 Saturday 1 August 2026 · Fortress Melbourne (Shop 25/23 Caledonian Ln) · In-person

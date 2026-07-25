@@ -8,14 +8,14 @@ Easygo Mini Hackathon powered by KICK · Saturday 1 August 2026 · Challenge 1 (
 
 | File | What it is | Editable? |
 |---|---|---|
-| `.claude/KICK-HACKATHON-SPEC.md` | The event: rules, T&Cs, judging criteria, data strategy, and **§7 The Spec Test** | 🔒 Locked |
-| `.claude/KICK-DESIGN-SPEC.md` | The KICK design system for **product UI**: colour, type, spacing, components, motion, and **§9 drop-in tokens** | 🔒 Locked |
+| `.claude/KICK-HACKATHON-BRIEF.md` | The event: rules, T&Cs, judging criteria, data strategy, and **§7 The Spec Test** | 🔒 Locked |
+| `.claude/KICK-DESIGN-SYSTEM.md` | The KICK design system for **product UI**: colour, type, spacing, components, motion, and **§9 drop-in tokens** | 🔒 Locked |
 | `.claude/KICK-BRAND-IDENTITY.md` | What KICK looks like, sounds like and believes, for **media**: values, voice, flood colour, display type, graphic devices, motion feel, footage rules | ✍️ Extend as we learn |
-| `.claude/KICK_API_MAP.md` | The real KICK API: every object, endpoint, webhook event and scope, from a sweep of `docs.kick.com`. Ground truth for what the API does and does not have | 🔄 Only from the live docs |
+| `.claude/KICK-API-MAP.md` | The real KICK API: every object, endpoint, webhook event and scope, from a sweep of `docs.kick.com`. Ground truth for what the API does and does not have | 🔄 Only from the live docs |
 | `.claude/KICK-API-CONVENTIONS.md` | Our API style guide: use KICK's real endpoint/field/event names, name invented endpoints the same way, and the mock-data naming rules | ✍️ Extend as we learn |
-| `.claude/KICK-PITCH-DECK-SPEC.md` | Deck mechanics only: stack (React + Vite + Reveal.js + Motion One), Reveal rules, slide components, the deck type scale, the run sheet. The look comes from the Brand Identity. **Applies only to files in `pitch/`** | ✍️ Extend as we learn |
+| `.claude/KICK-PITCH-DECK-MECHANICS.md` | Deck mechanics only: stack (React + Vite + Reveal.js + Motion One), Reveal rules, slide components, the deck type scale, the run sheet. The look comes from the Brand Identity. **Applies only to files in `pitch/`** | ✍️ Extend as we learn |
 
-The two **locked** specs are the inputs everything else is derived from. **Never edit, rewrite, reformat or "improve" them as a side effect of another task.** If something in them is wrong or has been superseded, say so and wait for an explicit instruction to change it — then change only what was asked.
+The two **locked** files are the inputs everything else is derived from. **Never edit, rewrite, reformat or "improve" them as a side effect of another task.** If something in them is wrong or has been superseded, say so and wait for an explicit instruction to change it — then change only what was asked.
 
 Any docs we generate go in the `docs/` folder — never into `.claude/`. The API map is the one
 exception: it is a source of truth, so it lives in `.claude/`. Change it only to match the live
@@ -23,16 +23,16 @@ docs at `docs.kick.com`, and record the date you checked.
 
 ## How to work
 
-- **Every idea gets run against the Spec Test** (`.claude/KICK-HACKATHON-SPEC.md` §7) before it gets build time. Any ❌ in Part A (published requirements) or Part B (rules compliance) kills the idea. Then score it: ship above 75, keep prototyping 60–75, kill below 60.
-- **Know whether you are building UI or media.** If a user operates it, it is UI, and `.claude/KICK-DESIGN-SPEC.md` rules. If a user watches it, it is media, and `.claude/KICK-BRAND-IDENTITY.md` rules. Our overlay is UI. The pitch deck is media. A screenshot of our overlay inside the deck is still UI. KICK runs the same split: kick.com loads Inter only, and about.kick.com loads its display face on top.
-- **Every UI uses the design tokens** from `.claude/KICK-DESIGN-SPEC.md` §9 verbatim. Dark base, `#53fc18` used sparingly — the green stays under 10% of visible pixels.
+- **Every idea gets run against the Spec Test** (`.claude/KICK-HACKATHON-BRIEF.md` §7) before it gets build time. Any ❌ in Part A (published requirements) or Part B (rules compliance) kills the idea. Then score it: ship above 75, keep prototyping 60–75, kill below 60.
+- **Know whether you are building UI or media.** If a user operates it, it is UI, and `.claude/KICK-DESIGN-SYSTEM.md` rules. If a user watches it, it is media, and `.claude/KICK-BRAND-IDENTITY.md` rules. Our overlay is UI. The pitch deck is media. A screenshot of our overlay inside the deck is still UI. KICK runs the same split: kick.com loads Inter only, and about.kick.com loads its display face on top.
+- **Every UI uses the design tokens** from `.claude/KICK-DESIGN-SYSTEM.md` §9 verbatim. Dark base, `#53fc18` used sparingly — the green stays under 10% of visible pixels.
 - **Every media surface follows the Brand Identity.** In media the green floods, the display type is ALL CAPS on leading of 1.0, and the copy sounds like chat. Run the finished thing against Brand Identity §10.
 - **Respect the API boundary.** No video/audio frames, no game state, no per-viewer telemetry, no emote events, no injection into the KICK player. We run on mocked data, but every mocked data point must be something the live API could actually produce.
 - **Follow KICK's API conventions** (`.claude/KICK-API-CONVENTIONS.md`). Use real KICK names for anything the API exposes; name and shape invented endpoints/events/fields the same way. Mock data uses real, creative names (KICK-streamer flavour + funny handles) — **never placeholders**.
 - **Label every endpoint and event.** `kick` for surface KICK publishes, `fake-kick` for surface we invented: `kick GET /public/v2/livestreams`, `fake-kick POST /public/v1/timelines/markers`. The label goes in front of the verb and path, and in front of an event name. Use it in code, in docs and in UI copy, so a reader can tell the two apart at a glance. Keep the two sets in separate places: a mock API file holds the `kick` labels only, and the code that consumes it holds the `fake-kick` labels.
-- **Anything in `pitch/` follows the Pitch Deck Spec** (`.claude/KICK-PITCH-DECK-SPEC.md`) for mechanics, and the Brand Identity for the look. The Pitch Deck Spec does not restate the brand rules. Outside `pitch/`, ignore it.
-- **Cite the spec when you derive from it** — quote the section (e.g. "Design Spec §3") so claims are traceable back to a locked source rather than invented.
-- Confidence tags in the design spec (✅ verified / 🟡 high confidence / 🔧 derived) carry meaning. Don't promote a 🔧 value to a fact.
+- **Anything in `pitch/` follows the Deck Mechanics file** (`.claude/KICK-PITCH-DECK-MECHANICS.md`) for how the deck is built, and the Brand Identity for how it looks. The Deck Mechanics file does not restate the brand rules. Outside `pitch/`, ignore it.
+- **Cite the source file when you derive from it** — quote the section (e.g. "Design System §3") so claims are traceable back to a locked source rather than invented.
+- Confidence tags in the Design System and the Brand Identity (✅ verified / 🟡 high confidence / 🔧 derived) carry meaning. Don't promote a 🔧 value to a fact.
 
 ## Coding style
 

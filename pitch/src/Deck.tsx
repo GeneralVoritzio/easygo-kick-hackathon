@@ -9,11 +9,12 @@ export function Deck() {
   useEffect(() => {
     if (!root.current) return
     const instance = new Reveal(root.current, {
-      width: 1920,
-      height: 1080,
+      // Fill the window at any aspect. The type scale is in vw, so it stays proportional.
+      width: '100%',
+      height: '100%',
       margin: 0,
-      minScale: 0.2,
-      maxScale: 1.5,
+      minScale: 1,
+      maxScale: 1,
       controls: false,
       progress: true,
       hash: true,

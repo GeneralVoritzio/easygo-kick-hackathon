@@ -1,12 +1,17 @@
 import { Dark, Flood, Halftone, Macroblock } from '../backgrounds'
-import { Frame, HeroStat, Slide, Split, Stack, Wordmark } from '../components'
+import { CamcorderHud, Frame, HeroStat, Marquee, Slide, Split, Stack, Sticker, Wordmark } from '../components'
 import { ChannelBar, ChatPeek, DecisionCard, TimelineTrack } from '../mock'
 import { beats, channel } from '../mock/fixture'
 import { team } from './team'
 
 export function Cold() {
   return (
-    <Slide centre notes="Matt. Say the line, then stop. Let it sit for two seconds before you advance." background={<Dark glow={false} />}>
+    <Slide
+      centre
+      notes="Matt. Say the line, then stop. Let it sit for two seconds before you advance."
+      background={<Dark glow={false} />}
+      overlay={<Marquee phrase="Chat already told you  ·  " duration={54} />}
+    >
       <p className="display h2" data-anim="riseIn">
         Chat already told you.
       </p>
@@ -19,7 +24,12 @@ export function Cold() {
 
 export function Hook() {
   return (
-    <Slide onFlood notes="Matt. Name the product once. Do not explain it yet." background={<Halftone />}>
+    <Slide
+      onFlood
+      notes="Matt. Name the product once. Do not explain it yet."
+      background={<Halftone />}
+      overlay={<Marquee onFlood phrase="Every stream writes its own timeline  ·  " duration={38} />}
+    >
       <p className="label" data-anim="riseIn">
         Easygo Mini Hackathon, powered by KICK
       </p>
@@ -35,7 +45,7 @@ export function Problem() {
   return (
     <Slide
       notes="Name the user out loud. ClutchGoblin is in our fixture, so the demo matches this slide. Add the other two users yourself: a viewer who opens a four hour replay cannot find the good part, and a mod who saw the moment cannot mark it so it survives the stream."
-      background={<Dark />}
+      background={<Dark crosses />}
     >
       <p className="label" data-anim="riseIn">
         The problem
@@ -45,7 +55,7 @@ export function Problem() {
         <br />
         then nothing
       </h1>
-      <p className="body" data-anim="riseIn">
+      <p className="body edged" data-anim="riseIn">
         {channel.username} lost 15.3% of the room at 02:41. Nobody could tell him why.
       </p>
     </Slide>
@@ -63,7 +73,7 @@ export function Fix() {
         <br />
         while it happens
       </h1>
-      <p className="body" data-anim="riseIn">
+      <p className="body edged" data-anim="riseIn">
         One timeline. Viewers find the peaks. Streamers see what each decision cost.
       </p>
     </Slide>
@@ -75,6 +85,7 @@ export function Demo() {
     <Slide
       notes="Hand off to the running build now. Do not narrate the UI. Trigger the raid beat at 01:05, then the category change at 02:41."
       background={<Dark glow={false} />}
+      overlay={<CamcorderHud timecode="00:03:29:14" />}
     >
       <Frame bleed tag="LIVE BUILD">
         <ChannelBar />
@@ -89,7 +100,11 @@ export function Demo() {
 
 export function Wow() {
   return (
-    <Slide notes="Trigger the 5,000 kicks gift live. The peak draws itself. Say nothing while it draws." background={<Macroblock />}>
+    <Slide
+      notes="Trigger the 5,000 kicks gift live. The peak draws itself. Say nothing while it draws."
+      background={<Dark />}
+      overlay={<Sticker text="Peak of the stream" />}
+    >
       <p className="label" data-anim="riseIn">
         The loudest moment, 03:29
       </p>
@@ -140,7 +155,7 @@ export function HowItWorks() {
 
 export function Native() {
   return (
-    <Slide notes="Why KICK and not somewhere else. Keep it to three beats." background={<Dark />}>
+    <Slide notes="Why KICK and not somewhere else. Keep it to three beats." background={<Macroblock />}>
       <p className="label" data-anim="riseIn">
         Why it belongs on KICK
       </p>
@@ -207,7 +222,13 @@ export function Team() {
 
 export function Close() {
   return (
-    <Slide centre onFlood notes="Say the triad, then the ask, then stop talking." background={<Flood />}>
+    <Slide
+      centre
+      onFlood
+      notes="Say the triad, then the ask, then stop talking."
+      background={<Flood />}
+      overlay={<Marquee onFlood phrase="Record it  ·  Find it  ·  Own it  ·  " duration={30} />}
+    >
       <Wordmark size="lg" ink />
       <h1 className="display h1" data-anim="slamIn">
         Record it. Find it. Own it.

@@ -39,7 +39,8 @@ with a nav. React and CSS make the second one by default, so push back on purpos
 - **No card grids of three or four equal boxes.** That is a landing page. A slide carries one idea.
 - **Big empty space is correct.** If a slide looks underfilled on a laptop, it is right for a room.
 - **One focal point per slide.** A viewer should know where to look before they read anything.
-- **Nothing responsive.** The deck is 1920x1080 and it scales as a whole. Do not write a media query.
+- **Nothing responsive, but no letterbox either.** The deck fills the window at any aspect, because
+  every size is a fraction of the viewport width. Do not write a media query.
 
 A useful test: **screenshot a slide and remove the text. If it still reads as a web page, it is
 wrong.**
@@ -113,34 +114,41 @@ spacing, add a variant to `Slide`.
 
 ```css
 :root{
-  --deck-w:1920px;
-  --deck-h:1080px;
-  --deck-gutter:96px;      /* all four sides */
-  --deck-measure:24ch;     /* never let a line run wider */
+  --deck-gutter:5vw;       /* 96 at a 1920 canvas, all four sides */
+  --deck-measure:30ch;     /* never let a line run wider */
 }
 ```
+
+**Every size is `vw`, as a fraction of the 1920 design canvas.** 1px at 1920 is 0.0521vw. That is what
+lets the deck fill any window with no black bars and still hold its proportions. Reveal runs at
+`width:'100%'` with the scale pinned to 1, so it does no scaling of its own.
+
+**A device that sits against a slide edge goes in the `overlay` slot on `Slide`, not with the content.**
+The content block is centred, so an absolutely positioned child would anchor to the content and land
+in the middle of the slide. The marquee, the sticker and the HUD all use `overlay`.
 
 ### The type scale
 
 Deck geometry, not theming. **The styling of these rows is Brand Identity Section 4**: display is ALL
 CAPS, weight 800, leading 1.0, tracking `normal`.
 
-| Token | Size / leading | Use |
-|---|---|---|
-| `--d-hero` | 160 / 160 | One number or two words. One per slide, maximum |
-| `--d-h1` | 96 / 96 | Slide title |
-| `--d-h2` | 60 / 60 | Section title |
-| `--d-h3` | 40 / 48 | Card title |
-| `--d-body` | 30 / 44 | Body copy |
-| `--d-caption` | 24 / 34 | Captions, sources |
-| `--d-label` | 24 / 28 | Eyebrow labels, badges |
+| Token | vw | At 1920 | Use |
+|---|---|---|---|
+| `--d-hero` | 8.33 | 160 | One number or two words. One per slide, maximum |
+| `--d-h1` | 5 | 96 | Slide title |
+| `--d-h2` | 3.125 | 60 | Section title |
+| `--d-h3` | 2.08 | 40 | Card title |
+| `--d-body` | 1.56 | 30 | Body copy |
+| `--d-caption` | 1.25 | 24 | Captions, sources |
+| `--d-label` | 1.25 | 24 | Eyebrow labels, badges |
 
-**Nothing renders below 24px at 1920 width.** A projector at the back of a room loses everything
+**Nothing renders below 1.25vw, which is 24px at 1920 width.** A projector at the back of a room loses everything
 smaller. This floor applies to slide furniture. A mock product element is exempt, per Section 5.
 
 ### Position
 
-- **Content sits in the upper two thirds.** The bottom third is where a room's sightlines die.
+- **Content is centred in the frame.** Top loading it leaves a dead half that reads as unfinished.
+- **Use the bottom edge for a device, not for copy.** A marquee or a HUD earns that band.
 - **Flush left by default.** Centre only a flood frame and the close.
 - **One vertical rhythm per slide.** Do not mix a centred block with a flush-left block.
 
@@ -174,8 +182,8 @@ rebuilding it.
 
 ```ts
 Reveal.initialize({
-  width: 1920, height: 1080, margin: 0,
-  minScale: 0.2, maxScale: 1.5,
+  width: '100%', height: '100%', margin: 0,
+  minScale: 1, maxScale: 1,
   controls: false, progress: true, hash: true,
   keyboard: true, overview: true,
   transition: 'none',

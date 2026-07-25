@@ -14,6 +14,20 @@
   mask-image:linear-gradient(105deg,transparent 18%,#000 78%);
 }
 
+/*
+  Registration crosses: a regular field of + marks, verified on KICK's own plate.
+  One cross per tile, as SVG, because a data URI cannot read a custom property.
+  The stroke is #42474D, which is KICK's neutral-700, the same value as --border.
+*/
+.bg-crosses{
+  position:absolute;inset:0;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120'><path d='M60 49v22M49 60h22' stroke='%2342474D' stroke-width='2'/></svg>");
+  background-size:120px 120px;
+  -webkit-mask-image:radial-gradient(120% 120% at 20% 20%,#000 30%,transparent 78%);
+  mask-image:radial-gradient(120% 120% at 20% 20%,#000 30%,transparent 78%);
+  opacity:.55;
+}
+
 .bg-glow{
   position:absolute;inset:0;
   background:radial-gradient(58% 62% at 76% 30%,var(--kick-green-glow),transparent 70%);

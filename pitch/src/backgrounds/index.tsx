@@ -12,10 +12,11 @@ export function Halftone() {
   )
 }
 
-export function Dark({ glow = true }: { glow?: boolean }) {
+export function Dark({ glow = true, crosses }: { glow?: boolean; crosses?: boolean }) {
   return (
     <div className="bg-dark">
       {glow && <div className="bg-glow" />}
+      {crosses && <div className="bg-crosses" />}
       <div className="bg-grain" />
       <div className="bg-vignette" />
     </div>

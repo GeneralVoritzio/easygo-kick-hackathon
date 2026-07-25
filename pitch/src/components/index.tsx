@@ -50,6 +50,60 @@ export function Frame({ children, tag, bleed }: { children: ReactNode; tag?: str
   Drawn as a mask, not an img, because the source SVG hardcodes green and the
   wordmark must be ink on a flood. Brand Identity Section 5 allows those two colourways only.
 */
+/*
+  One phrase repeated across a strip, scrolling forever. KICK runs
+  animation:marquee var(--duration) linear infinite. Brand Identity Section 5.
+  The row is duplicated so the loop has no visible seam.
+*/
+export function Marquee({
+  phrase,
+  duration = 40,
+  onFlood,
+}: {
+  phrase: string
+  duration?: number
+  onFlood?: boolean
+}) {
+  const items = Array.from({ length: 8 }, (_, i) => (
+    <span className="marquee__item" key={i}>
+      {phrase}
+    </span>
+  ))
+  return (
+    <div className={onFlood ? 'marquee marquee--flood' : 'marquee'} aria-hidden="true">
+      <div className="marquee__row" style={{ '--marquee-duration': `${duration}s` } as React.CSSProperties}>
+        {items}
+        {items}
+      </div>
+    </div>
+  )
+}
+
+export function Sticker({ text }: { text: string }) {
+  return (
+    <div className="sticker" data-anim="stickerPop">
+      <span className="sticker__text">{text}</span>
+    </div>
+  )
+}
+
+export function CamcorderHud({ timecode }: { timecode: string }) {
+  return (
+    <div className="hud" aria-hidden="true">
+      <span className="hud__rec">
+        <span className="hud__dot" />
+        rec
+      </span>
+      <span className="hud__tc">{timecode}</span>
+      <span className="hud__spacer" />
+      <span>hype</span>
+      <span>markers</span>
+      <span>clips</span>
+      <span>exports</span>
+    </div>
+  )
+}
+
 export function Wordmark({ size = 'sm', ink }: { size?: 'sm' | 'lg'; ink?: boolean }) {
   return (
     <span

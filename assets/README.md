@@ -31,7 +31,7 @@ curl -L -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML,
 | `cta-section.png` | 1920x1080 | The full vocabulary on one plate: green flood, cyan blocks, a field of `+` registration crosses, halftone dot fields, and hard-edged macroblocks with short vertical fades into a dark olive |
 | `background-values.png` | 1389x1002 | The plate behind the values section |
 
-`cta-section.png` is the single most useful file here. Brand Identity section 3 and section 8 are
+`cta-section.png` is the single most useful file here. Brand Identity Section 3 and Section 8 are
 written from it.
 
 ### `brand/devices/`: the edge bar
@@ -43,11 +43,11 @@ written from it.
 | `border-deliberately-different.png` | 14x140 |
 
 A 14px wide vertical strip of green and cyan blocks. KICK sets one against the left edge of each
-value block. Brand Identity section 5 calls it the edge bar.
+value block. Brand Identity Section 5 calls it the edge bar.
 
 **These are KICK trademarks and KICK artwork, not our assets.** KICK owns them. They are here so we
-can read the brand, not so we can ship them. Brand Identity section 7 holds the licence gate, and
-Deck Mechanics section 8 holds the wordmark rule.
+can read the brand, not so we can ship them. Brand Identity Section 7 holds the licence gate, and
+Deck Mechanics Section 8 holds the wordmark rule.
 
 ### Assets we did not download
 
@@ -56,7 +56,7 @@ Deck Mechanics section 8 holds the wordmark rule.
 `microphone.png`, `headphones.png`, `computer.png`, `w-key.png`, `ring-binder.png`,
 `paper-plane.png`, `95_5-sign.png`. All under `https://about.kick.com/img/landing/`.
 
-They show KICK's still-life language (Brand Identity section 5), but they are KICK photography and
+They show KICK's still-life language (Brand Identity Section 5), but they are KICK photography and
 we cannot use them in the deck. Read them on the site. Do not commit them.
 
 ## `fonts/`
@@ -83,7 +83,7 @@ https://assets.kick.com/about/_next/static/media/BoosterPolygonCP_Bold-s.p.18c2j
 
 **We did not download them, and we must not ship them.** A public URL is not a licence. Hackathon
 Brief clause 7(f) makes us licence every asset onward to KICK, and we hold no Booster licence, so
-the file would fail the rules test. Brand Identity section 4 states the same rule.
+the file would fail the rules test. Brand Identity Section 4 states the same rule.
 
 Use Archivo at weight 800 instead, and say so out loud if a judge asks about type.
 
@@ -110,8 +110,8 @@ about.kick.com, so these are KICK own values, not our guesses:
 lime, melon, mint, mist, neon, powder, rose, sand, sky, sunshine, violet.
 
 **Read the tokens, do not paste the file into a build.** Our own tokens stay in
-`.claude/KICK-DESIGN-SYSTEM.md` section 9. This file is the ground truth we correct them against.
-Brand Identity section 3 lists the corrections.
+`.claude/KICK-DESIGN-SYSTEM.md` Section 9. This file is the ground truth we correct them against.
+Brand Identity Section 3 lists the corrections.
 
 ## What is still gated
 
@@ -125,4 +125,4 @@ The logo **share** link at `https://brandfolder.com/s/vb9bf4cj6sbkvxmb5x8x7q2g` 
 three files are not here. `kick-logo.svg` above is the same wordmark, from KICK own site.
 
 **If a team member can sign in to the Easygo Brandfolder, get the logo rules and the three share
-assets.** Brand Identity section 0 lists what to correct.
+assets.** Brand Identity Section 0 lists what to correct.

@@ -9,7 +9,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
 /* ============================================================
-   TOKENS — pasted verbatim from .claude/KICK-DESIGN-SYSTEM.md §9
+   TOKENS — pasted verbatim from .claude/KICK-DESIGN-SYSTEM.md Section 9
    Nothing below this block may hard-code a colour or radius.
    ============================================================ */
 :root{
@@ -57,7 +57,7 @@ body{
 .tabular{font-variant-numeric:tabular-nums}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 
-/* ---------- type scale (§2) ---------- */
+/* ---------- type scale (Section 2) ---------- */
 .t-display{font-family:var(--font-display);font-size:48px;line-height:52px;font-weight:800;letter-spacing:-.03em;color:var(--text-primary)}
 .t-h1{font-size:32px;line-height:38px;font-weight:700;letter-spacing:-.02em;color:var(--text-primary)}
 .t-h2{font-size:24px;line-height:30px;font-weight:700;letter-spacing:-.02em;color:var(--text-primary)}
@@ -100,7 +100,7 @@ body{
 .head p{margin:8px 0 0;color:var(--text-muted);max-width:62ch}
 .eyebrow{color:var(--kick-green);margin-bottom:10px}
 
-/* ---------- buttons (§4) ---------- */
+/* ---------- buttons (Section 4) ---------- */
 .btn{font:inherit;font-weight:600;border-radius:var(--r-md);padding:10px 18px;cursor:pointer;
   border:1px solid transparent;display:inline-flex;align-items:center;gap:8px;
   transition:background-color var(--fast) var(--ease),transform 100ms var(--ease),border-color var(--fast) var(--ease)}
@@ -115,7 +115,7 @@ body{
 .btn-ghost:hover{background:var(--bg-raised)}
 .btn-sm{padding:6px 12px;font-size:13px}
 
-/* ---------- inputs (§4) ---------- */
+/* ---------- inputs (Section 4) ---------- */
 .field{margin-bottom:16px}
 .field label{display:block;font-size:12px;font-weight:600;color:var(--text-muted);margin-bottom:6px}
 .input{width:100%;background:var(--bg-base);border:1px solid var(--border);border-radius:var(--r-md);
@@ -130,7 +130,7 @@ body{
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
 @media(max-width:640px){.grid2{grid-template-columns:1fr}}
 
-/* ---------- cards (§4) ---------- */
+/* ---------- cards (Section 4) ---------- */
 .card{background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:16px;
   transition:background-color var(--base) var(--ease),border-color var(--base) var(--ease),transform var(--base) var(--ease)}
 .card.hoverable{cursor:pointer}
@@ -148,7 +148,7 @@ body{
   background:var(--kick-green);color:var(--bg-base);display:none;place-items:center}
 .cat.sel .tick{display:grid}
 
-/* ---------- badges / pills (§4) ---------- */
+/* ---------- badges / pills (Section 4) ---------- */
 .badge{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:var(--r-sm);
   font-size:11px;line-height:14px;font-weight:700;letter-spacing:.06em;text-transform:uppercase}
 .badge-live{background:var(--live);color:#fff}
@@ -172,7 +172,7 @@ body{
 .sc .cat2{font-size:12px;color:var(--text-muted);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .sc .foot{display:flex;align-items:center;gap:10px;margin-top:8px}
 
-/* ---------- chat preview (§4) ---------- */
+/* ---------- chat preview (Section 4) ---------- */
 .chatwrap{background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--r-lg);overflow:hidden}
 .chathead{padding:10px 12px;border-bottom:1px solid var(--border);display:flex;align-items:center;
   justify-content:space-between;background:var(--bg-raised)}
@@ -308,7 +308,7 @@ svg{display:block}
     <div class="toggle" style="border:none;padding:0">
       <div>
         <div style="font-weight:600;color:var(--text-primary)">Tabular figures on live counts</div>
-        <div class="t-xs" style="margin-top:2px">Spec §4. Toggle off and watch the viewer numbers jitter as they update.</div>
+        <div class="t-xs" style="margin-top:2px">Spec Section 4. Toggle off and watch the viewer numbers jitter as they update.</div>
       </div>
       <div class="tg on" id="tgTabular"><i></i></div>
     </div>
@@ -424,14 +424,14 @@ svg{display:block}
   <div class="ah">
     <div>
       <div class="t-h3" style="font-size:15px">Spec audit</div>
-      <div class="t-xs">Built only from .claude/KICK-DESIGN-SYSTEM.md §9</div>
+      <div class="t-xs">Built only from .claude/KICK-DESIGN-SYSTEM.md Section 9</div>
     </div>
     <button class="btn btn-ghost btn-sm" id="auditX">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
     </button>
   </div>
   <div class="ab">
-    <p class="t-sm muted" style="margin:0 0 4px">Every colour, radius, easing and type size on this page resolves to a token from §9. Nothing is hard-coded. That part of the spec holds up.</p>
+    <p class="t-sm muted" style="margin:0 0 4px">Every colour, radius, easing and type size on this page resolves to a token from Section 9. Nothing is hard-coded. That part of the spec holds up.</p>
 
     <h4>Tokens exercised</h4>
     <div id="tokUsed"></div>
@@ -496,10 +496,10 @@ const GAPS=[
  ["Form validation","No error text, no invalid input state, no success confirmation. I used <code>--danger</code> on the border plus a 12px hint row."],
  ["Toggles / switches","No spec at all. Built 40×22 with a <code>--r-full</code> track. Checkboxes and radios also undefined."],
  ["Avatars","Sizes aren't specified. I used 44px with <code>--r-full</code> and a 2px <code>--live</code> ring for live state."],
- ["Multi-select chips","§4 covers cards but not a selected state. I used a <code>--kick-green</code> border plus a corner tick."],
+ ["Multi-select chips","Section 4 covers cards but not a selected state. I used a <code>--kick-green</code> border plus a corner tick."],
  ["Sticky nav bars","Top and bottom bars have no height, blur or z-index spec. Used 56px top, blurred, 1px border."],
- ["Empty & loading states","§8 says they matter for the polish score but nothing defines them. No skeletons exist yet."],
- ["Drawers / side panels","§3 gives modal radius only. Width, transform and scrim opacity all invented."],
+ ["Empty & loading states","Section 8 says they matter for the polish score but nothing defines them. No skeletons exist yet."],
+ ["Drawers / side panels","Section 3 gives modal radius only. Width, transform and scrim opacity all invented."],
  ["Disabled states","Only the primary button is inferable. Disabled inputs, cards and toggles are undefined."]
 ];
 

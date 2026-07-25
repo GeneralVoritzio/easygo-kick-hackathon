@@ -87,7 +87,7 @@ type PropModel = {
   id: string;
   type: 'hat' | 'glasses';
   name: string;
-  glbUrl: string;          // or 'primitive:cap' fallback (see §7)
+  glbUrl: string;          // or 'primitive:cap' fallback (see Section 7)
   anchor: AnchorConfig;    // offset/scale relative to head pose
 };
 
@@ -129,7 +129,7 @@ type Hype = {
 };
 ```
 
-> **Decision for Claude Code #2:** finalize the hype normalization + extension curve (see §6). Keep it a pure, unit-testable function `nextHype(prev, events, dt)` and `extensionFor(hype, dt)` — this is the "real system" you point judges to.
+> **Decision for Claude Code #2:** finalize the hype normalization + extension curve (see Section 6). Keep it a pure, unit-testable function `nextHype(prev, events, dt)` and `extensionFor(hype, dt)` — this is the "real system" you point judges to.
 
 ---
 

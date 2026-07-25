@@ -4,7 +4,7 @@
 > `api.kick.com`, hold tokens, subscribe to real webhooks, or depend on any network at runtime.
 > The KICK Public API is used **only as a schema and naming reference** — we copy its shapes so
 > our fixtures are indistinguishable from real payloads. Everything the app consumes is generated
-> by us. (This is the deliberate call in Hackathon Brief §2A: it kills the biggest demo risk and
+> by us. (This is the deliberate call in Hackathon Brief Section 2A: it kills the biggest demo risk and
 > gives us total control of the timeline.)
 
 > **The KICK Public API is our reference implementation.** Two rules follow from that:
@@ -19,7 +19,7 @@
 >
 > Ground truth for what actually exists: [KICK-API-MAP.md](KICK-API-MAP.md) and
 > https://docs.kick.com. If a capability isn't there, we can't claim the API produces it — see
-> Hackathon Brief §2A.1 ("mock the volume, never the capability").
+> Hackathon Brief Section 2A.1 ("mock the volume, never the capability").
 
 ---
 
@@ -180,7 +180,7 @@ Keep a shared, growing name pool and draw from it, so the crowd is consistent ac
 - [ ] Zero placeholders — every name, message, brand, URL and number is a specific real-looking value
 - [ ] Usernames blend KICK-streamer flavour with funny random handles
 - [ ] Field/endpoint/event names match Part 1 (or Part 2 for invented surface) exactly
-- [ ] No value implies a capability the API lacks (Hackathon Brief §2A.1)
+- [ ] No value implies a capability the API lacks (Hackathon Brief Section 2A.1)
 
 ---
 

@@ -20,15 +20,15 @@ The deck is **media**, not interface. Three files stack on it.
 
 **This file does not restate the brand rules.** If you want to know what the deck looks like, read the Brand Identity file. If you want to know how the deck is built, read this one. A rule written twice goes stale in one place first.
 
-Confidence tags carry the same meaning as Brand Identity §0.
+Confidence tags carry the same meaning as Brand Identity Section 0.
 
-**Open item.** We have no copy of a real KICK deck template, and we have not read the official brand toolkit. It sits behind a [Brandfolder portal](https://brandfolder.com/portals/kick) that asks for a sign-in. Brand Identity §0 lists what the toolkit would settle, including every logo rule. Do not present a derived value to the judges as KICK's own.
+**Open item.** We have no copy of a real KICK deck template, and we have not read the official brand toolkit. It sits behind a [Brandfolder portal](https://brandfolder.com/portals/kick) that asks for a sign-in. Brand Identity Section 0 lists what the toolkit would settle, including every logo rule. Do not present a derived value to the judges as KICK's own.
 
 ---
 
 ## 1. The deck is not the product
 
-Hackathon Brief §2 rules out "concept pitches, mockups, slideware" as the submission. Presentation and Demo is worth 10% (Hackathon Brief §4). The live build carries the other 90%.
+Hackathon Brief Section 2 rules out "concept pitches, mockups, slideware" as the submission. Presentation and Demo is worth 10% (Hackathon Brief Section 4). The live build carries the other 90%.
 
 Three rules follow:
 
@@ -36,7 +36,7 @@ Three rules follow:
 2. **Never demo from a screenshot.** If a slide shows the product, it shows the running product.
 3. **The deck must survive being cut.** If we run out of time, we drop slides, not demo time.
 
-The deck carries the 90-second story in Hackathon Brief §8: who it is for, the moment it hurts, the fix, the proof.
+The deck carries the 90-second story in Hackathon Brief Section 8: who it is for, the moment it hurts, the fix, the proof.
 
 ---
 
@@ -51,11 +51,11 @@ The deck carries the 90-second story in Hackathon Brief §8: who it is for, the 
 | Icons | Lucide | `lucide-react` | ISC ✅ |
 | Type | Inter + Archivo, self hosted | local files | OFL ✅ |
 
-Every licence above is permissive. This satisfies Spec Test B3 (Hackathon Brief §7): each dependency is licensable onward to KICK under clause 7(f).
+Every licence above is permissive. This satisfies Spec Test B3 (Hackathon Brief Section 7): each dependency is licensable onward to KICK under clause 7(f).
 
 **Do not add a dependency to the deck without checking its licence first.** A restrictive licence on a slide library is a rules problem, not a taste problem.
 
-**No CSS framework in `pitch/`.** The deck uses plain CSS with the Design System §9 tokens. Tailwind is used in `prototypes/`, not here. A deck has about ten layouts, so a utility framework adds weight and no speed.
+**No CSS framework in `pitch/`.** The deck uses plain CSS with the Design System Section 9 tokens. Tailwind is used in `prototypes/`, not here. A deck has about ten layouts, so a utility framework adds weight and no speed.
 
 ---
 
@@ -103,7 +103,7 @@ pitch/
     assets/
 ```
 
-`tokens.css` is the Design System §9 block, copied verbatim, plus the deck additions in §5 below. Do not edit the copied values. If a token is wrong, fix it in the Design System first.
+`tokens.css` is the Design System Section 9 block, copied verbatim, plus the deck additions in Section 5 below. Do not edit the copied values. If a token is wrong, fix it in the Design System first.
 
 ---
 
@@ -129,9 +129,9 @@ Reveal.initialize({
 
 **The deck cuts. It does not dissolve.** The film uses hard cuts from end to end. A fade reads as corporate and it costs the presenter time. 🟡
 
-The deck is designed at 1920x1080 and scales to the room projector. `margin: 0` keeps the layout predictable. The `Slide` component owns the gutter instead (§5).
+The deck is designed at 1920x1080 and scales to the room projector. `margin: 0` keeps the layout predictable. The `Slide` component owns the gutter instead (Section 5).
 
-Reveal handles the slide change. Motion One handles everything inside a slide (§7). Do not use Reveal fragments for motion. Fragments and Motion One both animate the same element and they fight.
+Reveal handles the slide change. Motion One handles everything inside a slide (Section 7). Do not use Reveal fragments for motion. Fragments and Motion One both animate the same element and they fight.
 
 ### React and Reveal must not fight for the DOM
 
@@ -144,7 +144,7 @@ Reveal mutates the deck: it adds classes, moves sections and clones nodes for ba
 
 ### Speaker notes
 
-Every slide carries an `<aside class="notes">` block. Load the `RevealNotes` plugin so the speaker view works. Each note starts with the name of the person who speaks that slide. Hackathon Brief §4 scores "evidence of a contribution from every team member", and §8 asks that every member speaks.
+Every slide carries an `<aside class="notes">` block. Load the `RevealNotes` plugin so the speaker view works. Each note starts with the name of the person who speaks that slide. Hackathon Brief Section 4 scores "evidence of a contribution from every team member", and Section 8 asks that every member speaks.
 
 ---
 
@@ -152,7 +152,7 @@ Every slide carries an `<aside class="notes">` block. Load the `RevealNotes` plu
 
 ### Tokens
 
-Use the Design System §9 tokens verbatim. Add these deck tokens on top. They are 🔧 derived.
+Use the Design System Section 9 tokens verbatim. Add these deck tokens on top. They are 🔧 derived.
 
 ```css
 :root{
@@ -181,7 +181,7 @@ Use the Design System §9 tokens verbatim. Add these deck tokens on top. They ar
 | `--d-caption` | 500, `--font-ui`, `--text-muted` | Captions, sources |
 | `--d-label` | 700, `0.08em`, uppercase | Eyebrow labels, badges |
 
-**The three display rows carry leading of exactly 1.0 and tracking of `normal`.** That is measured on KICK's own headings ✅ (Brand Identity §4). It replaces the Design System §2 rule that tightens tracking as size grows, which governs UI type.
+**The three display rows carry leading of exactly 1.0 and tracking of `normal`.** That is measured on KICK's own headings ✅ (Brand Identity Section 4). It replaces the Design System Section 2 rule that tightens tracking as size grows, which governs UI type.
 
 **Nothing on a slide goes below 24px at 1920 width.** A projector at the back of a room loses everything smaller.
 
@@ -189,12 +189,12 @@ Use the Design System §9 tokens verbatim. Add these deck tokens on top. They ar
 
 ### Colour, display type and devices
 
-**Brand Identity §3, §4 and §5 decide all of it.** The flood rule, the green to cyan gradient, ALL CAPS display at leading 1.0, corner brackets, stickers, marquees and the camcorder HUD are defined there, once.
+**Brand Identity Section 3, Section 4 and Section 5 decide all of it.** The flood rule, the green to cyan halftone, ALL CAPS display at leading 1.0, the frame, corner brackets, stickers, marquees and the camcorder HUD are defined there, once.
 
 Two deck-specific limits sit on top:
 
-- **The deck gets two flood slides: the hook and the close.** That is the Brand Identity §3 ration, applied to a ten slide deck.
-- **Product UI on a slide keeps the Design System §1 green budget.** A screenshot of our overlay is interface, wherever it sits.
+- **The deck gets two flood slides: the hook and the close.** That is the Brand Identity Section 3 ration, applied to a ten slide deck.
+- **Product UI on a slide keeps the Design System Section 1 green budget.** A screenshot of our overlay is interface, wherever it sits.
 
 The deck implements the devices as React components: `CropMarks`, `Sticker`, `CamcorderHud`.
 
@@ -203,9 +203,9 @@ The deck implements the devices as React components: `CropMarks`, `Sticker`, `Ca
 Every slide renders through `components/Slide.tsx`. The component supplies:
 
 - `padding: var(--deck-gutter)` on all four sides
-- a background slot (§6)
+- a background slot (Section 6)
 - a content grid
-- the `data-anim` hooks that Motion One reads (§7)
+- the `data-anim` hooks that Motion One reads (Section 7)
 
 No slide sets its own padding. If a layout needs different spacing, add a variant to `Slide`.
 
@@ -213,11 +213,11 @@ No slide sets its own padding. If a layout needs different spacing, add a varian
 
 ## 6. Backgrounds
 
-**The layer stack is Brand Identity §8.** Build every slide background from it, and keep to its rule of one loud layer per surface.
+**The layer stack is Brand Identity Section 8.** Build every slide background from it, and keep to its rule of one loud layer per surface.
 
 Two deck-specific limits sit on top:
 
-1. **No network at runtime.** Every asset is local and committed. The venue wifi is not a dependency (Hackathon Brief §2A.3).
+1. **No network at runtime.** Every asset is local and committed. The venue wifi is not a dependency (Hackathon Brief Section 2A.3).
 2. **One loud background in three slides, maximum.** A deck where every slide shouts reads as noise.
 
 `backgrounds/` holds one component per layer, so a slide composes them rather than writing CSS.
@@ -228,11 +228,11 @@ Two deck-specific limits sit on top:
 
 Motion One drives every animation inside a slide. Reveal drives the change between slides.
 
-**The motion feel is Brand Identity §6**, including the measured KICK curves and the flash safety floor.
+**The motion feel is Brand Identity Section 6**, including the measured KICK curves and the flash safety floor.
 
 ### Tokens
 
-Use the Design System §6 motion tokens for UI, and the media curve for slide entry.
+Use the Design System Section 6 motion tokens for UI, and the media curve for slide entry.
 
 | Token | Value | Use in the deck |
 |---|---|---|
@@ -256,7 +256,7 @@ Starting set 🔧:
 | `stickerPop` 🟡 | `rotate: -6deg`, scale overshoot, `--slow`. The sticker only |
 | `countUp` | Number tween to the target, tabular figures, `--slow` |
 | `slamIn` | `scale: .82 -> 1` with overshoot, `--slow`. The wow beat only |
-| `glowPulse` | Ambient background drift, per §6 |
+| `glowPulse` | Ambient background drift, per Section 6 |
 
 `wipeIn` is gone. It is smooth and it has no basis in the film.
 
@@ -273,7 +273,7 @@ Rules:
 
 - Animate on enter. Do not animate on exit. Exit animation adds delay the presenter feels.
 - Total entry time per slide stays under 600ms. The presenter speaks over it, so it must finish first.
-- Respect `prefers-reduced-motion`. The Design System §9 block already disables transitions. `useSlideMotion` must also skip the animation and set the final state.
+- Respect `prefers-reduced-motion`. The Design System Section 9 block already disables transitions. `useSlideMotion` must also skip the animation and set the final state.
 
 ---
 
@@ -281,7 +281,7 @@ Rules:
 
 ### Licence gate
 
-**Brand Identity §7 holds the licence gate and the imagery rules.** Every asset on a slide must pass it.
+**Brand Identity Section 7 holds the licence gate and the imagery rules.** Every asset on a slide must pass it.
 
 **Take every asset from `assets/`.** It holds the official wordmark, Inter and Archivo with their OFL
 licences, the community KICK font, KICK own pattern plates, and the extracted token file. Do not
@@ -291,11 +291,11 @@ fetch a font or a logo from the network at build time, and do not add a second c
 copy a font.
 
 **Read `assets/brand/patterns/cta-section.png` before you build a slide background.** It is KICK own
-1920x1080 plate, and it decides §6 more than any rule written here.
+1920x1080 plate, and it decides Section 6 more than any rule written here.
 
 ### The KICK wordmark 🔧
 
-The close slide carries the wordmark (§9). **We hold no official logo rule, because the brand toolkit is gated (§0).** These rules are our construction. They are conservative, so a real toolkit is unlikely to contradict them. Replace them if we get access.
+The close slide carries the wordmark (Section 9). **We hold no official logo rule, because the brand toolkit is gated (Section 0).** These rules are our construction. They are conservative, so a real toolkit is unlikely to contradict them. Replace them if we get access.
 
 - **Clear space is the height of the K on all four sides.** Nothing crosses it, text included.
 - **Minimum height is 48px at 1920 width.** The 24px floor is for type, not for a mark.
@@ -307,7 +307,7 @@ The close slide carries the wordmark (§9). **We hold no official logo rule, bec
 
 ### Device components
 
-The Brand Identity §5 devices become React components in the deck.
+The Brand Identity Section 5 devices become React components in the deck.
 
 | Component | What it draws | Where it goes |
 |---|---|---|
@@ -338,16 +338,16 @@ The Brand Identity §5 devices become React components in the deck.
 
 - **One idea per slide.** If a slide needs a comma to explain itself, it is two slides.
 - **25 words per slide, maximum.** The presenter carries the detail. The slide carries the point.
-- **8 to 10 slides.** The story in Hackathon Brief §8 fits in that. More slides eat demo time.
+- **8 to 10 slides.** The story in Hackathon Brief Section 8 fits in that. More slides eat demo time.
 - **All copy is ASD-STE100 Simplified Technical English**, per the Working Agreement. Active voice, present tense, one topic per sentence.
 - **No em dashes.** Use a comma, a colon, a full stop or brackets.
 - **Mock data on a slide follows the API Conventions Part 3.** Real names, funny handles, real chat energy. Never a placeholder. A judge reads the slide as closely as the fixture.
-- **Say the mock-data line out loud.** Hackathon Brief §2A.2 point 3 asks for it: same interface, live client behind it, deterministic fixture so the raid lands on cue. Put it on the "how it works" slide.
-- **Name the roles.** One slide lists every team member and what they built (Hackathon Brief §4, §8).
+- **Say the mock-data line out loud.** Hackathon Brief Section 2A.2 point 3 asks for it: same interface, live client behind it, deterministic fixture so the raid lands on cue. Put it on the "how it works" slide.
+- **Name the roles.** One slide lists every team member and what they built (Hackathon Brief Section 4, Section 8).
 
 ### Voice
 
-**Brand Identity §2 holds the voice rules**, including the banned enterprise words.
+**Brand Identity Section 2 holds the voice rules**, including the banned enterprise words.
 
 One deck-specific rule: **the close slide carries a three-word imperative triad.** Three verbs, three full stops, in the shape of "Find it. Share it. Own it." Write our own. Do not reuse KICK's.
 
@@ -375,14 +375,14 @@ The deck runs in a room we do not control. Plan for that.
 - **It runs offline.** Build it, then serve the `dist` folder locally. No CDN, no font service, no network call at runtime.
 - **Keep a PDF fallback.** Export with the Reveal `?print-pdf` query and commit the PDF before the pitch. If the laptop fails, the PDF opens on any machine.
 - **Test on the room projector, or on the nearest thing to it.** Check the 24px floor and the green at low brightness.
-- **Rehearse twice, timed, with the real build** (Hackathon Brief §8).
+- **Rehearse twice, timed, with the real build** (Hackathon Brief Section 8).
 - **Packaging is part of the run sheet.** Clause 3(h) needs the submission emailed, then every local copy deleted. Do not let this eat demo prep.
 
 ---
 
 ## 11. Accessibility and safety floor
 
-Design System §8 and Brand Identity §9 both apply. A projected deck adds one rule:
+Design System Section 8 and Brand Identity Section 9 both apply. A projected deck adds one rule:
 
 - **Test the contrast at projector brightness.** A room projector loses more contrast than any laptop screen. Check the 24px floor and the green at low brightness before the pitch.
 
@@ -392,13 +392,13 @@ Design System §8 and Brand Identity §9 both apply. A projected deck adds one r
 
 Run this before the deck ships.
 
-- [ ] The deck passes the "is this KICK" test in Brand Identity §10
-- [ ] Every file in `pitch/` uses the Design System §9 tokens, plus the deck tokens in §5
+- [ ] The deck passes the "is this KICK" test in Brand Identity Section 10
+- [ ] Every file in `pitch/` uses the Design System Section 9 tokens, plus the deck tokens in Section 5
 - [ ] Product UI on a slide keeps green under 10% of visible pixels
 - [ ] The deck has exactly two flood frames: the hook and the close
 - [ ] `--sticker` appears once in the whole deck
 - [ ] Crop marks wrap the demo and the hero moment, and nothing else
-- [ ] The wordmark keeps its clear space, its size floor and one of the two colourways (§8)
+- [ ] The wordmark keeps its clear space, its size floor and one of the two colourways (Section 8)
 - [ ] Reveal runs `transition: 'none'`. No slide dissolves
 - [ ] No slide stacks two loud background layers
 - [ ] No banned enterprise word appears on a slide

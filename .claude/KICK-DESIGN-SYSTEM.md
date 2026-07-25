@@ -12,8 +12,8 @@ Our design system for the hackathon build. Goal: the judges should not be able t
 > a control a user operates, the answer is in the Brand Identity file, not here.
 >
 > **The Brand Identity file supersedes some values below.** It read the live DOM on kick.com and
-> about.kick.com, and it measured greys that differ from the 🔧 guesses in §1. See Brand Identity
-> §3, "Where the Design System disagrees". This file stays locked, so read both and prefer the ✅
+> about.kick.com, and it measured greys that differ from the 🔧 guesses in Section 1. See Brand Identity
+> Section 3, "Where the Design System disagrees". This file stays locked, so read both and prefer the ✅
 > value.
 
 ---
@@ -28,7 +28,7 @@ I could not extract KICK's real CSS tokens. kick.com is client-rendered, and the
 | 🟡 **High confidence** | Widely used KICK values / consistent across their ecosystem, but not confirmed from source |
 | 🔧 **Derived** | My construction — coherent and Kick-like, but invented. Fine to ship, not a claim about KICK |
 
-**Do this before Friday — 10 minutes, one person.** Open kick.com on a live channel, DevTools → Elements, and read the computed styles. Correct these eight values in §1 and §3 and the whole system snaps into place:
+**Do this before Friday — 10 minutes, one person.** Open kick.com on a live channel, DevTools → Elements, and read the computed styles. Correct these eight values in Section 1 and Section 3 and the whole system snaps into place:
 
 1. `background-color` on `<body>` and on the chat panel
 2. The exact green on the **Follow** button
@@ -248,7 +248,7 @@ If we ship an OBS browser source, different constraints apply — this is where 
 - **Canvas 1920×1080**, designed at 1×. Assume it's scaled.
 - **Safe margins: 64px** from every edge. Streamers crop, and platform UI overlaps corners.
 - **Readable over arbitrary video.** Text needs a carrier — a semi-opaque plate (`rgba(11,14,15,.82)`) or a tight text shadow (`0 2px 8px rgba(0,0,0,.9)`). White text straight onto gameplay is unreadable half the time.
-- **Nothing in the lower third** — that's where the streamer's own alerts and captions live. Non-intrusive is a hard gate in our spec (§7 C3).
+- **Nothing in the lower third** — that's where the streamer's own alerts and captions live. Non-intrusive is a hard gate in our spec (Section 7 C3).
 - **No audio from the overlay** unless the streamer explicitly added it as a source. Per our cross-platform constraint (C4), sound that only fires on Kick is broken for a simulcasting streamer.
 - **Self-recovering.** OBS browser sources get refreshed mid-stream. It must reconnect and repaint without intervention.
 
@@ -268,7 +268,7 @@ Cheap to hit, and "polished for a prototype" is 10% of our score.
 
 ## 9. Drop-in tokens
 
-Paste into `tokens.css` on day one. Correct the eight flagged values after the DevTools pass in §0.
+Paste into `tokens.css` on day one. Correct the eight flagged values after the DevTools pass in Section 0.
 
 ```css
 :root{
@@ -356,4 +356,4 @@ Before we demo, screenshot our UI next to a real kick.com screenshot. If the dif
 
 ---
 
-*Compiled 25 July 2026. Tokens tagged 🔧 are our construction, not KICK's. Run the §0 DevTools pass before Friday.*
+*Compiled 25 July 2026. Tokens tagged 🔧 are our construction, not KICK's. Run the Section 0 DevTools pass before Friday.*

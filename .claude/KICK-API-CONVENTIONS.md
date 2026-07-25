@@ -17,7 +17,7 @@
 >    following the conventions identified below. A judge should not be able to tell our
 >    invented surface from the real one by its style.
 >
-> Ground truth for what actually exists: [../docs/KICK_API_MAP.md](../docs/KICK_API_MAP.md) and
+> Ground truth for what actually exists: [KICK_API_MAP.md](KICK_API_MAP.md) and
 > https://docs.kick.com. If a capability isn't there, we can't claim the API produces it — see
 > Hackathon Spec §2A.1 ("mock the volume, never the capability").
 
@@ -109,6 +109,23 @@ KICK built it, so the fixtures read as one coherent API. Model it on the convent
 | Field: how long the prop stays up | `durationMs`, `time` | `pinned_time_seconds` (reuse KICK's own) |
 | Field: who triggered it | a new `{userName,id}` blob | the shared **subject** object |
 | Scope: trigger a prop | `props_write` | `props:write` |
+
+### Label the two sets apart
+
+Anywhere we write an endpoint or an event name, the name carries a label:
+
+| Label | Meaning | Example |
+|---|---|---|
+| `kick` | KICK publishes this surface | `kick GET /public/v2/livestreams`, `kick kicks.gifted` |
+| `fake-kick` | We invented this surface | `fake-kick POST /public/v1/timelines/markers`, `fake-kick timeline.marker.created` |
+
+The label goes in front of the verb and the path, or in front of the event name. It is a label for
+readers, not part of the path. A mock payload keeps the real path (`/public/v1/...`), because the
+invented surface still reads as KICK style.
+
+Use the label in code, in docs and in UI copy. Keep the two sets in separate files: a mock API file
+holds the `kick` labels only, and the code that consumes it holds the `fake-kick` labels. A
+reader then knows which surface is real without a second file open.
 
 Rules of thumb:
 - Reuse a real KICK field before minting a new one (`kicks.gifted` already carries

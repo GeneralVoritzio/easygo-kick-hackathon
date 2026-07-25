@@ -8,17 +8,21 @@ How we build the pitch deck. Goal: the deck looks like KICK made it, and it neve
 
 **This spec applies only to files in `pitch/`.** No other folder uses it. Code in `prototypes/`, `demo/` and `docs/` follows the Design Spec and the Working Agreement alone.
 
-Inside `pitch/`, this spec **adds to** the Design Spec. It does not replace it. Every rule in `.claude/KICK-DESIGN-SPEC.md` still applies, in particular the tokens in §9 and the green budget in §1.
+### Which file governs what
 
-**Confidence tags carry the same meaning as the Design Spec §0:**
+The deck is **media**, not interface. Three files stack on it.
 
-| Tag | Meaning |
+| File | What it decides here |
 |---|---|
-| ✅ **Verified** | Confirmed from a source we can point at |
-| 🟡 **High confidence** | Consistent with KICK's public output, but not confirmed from source |
-| 🔧 **Derived** | Our construction. Coherent and KICK-like, but invented |
+| `.claude/KICK-BRAND-IDENTITY.md` | **The look.** Colour, display type, voice, motion feel, backgrounds, graphic devices, footage |
+| `.claude/KICK-DESIGN-SPEC.md` | The token base, and every rule for **product UI shown on a slide** |
+| **This file** | Deck mechanics only. Reveal, slide layout, the deck type scale, the run sheet |
 
-**Open item.** We have no copy of a real KICK deck template. The [brand toolkit](https://about.kick.com/brand) sits behind a Brandfolder portal (Design Spec §0). Every "KICK presentation look" rule below is 🔧 **derived** from the Design Spec and from KICK's brand voice. Do not present these values to the judges as KICK's own.
+**This file does not restate the brand rules.** If you want to know what the deck looks like, read the Brand Identity file. If you want to know how the deck is built, read this one. A rule written twice goes stale in one place first.
+
+Confidence tags carry the same meaning as Brand Identity §0.
+
+**Open item.** We have no copy of a real KICK deck template. The [brand toolkit](https://about.kick.com/brand) sits behind a Brandfolder portal (Design Spec §0). Do not present our derived values to the judges as KICK's own.
 
 ---
 
@@ -83,10 +87,16 @@ pitch/
       DemoFrame.tsx
       LiveBadge.tsx
       SpeakerNotes.tsx
+      CropMarks.tsx
+      Sticker.tsx
+      CamcorderHud.tsx
     backgrounds/
       Glow.tsx
       Grid.tsx
       Grain.tsx
+      Macroblock.tsx
+      ChromaSplit.tsx
+      ScanBar.tsx
     motion/
       presets.ts
       useSlideMotion.ts
@@ -113,10 +123,11 @@ Reveal.initialize({
   hash: true,
   keyboard: true,
   overview: true,
-  transition: 'fade',
-  transitionSpeed: 'fast',
+  transition: 'none',
 })
 ```
+
+**The deck cuts. It does not dissolve.** The film uses hard cuts from end to end. A fade reads as corporate and it costs the presenter time. 🟡
 
 The deck is designed at 1920x1080 and scales to the room projector. `margin: 0` keeps the layout predictable. The `Slide` component owns the gutter instead (§5).
 
@@ -148,36 +159,44 @@ Use the Design Spec §9 tokens verbatim. Add these deck tokens on top. They are 
   --deck-gutter:96px;
   --deck-max-measure:24ch;
 
-  --d-hero:160px;   --d-hero-lh:148px;
-  --d-h1:96px;      --d-h1-lh:100px;
-  --d-h2:60px;      --d-h2-lh:68px;
+  --d-hero:160px;   --d-hero-lh:160px;
+  --d-h1:96px;      --d-h1-lh:96px;
+  --d-h2:60px;      --d-h2-lh:60px;
   --d-h3:40px;      --d-h3-lh:48px;
   --d-body:30px;    --d-body-lh:44px;
   --d-caption:24px; --d-caption-lh:34px;
   --d-label:24px;   --d-label-lh:28px;
+
+  --sticker:#E4032E;
 }
 ```
 
 | Token | Weight / tracking | Use |
 |---|---|---|
-| `--d-hero` | 800, `-0.04em`, `--font-display` | One number or two words. One per slide, maximum |
-| `--d-h1` | 800, `-0.03em`, `--font-display` | Slide title |
-| `--d-h2` | 700, `-0.02em`, `--font-display` | Section title |
+| `--d-hero` | 800, `normal`, `--font-display`, uppercase | One number or two words. One per slide, maximum |
+| `--d-h1` | 800, `normal`, `--font-display`, uppercase | Slide title |
+| `--d-h2` | 700, `normal`, `--font-display`, uppercase | Section title |
 | `--d-h3` | 600, `-0.01em`, `--font-ui` | Card title |
 | `--d-body` | 400, `--font-ui` | Body copy |
 | `--d-caption` | 500, `--font-ui`, `--text-muted` | Captions, sources |
 | `--d-label` | 700, `0.08em`, uppercase | Eyebrow labels, badges |
 
+**The three display rows carry leading of exactly 1.0 and tracking of `normal`.** That is measured on KICK's own headings ✅ (Brand Identity §4). It replaces the Design Spec §2 rule that tightens tracking as size grows, which governs UI type.
+
 **Nothing on a slide goes below 24px at 1920 width.** A projector at the back of a room loses everything smaller.
 
-The Design Spec §2 tracking rule still applies: as the size goes up, the tracking goes down.
+`--sticker` is the one non-green accent in the deck, used once, on the wow beat.
 
-### Colour on a slide
+### Colour, display type and devices
 
-- The base surface is `--bg-base`. Panels use `--bg-surface`.
-- The green budget is **under 10% of visible pixels, measured across the whole deck** (Design Spec §1). Not per slide. One green hero number on one slide costs the whole budget for the three slides around it.
-- Use `--live` only for real live state, for example the LIVE badge on the demo slide.
-- Never put `--kick-green` on a light surface, and never use it for body copy.
+**Brand Identity §3, §4 and §5 decide all of it.** The flood rule, the green to cyan gradient, ALL CAPS display at leading 1.0, corner brackets, stickers, marquees and the camcorder HUD are defined there, once.
+
+Two deck-specific limits sit on top:
+
+- **The deck gets two flood slides: the hook and the close.** That is the Brand Identity §3 ration, applied to a ten slide deck.
+- **Product UI on a slide keeps the Design Spec §1 green budget.** A screenshot of our overlay is interface, wherever it sits.
+
+The deck implements the devices as React components: `CropMarks`, `Sticker`, `CamcorderHud`.
 
 ### The Slide component
 
@@ -194,37 +213,14 @@ No slide sets its own padding. If a layout needs different spacing, add a varian
 
 ## 6. Backgrounds
 
-Backgrounds are what make the deck look like KICK and not like a corporate template. They are also the fastest way to make text unreadable. 🔧
+**The layer stack is Brand Identity §8.** Build every slide background from it, and keep to its rule of one loud layer per surface.
 
-### Hard rules
+Two deck-specific limits sit on top:
 
-1. **Backgrounds are code, not image files.** CSS gradients, SVG and canvas. This keeps the deck small, sharp at any scale and free of licence risk.
-2. **No network at runtime.** Every asset is local and committed. The venue wifi is not a dependency (Hackathon Spec §2A.3).
-3. **The background never competes with the text.** Behind copy, the background contrast stays low. If you cannot read the slide with your eyes half closed, the background is too loud.
-4. **One loud background in three slides, maximum.** A deck where every slide shouts reads as noise.
-5. **Text over any busy background needs a carrier.** Use a plate at `rgba(11,14,15,.82)` or a shadow of `0 2px 8px rgba(0,0,0,.9)`. This is the Design Spec §7 rule and it applies to slides too.
+1. **No network at runtime.** Every asset is local and committed. The venue wifi is not a dependency (Hackathon Spec §2A.3).
+2. **One loud background in three slides, maximum.** A deck where every slide shouts reads as noise.
 
-### The layer stack
-
-Build every background from this order. Use two layers or three, never all five.
-
-| Order | Layer | Spec |
-|---|---|---|
-| 1 | Base | `--bg-base` flat fill. Always present |
-| 2 | Glow | Radial gradient from `--kick-green-glow` to transparent. Off centre, 60% to 90% of the slide width |
-| 3 | Grid | 1px lines in `--border` at 64px pitch, masked so it fades at the edges |
-| 4 | Grain | SVG `feTurbulence` at 4% to 6% opacity. It stops large gradients from banding on a projector |
-| 5 | Vignette | Radial `rgba(0,0,0,.45)` at the corners. Use it to hold attention on a centred hero |
-
-### Ambient motion
-
-One slow ambient loop is permitted per slide, for example a glow that drifts. It follows three limits:
-
-- period of 8 seconds or more
-- opacity change of 0.06 or less
-- it stops under `prefers-reduced-motion`
-
-**No strobe and no flash.** Nothing on the deck changes luminance more than three times per second. This is a safety floor, not a style preference.
+`backgrounds/` holds one component per layer, so a slide composes them rather than writing CSS.
 
 ---
 
@@ -232,18 +228,18 @@ One slow ambient loop is permitted per slide, for example a glow that drifts. It
 
 Motion One drives every animation inside a slide. Reveal drives the change between slides.
 
+**The motion feel is Brand Identity §6**, including the measured KICK curves and the flash safety floor.
+
 ### Tokens
 
-Use the Design Spec §6 motion tokens. Do not invent new durations.
+Use the Design Spec §6 motion tokens for UI, and the media curve for slide entry.
 
 | Token | Value | Use in the deck |
 |---|---|---|
-| `--ease` | `cubic-bezier(.2,.8,.2,1)` | Default |
 | `--fast` | `120ms` | Hover and colour |
 | `--base` | `200ms` | Element entry |
 | `--slow` | `400ms` | The hero number, the wow beat |
-
-KICK's brand voice is "chaotically creative" ✅. Motion is snappy and it overshoots a little. It is not smooth and corporate. Use a spring with a small overshoot on hero numbers and on the wow beat. Use a plain ease everywhere else.
+| `--ease-media` | `cubic-bezier(.87,0,.13,1)` ✅ | Slide entry. Measured on about.kick.com |
 
 ### Presets
 
@@ -253,15 +249,20 @@ Starting set 🔧:
 
 | Preset | Effect |
 |---|---|
+| `hardCut` | No animation. The element is there on frame one. **This is the default** |
 | `riseIn` | `y: 24 -> 0`, `opacity: 0 -> 1`, `--base` |
-| `wipeIn` | `clipPath` inset from the left, `--base` |
+| `glitchIn` 🟡 | 90ms of chroma split and a 6px horizontal offset, then it settles |
+| `bracketSnap` 🟡 | Corner marks in from `scale: 1.15`, `--fast` |
+| `stickerPop` 🟡 | `rotate: -6deg`, scale overshoot, `--slow`. The sticker only |
 | `countUp` | Number tween to the target, tabular figures, `--slow` |
 | `slamIn` | `scale: .82 -> 1` with overshoot, `--slow`. The wow beat only |
 | `glowPulse` | Ambient background drift, per §6 |
 
+`wipeIn` is gone. It is smooth and it has no basis in the film.
+
 ### How a slide animates
 
-`useSlideMotion` runs on the Reveal `ready` and `slidechanged` events. It finds `[data-anim]` inside the current slide, then it animates them with a stagger of 60ms 🔧.
+`useSlideMotion` runs on the Reveal `ready` and `slidechanged` events. It finds `[data-anim]` inside the current slide, then it animates them with a stagger of 40ms 🔧.
 
 ```tsx
 <h1 data-anim="riseIn">Chat already told you</h1>
@@ -280,17 +281,21 @@ Rules:
 
 ### Licence gate
 
-Hackathon Spec §5.2 and clause 7(f) put licensing on us. Every asset must be licensable onward to KICK.
+**Brand Identity §7 holds the licence gate and the imagery rules.** Every asset on a slide must pass it.
 
-| ✅ Use | ❌ Do not use |
-|---|---|
-| Our own screenshots and screen recordings of our build | Stock photography without a written licence |
-| Backgrounds and diagrams we generate in code | Photographs of real streamers or of real people |
-| Lucide icons (ISC) | Game screenshots and game art |
-| Inter and Archivo (OFL), self hosted | Screenshots of another product's UI |
-| The KICK logo from the official brand toolkit, used to KICK's brand rules | Any font we cannot sublicense |
+`prototypes/hypeprops/src/assets` already holds `kick-logo.svg`. `prototypes/hypeprops/src/assets/fonts` holds `kick-font.ttf` with `kick-font-license.txt` next to it. Reuse those files. Copy the licence file with the font.
 
-`prototypes/hypeprops/src/assets` already holds `kick-logo.svg` and a `kick-font.ttf` under the OFL, with the licence text next to it. Reuse those files. Copy the licence file with the font.
+### Device components
+
+The Brand Identity §5 devices become React components in the deck.
+
+| Component | What it draws | Where it goes |
+|---|---|---|
+| `CropMarks` | Corner brackets | `DemoFrame` and the hero moment |
+| `Sticker` | Diamond badge, flat fill, icon and caps label | The wow slide, once |
+| `CamcorderHud` | REC dot, running timecode, menu labels along the bottom edge | The demo slide |
+
+`CamcorderHud` says "this is a real capture" for free. It is the cheapest way to make the demo slide look shot, not rendered.
 
 ### Formats
 
@@ -320,19 +325,26 @@ Hackathon Spec §5.2 and clause 7(f) put licensing on us. Every asset must be li
 - **Say the mock-data line out loud.** Hackathon Spec §2A.2 point 3 asks for it: same interface, live client behind it, deterministic fixture so the raid lands on cue. Put it on the "how it works" slide.
 - **Name the roles.** One slide lists every team member and what they built (Hackathon Spec §4, §8).
 
+### Voice
+
+**Brand Identity §2 holds the voice rules**, including the banned enterprise words.
+
+One deck-specific rule: **the close slide carries a three-word imperative triad.** Three verbs, three full stops, in the shape of "Find it. Share it. Own it." Write our own. Do not reuse KICK's.
+
 ### Slide sequence 🔧
 
 | # | Slide | Job |
 |---|---|---|
-| 1 | Hook | The title and the one line that makes them look up |
+| 0 | Cold open | Near black. One line. It cuts hard into the hook (film 0.0s to 0.9s) |
+| 1 | Hook | Flood frame. The title stacked in caps, inside crop marks |
 | 2 | Problem | The named user, and the moment it hurts |
 | 3 | Fix | Our answer in one sentence |
-| 4 | Demo | Hand off to the live build. Full bleed, LIVE badge |
-| 5 | Wow | The marker for the one beat we trigger live |
+| 4 | Demo | Hand off to the live build. Full bleed, LIVE badge, `CamcorderHud` |
+| 5 | Wow | The marker for the one beat we trigger live. The sticker lives here |
 | 6 | How it works | Adapter layer, mock data, the API surface we use |
 | 7 | KICK-native | Why it belongs on KICK and not somewhere else |
 | 8 | Team | Every member, and what they shipped |
-| 9 | Close | What ships next, and the ask |
+| 9 | Close | Flood frame. The wordmark, the triad, and the ask |
 
 ---
 
@@ -350,12 +362,9 @@ The deck runs in a room we do not control. Plan for that.
 
 ## 11. Accessibility and safety floor
 
-The Design Spec §8 floor applies, plus two rules a projected deck adds:
+Design Spec §8 and Brand Identity §9 both apply. A projected deck adds one rule:
 
-- Body copy holds 4.5:1 against its own surface, measured **over the background layer**, not over the flat token colour.
-- Nothing on the deck flashes more than three times per second (§6).
-- Never encode meaning in colour alone. A green number needs a label.
-- `prefers-reduced-motion` stops the ambient loops and the entry animations.
+- **Test the contrast at projector brightness.** A room projector loses more contrast than any laptop screen. Check the 24px floor and the green at low brightness before the pitch.
 
 ---
 
@@ -363,8 +372,15 @@ The Design Spec §8 floor applies, plus two rules a projected deck adds:
 
 Run this before the deck ships.
 
-- [ ] Every file in `pitch/` uses the Design Spec §9 tokens. No new colour values
-- [ ] Green stays under 10% of visible pixels across the whole deck
+- [ ] The deck passes the "is this KICK" test in Brand Identity §10
+- [ ] Every file in `pitch/` uses the Design Spec §9 tokens, plus the deck tokens in §5
+- [ ] Product UI on a slide keeps green under 10% of visible pixels
+- [ ] The deck has exactly two flood frames: the hook and the close
+- [ ] `--sticker` appears once in the whole deck
+- [ ] Crop marks wrap the demo and the hero moment, and nothing else
+- [ ] Reveal runs `transition: 'none'`. No slide dissolves
+- [ ] No slide stacks two loud background layers
+- [ ] No banned enterprise word appears on a slide
 - [ ] Nothing renders below 24px at 1920 width
 - [ ] Every slide has an `<aside class="notes">` block that names its speaker
 - [ ] Every team member appears on the team slide and speaks at least once
@@ -374,9 +390,9 @@ Run this before the deck ships.
 - [ ] The deck runs with the network off
 - [ ] The PDF fallback is exported and committed
 - [ ] `prefers-reduced-motion` stops all motion, and the slides still read
-- [ ] Nothing flashes more than three times per second
+- [ ] Nothing flashes more than three times per second, glitch layers included
 - [ ] The demo slide shows the running product, not a screenshot
 
 ---
 
-*Written 25 July 2026. Values tagged 🔧 are our construction, not KICK's. Check the [brand toolkit](https://about.kick.com/brand) before 1 August and correct §5 and §6 if we get access.*
+*Written 25 July 2026. Revised 25 July 2026: the brand rules moved out to `.claude/KICK-BRAND-IDENTITY.md`, and this file kept the deck mechanics. Values tagged 🔧 are our construction, not KICK's.*

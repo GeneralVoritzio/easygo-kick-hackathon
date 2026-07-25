@@ -2,10 +2,15 @@
 
 > Generated 2026-07-23 by a 25-agent docs sweep of https://docs.kick.com/llms.txt (one extractor per docs page).
 > Strategy mapping for the hackathon is at the top; the full per-section inventory follows.
+>
+> Checked against the live docs on 2026-07-25: the page list, the 10 webhook events, the 11 scopes,
+> the 4 Livestreams endpoints, the `LivestreamV2` fields and the `Stream` fields all still match.
+> The newest changelog entry is 03/07/2026, so no API surface was added after the sweep. Two counts
+> in the line below were wrong and are now corrected.
 
 # TL;DR — the surface that matters
 
-**Base URL** `https://api.kick.com` · **Auth** OAuth 2.1 w/ PKCE at `id.kick.com` (user tokens) or client-credentials (app tokens) · **37 endpoints · 12 webhook events · 11 scopes**
+**Base URL** `https://api.kick.com` · **Auth** OAuth 2.1 w/ PKCE at `id.kick.com` (user tokens) or client-credentials (app tokens) · **35 endpoint operations on 26 paths · 10 webhook events · 11 scopes**
 
 ## For the KICK Circles brief ("what data would you use?")
 
@@ -409,7 +414,7 @@ This page documents Kick's public KICKs API, which exposes a single endpoint for
 
 | Method | Path | Description | Auth | Scopes |
 |---|---|---|---|---|
-| GET | `/public/v1/kicks/leaderboard` | Gets the KICKs leaderboard for the authenticated broadcaster. | user access token | kicks:read |
+| GET | `/public/v1/kicks/leaderboard` | Gets the KICKs leaderboard for the authenticated broadcaster. Query param `top` selects how many entries to return (default 10, range 1 to 100). | user access token | kicks:read |
 
 **Scopes:** `channel:read`, `channel:rewards:read`, `channel:rewards:write`, `channel:write`, `chat:write`, `events:subscribe`, `kicks:read`, `moderation:ban`, `moderation:chat_message:manage`, `streamkey:read`, `user:read`
 

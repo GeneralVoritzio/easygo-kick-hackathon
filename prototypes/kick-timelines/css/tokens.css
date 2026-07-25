@@ -1,0 +1,54 @@
+/* Drop-in tokens — copied verbatim from KICK-DESIGN-SPEC.md §9. Do not edit here. */
+:root{
+  /* brand */
+  --kick-green:#53FC18;
+  --kick-green-hover:#42D912;
+  --kick-green-dim:#2E8F0C;
+  --kick-green-glow:rgba(83,252,24,.24);
+
+  /* surfaces */
+  --bg-base:#0B0E0F;
+  --bg-surface:#121517;
+  --bg-raised:#191D1F;
+  --bg-overlay:#22282A;
+  --border:#282F31;
+  --border-strong:#3A4245;
+
+  /* text */
+  --text-primary:#FFFFFF;
+  --text-body:#E3E7E8;
+  --text-muted:#8B9598;
+  --text-disabled:#5A6467;
+
+  /* semantic */
+  --live:#FF1744;
+  --warn:#FFB020;
+  --danger:#FF4757;
+  --info:#3EA6FF;
+
+  /* type */
+  --font-ui:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+  --font-display:'Archivo','Inter',sans-serif;
+  --font-mono:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+
+  /* radius */
+  --r-sm:4px; --r-md:6px; --r-lg:8px; --r-xl:12px; --r-full:9999px;
+
+  /* elevation */
+  --shadow-md:0 4px 12px rgba(0,0,0,.4);
+  --shadow-lg:0 8px 28px rgba(0,0,0,.55);
+  --glow:0 0 0 3px var(--kick-green-glow);
+
+  /* motion */
+  --ease:cubic-bezier(.2,.8,.2,1);
+  --fast:120ms; --base:200ms; --slow:400ms;
+}
+
+*{box-sizing:border-box}
+body{
+  margin:0; background:var(--bg-base); color:var(--text-body);
+  font-family:var(--font-ui); font-size:14px; line-height:21px;
+  -webkit-font-smoothing:antialiased;
+}
+.tabular{font-variant-numeric:tabular-nums}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}

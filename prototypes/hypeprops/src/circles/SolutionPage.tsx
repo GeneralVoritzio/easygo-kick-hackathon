@@ -85,7 +85,7 @@ const SLIDES: React.ReactNode[] = [
       ))}
     </div>
     <p className="mt-4 text-[12px] text-kick-muted">
-      Every pipe verified against the docs — full inventory in <code className="text-kick">docs/KICK_API_MAP.md</code>
+      Every pipe verified against the docs — full inventory in <code className="text-kick">.claude/KICK_API_MAP.md</code>
     </p>
   </div>,
 

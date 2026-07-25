@@ -5,9 +5,10 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc --noEmit && vite build",
+    "build": "node check.mjs && tsc --noEmit && vite build",
     "preview": "vite preview",
-    "pdf": "echo \"Open the preview at ?print-pdf, then print to PDF\""
+    "pdf": "echo \"Open the preview at ?print-pdf, then print to PDF\"",
+    "check": "node check.mjs"
   },
   "dependencies": {
     "react": "^19.0.0",

@@ -37,7 +37,9 @@ with a nav. React and CSS make the second one by default, so push back on purpos
 - **No hover states on slide furniture.** Nobody hovers a projector. Hover belongs only inside a mock
   product element (Section 5).
 - **No card grids of three or four equal boxes.** That is a landing page. A slide carries one idea.
-- **Big empty space is correct.** If a slide looks underfilled on a laptop, it is right for a room.
+- **Empty space is correct, but a dead half is not.** Space around a centred block reads as designed.
+  A block at the top with nothing under it reads as unfinished. Centre the content, and give the
+  bottom band a device.
 - **One focal point per slide.** A viewer should know where to look before they read anything.
 - **Nothing responsive, but no letterbox either.** The deck fills the window at any aspect, because
   every size is a fraction of the viewport width. Do not write a media query.
@@ -159,8 +161,10 @@ smaller. This floor applies to slide furniture. A mock product element is exempt
 A slide may carry a mock element that imitates a feature we built: a chat row, a hype meter, a LIVE
 badge, a marker on a timeline. This is how we show a feature that the live demo does not reach.
 
-**Five rules.**
+**Six rules.**
 
+0. **Position in percentages, never pixels.** A mock element scales with the slide, so a marker placed
+   at a pixel offset drifts off whatever it points at as soon as the width changes. This one shipped.
 1. **A mock element is UI, so the Design System governs it.** Real tokens, real 16px chat, real
    identity colours, real radius. Not the deck scale, and not the media rules.
 2. **It goes inside `DemoFrame`.** Never loose on the slide. The frame reads as a screen.
@@ -279,7 +283,27 @@ and 8 are the ones that go.
 
 ---
 
-## 9. Delivery
+## 9. Traps that already cost us a day
+
+Every one of these shipped a broken deck past a clean build. `npm run check` now guards the first
+five. Read them before you wire Reveal again.
+
+| Trap | What you see | The rule |
+|---|---|---|
+| **Vendor CSS last** | A white deck. `reveal.css` sets `.reveal-viewport{background:#fff;color:#000}`, and a class beats `body` | Import `reveal.css` first in `main.tsx`, then ours. Restate the background on `.reveal-viewport` |
+| **A container with no height** | Everything drawn tiny in the middle of nothing. Reveal measures its container and clamps to `minScale` | Give `#root` `height:100%` |
+| **JS that reveals content** | A slide stuck at `opacity:0`. Our handler registered after Reveal had fired `ready` | **Nothing in JS may be the only thing making content visible.** Entry animation is CSS with `animation-fill-mode:both` |
+| **Pixels over a scaled element** | Markers drifting off the curve at every width but one | Position against a scaled element in **percentages**, never pixels |
+| **Reaching outside the project** | Works in the build, 403 in dev, and a font that silently falls back | Copy the asset into `pitch/src/assets/` and import it locally |
+| **One test aspect** | Black bars on every screen that is not the one you tried | Screenshot at three aspect ratios |
+| **A blocked asset fails quietly** | The page looks fine. The font is wrong | Check the network status of every asset, not just the page |
+
+**The pattern behind all seven: the build was never the thing under test.** A deck is pixels on a
+wall. Verify pixels.
+
+---
+
+## 10. Delivery
 
 The deck runs in a room we do not control.
 
@@ -294,25 +318,58 @@ The deck runs in a room we do not control.
 
 ---
 
-## 10. Definition of done
+## 11. Definition of done
 
-Layout and mechanics only. **For the look, run Brand Identity Section 10.** For mock elements, run
-Design System Section 10.
+**A green build is not evidence.** The deck once compiled clean, served HTTP 200, and rendered a
+blank white page. Every fault below shipped past a passing build, because a bundler cannot see
+pixels. So the check has two halves, and you owe both.
 
-- [ ] No slide scrolls, and no slide has a nav, header or footer
-- [ ] No media query anywhere in `pitch/`
+### Half one: run the script
+
+```
+npm run check
+```
+
+`pitch/check.mjs` holds every rule a script can decide, and `npm run build` runs it first. Prose did
+not catch one of these while the deck was being written. A script caught all of them.
+
+It checks: `tokens.css` still matches Design System Section 9, `deck.css` holds no colour literal, no
+media query except `prefers-reduced-motion`, `reveal.css` imports before our CSS, `#root` has a
+height, `.reveal-viewport` is restated, no file reaches outside `pitch/`, no pixel positioning in
+`src/mock/`, 25 words per slide, two flood surfaces, no stacked loud devices, every slide has notes,
+every frame has a tag, no em dash, no section symbol, no banned enterprise word.
+
+**Add a rule to the script, not to this list, whenever a script could decide it.**
+
+### Half two: look at it
+
+The script cannot see a thing. **Render every slide and look at the picture.**
+
+- [ ] Every slide screenshotted and checked **at 16:9, at 16:10, and wider**. Testing one aspect is how the letterboxing got missed
+- [ ] Every slide shows its content. Nothing blank, nothing stuck part way through an animation
+- [ ] No device covers text, and no tag covers a frame's content
+- [ ] The marquee and the REC dot are moving
+- [ ] No slide has a dead half
+- [ ] Run it in **dev and in preview**. They fail differently: dev blocks files outside the root, and the build bundles them
+- [ ] Check with the network off, and with `prefers-reduced-motion` on
+
+Driving a headless browser is enough for all of this:
+
+```
+chrome --headless --window-size=1440,900 --virtual-time-budget=8000 \
+  --screenshot=slide.png "http://localhost:4173/#/4"
+```
+
+### The rest, by eye
+
 - [ ] Every slide renders through `Slide`, and no slide sets its own padding
-- [ ] `deck.css` contains no colour
-- [ ] `tokens.css` matches Design System Section 9 exactly
-- [ ] Nothing in slide furniture renders below 24px at 1920 width
-- [ ] Every mock element sits in a `DemoFrame` and carries a `MOCK` label
-- [ ] Reveal runs `transition:'none'`, and no slide uses a fragment
-- [ ] Every slide has an `<aside class="notes">` block that names its speaker
-- [ ] Every team member appears on slide 8 and speaks at least once
-- [ ] 25 words per slide or fewer, Simplified Technical English, no em dashes
+- [ ] Every mock element sits in a frame and carries a `MOCK` tag
 - [ ] Slide 4 shows the running product, not a picture of it
-- [ ] The deck runs with the network off, and the PDF fallback is committed
+- [ ] Every team member appears on slide 8 and speaks at least once
+- [ ] The PDF fallback is exported and committed
 - [ ] Dropping slides 5, 7 and 8 still leaves a coherent pitch
+
+**For the look, run Brand Identity Section 10.** For mock elements, run Design System Section 10.
 
 ---
 

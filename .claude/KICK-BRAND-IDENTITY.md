@@ -56,7 +56,7 @@ toolkit is the only place a logo rule exists, and it stays closed to us.
 **If a team member can sign in, get the logo rules first.** That is the one thing no public KICK
 surface states. These are what we still guess, and a judge could check:
 
-1. Logo clear space, minimum size and the misuse rules. Deck Mechanics Section 8 holds a 🔧 rule for now.
+1. Logo clear space, minimum size and the misuse rules. Section 5 of this file holds a 🔧 rule for now.
 2. Whether the halftone plates are a core brand asset or one page's treatment.
 3. Whether Booster Polygonal can be licensed to us, which decides if Archivo stays our substitute.
 
@@ -381,7 +381,7 @@ frame urself"** and **"Become iconic, create your own KICK Frame image."**
 KICK frame on their own image. The frame is not decoration, it is the brand action. It is also the
 literal form of "FROM EVERY ANGLE": the frame picks the angle.
 
-**So the deck frames things.** `CropMarks` in Deck Mechanics Section 8 is this device, and it earns its
+**So the deck frames things.** A frame component is this device, and it earns its
 place on more than the demo slide.
 
 ### The object still life ✅
@@ -396,6 +396,20 @@ the creator footage in Section 7.
 
 **We cannot use KICK's files** (Section 7 licence gate). We can copy the idea: photograph a real object off
 our own desk, cut it out, and put it on a green flood.
+
+### The wordmark 🔧
+
+`assets/brand/kick-logo.svg` is the official wordmark: a 97x26 viewBox, one path, `fill="#53FC18"`.
+
+**We hold no official logo rule, because the brand toolkit is gated (Section 0).** These rules are ours.
+They are conservative, so a real toolkit is unlikely to contradict them. Replace them if we get access.
+
+- **Clear space is the height of the K on all four sides.** Nothing crosses it, text included.
+- **Minimum height is 48px at 1920 width.** A type floor is not a mark floor.
+- **Two colourways only.** Green `#53FC18` on a dark ground, or ink `#0B0B0C` on a green flood.
+- **Never modify the mark.** No recolour, rotation, stretch, outline, shadow, gradient or texture.
+- **Never set the mark over a loud background layer.** It needs a flat field.
+- **Never lock our own mark to the KICK mark.** A shared lockup claims a partnership we do not have.
 
 ### Rationing
 

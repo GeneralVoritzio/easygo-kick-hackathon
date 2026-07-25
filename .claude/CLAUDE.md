@@ -13,7 +13,7 @@ Easygo Mini Hackathon powered by KICK · Saturday 1 August 2026 · Challenge 1 (
 | `.claude/KICK-BRAND-IDENTITY.md` | What KICK looks like, sounds like and believes, for **media**: values, voice, flood colour, display type, graphic devices, motion feel, footage rules | ✍️ Extend as we learn |
 | `.claude/KICK-API-MAP.md` | The real KICK API: every object, endpoint, webhook event and scope, from a sweep of `docs.kick.com`. Ground truth for what the API does and does not have | 🔄 Only from the live docs |
 | `.claude/KICK-API-CONVENTIONS.md` | Our API style guide: use KICK's real endpoint/field/event names, name invented endpoints the same way, and the mock-data naming rules | ✍️ Extend as we learn |
-| `.claude/KICK-PITCH-DECK-MECHANICS.md` | Deck mechanics only: stack (React + Vite + Reveal.js + Motion One), Reveal rules, slide components, the deck type scale, the run sheet. The look comes from the Brand Identity. **Applies only to files in `pitch/`** | ✍️ Extend as we learn |
+| `.claude/KICK-PITCH-DECK-MECHANICS.md` | **Deck layout and mechanics only, no theming.** It must look like slides and not a website: the slide frame, the deck type scale, mock product elements, Reveal rules, the slide sequence, delivery. Colour, type styling, texture and motion feel come from the Brand Identity. **Applies only to files in `pitch/`** | ✍️ Extend as we learn |
 
 The two **locked** files are the inputs everything else is derived from. **Never edit, rewrite, reformat or "improve" them as a side effect of another task.** If something in them is wrong or has been superseded, say so and wait for an explicit instruction to change it — then change only what was asked.
 

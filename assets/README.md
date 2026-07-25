@@ -47,7 +47,7 @@ value block. Brand Identity Section 5 calls it the edge bar.
 
 **These are KICK trademarks and KICK artwork, not our assets.** KICK owns them. They are here so we
 can read the brand, not so we can ship them. Brand Identity Section 7 holds the licence gate, and
-Deck Mechanics Section 8 holds the wordmark rule.
+Brand Identity Section 5 holds the wordmark rule.
 
 ### Assets we did not download
 

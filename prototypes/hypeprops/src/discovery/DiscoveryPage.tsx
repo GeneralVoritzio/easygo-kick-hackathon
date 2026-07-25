@@ -2,9 +2,12 @@ import { useEffect, useMemo } from 'react'
 import { Link } from 'react-router'
 import kickLogo from '../assets/kick-logo.svg'
 import { DEFAULT_ORIGIN, DISCOVERY_CLUSTERS, findDiscoveryChannel } from '../data/discoveryChannels'
+import DiscoveryFilterBar from './DiscoveryFilterBar'
 import DiscoveryGlobe from './DiscoveryGlobe'
 import StreamPreviewPanel from './StreamPreviewPanel'
+import { applyDiscoveryFilters } from './filters'
 import { useDiscovery } from './discoveryStore'
+import type { DiscoveryCluster } from './types'
 
 function hasWebGL(): boolean {
   try {
@@ -19,10 +22,10 @@ function hasWebGL(): boolean {
  * Semantic alternative to the canvas (and the whole experience when WebGL is
  * missing): every region's live channels as plain links.
  */
-function RegionChannelList({ className = '' }: { className?: string }) {
+function RegionChannelList({ clusters, className = '' }: { clusters: DiscoveryCluster[]; className?: string }) {
   return (
     <nav aria-label="Live channels by region" className={className}>
-      {DISCOVERY_CLUSTERS.map((cluster) => (
+      {clusters.map((cluster) => (
         <section key={cluster.id} className="mb-4">
           <h3 className="mb-1.5 text-[13px] font-bold text-kick-text">
             {cluster.city}, {cluster.country}
@@ -50,6 +53,10 @@ export default function DiscoveryPage() {
   const geoStatus = useDiscovery((s) => s.geoStatus)
   const origin = useDiscovery((s) => s.origin)
   const selectedChannelId = useDiscovery((s) => s.selectedChannelId)
+  const filters = useDiscovery((s) => s.filters)
+
+  const filteredClusters = useMemo(() => applyDiscoveryFilters(DISCOVERY_CLUSTERS, filters), [filters])
+  const matchCount = useMemo(() => filteredClusters.reduce((sum, c) => sum + c.channels.length, 0), [filteredClusters])
 
   // one geolocation ask per session; coordinates only ever steer the local
   // camera — nothing is sent anywhere or persisted (discovery plan rule)
@@ -126,25 +133,27 @@ export default function DiscoveryPage() {
         <div className="relative min-h-0 flex-1">
           <DiscoveryGlobe />
 
-          {statusChip && (
-            <div className="pointer-events-none absolute left-4 top-4 flex items-center gap-2 rounded-full border border-kick-border bg-kick-panel/80 px-3 py-1.5 text-[12px] font-medium text-kick-muted backdrop-blur-sm">
-              <span className={`h-1.5 w-1.5 rounded-full bg-kick ${geoStatus === 'locating' ? 'animate-pulse-fast' : ''}`} />
-              {statusChip}
-            </div>
-          )}
+          <DiscoveryFilterBar matchCount={matchCount} />
 
           <div className="pointer-events-none absolute bottom-4 left-4 rounded-full border border-kick-border bg-kick-panel/80 px-3 py-1.5 text-[12px] text-kick-muted backdrop-blur-sm">
             drag to rotate · scroll to zoom · hover a green dot to see who's live
           </div>
 
-          <RegionChannelList className="sr-only" />
+          {statusChip && (
+            <div className="pointer-events-none absolute bottom-4 right-4 flex items-center gap-2 rounded-full border border-kick-border bg-kick-panel/80 px-3 py-1.5 text-[12px] font-medium text-kick-muted backdrop-blur-sm">
+              <span className={`h-1.5 w-1.5 rounded-full bg-kick ${geoStatus === 'locating' ? 'animate-pulse-fast' : ''}`} />
+              {statusChip}
+            </div>
+          )}
+
+          <RegionChannelList clusters={filteredClusters} className="sr-only" />
         </div>
       ) : (
         <div className="min-h-0 flex-1 overflow-y-auto px-4 py-6 sm:px-6">
           <p className="mb-4 max-w-xl text-[13px] text-kick-muted">
             Your browser can't render the 3D globe (WebGL unavailable) — here's everyone live, by region.
           </p>
-          <RegionChannelList className="columns-1 gap-8 sm:columns-2 lg:columns-3" />
+          <RegionChannelList clusters={DISCOVERY_CLUSTERS} className="columns-1 gap-8 sm:columns-2 lg:columns-3" />
         </div>
       )}
 

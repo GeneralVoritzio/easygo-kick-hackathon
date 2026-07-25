@@ -1,11 +1,52 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router'
 import KickPlayer from '../stream/KickPlayer'
 import { posterUrl } from '../data/discoveryChannels'
 import { INTERACTION_BADGES } from '../engine/ack'
 import { SIM_CHANNEL_STATS } from '../engine/interactionStore'
+import { startMockEvents } from '../engine/mockEvents'
+import { useEngine } from '../engine/store'
 import { useDiscovery } from './discoveryStore'
 import type { DiscoveryChannel, DiscoveryCluster } from './types'
+
+/** most recent chat lines shown in the panel's compact feed */
+const CHAT_TAIL = 30
+
+/** read-only live chat feed, driven by the same simulated crowd as /stream */
+function LiveChatFeed() {
+  const chat = useEngine((s) => s.chat)
+  const scrollRef = useRef<HTMLDivElement>(null)
+
+  // the crowd simulation normally starts with the stream page — run it while
+  // the panel is open so the feed moves in real time
+  useEffect(() => startMockEvents(), [])
+
+  useEffect(() => {
+    const el = scrollRef.current
+    if (el) el.scrollTop = el.scrollHeight
+  }, [chat])
+
+  return (
+    <div className="flex min-h-[160px] flex-1 flex-col gap-1.5 rounded-xl border border-kick-border bg-kick-panel-2 p-3">
+      <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wide text-kick-muted">
+        <span className="h-1.5 w-1.5 animate-pulse-fast rounded-full bg-kick" />
+        Live chat
+      </div>
+      <div ref={scrollRef} className="min-h-0 flex-1 space-y-0.5 overflow-y-auto pr-1">
+        {chat.slice(-CHAT_TAIL).map((message) => (
+          <div key={message.id} className="text-[12px] leading-snug break-words">
+            <span className="font-semibold" style={{ color: message.color }}>
+              {message.user}
+            </span>
+            <span className="text-kick-muted">: </span>
+            <span className="text-kick-text/90">{message.text}</span>
+          </div>
+        ))}
+        {chat.length === 0 && <div className="text-[12px] text-kick-muted">chat is warming up…</div>}
+      </div>
+    </div>
+  )
+}
 
 type Props = {
   channel: DiscoveryChannel
@@ -22,6 +63,8 @@ export default function StreamPreviewPanel({ channel, cluster }: Props) {
   const setSelectedChannel = useDiscovery((s) => s.setSelectedChannel)
   const [posterFailed, setPosterFailed] = useState(false)
   const sim = SIM_CHANNEL_STATS[channel.name]
+  const oddsLabel = sim?.oddsLabel ?? `1 in ${channel.interaction.oddsDenominator}`
+  const badges = channel.interaction.badges
   const close = () => setSelectedChannel(null)
 
   return (
@@ -79,32 +122,33 @@ export default function StreamPreviewPanel({ channel, cluster }: Props) {
             <div className="min-w-0 leading-tight">
               <div className="truncate text-[17px] font-bold text-kick-text">{channel.name}</div>
               <div className="truncate text-[13px] text-kick-muted">
-                {channel.category} · {channel.viewers.toLocaleString()} viewers
+                {channel.category} · {channel.language} · {channel.viewers.toLocaleString()} viewers
                 {cluster ? ` · ${cluster.city}, ${cluster.country}` : ''}
               </div>
             </div>
           </div>
 
-          {sim && (
-            <div className="flex flex-col gap-1.5 rounded-xl border border-kick-border bg-kick-panel-2 p-3">
-              <div className="text-[11px] leading-snug text-kick-muted">
-                <span className="font-bold text-kick">replies {sim.oddsLabel}</span> · {sim.blurb}
-              </div>
-              {sim.badges.length > 0 && (
-                <div className="flex flex-wrap gap-1">
-                  {sim.badges.map((key) => (
-                    <span
-                      key={key}
-                      className="inline-flex items-center gap-1 rounded-full border border-kick/50 bg-kick/10 px-2 py-0.5 text-[11px] font-semibold text-kick"
-                    >
-                      <span aria-hidden="true">{INTERACTION_BADGES[key].icon}</span>
-                      {INTERACTION_BADGES[key].label}
-                    </span>
-                  ))}
-                </div>
-              )}
+          <div className="flex flex-col gap-1.5 rounded-xl border border-kick-border bg-kick-panel-2 p-3">
+            <div className="text-[11px] leading-snug text-kick-muted">
+              <span className="font-bold text-kick">replies {oddsLabel}</span>
+              {sim?.blurb ? ` · ${sim.blurb}` : ' · chance your message gets a response'}
             </div>
-          )}
+            {badges.length > 0 && (
+              <div className="flex flex-wrap gap-1">
+                {badges.map((key) => (
+                  <span
+                    key={key}
+                    className="inline-flex items-center gap-1 rounded-full border border-kick/50 bg-kick/10 px-2 py-0.5 text-[11px] font-semibold text-kick"
+                  >
+                    <span aria-hidden="true">{INTERACTION_BADGES[key].icon}</span>
+                    {INTERACTION_BADGES[key].label}
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <LiveChatFeed />
 
           <div className="mt-auto flex flex-col gap-2">
             <button

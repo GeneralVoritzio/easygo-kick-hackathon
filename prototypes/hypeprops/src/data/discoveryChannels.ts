@@ -1,3 +1,4 @@
+import type { InteractionBadgeKey } from '../engine/ack'
 import type { DiscoveryChannel, DiscoveryCluster, DiscoveryOrigin } from '../discovery/types'
 
 /**
@@ -108,23 +109,59 @@ const CITIES: City[] = [
   { city: 'Auckland', country: 'New Zealand', lat: -36.8485, lng: 174.7633 },
 ]
 
-/** browse-grid alumni — pinned to specific cities, playable via the demo slug,
- * and still keyed into SIM_CHANNEL_STATS for their odds/badges */
+/** browse-grid alumni — pinned to specific cities, playable via the demo slug;
+ * their odds/badges mirror SIM_CHANNEL_STATS so both surfaces tell one story */
 const LEGACY_CHANNELS: Record<string, Omit<DiscoveryChannel, 'id' | 'lat' | 'lng' | 'kickSlug' | 'embeddable'>> = {
-  'San Francisco': { name: 'HypeKing', category: 'Just Chatting', viewers: 1804, thumbnail: { seed: 'hypeking', gradient: 'linear-gradient(135deg,#53fc18,#3fc411)', initials: 'HK' } },
-  'Los Angeles': { name: 'NovaStrikes', category: 'Valorant', viewers: 3204, thumbnail: { seed: 'novastrikes', gradient: 'linear-gradient(135deg,#60a5fa,#a78bfa)', initials: 'NS' } },
-  London: { name: 'LootGoblin', category: 'Old School RuneScape', viewers: 2113, thumbnail: { seed: 'lootgoblin', gradient: 'linear-gradient(135deg,#fb923c,#f87171)', initials: 'LG' } },
-  'New York': { name: 'ClipFarmer', category: 'Grand Theft Auto V', viewers: 1842, thumbnail: { seed: 'clipfarmer', gradient: 'linear-gradient(135deg,#f472b6,#facc15)', initials: 'CF' } },
-  Seoul: { name: 'PixelPunk', category: 'Minecraft', viewers: 1390, thumbnail: { seed: 'pixelpunk', gradient: 'linear-gradient(135deg,#34d399,#60a5fa)', initials: 'PP' } },
-  Berlin: { name: 'DriftQueen', category: 'Just Chatting', viewers: 981, thumbnail: { seed: 'driftqueen', gradient: 'linear-gradient(135deg,#a78bfa,#f472b6)', initials: 'DQ' } },
-  Tokyo: { name: 'HexRunner', category: 'League of Legends', viewers: 845, thumbnail: { seed: 'hexrunner', gradient: 'linear-gradient(135deg,#22d3ee,#3b82f6)', initials: 'HR' } },
-  'São Paulo': { name: 'StormCaller', category: 'Fortnite', viewers: 612, thumbnail: { seed: 'stormcaller', gradient: 'linear-gradient(135deg,#facc15,#fb923c)', initials: 'SC' } },
+  'San Francisco': { name: 'HypeKing', category: 'Just Chatting', language: 'English', viewers: 1804, thumbnail: { seed: 'hypeking', gradient: 'linear-gradient(135deg,#53fc18,#3fc411)', initials: 'HK' }, interaction: { oddsDenominator: 5, badges: ['responsive'] } },
+  'Los Angeles': { name: 'NovaStrikes', category: 'Valorant', language: 'English', viewers: 3204, thumbnail: { seed: 'novastrikes', gradient: 'linear-gradient(135deg,#60a5fa,#a78bfa)', initials: 'NS' }, interaction: { oddsDenominator: 9, badges: ['responsive'] } },
+  London: { name: 'LootGoblin', category: 'Old School RuneScape', language: 'English', viewers: 2113, thumbnail: { seed: 'lootgoblin', gradient: 'linear-gradient(135deg,#fb923c,#f87171)', initials: 'LG' }, interaction: { oddsDenominator: 4, badges: ['responsive', 'reads_everything'] } },
+  'New York': { name: 'ClipFarmer', category: 'Grand Theft Auto V', language: 'English', viewers: 1842, thumbnail: { seed: 'clipfarmer', gradient: 'linear-gradient(135deg,#f472b6,#facc15)', initials: 'CF' }, interaction: { oddsDenominator: 31, badges: [] } },
+  Seoul: { name: 'PixelPunk', category: 'Minecraft', language: 'English', viewers: 1390, thumbnail: { seed: 'pixelpunk', gradient: 'linear-gradient(135deg,#34d399,#60a5fa)', initials: 'PP' }, interaction: { oddsDenominator: 6, badges: ['new_chatter_friendly'] } },
+  Berlin: { name: 'DriftQueen', category: 'Just Chatting', language: 'English', viewers: 981, thumbnail: { seed: 'driftqueen', gradient: 'linear-gradient(135deg,#a78bfa,#f472b6)', initials: 'DQ' }, interaction: { oddsDenominator: 12, badges: [] } },
+  Tokyo: { name: 'HexRunner', category: 'League of Legends', language: 'English', viewers: 845, thumbnail: { seed: 'hexrunner', gradient: 'linear-gradient(135deg,#22d3ee,#3b82f6)', initials: 'HR' }, interaction: { oddsDenominator: 18, badges: [] } },
+  'São Paulo': { name: 'StormCaller', category: 'Fortnite', language: 'English', viewers: 612, thumbnail: { seed: 'stormcaller', gradient: 'linear-gradient(135deg,#facc15,#fb923c)', initials: 'SC' }, interaction: { oddsDenominator: 25, badges: [] } },
 }
 
 const NAME_PREFIXES = ['Neon', 'Turbo', 'Pixel', 'Shadow', 'Hyper', 'Glitch', 'Cosmic', 'Retro', 'Static', 'Vapor', 'Crimson', 'Frost', 'Ember', 'Volt', 'Lunar', 'Feral', 'Chrome', 'Sonic', 'Nova', 'Drift']
 const NAME_SUFFIXES = ['Wolf', 'Viper', 'Queen', 'Baron', 'Gremlin', 'Pilot', 'Mage', 'Rogue', 'Falcon', 'Otter', 'Reaper', 'Samurai', 'Ninja', 'Golem', 'Racer', 'Wizard', 'Panda', 'Comet', 'Riot', 'Byte']
 
-const CATEGORIES = ['Just Chatting', 'IRL', 'Slots', 'Grand Theft Auto V', 'Minecraft', 'Valorant', 'Fortnite', 'League of Legends', 'Old School RuneScape', 'Music', 'Chess', 'Retro Games']
+/** every category channels are generated from — the filter bar's source of truth */
+export const DISCOVERY_CATEGORIES = ['Just Chatting', 'IRL', 'Slots', 'Grand Theft Auto V', 'Minecraft', 'Valorant', 'Fortnite', 'League of Legends', 'Old School RuneScape', 'Music', 'Chess', 'Retro Games']
+
+/** primary broadcast language per country — channels stream in it most of the
+ * time, with English mixed in everywhere (matches how Kick's directory feels,
+ * and makes the language filter light up coherent regions of the globe) */
+const COUNTRY_LANGUAGE: Record<string, string> = {
+  Mexico: 'Español',
+  Colombia: 'Español',
+  Peru: 'Español',
+  Chile: 'Español',
+  Argentina: 'Español',
+  Spain: 'Español',
+  Brazil: 'Português',
+  Portugal: 'Português',
+  France: 'Français',
+  Germany: 'Deutsch',
+  Switzerland: 'Deutsch',
+  Austria: 'Deutsch',
+  Italy: 'Italiano',
+  Poland: 'Polski',
+  'Türkiye': 'Türkçe',
+  Ukraine: 'Українська',
+  UAE: 'العربية',
+  Egypt: 'العربية',
+  Japan: '日本語',
+  'South Korea': '한국어',
+  China: '中文',
+  Taiwan: '中文',
+  Thailand: 'ไทย',
+  Indonesia: 'Bahasa Indonesia',
+}
+
+export const DISCOVERY_LANGUAGES = ['English', ...new Set(Object.values(COUNTRY_LANGUAGE))]
+
+/** how often a channel streams in its country's primary language (vs English) */
+const LOCAL_LANGUAGE_RATE = 0.65
 
 const GRADIENT_STOPS = ['#60a5fa', '#a78bfa', '#f472b6', '#facc15', '#fb923c', '#f87171', '#34d399', '#22d3ee', '#3b82f6', '#e879f9', '#4ade80', '#fbbf24']
 
@@ -163,6 +200,17 @@ export function buildDiscoveryCatalog(seed = SEED): DiscoveryCatalog {
   // skew towards small streams, with a few thousands-strong outliers
   const viewersFor = () => Math.floor(80 + rng() * rng() * 5800)
 
+  // mock interaction-engine profile: most channels have long odds, a minority
+  // are genuinely responsive; badges correlate with the odds so the story holds
+  const interactionFor = () => {
+    const oddsDenominator = Math.max(3, Math.round(3 + rng() * rng() * 37))
+    const badges: InteractionBadgeKey[] = []
+    if (oddsDenominator <= 10) badges.push('responsive')
+    if (oddsDenominator <= 15 && rng() < 0.25) badges.push('reads_everything')
+    if (rng() < 0.22) badges.push('new_chatter_friendly')
+    return { oddsDenominator, badges }
+  }
+
   const clusters: DiscoveryCluster[] = CITIES.map((cityDef, ci) => {
     const clusterId = `loc-${ci}-${cityDef.city.toLowerCase().replace(/[^a-z]+/g, '-')}`
     const channels: DiscoveryChannel[] = []
@@ -179,6 +227,7 @@ export function buildDiscoveryCatalog(seed = SEED): DiscoveryCatalog {
       })
     }
 
+    const localLanguage = COUNTRY_LANGUAGE[cityDef.country]
     const targetCount = 3 + Math.floor(rng() * 3) // 3–5 per location
     while (channels.length < targetCount) {
       const name = nextName()
@@ -187,8 +236,10 @@ export function buildDiscoveryCatalog(seed = SEED): DiscoveryCatalog {
         id: `ch-${clusterId}-${channels.length}`,
         name,
         kickSlug: embeddable ? DEMO_KICK_SLUG : name.toLowerCase(),
-        category: pick(CATEGORIES),
+        category: pick(DISCOVERY_CATEGORIES),
+        language: localLanguage && rng() < LOCAL_LANGUAGE_RATE ? localLanguage : 'English',
         viewers: viewersFor(),
+        interaction: interactionFor(),
         lat: 0,
         lng: 0,
         thumbnail: {

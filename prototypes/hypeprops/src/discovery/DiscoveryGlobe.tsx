@@ -4,7 +4,8 @@ import { Canvas, useThree } from '@react-three/fiber'
 import { useFrame } from '@react-three/fiber'
 import { Html, OrbitControls, Stars, useTexture } from '@react-three/drei'
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib'
-import { DISCOVERY_CLUSTERS, DEFAULT_ORIGIN, findDiscoveryCluster } from '../data/discoveryChannels'
+import { DISCOVERY_CLUSTERS, DEFAULT_ORIGIN } from '../data/discoveryChannels'
+import { applyDiscoveryFilters, hasActiveFilters } from './filters'
 import {
   INITIAL_CAMERA_DISTANCE,
   MAX_CAMERA_DISTANCE,
@@ -66,7 +67,14 @@ function Atmosphere() {
  * the resolved origin on first visit, feeds zoom-band changes upward, and
  * saves the pose on unmount so "继续探索/back" lands exactly where you left.
  */
-function CameraRig({ onBandChange }: { onBandChange: (band: ZoomBand) => void }) {
+function CameraRig({
+  onBandChange,
+  flyTo,
+}: {
+  onBandChange: (band: ZoomBand) => void
+  /** externally requested destination (e.g. "nearest filter match") */
+  flyTo: THREE.Vector3 | null
+}) {
   const controlsRef = useRef<OrbitControlsImpl>(null)
   const camera = useThree((s) => s.camera)
   const origin = useDiscovery((s) => s.origin)
@@ -87,6 +95,10 @@ function CameraRig({ onBandChange }: { onBandChange: (band: ZoomBand) => void })
     if (!origin || state.introFlown || state.savedCamera) return
     flight.current = new THREE.Vector3(...latLngToVector3(origin.lat, origin.lng, INITIAL_CAMERA_DISTANCE))
   }, [origin])
+
+  useEffect(() => {
+    if (flyTo) flight.current = flyTo.clone()
+  }, [flyTo])
 
   // grabbing the globe hands control back to the user immediately, and tucks
   // the card popover away — it would otherwise sit pinned mid-screen,
@@ -171,13 +183,52 @@ function GlobeScene() {
   const texture = useTexture('/textures/earth-dark.jpg')
   const globeRef = useRef<THREE.Mesh>(null)
   const [band, setBand] = useState<ZoomBand>('far')
+  // where the burst popover is pinned: the actual hovered dot (a channel dot
+  // can sit ~1° off its cluster center at near zoom); null → cluster center,
+  // which covers the restore-on-return path where nothing was hovered
+  const [anchorOverride, setAnchorOverride] = useState<[number, number, number] | null>(null)
   const focusedClusterId = useDiscovery((s) => s.focusedClusterId)
+  const filters = useDiscovery((s) => s.filters)
+
+  // the globe only ever sees the filtered catalog — hidden channels drop out
+  // of the hotspot layer, the popover and the counts alike
+  const filteredClusters = useMemo(() => applyDiscoveryFilters(DISCOVERY_CLUSTERS, filters), [filters])
+
+  // a filter change can empty the cluster whose burst is open — dismiss it
+  useEffect(() => {
+    if (focusedClusterId && !filteredClusters.some((c) => c.id === focusedClusterId)) {
+      useDiscovery.getState().setFocusedCluster(null)
+    }
+  }, [filteredClusters, focusedClusterId])
+
+  // a filter can leave every match on the far hemisphere (pick "Português"
+  // while parked over the Pacific) — an unchanged view would read as "no
+  // results", so fly to the busiest matching cluster instead
+  const camera = useThree((s) => s.camera)
+  const [filterFlyTarget, setFilterFlyTarget] = useState<THREE.Vector3 | null>(null)
+  useEffect(() => {
+    if (!hasActiveFilters(filters) || filteredClusters.length === 0) return
+    const camDir = camera.position.clone().normalize()
+    const toward = new THREE.Vector3()
+    const anyVisible = filteredClusters.some(
+      (c) => camDir.dot(toward.set(...latLngToVector3(c.lat, c.lng))) > 0.25,
+    )
+    if (anyVisible) return
+    const busiest = filteredClusters.reduce((a, b) => (a.totalViewers >= b.totalViewers ? a : b))
+    setFilterFlyTarget(
+      new THREE.Vector3(
+        ...latLngToVector3(busiest.lat, busiest.lng, Math.max(INITIAL_CAMERA_DISTANCE, camera.position.length())),
+      ),
+    )
+    // camera is read imperatively on purpose — this must only re-run on filter changes
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filteredClusters])
 
   // the texture ships very dark — lift it above the black backdrop (>1 channel
   // values are legal on Color and simply brighten the sampled texel)
   const globeTint = useMemo(() => new THREE.Color(1.7, 1.75, 1.7), [])
 
-  const points = useMemo(() => selectVisiblePoints(DISCOVERY_CLUSTERS, BAND_DISTANCE[band]), [band])
+  const points = useMemo(() => selectVisiblePoints(filteredClusters, BAND_DISTANCE[band]), [band, filteredClusters])
 
   // hotspot → popover hover contract: moving between the dot and the card
   // stack gets a 250ms grace window before the popover closes
@@ -201,8 +252,10 @@ function GlobeScene() {
   }
   useEffect(() => cancelClose, [])
 
-  const focusedCluster = focusedClusterId ? findDiscoveryCluster(focusedClusterId) : undefined
-  const popoverAnchor = focusedCluster ? latLngToVector3(focusedCluster.lat, focusedCluster.lng, 1.02) : null
+  const focusedCluster = focusedClusterId ? filteredClusters.find((c) => c.id === focusedClusterId) : undefined
+  const popoverAnchor = focusedCluster
+    ? (anchorOverride ?? latLngToVector3(focusedCluster.lat, focusedCluster.lng, 1.02))
+    : null
 
   return (
     <>
@@ -223,11 +276,13 @@ function GlobeScene() {
         points={points}
         onPointOver={(point) => {
           cancelClose()
+          setAnchorOverride(latLngToVector3(point.lat, point.lng, 1.01))
           useDiscovery.getState().setFocusedCluster(point.clusterId)
         }}
         onPointOut={scheduleClose}
         onPointClick={(point) => {
           cancelClose()
+          setAnchorOverride(latLngToVector3(point.lat, point.lng, 1.01))
           useDiscovery.getState().setFocusedCluster(point.clusterId)
         }}
       />
@@ -243,7 +298,7 @@ function GlobeScene() {
         </Html>
       )}
 
-      <CameraRig onBandChange={setBand} />
+      <CameraRig onBandChange={setBand} flyTo={filterFlyTarget} />
     </>
   )
 }

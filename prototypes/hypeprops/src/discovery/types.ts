@@ -1,3 +1,13 @@
+import type { InteractionBadgeKey } from '../engine/ack'
+
+/** Interaction-engine profile for a discovery channel — seeded mock stats in
+ * the same shape the live engine measures ("1 in N" response odds + badges). */
+export type ChannelInteraction = {
+  /** response odds denominator: "1 in N" — lower is more responsive */
+  oddsDenominator: number
+  badges: InteractionBadgeKey[]
+}
+
 /** A single live channel plotted on the globe. Coordinates are mock demo data —
  * they position the hotspot, they do not claim the streamer's physical location. */
 export type DiscoveryChannel = {
@@ -6,6 +16,8 @@ export type DiscoveryChannel = {
   name: string
   kickSlug: string
   category: string
+  /** broadcast language, Kick-style native display name (e.g. "Español") */
+  language: string
   viewers: number
   lat: number
   lng: number
@@ -19,6 +31,18 @@ export type DiscoveryChannel = {
   }
   /** true → hovering the card may mount a real Kick iframe for this slug */
   embeddable: boolean
+  interaction: ChannelInteraction
+}
+
+export type ViewerTier = 'small' | 'mid' | 'large'
+
+/** Active Discovery filters — null/empty means "no restriction" on that axis.
+ * Badge selection is AND semantics: a channel must carry every chosen badge. */
+export type DiscoveryFilters = {
+  category: string | null
+  language: string | null
+  badges: InteractionBadgeKey[]
+  viewerTier: ViewerTier | null
 }
 
 /** A city/region aggregation point — one green dot at far/mid zoom that

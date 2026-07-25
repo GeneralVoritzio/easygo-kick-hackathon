@@ -1,5 +1,6 @@
 import { create } from 'zustand'
-import type { DiscoveryOrigin, GeoStatus, SavedCamera } from './types'
+import { EMPTY_FILTERS } from './filters'
+import type { DiscoveryFilters, DiscoveryOrigin, GeoStatus, SavedCamera } from './types'
 
 /**
  * Lightweight session state for the Discovery globe. Lives at module scope so
@@ -19,6 +20,8 @@ export type DiscoveryStore = {
   origin: DiscoveryOrigin | null
   /** true once the intro flight has run, so returning doesn't replay it */
   introFlown: boolean
+  /** active filters — like the camera, they survive a round-trip to /stream */
+  filters: DiscoveryFilters
 
   setSavedCamera: (camera: SavedCamera | null) => void
   setFocusedCluster: (id: string | null) => void
@@ -26,6 +29,8 @@ export type DiscoveryStore = {
   setGeoStatus: (status: GeoStatus) => void
   setOrigin: (origin: DiscoveryOrigin) => void
   setIntroFlown: () => void
+  setFilters: (patch: Partial<DiscoveryFilters>) => void
+  resetFilters: () => void
 }
 
 export const useDiscovery = create<DiscoveryStore>((set) => ({
@@ -35,6 +40,7 @@ export const useDiscovery = create<DiscoveryStore>((set) => ({
   geoStatus: 'idle',
   origin: null,
   introFlown: false,
+  filters: EMPTY_FILTERS,
 
   setSavedCamera: (savedCamera) => set({ savedCamera }),
   setFocusedCluster: (focusedClusterId) => set({ focusedClusterId }),
@@ -42,4 +48,6 @@ export const useDiscovery = create<DiscoveryStore>((set) => ({
   setGeoStatus: (geoStatus) => set({ geoStatus }),
   setOrigin: (origin) => set({ origin }),
   setIntroFlown: () => set({ introFlown: true }),
+  setFilters: (patch) => set((s) => ({ filters: { ...s.filters, ...patch } })),
+  resetFilters: () => set({ filters: EMPTY_FILTERS }),
 }))

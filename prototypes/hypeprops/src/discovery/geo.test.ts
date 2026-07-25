@@ -22,11 +22,13 @@ function mockCluster(id: number, channelCount: number, viewersEach: number): Dis
     name: `Streamer${id}_${i}`,
     kickSlug: `streamer${id}${i}`,
     category: 'Just Chatting',
+    language: 'English',
     viewers: viewersEach,
     lat: lat + i * 0.1,
     lng: lng + i * 0.1,
     thumbnail: { seed: `c${id}-ch${i}`, gradient: 'linear-gradient(135deg,#000,#111)', initials: 'ST' },
     embeddable: false,
+    interaction: { oddsDenominator: 10, badges: [] },
   }))
   return {
     id: `c${id}`,

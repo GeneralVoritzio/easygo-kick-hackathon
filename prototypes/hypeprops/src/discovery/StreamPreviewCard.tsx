@@ -22,7 +22,9 @@ type Props = {
  */
 export default function StreamPreviewCard({ channel, previewing, onPreviewStart, onPreviewEnd, onSelect }: Props) {
   const [posterFailed, setPosterFailed] = useState(false)
-  const sim = SIM_CHANNEL_STATS[channel.name]
+  // legacy channels keep their hand-written odds label ("live" for HypeKing);
+  // everyone else formats the seeded interaction profile
+  const oddsLabel = SIM_CHANNEL_STATS[channel.name]?.oddsLabel ?? `1 in ${channel.interaction.oddsDenominator}`
   const playing = previewing && channel.embeddable
 
   return (
@@ -72,8 +74,7 @@ export default function StreamPreviewCard({ channel, previewing, onPreviewStart,
           <div className="bg-gradient-to-t from-black/85 via-black/40 to-transparent px-2 pb-1.5 pt-4 leading-tight">
             <div className="truncate text-[12px] font-bold text-kick-text">{channel.name}</div>
             <div className="truncate text-[10px] text-kick-muted">
-              {channel.category}
-              {sim?.oddsLabel ? ` · replies ${sim.oddsLabel}` : ''}
+              {channel.category} · replies {oddsLabel}
             </div>
           </div>
         </div>

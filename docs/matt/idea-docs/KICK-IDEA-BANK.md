@@ -2,7 +2,7 @@
 
 100 concepts for Challenge 1 and the wildcard, scored against our formula and filtered against the API's actual capabilities.
 
-> **Read §0 first.** There's a tension in this document you should know about before you use it.
+> **Read Section 0 first.** There's a tension in this document you should know about before you use it.
 
 ---
 
@@ -12,7 +12,7 @@ You told me the trend you're worried about is everyone using AI to generate idea
 
 I've done it, but be clear-eyed about what this is. **The ideas below are not a menu to pick from.** If our winning concept is item #34 lifted intact, we've done exactly the thing you were trying to avoid — another team's model may well produce something adjacent.
 
-What's actually defensible here is **§2, the white space analysis** — the structural gaps in what everyone else will build, derived from the API's real capabilities. The ideas are worked examples of those gaps. Use them as provocations in Sunday's session: read the angle, then have the team generate against it. The idea you invent in the room beats the idea I handed you, even if mine scores higher on paper, because you'll be able to defend it and you'll actually believe in it.
+What's actually defensible here is **Section 2, the white space analysis** — the structural gaps in what everyone else will build, derived from the API's real capabilities. The ideas are worked examples of those gaps. Use them as provocations in Sunday's session: read the angle, then have the team generate against it. The idea you invent in the room beats the idea I handed you, even if mine scores higher on paper, because you'll be able to defend it and you'll actually believe in it.
 
 Scores are **my estimates** using our formula. Re-score as a team — my Creativity scores in particular are the least trustworthy, because I can't see what the other nine teams are building.
 
@@ -58,13 +58,13 @@ Verified from the [KICK Dev Docs](https://github.com/KickEngineering/KickDevDocs
 
 ### ✅ Resolved: we're running on mocked data
 
-**Team decision — the API above is our schema reference, not our runtime dependency.** Full rationale in §2A of the hackathon spec. Three consequences for this document:
+**Team decision — the API above is our schema reference, not our runtime dependency.** Full rationale in Section 2A of the hackathon spec. Three consequences for this document:
 
 **1. Demo risk multipliers mostly collapse to ×1.0.** The webhook trap below is no longer our problem, and neither is venue wifi. Ideas I marked ×0.85 purely for live-data fragility — **#5 Kicks Bounties, #8 Reaction Lag, #10 The Handoff** — should be re-scored upward by roughly 5–7 points each. That moves Kicks Bounties into serious contention.
 
 > The trap we're sidestepping: Kick retries a webhook **3 times**, then **automatically unsubscribes the event**. One hiccup mid-pitch and you're silently disconnected with no error on screen. There's a known open issue about [stalled chat webhook delivery](https://github.com/KickEngineering/KickDevDocs/issues/300) too. Teams running live will get bitten by this.
 
-**2. The kill list in §7 stays dead.** This is the part that matters. We can mock the *volume and timing* of data the API could genuinely produce — a 3,000-person raid on cue, 400 messages a minute, a stream dropping offline mid-demo. We cannot mock a *capability the API doesn't have*. The judges are four KICK engineering managers; they know their own API surface. An overlay reading game state off the video feed doesn't become viable because we faked the data — it becomes a product that can never ship, demoed to the five people most able to spot it.
+**2. The kill list in Section 7 stays dead.** This is the part that matters. We can mock the *volume and timing* of data the API could genuinely produce — a 3,000-person raid on cue, 400 messages a minute, a stream dropping offline mid-demo. We cannot mock a *capability the API doesn't have*. The judges are four KICK engineering managers; they know their own API surface. An overlay reading game state off the video feed doesn't become viable because we faked the data — it becomes a product that can never ship, demoed to the five people most able to spot it.
 
 **3. Payload fidelity is now a scored surface.** Fixtures must mirror the real shapes — `identity`, `replies_to` and `created_at` on `chat.message.sent`, `pinned_time_seconds` on `kicks.gifted`. Matching the real schema is visible evidence of technical thinking. Invented field names read as lazy.
 
@@ -337,7 +337,7 @@ Scored 55–67. Solid, not winners as stated — but several are one twist away.
 
 ## 6. Wildcard track — ten `[MIXER]`
 
-Anywhere on the platform. **Warning:** if the real-time requirement applies to the wildcard too — and §3 of our spec assumes it does until confirmed — most of these fail gate A4. Confirm before committing.
+Anywhere on the platform. **Warning:** if the real-time requirement applies to the wildcard too — and Section 3 of our spec assumes it does until confirmed — most of these fail gate A4. Confirm before committing.
 
 | # | Idea | Est. |
 |---|---|---|
@@ -356,7 +356,7 @@ Anywhere on the platform. **Warning:** if the real-time requirement applies to t
 
 ## 7. Ten I killed, and why
 
-Worth as much as the list above — these look great until you check them against §1.
+Worth as much as the list above — these look great until you check them against Section 1.
 
 | Idea | Killed by |
 |---|---|
@@ -376,7 +376,7 @@ Worth as much as the list above — these look great until you check them agains
 ## 8. How to use this on Sunday
 
 1. **Don't open this file first.** Run the divergence round cold — everyone brings 5 ideas of their own. Reading a ranked list before you think is how you get anchored, and anchoring is exactly what we're trying to avoid.
-2. **Then read §2 aloud** — the five gaps, not the ideas. Generate against the gaps for 20 minutes.
+2. **Then read Section 2 aloud** — the five gaps, not the ideas. Generate against the gaps for 20 minutes.
 3. **Then open Tier S** as a benchmark. If nothing the team generated beats these, take the best of these and make it ours — change the user, change the mechanic, change the angle until we can defend it as our own.
 4. **Re-score everything yourselves.** My numbers are estimates from outside the room.
 

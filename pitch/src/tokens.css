@@ -1,0 +1,67 @@
+/* Copied verbatim from KICK-DESIGN-SYSTEM.md Section 9. Do not edit here. */
+:root{
+  /* brand ✅ */
+  --kick-green:#53FC18;         /* green-500 */
+  --kick-green-bright:#75FD45;  /* green-400 */
+  --kick-green-hover:#3AD903;   /* green-600 */
+  --kick-green-dim:#2BA202;     /* green-700 */
+  --kick-green-glow:rgba(83,252,24,.24);   /* ours */
+
+  /* surfaces ✅ */
+  --bg-base:#0B0B0C;            /* neutral-950 */
+  --bg-surface:#171A1C;         /* neutral-900 */
+  --bg-raised:#232629;          /* neutral-800 */
+  --bg-overlay:rgba(11,11,12,.8);          /* surfaceOverlay-base */
+  --border:rgba(240,241,242,.16);          /* outline-decorative */
+  --border-strong:rgba(240,241,242,.4);    /* outline-region */
+
+  /* text ✅ */
+  --text-primary:#FFFFFF;
+  --text-body:#E9ECED;          /* text-base */
+  --text-secondary:#D3D8DB;     /* text-secondary */
+  --text-muted:#9FA6AD;         /* neutral-400 */
+  --text-disabled:rgba(240,241,242,.24);   /* disabled-onSurface */
+
+  /* semantic ✅ */
+  --live:#FB1818;               /* red-500 */
+  --danger:#D80303;             /* red-600 */
+  --warn:#FBA418;               /* orange-500 */
+  --info:#1899FB;               /* blue-500 */
+
+  /* chat username colours, the 16 KICK identity colours ✅ */
+  --id-bubblegum:#FEA0CF; --id-celeste:#A0F6FE; --id-coral:#FEA0A0;
+  --id-cyan:#18E9FB;      --id-lavender:#EACDFE; --id-lime:#B8FEA0;
+  --id-melon:#FECDCD;     --id-mint:#18FBB0;    --id-mist:#A0FEDE;
+  --id-neon:#75FD45;      --id-powder:#A0D5FE;  --id-rose:#FD72B8;
+  --id-sand:#FEDAA0;      --id-sky:#45ADFC;     --id-sunshine:#FCB645;
+  --id-violet:#D8A0FE;
+  --id-on:#0B0B0C;              /* text on an identity fill */
+
+  /* type ✅ Inter is KICK's face. Scale: 12 14 16 18 20 24 28 32 36 48 */
+  --font-ui:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+  --font-display:'Archivo','Inter',sans-serif;
+  --font-mono:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+
+  /* radius, ours. KICK exposes no radius token 🔧 */
+  --r-sm:4px; --r-md:6px; --r-lg:8px; --r-xl:12px; --r-full:9999px;
+
+  /* elevation 🔧 */
+  --shadow-md:0 4px 12px rgba(0,0,0,.4);
+  --shadow-lg:0 8px 28px rgba(0,0,0,.55);
+  --glow:0 0 0 3px var(--kick-green-glow);
+
+  /* motion ✅ */
+  --ease:cubic-bezier(.4,0,.2,1);           /* KICK's default, 22 uses */
+  --ease-overlay:cubic-bezier(.16,1,.3,1);  /* menus and popovers */
+  --ease-media:cubic-bezier(.87,0,.13,1);   /* brand surfaces only */
+  --fast:120ms; --base:200ms; --overlay:400ms; --slow:400ms;
+}
+
+*{box-sizing:border-box}
+body{
+  margin:0; background:var(--bg-base); color:var(--text-body);
+  font-family:var(--font-ui); font-size:16px; line-height:24px;
+  -webkit-font-smoothing:antialiased;
+}
+.tabular{font-variant-numeric:tabular-nums}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}

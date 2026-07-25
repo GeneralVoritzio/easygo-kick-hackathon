@@ -1,0 +1,73 @@
+/*
+  Mock product elements. These are UI, so every value comes from KICK-DESIGN-SYSTEM.md
+  and not from the deck scale. Chat is 16px, per Design System Section 4.
+*/
+.m-bar{
+  display:flex;align-items:center;gap:12px;
+  padding:12px 16px;
+  background:var(--bg-surface);
+  border-bottom:1px solid var(--border);
+  font-size:14px;line-height:20px;
+}
+.m-bar__name{font-weight:600;color:var(--text-primary)}
+.m-bar__title{color:var(--text-muted);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.m-bar__viewers{color:var(--text-muted)}
+
+.m-live{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:2px 8px;border-radius:var(--r-sm);
+  background:var(--live);color:var(--text-primary);
+  font-size:12px;line-height:16px;font-weight:700;letter-spacing:.06em;
+}
+.m-live__dot{width:6px;height:6px;border-radius:var(--r-full);background:var(--text-primary)}
+
+.m-track{background:var(--bg-surface);padding:16px}
+.m-track__head{display:flex;align-items:baseline;gap:16px;margin-bottom:12px}
+.m-track__metric{
+  font-size:12px;line-height:16px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--bg-base);background:var(--kick-green);padding:2px 8px;border-radius:var(--r-sm);
+}
+.m-track__hint{font-size:14px;color:var(--text-muted)}
+
+.m-track__plot{position:relative}
+.m-track__plot svg{display:block;width:100%;height:100%}
+.m-curve__line{fill:none;stroke:var(--kick-green);stroke-width:3}
+.m-curve__fill{fill:var(--kick-green-glow);stroke:none}
+
+.m-pin{position:absolute;top:0;bottom:0;width:2px;background:var(--border-strong)}
+.m-pin__label{
+  position:absolute;top:0;left:6px;
+  font-size:12px;line-height:16px;font-weight:700;letter-spacing:.06em;
+  padding:1px 6px;border-radius:var(--r-sm);
+  background:var(--bg-raised);color:var(--text-body);
+  white-space:nowrap;
+}
+.m-pin--gift .m-pin__label{background:var(--warn);color:var(--bg-base)}
+.m-pin--decision .m-pin__label{background:var(--info);color:var(--bg-base)}
+
+.m-playhead{position:absolute;top:0;bottom:0;width:3px;background:var(--kick-green)}
+
+.m-track__axis{
+  display:flex;justify-content:space-between;
+  margin-top:8px;font-size:12px;line-height:16px;color:var(--text-muted);
+}
+
+.m-chat{background:var(--bg-surface);padding:12px 0}
+.m-chat__head{
+  padding:0 12px 8px;font-size:12px;line-height:16px;font-weight:700;
+  letter-spacing:.06em;text-transform:uppercase;color:var(--text-muted);
+}
+.m-msg{padding:6px 12px;font-size:16px;line-height:24px}
+.m-msg__user{font-weight:600;margin-right:8px}
+.m-msg__text{color:var(--text-body)}
+
+.m-card{background:var(--bg-surface);padding:16px;display:flex;flex-direction:column;gap:12px}
+.m-card__head{font-size:12px;line-height:16px;color:var(--text-muted)}
+.m-card__move{display:flex;align-items:baseline;gap:10px;font-size:18px;line-height:24px}
+.m-card__from{color:var(--text-muted)}
+.m-card__arrow{font-size:12px;color:var(--text-muted)}
+.m-card__to{font-weight:600;color:var(--text-primary)}
+.m-card__deltas{display:flex;gap:32px}
+.m-delta{display:flex;flex-direction:column;gap:2px}
+.m-delta__value{font-size:24px;line-height:32px;font-weight:700;color:var(--danger)}
+.m-delta__label{font-size:12px;line-height:16px;color:var(--text-muted)}

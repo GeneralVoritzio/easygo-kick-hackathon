@@ -1,7 +1,7 @@
 /*
   Component styles. All values come from the tokens in tokens.css.
   The green accent is used only on the hype curve, the playhead, primary
-  buttons and the active state (Design Spec 1).
+  buttons and the active state (Design System 1).
 */
 
 :root{
@@ -43,7 +43,7 @@ code{font-family:var(--font-mono);font-size:12px;color:var(--text-muted);backgro
 .btn:active{transform:scale(.98)}
 .btn:focus-visible{outline:none;box-shadow:var(--glow)}
 .btn--sm{padding:6px 12px;font-size:13px}
-.btn--primary{background:var(--kick-green);color:#0B0E0F}
+.btn--primary{background:var(--kick-green);color:#0B0B0C}
 .btn--primary:hover{background:var(--kick-green-hover)}
 .btn--secondary{background:var(--bg-raised);border-color:var(--border);color:var(--text-primary)}
 .btn--ghost{background:transparent;color:var(--text-body)}
@@ -77,7 +77,7 @@ code{font-family:var(--font-mono);font-size:12px;color:var(--text-muted);backgro
   position:sticky;top:0;z-index:40;
 }
 .topbar__brand{display:flex;align-items:center;gap:8px;font-size:15px;letter-spacing:-.02em;color:var(--text-primary)}
-.logo{display:grid;place-items:center;width:28px;height:28px;border-radius:var(--r-md);background:var(--kick-green);color:#0B0E0F}
+.logo{display:grid;place-items:center;width:28px;height:28px;border-radius:var(--r-md);background:var(--kick-green);color:#0B0B0C}
 .logo__dim{color:var(--text-muted);font-weight:600}
 .topbar__channel{display:flex;align-items:center;gap:10px;min-width:0}
 .avatar{
@@ -109,14 +109,14 @@ code{font-family:var(--font-mono);font-size:12px;color:var(--text-muted);backgro
 .stage__hud{position:absolute;left:16px;top:16px;display:flex;gap:8px;flex-wrap:wrap}
 .chip{
   display:inline-flex;align-items:center;gap:6px;font-size:12px;line-height:16px;font-weight:500;
-  padding:4px 10px;border-radius:var(--r-full);background:rgba(11,14,15,.82);color:var(--text-body);
+  padding:4px 10px;border-radius:var(--r-full);background:rgba(11,11,12,.82);color:var(--text-body);
   border:1px solid rgba(255,255,255,.07);backdrop-filter:blur(4px);
 }
 .chip--time{font-variant-numeric:tabular-nums;font-family:var(--font-mono);font-size:11px}
 .chip--live{color:#fff;background:var(--live);border-color:transparent;font-weight:700;letter-spacing:.06em;font-size:11px}
 .stage__toast{
   position:absolute;right:16px;top:16px;max-width:300px;padding:10px 14px;border-radius:var(--r-md);
-  background:rgba(11,14,15,.92);border:1px solid var(--border-strong);box-shadow:var(--shadow-lg);
+  background:rgba(11,11,12,.92);border:1px solid var(--border-strong);box-shadow:var(--shadow-lg);
   font-size:13px;color:var(--text-body);animation:toastIn var(--base) var(--ease);
 }
 .stage__toast b{color:var(--text-primary)}
@@ -215,8 +215,8 @@ code{font-family:var(--font-mono);font-size:12px;color:var(--text-muted);backgro
 }
 .preview__thumb .stage__grain{opacity:.6}
 .preview__thumbcat{position:relative;font-family:var(--font-display);font-size:18px;line-height:24px;font-weight:700;letter-spacing:-.01em;color:#fff;text-shadow:0 2px 8px rgba(0,0,0,.9)}
-.preview__stamp{position:absolute;right:8px;bottom:8px;font-family:var(--font-mono);font-size:11px;padding:2px 6px;border-radius:var(--r-sm);background:rgba(11,14,15,.86);color:var(--text-body)}
-.preview__play{position:absolute;left:8px;bottom:8px;display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:2px 8px;border-radius:var(--r-sm);background:rgba(11,14,15,.86)}
+.preview__stamp{position:absolute;right:8px;bottom:8px;font-family:var(--font-mono);font-size:11px;padding:2px 6px;border-radius:var(--r-sm);background:rgba(11,11,12,.86);color:var(--text-body)}
+.preview__play{position:absolute;left:8px;bottom:8px;display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:2px 8px;border-radius:var(--r-sm);background:rgba(11,11,12,.86)}
 .preview__body{padding:12px 14px 14px}
 .preview__kicker{display:flex;align-items:center;gap:6px;margin-bottom:6px}
 .preview__title{font-size:14px;line-height:20px;font-weight:700;color:var(--text-primary);margin:0 0 6px;letter-spacing:-.01em}
@@ -314,7 +314,7 @@ code{font-family:var(--font-mono);font-size:12px;color:var(--text-muted);backgro
 .clipcard:hover{transform:translateY(-2px);border-color:var(--border-strong);background:var(--bg-raised)}
 .clipcard:focus-visible{outline:none;box-shadow:var(--glow)}
 .clipcard__thumb{height:96px;position:relative;display:grid;place-content:center}
-.clipcard__dur{position:absolute;right:6px;bottom:6px;font-family:var(--font-mono);font-size:11px;padding:1px 5px;border-radius:var(--r-sm);background:rgba(11,14,15,.86);color:var(--text-body)}
+.clipcard__dur{position:absolute;right:6px;bottom:6px;font-family:var(--font-mono);font-size:11px;padding:1px 5px;border-radius:var(--r-sm);background:rgba(11,11,12,.86);color:var(--text-body)}
 .clipcard__body{padding:10px 12px 12px}
 .clipcard__title{font-size:13px;line-height:18px;font-weight:600;color:var(--text-primary);margin:0 0 4px}
 .clipcard__meta{font-size:12px;line-height:16px;color:var(--text-muted);display:flex;align-items:center;gap:6px}
@@ -353,9 +353,9 @@ code{font-family:var(--font-mono);font-size:12px;color:var(--text-muted);backgro
 .msg:hover{background:var(--bg-raised)}
 .msg__badge{display:inline-grid;place-items:center;width:16px;height:16px;border-radius:var(--r-sm);margin-right:4px;vertical-align:-3px;font-size:9px;font-weight:700}
 .msg__badge--broadcaster{background:var(--live);color:#fff}
-.msg__badge--moderator{background:var(--info);color:#0B0E0F}
+.msg__badge--moderator{background:var(--info);color:#0B0B0C}
 .msg__badge--subscriber{background:var(--bg-overlay);color:var(--text-muted)}
-.msg__badge--verified{background:var(--kick-green);color:#0B0E0F}
+.msg__badge--verified{background:var(--kick-green);color:#0B0B0C}
 .msg__user{font-weight:600}
 .msg__sep{color:var(--text-disabled)}
 .msg__body{color:var(--text-body)}
@@ -372,7 +372,7 @@ code{font-family:var(--font-mono);font-size:12px;color:var(--text-muted);backgro
 .chat__poll .pollcta .btn{flex:1}
 
 /* --- roulette modal ------------------------------------------------------ */
-.modal{position:fixed;inset:0;z-index:80;display:grid;place-items:center;background:rgba(11,14,15,.78);padding:20px;animation:previewIn var(--base) var(--ease)}
+.modal{position:fixed;inset:0;z-index:80;display:grid;place-items:center;background:rgba(11,11,12,.78);padding:20px;animation:previewIn var(--base) var(--ease)}
 .modal__box{width:min(760px,100%);background:var(--bg-surface);border:1px solid var(--border-strong);border-radius:var(--r-xl);box-shadow:var(--shadow-lg);overflow:hidden}
 .modal__head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;padding:16px 20px;border-bottom:1px solid var(--border)}
 .modal__head h2{margin:2px 0 0;font-family:var(--font-display);font-size:24px;line-height:30px;font-weight:700;letter-spacing:-.02em;color:var(--text-primary)}

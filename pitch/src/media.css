@@ -1,0 +1,26 @@
+/*
+  Media colours, from KICK-BRAND-IDENTITY.md Section 3. The Design System carries
+  product UI colour only, so it has no cyan and no flood.
+*/
+:root{
+  --media-flood:var(--kick-green);
+  --media-ink:#0B0B0C;              /* neutral-950 */
+  --media-cyan:#00FFFF;             /* icedOutCyan-200 */
+  --media-cyan-system:#18E9FB;      /* cyan-500 */
+  --media-brown:#4C4014;            /* bowelBrown, the plate fades run into this */
+  --media-yellow:#FFFF00;           /* the KICKS gem gradient starts here */
+}
+
+/* Local copies. See pitch/README.md for where each one came from. */
+@font-face{
+  font-family:'Inter';
+  src:url('./assets/fonts/inter/inter-variable-latin.woff2') format('woff2');
+  font-weight:100 900;
+  font-display:block;
+}
+@font-face{
+  font-family:'Archivo';
+  src:url('./assets/fonts/archivo/archivo-variable-latin.woff2') format('woff2');
+  font-weight:100 900;
+  font-display:block;
+}

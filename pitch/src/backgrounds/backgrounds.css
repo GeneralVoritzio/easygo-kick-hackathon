@@ -1,0 +1,63 @@
+/*
+  The layer stack is KICK-BRAND-IDENTITY.md Section 8. Every layer is drawn in code.
+  Green meets cyan through a halftone dot screen, never a gradient (Section 3).
+*/
+.bg-flood,.bg-dark{position:absolute;inset:0;overflow:hidden}
+.bg-flood{background:var(--media-flood)}
+.bg-dark{background:var(--bg-base)}
+
+.bg-halftone{
+  position:absolute;inset:0;
+  background-image:radial-gradient(var(--media-cyan) 42%,transparent 44%);
+  background-size:40px 40px;
+  -webkit-mask-image:linear-gradient(105deg,transparent 18%,#000 78%);
+  mask-image:linear-gradient(105deg,transparent 18%,#000 78%);
+}
+
+/*
+  Registration crosses: a regular field of + marks, verified on KICK's own plate.
+  One cross per tile, as SVG, because a data URI cannot read a custom property.
+  The stroke is #42474D, which is KICK's neutral-700, the same value as --border.
+*/
+.bg-crosses{
+  position:absolute;inset:0;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120'><path d='M60 49v22M49 60h22' stroke='%2342474D' stroke-width='2'/></svg>");
+  background-size:120px 120px;
+  -webkit-mask-image:radial-gradient(120% 120% at 20% 20%,#000 30%,transparent 78%);
+  mask-image:radial-gradient(120% 120% at 20% 20%,#000 30%,transparent 78%);
+  opacity:.55;
+}
+
+.bg-glow{
+  position:absolute;inset:0;
+  background:radial-gradient(58% 62% at 76% 30%,var(--kick-green-glow),transparent 70%);
+}
+
+/*
+  Macroblocking: hard-edged rectangles quantised to one coarse grid, so it reads as
+  compression breaking up rather than as stray boxes. Brand Identity Section 5.
+*/
+.bg-blocks{
+  position:absolute;inset:0;
+  background-image:
+    repeating-linear-gradient(90deg,
+      var(--media-cyan) 0 64px,transparent 64px 192px,
+      var(--media-flood) 192px 224px,transparent 224px 320px);
+  background-repeat:no-repeat;
+  background-size:100% 260px;
+  background-position:0 22%;
+  -webkit-mask-image:linear-gradient(90deg,transparent 34%,#000 88%);
+  mask-image:linear-gradient(90deg,transparent 34%,#000 88%);
+  opacity:.16;
+}
+
+.bg-grain{
+  position:absolute;inset:0;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='140' height='140'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/></filter><rect width='140' height='140' filter='url(%23n)' opacity='.5'/></svg>");
+  opacity:.05;
+}
+
+.bg-vignette{
+  position:absolute;inset:0;
+  background:radial-gradient(74% 74% at 50% 46%,transparent 52%,rgba(0,0,0,.45));
+}

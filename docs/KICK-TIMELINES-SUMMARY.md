@@ -30,7 +30,7 @@ The app puts all of that in one timeline. It serves two users on one surface:
 Challenge 1 asks for a real time overlay or companion UI. This is a companion
 UI. The timeline grows while you watch it, so it meets requirement 4 (it
 reflects real time stream behaviour). It is not post stream analytics, which
-Hackathon Spec 2 rules out. It is interactive at all times: scrub, hover,
+Hackathon Brief 2 rules out. It is interactive at all times: scrub, hover,
 filter, clip, vote and spin.
 
 **Spec Test result:** passes A1 to A6 and B1 to B5. B1b (real OAuth, plus one
@@ -76,7 +76,7 @@ owns. The app does not claim to create a resource on the KICK side.
 The app draws the winner before the animation starts. The wheel then turns to
 that result. The result is therefore reproducible from `poll.resolved`. A
 browser source that reloads during the spin still lands on the same answer.
-Design Spec 7 requires this behaviour.
+Design System 7 requires this behaviour.
 
 ### The demo data contains a story
 
@@ -100,7 +100,7 @@ one metric shows at a time.
 ## 5. Data sources
 
 The app runs on mock data. It makes no live API call. The KICK API is the
-schema reference (Hackathon Spec 2A).
+schema reference (Hackathon Brief 2A).
 
 Every endpoint and event carries a label. `kick` is surface that KICK
 publishes. `fake-kick` is surface we invented. The Data sources tab shows the
@@ -137,7 +137,7 @@ across the stream, so 100 is the loudest moment.
 ```
 prototypes/kick-timelines/
   index.html
-  css/tokens.css     Design Spec 9 tokens, copied without change
+  css/tokens.css     Design System 9 tokens, copied without change
   css/app.css        components
   js/mock-api.js     MockKickClient. Seeds and serves the recorded stream
   js/engine.js       Live generator. Rates scale with viewer_count
@@ -156,6 +156,6 @@ there.
 - The player is a mock surface. It shows the category, not video. The API gives
   no video frames.
 - `LiveKickClient` is not written. `MockKickClient` defines the interface that
-  it must match (Hackathon Spec 2A.2).
+  it must match (Hackathon Brief 2A.2).
 - Screenshots were not available in the build session. The build was verified
   through the DOM. Look at the UI before you show it to other people.

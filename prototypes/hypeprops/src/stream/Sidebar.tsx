@@ -3,7 +3,7 @@ import { Link } from 'react-router'
 import { useEngine } from '../engine/store'
 import { INTERACTION_BADGES, formatOdds } from '../engine/ack'
 import { SIM_CHANNEL_STATS, useInteraction } from '../engine/interactionStore'
-import { CompassIcon, HomeIcon, UsersIcon } from './icons'
+import { CompassIcon, GlobeIcon, HomeIcon, UsersIcon } from './icons'
 
 type Channel = {
   name: string
@@ -29,6 +29,7 @@ const VISIBLE_COUNT = 5
 const NAV_ITEMS: { label: string; icon: typeof HomeIcon; to?: string }[] = [
   { label: 'Home', icon: HomeIcon },
   { label: 'Browse', icon: CompassIcon, to: '/browse' },
+  { label: 'Discovery', icon: GlobeIcon, to: '/discovery' },
   { label: 'Following', icon: UsersIcon },
 ]
 

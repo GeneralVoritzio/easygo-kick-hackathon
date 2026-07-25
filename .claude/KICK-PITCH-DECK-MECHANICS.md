@@ -51,7 +51,6 @@ wrong.**
 | Build | Vite | `vite` | MIT ✅ |
 | UI | React 19 + TypeScript | `react`, `react-dom` | MIT ✅ |
 | Deck engine | Reveal.js | `reveal.js` | MIT ✅ |
-| Motion | Motion One | `motion` | MIT ✅ |
 | Type | Inter + Archivo, from `assets/fonts/` | local files | OFL ✅ |
 
 Every licence is permissive, which satisfies Spec Test B3 (Hackathon Brief Section 7). **Do not add a
@@ -91,7 +90,7 @@ pitch/
       SpeakerNotes.tsx
     mock/               mock product elements. See Section 5
     backgrounds/        one component per Brand Identity Section 8 layer
-    motion/presets.ts
+    anim.css             entry animation, in CSS
 ```
 
 `tokens.css` is copied verbatim from the Design System. **Do not edit the copied values.** If a token
@@ -196,15 +195,24 @@ a slide. Reveal owns the deck shell.**
 
 ### Motion
 
-Reveal drives the change between slides. Motion One drives everything inside a slide. **Do not use
-Reveal fragments**: fragments and Motion One animate the same element and they fight.
+Reveal drives the change between slides. **CSS drives everything inside a slide.** Do not use Reveal
+fragments, and do not add a JS animation library.
 
-`motion/presets.ts` holds every animation. A slide imports a preset and never writes keyframes.
-`useSlideMotion` reads `[data-anim]` in the current slide and staggers by 40ms.
+**Entry animation is CSS, on purpose.** A stalled JS animation leaves a slide blank in front of an
+audience, so the resting state must be the browser's job. `animation-fill-mode:both` guarantees it.
+Reveal sets `display:none` on every slide that is not present, so returning to `display:block` replays
+the animation on each entry, for free.
+
+`anim.css` holds every keyframe. A slide asks for one with `data-anim`, and the stagger is
+`nth-child` delays.
 
 ```tsx
 <h1 data-anim="riseIn">Chat already told you</h1>
 ```
+
+**We tried the JS route and it failed.** Motion One left the first slide at `opacity:0` when its
+handler registered after Reveal had already fired `ready`. Nothing that can hide a slide belongs in
+the deck.
 
 **The feel is Brand Identity Section 6**, including the curves and the flash safety floor. Two limits
 are deck-specific:

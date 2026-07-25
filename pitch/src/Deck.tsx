@@ -1,13 +1,10 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef } from 'react'
 import Reveal from 'reveal.js'
 import RevealNotes from 'reveal.js/plugin/notes/notes.esm.js'
-import 'reveal.js/dist/reveal.css'
-import { useSlideMotion } from './motion/useSlideMotion'
 import { Close, Cold, Demo, Fix, HowItWorks, Hook, Native, Problem, Team, Wow } from './slides'
 
 export function Deck() {
   const root = useRef<HTMLDivElement>(null)
-  const [deck, setDeck] = useState<Reveal | null>(null)
 
   useEffect(() => {
     if (!root.current) return
@@ -22,17 +19,17 @@ export function Deck() {
       hash: true,
       keyboard: true,
       overview: true,
+      center: false,
       transition: 'none',
       embedded: false,
       plugins: [RevealNotes],
     })
-    instance.initialize().then(() => setDeck(instance))
+    instance.initialize()
     return () => {
       instance.destroy()
     }
   }, [])
 
-  useSlideMotion(deck)
 
   return (
     <div className="reveal" ref={root}>

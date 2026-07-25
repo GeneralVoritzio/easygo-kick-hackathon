@@ -73,7 +73,6 @@ export function Fix() {
 export function Demo() {
   return (
     <Slide
-      bleed
       notes="Hand off to the running build now. Do not narrate the UI. Trigger the raid beat at 01:05, then the category change at 02:41."
       background={<Dark glow={false} />}
     >

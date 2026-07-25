@@ -10,7 +10,6 @@
     "pdf": "echo \"Open the preview at ?print-pdf, then print to PDF\""
   },
   "dependencies": {
-    "motion": "^11.15.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "reveal.js": "^5.1.0"

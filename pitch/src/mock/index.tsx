@@ -30,9 +30,13 @@ export function ChannelBar() {
   )
 }
 
-export function TimelineTrack({ width = 1320, height = 200 }: { width?: number; height?: number }) {
+/*
+  The plot scales to its container, so markers are positioned as a percentage.
+  A pixel offset would drift away from the curve at any other width.
+*/
+export function TimelineTrack({ width = 1728, height = 200 }: { width?: number; height?: number }) {
   const path = curvePath(curve, width, height)
-  const step = width / (curve.length - 1)
+  const at = (index: number) => `${(index / (curve.length - 1)) * 100}%`
 
   return (
     <div className="m-track">
@@ -46,11 +50,11 @@ export function TimelineTrack({ width = 1320, height = 200 }: { width?: number; 
           <path className="m-curve__line" d={path} />
         </svg>
         {markers.map((m) => (
-          <span key={m.kind} className={`m-pin m-pin--${m.kind}`} style={{ left: m.at * step }}>
+          <span key={m.kind} className={`m-pin m-pin--${m.kind}`} style={{ left: at(m.at) }}>
             <span className="m-pin__label">{MARKER_LABEL[m.kind]}</span>
           </span>
         ))}
-        <span className="m-playhead" style={{ left: 36 * step }} />
+        <span className="m-playhead" style={{ left: at(36) }} />
       </div>
       <div className="m-track__axis tabular">
         <span>00:00</span>

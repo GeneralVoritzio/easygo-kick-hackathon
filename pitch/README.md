@@ -29,7 +29,7 @@ Press `S` for the speaker view. Every slide carries notes that name its speaker.
 | `src/backgrounds/` | The Brand Identity Section 8 layer stack, drawn in code |
 | `src/mock/` | Mock product elements, and the fixture they run on |
 | `src/slides/` | The ten slides |
-| `src/motion/` | Motion One presets. `hardCut` is the default |
+| `src/anim.css` | Entry keyframes. CSS, so a stall cannot hide a slide |
 
 Fonts and the wordmark come from `assets/`, so the build carries no network call.
 

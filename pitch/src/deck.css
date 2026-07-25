@@ -16,11 +16,32 @@
 }
 
 html,body{margin:0;height:100%;overflow:hidden}
-body{background:var(--bg-base);color:var(--text-body);font-family:var(--font-ui)}
 
-.reveal{font-family:var(--font-ui)}
+/*
+  Reveal measures its own container to pick a scale. #root is a plain div, so
+  without a height it measures zero and clamps to minScale.
+*/
+#root{height:100%}
+
+/*
+  reveal.css sets .reveal-viewport{background-color:#fff;color:#000}, and a class
+  selector beats body. Restate both here, or the deck renders white.
+*/
+body,.reveal-viewport{
+  background:var(--bg-base);
+  color:var(--text-body);
+  font-family:var(--font-ui);
+}
+
+.reveal{font-family:var(--font-ui);color:var(--text-body)}
 .reveal .slides{text-align:left}
-.reveal .slides section{height:100%;padding:0}
+.reveal .slides>section{
+  height:1080px;
+  padding:0;
+  box-sizing:border-box;
+  display:none;
+}
+.reveal .slides>section.present{display:block}
 
 .slide{
   position:relative;
@@ -77,8 +98,12 @@ body{background:var(--bg-base);color:var(--text-body);font-family:var(--font-ui)
   overflow:hidden;
 }
 .frame--bleed{width:100%}
+/*
+  Sits fully above the frame edge, and inset past the 56px corner bracket.
+  Overlapping the frame covers the content in the top row.
+*/
 .frame__tag{
-  position:absolute;top:-16px;right:-16px;z-index:2;
+  position:absolute;top:-48px;right:72px;z-index:2;
   font-size:var(--d-label);line-height:1;font-weight:700;letter-spacing:.08em;
   padding:8px 12px;border-radius:var(--r-sm);
   background:var(--media-cyan);color:var(--media-ink);
@@ -96,6 +121,7 @@ body{background:var(--bg-base);color:var(--text-body);font-family:var(--font-ui)
   -webkit-mask-repeat:no-repeat;-webkit-mask-size:contain;-webkit-mask-position:left center;
 }
 .wordmark--ink{background:var(--media-ink)}
+.slide--centre .wordmark{mask-position:center;-webkit-mask-position:center}
 .wordmark--lg{width:520px;height:140px}
 .wordmark--sm{width:240px;height:64px}
 

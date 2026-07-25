@@ -30,8 +30,20 @@ Press `S` for the speaker view. Every slide carries notes that name its speaker.
 | `src/mock/` | Mock product elements, and the fixture they run on |
 | `src/slides/` | The ten slides |
 | `src/anim.css` | Entry keyframes. CSS, so a stall cannot hide a slide |
+| `src/assets/` | Local copies of the fonts and the wordmark. See below |
 
-Fonts and the wordmark come from `assets/`, so the build carries no network call.
+## The local asset copies
+
+`pitch/` owns its assets, so it runs on its own and needs no bundler exception. Each file is a copy
+from the repository library at `assets/`. Refresh a copy from the same path.
+
+| Local file | Copied from | Licence |
+|---|---|---|
+| `src/assets/fonts/inter/inter-variable-latin.woff2` | `assets/fonts/inter/` | OFL 1.1, `OFL.txt` beside it |
+| `src/assets/fonts/archivo/archivo-variable-latin.woff2` | `assets/fonts/archivo/` | OFL 1.1, `OFL.txt` beside it |
+| `src/assets/brand/kick-logo.svg` | `assets/brand/` | KICK trademark, not ours |
+
+Nothing is fetched from the network, at build time or at run time.
 
 ## The mock elements
 

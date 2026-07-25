@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import wordmark from '../../../assets/brand/kick-logo.svg'
+import wordmark from '../assets/brand/kick-logo.svg'
 
 export { Slide } from './Slide'
 

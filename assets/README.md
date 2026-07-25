@@ -1,7 +1,16 @@
 # Assets
 
-Every brand asset and font the build uses. All files here are local and committed, so the build
-runs with the network off.
+Every brand asset and font we hold. All files here are local and committed, so nothing is fetched
+from the network.
+
+**This folder is a library you copy from, not a folder you build against.** A project that needs a
+file copies it into its own folder and imports it locally, per the Working Agreement. Never point a
+build at this folder with a path that climbs out of the project: a bundler will not serve it in dev.
+**Copy the licence file with the asset**, and record in the project README which file the copy came
+from.
+
+Current copies: `pitch/src/assets/` holds the two fonts and the wordmark.
+`prototypes/hypeprops/src/assets/` holds the wordmark and the community KICK font.
 
 Read 25 July 2026. To refresh a file, use the source URL in the table and record the new date.
 

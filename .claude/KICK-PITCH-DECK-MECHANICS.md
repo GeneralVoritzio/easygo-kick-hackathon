@@ -18,7 +18,9 @@ Applies only to files in `pitch/`. Outside `pitch/`, ignore this file.
 or a texture, it is not here and it must not be added here. A rule written twice goes stale in one
 place first.
 
-Assets come from `assets/`. Fonts, the wordmark and the pattern plates are already committed there.
+**Copy an asset into `pitch/src/assets/` before you use it**, per the Working Agreement. Never import
+from `assets/` with a path that climbs out of `pitch/`: a bundler will not serve it in dev. Copy the
+licence file with the asset, and record where the copy came from in `pitch/README.md`.
 
 ---
 
@@ -51,7 +53,7 @@ wrong.**
 | Build | Vite | `vite` | MIT ✅ |
 | UI | React 19 + TypeScript | `react`, `react-dom` | MIT ✅ |
 | Deck engine | Reveal.js | `reveal.js` | MIT ✅ |
-| Type | Inter + Archivo, from `assets/fonts/` | local files | OFL ✅ |
+| Type | Inter + Archivo, copied into `src/assets/fonts/` | local files | OFL ✅ |
 
 Every licence is permissive, which satisfies Spec Test B3 (Hackathon Brief Section 7). **Do not add a
 dependency without checking its licence.** A restrictive licence on a slide library is a rules
@@ -90,7 +92,8 @@ pitch/
       SpeakerNotes.tsx
     mock/               mock product elements. See Section 5
     backgrounds/        one component per Brand Identity Section 8 layer
-    anim.css             entry animation, in CSS
+    anim.css            entry animation, in CSS
+    assets/             local copies of the fonts and the wordmark
 ```
 
 `tokens.css` is copied verbatim from the Design System. **Do not edit the copied values.** If a token

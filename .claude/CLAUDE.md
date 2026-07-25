@@ -23,10 +23,20 @@ docs at `docs.kick.com`, and record the date you checked.
 
 ### `assets/`: every brand file and font, committed
 
-`assets/README.md` names every file, its source URL, the date we read it, and its licence. Take
-fonts, the KICK wordmark and the pattern plates from here. Never fetch one at build time.
+`assets/README.md` names every file, its source URL, the date we read it, and its licence.
 `assets/reference/kick-neon-tokens.css` holds KICK own 282 design tokens, read from their live CSS.
 It is read-only ground truth, and Brand Identity Section 3 lists what it corrects.
+
+**`assets/` is a library you copy from, not a folder you build against.** A project that needs a
+font, a logo or a plate **copies that file into its own folder** and imports it locally. Never point
+a build at `assets/` with a path that climbs out of the project.
+
+- A relative path out of a project breaks the dev server, because a bundler only serves its own root.
+- A project that owns its files stays runnable on its own, and it stays easy to move.
+- **Copy the licence file with the asset.** An OFL font without its `OFL.txt` is a rules problem.
+- Say in the project README which file each copy came from, so a reader can refresh it.
+
+Never fetch an asset from the network at build time or at run time.
 
 ## How to work
 

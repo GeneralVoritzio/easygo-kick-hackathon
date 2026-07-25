@@ -24,3 +24,13 @@ Any docs we generate go in the `docs/` folder — never into `.claude/`.
 - **Follow KICK's API conventions** (`.claude/KICK-API-CONVENTIONS.md`). Use real KICK names for anything the API exposes; name and shape invented endpoints/events/fields the same way. Mock data uses real, creative names (KICK-streamer flavour + funny handles) — **never placeholders**.
 - **Cite the spec when you derive from it** — quote the section (e.g. "Design Spec §3") so claims are traceable back to a locked source rather than invented.
 - Confidence tags in the design spec (✅ verified / 🟡 high confidence / 🔧 derived) carry meaning. Don't promote a 🔧 value to a fact.
+
+## Coding style
+
+- **Keep it simple.** Write the most obvious version that works. No speculative abstraction, no clever one-liners, no layers that exist only in case we need them later.
+- **Make it readable.** Clear names, short functions, flat control flow. The code explains itself, so a reader does not need the author.
+- **Reuse before you rewrite.** If a component, helper, token or type already exists, use it. If you write the same thing twice, extract it.
+- **No comments unless they are essential.** Only comment a non-obvious constraint, a workaround, or a reason that the code cannot show. Never narrate what the code does. Never add file, function or section banner comments. If you want to add a comment to explain a name or a step, rename the thing or split the step instead.
+- **No em dashes in code, comments, docs or commit messages.** Use a comma, a colon, a full stop or brackets. Em dashes read as machine written.
+- **Write all prose in ASD-STE100 Simplified Technical English.** This covers docs, comments, commit messages, PR text and UI copy. Follow the STE rules: one topic per sentence, active voice, present tense, an approved word in one approved meaning, no synonyms for the same idea, and instructions of about 20 words or less.
+

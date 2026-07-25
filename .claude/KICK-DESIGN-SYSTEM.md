@@ -11,37 +11,40 @@ Our design system for the hackathon build. Goal: the judges should not be able t
 > focus rings and hit targets. If a question is about how the brand looks or sounds, and not about
 > a control a user operates, the answer is in the Brand Identity file, not here.
 >
-> **The Brand Identity file supersedes some values below.** It read the live DOM on kick.com and
-> about.kick.com, and it measured greys that differ from the 🔧 guesses in Section 1. See Brand Identity
-> Section 3, "Where the Design System disagrees". This file stays locked, so read both and prefer the ✅
-> value.
+> **The two files now agree.** On 25 July 2026 we read KICK's own design tokens from their live CSS,
+> and every value below is corrected to match. Where this file and the Brand Identity file both
+> speak, they say the same thing. Where they differ, it is on purpose, because UI and media are
+> different jobs: green is under 10% here and a flood there, and display type tracks differently.
 
 ---
 
 ## 0. Confidence and verification — read first
 
-I could not extract KICK's real CSS tokens. kick.com is client-rendered, and the official brand toolkit sits behind a [Brandfolder portal](https://brandfolder.com/portals/kick). So:
+**We have KICK's real tokens.** KICK ships a design system called **neon**, and its tokens are live
+CSS custom properties on about.kick.com. We read all 282 of them on 25 July 2026. They sit in
+`assets/reference/kick-neon-tokens.css`, and Brand Identity Section 3 explains the system.
+
+Every colour in Section 1 and every size in Section 2 now comes from that file. The DevTools pass
+this section used to ask for is done.
 
 | Tag | Meaning |
 |---|---|
-| ✅ **Verified** | Confirmed from KICK's own pages |
-| 🟡 **High confidence** | Widely used KICK values / consistent across their ecosystem, but not confirmed from source |
-| 🔧 **Derived** | My construction — coherent and Kick-like, but invented. Fine to ship, not a claim about KICK |
+| ✅ **Verified** | Read from KICK's own CSS. A KICK value, not ours |
+| 🟡 **High confidence** | Visible in KICK's output, measured by eye |
+| 🔧 **Derived** | Our construction. Coherent and KICK-like, but invented. Fine to ship, not a claim about KICK |
 
-**Do this before Friday — 10 minutes, one person.** Open kick.com on a live channel, DevTools → Elements, and read the computed styles. Correct these eight values in Section 1 and Section 3 and the whole system snaps into place:
+**Each token below names its KICK token.** If a row says `neutral-900`, you can find that exact name
+in `assets/reference/kick-neon-tokens.css` and check us.
 
-1. `background-color` on `<body>` and on the chat panel
-2. The exact green on the **Follow** button
-3. `font-family` on the computed styles of a chat message
-4. Chat message row `padding` and `font-size`
-5. `border-radius` on buttons and on category cards
-6. The LIVE badge's background and text colour
-7. Sidebar width in px
-8. Colour of a username vs. message body text in chat
+### What is still ours, not KICK's
 
-Then paste the corrections into `tokens.css` and commit. Everything else here can stay as-is.
+Three things carry no KICK token, so they stay 🔧. Do not present them as KICK's:
 
-**Official sources:** [Brand toolkit](https://about.kick.com/brand) · [Logo download](https://brandfolder.com/s/vb9bf4cj6sbkvxmb5x8x7q2g) · [Brand hub](https://brandfolder.com/portals/kick)
+1. **The radius scale** (Section 3). KICK exposes no radius token. Our scale is a good eye match.
+2. **`--kick-green-glow`** (Section 1), our focus ring.
+3. **The icon set** (Section 5). KICK ships a custom set we cannot use, so we draw our own.
+
+**Official sources:** [Brand toolkit](https://about.kick.com/brand) · [Logo download](https://brandfolder.com/s/vb9bf4cj6sbkvxmb5x8x7q2g) · [Brand hub](https://brandfolder.com/portals/kick), still gated. See Brand Identity Section 0.
 
 ---
 
@@ -49,53 +52,96 @@ Then paste the corrections into `tokens.css` and commit. Everything else here ca
 
 ### Primary
 
-| Token | Value | Notes |
-|---|---|---|
-| `--kick-green` | `#53FC18` | 🟡 The signature green. Used across KICK's streaming-tool ecosystem. Verify against Brandfolder. |
-| `--kick-green-hover` | `#42D912` | 🔧 Hover/active state |
-| `--kick-green-dim` | `#2E8F0C` | 🔧 Disabled, borders, dim accents |
-| `--kick-green-glow` | `rgba(83,252,24,.24)` | 🔧 Focus rings, glow layers |
+| Token | Value | KICK token | Use |
+|---|---|---|---|
+| `--kick-green` | `#53FC18` | `green-500` ✅ | The signature green |
+| `--kick-green-hover` | `#3AD903` | `green-600` ✅ | Hover and active |
+| `--kick-green-dim` | `#2BA202` | `green-700` ✅ | Disabled, dim accents |
+| `--kick-green-bright` | `#75FD45` | `green-400` ✅ | The one step up, for a hover on a dark ground |
+| `--kick-green-glow` | `rgba(83,252,24,.24)` | none 🔧 | Focus rings, glow layers |
+
+**Green means two things in KICK's system, and both are "yes".** `--neon-primary-base` and
+`--neon-positive-base` are the same `green-500` ✅. So green marks a primary action and a good state.
+**Never use green for a neutral or a count that carries no judgement.**
+
+**Text on green is always ink `#0B0B0C`, never white.** KICK states this in its own tokens:
+`--neon-primary-onPrimary` is `neutral-950` ✅.
 
 **The green is a scalpel, not a paint roller.** KICK's interface is overwhelmingly dark neutrals with green used sparingly for live state, primary actions and emphasis. The single fastest way to look like a knock-off is to use green everywhere. Budget: **under 10% of visible pixels.**
 
 Never use `--kick-green` for body text on a light background — it fails contrast badly. On dark surfaces it's excellent.
 
-### Surfaces (dark ramp) 🔧
+### Surfaces (the KICK neutral ramp) ✅
 
-| Token | Value | Use |
-|---|---|---|
-| `--bg-base` | `#0B0E0F` | Page background, furthest back |
-| `--bg-surface` | `#121517` | Cards, chat panel, primary panels |
-| `--bg-raised` | `#191D1F` | Hover states, raised elements, inputs |
-| `--bg-overlay` | `#22282A` | Menus, tooltips, modals |
-| `--border` | `#282F31` | Default 1px borders |
-| `--border-strong` | `#3A4245` | Emphasised dividers |
+| Token | Value | KICK token | Use |
+|---|---|---|---|
+| `--bg-base` | `#0B0B0C` | `neutral-950`, `surface-lowest` | Page background, furthest back |
+| `--bg-surface` | `#171A1C` | `neutral-900`, `surface-base` | Cards, chat panel, primary panels |
+| `--bg-raised` | `#232629` | `neutral-800`, `surface-highest` | Hover states, raised elements, inputs |
+| `--bg-overlay` | `rgba(11,11,12,.8)` | `surfaceOverlay-base` | Menus, tooltips, modals |
+| `--border` | `rgba(240,241,242,.16)` | `outline-decorative` | Default 1px borders |
+| `--border-strong` | `rgba(240,241,242,.4)` | `outline-region` | Emphasised dividers |
 
-### Text 🔧
+**Borders and overlays are translucent, not grey.** This is the change that matters most. KICK builds
+a border from light at 16% and an overlay from ink at 80%, so both take a tint from whatever sits
+behind them and the panels stack correctly. A flat grey border looks right on one surface and wrong
+on the next.
 
-| Token | Value | Use |
-|---|---|---|
-| `--text-primary` | `#FFFFFF` | Headings, usernames, key numbers |
-| `--text-body` | `#E3E7E8` | Body copy, chat messages |
-| `--text-muted` | `#8B9598` | Timestamps, labels, metadata |
-| `--text-disabled` | `#5A6467` | Disabled |
+### Text ✅
 
-### Semantic 🔧
+| Token | Value | KICK token | Use |
+|---|---|---|---|
+| `--text-primary` | `#FFFFFF` | `color-white`, `surface-onSurface` | Headings, usernames, key numbers |
+| `--text-body` | `#E9ECED` | `text-base` | Body copy, chat messages |
+| `--text-secondary` | `#D3D8DB` | `text-secondary` | The step between body and muted |
+| `--text-muted` | `#9FA6AD` | `neutral-400`, `onSurfaceSecondary` | Timestamps, labels, metadata |
+| `--text-disabled` | `rgba(240,241,242,.24)` | `disabled-onSurface` | Disabled |
 
-| Token | Value | Use |
-|---|---|---|
-| `--live` | `#FF1744` | LIVE badge, recording state. **Red, not green** — green is the brand, red is "on air" |
-| `--warn` | `#FFB020` | Warnings, mod attention |
-| `--danger` | `#FF4757` | Destructive, bans, errors |
-| `--info` | `#3EA6FF` | Links, info states |
+### Semantic ✅
 
-Reserve `--live` strictly for live/on-air state. If everything is red, nothing is urgent.
+| Token | Value | KICK token | Use |
+|---|---|---|---|
+| `--live` | `#FB1818` | `red-500`, `danger-base` | LIVE badge, on-air state |
+| `--danger` | `#D80303` | `red-600`, `negative-base` | Destructive, bans, errors |
+| `--warn` | `#FBA418` | `orange-500`, `warning-base` | Warnings, mod attention |
+| `--info` | `#1899FB` | `blue-500` | Links, info states |
+
+**KICK ships two reds and no separate live-red.** We map on-air to the brighter `red-500` and
+destructive to the darker `red-600`. Both are KICK values, and the pair keeps the old rule that
+on-air and danger must not look identical.
+
+Reserve `--live` strictly for live and on-air state. If everything is red, nothing is urgent. Never
+carry the meaning in the colour alone, per Section 8.
+
+### Chat username colours ✅
+
+KICK gives a chat username one of **16 named identity colours**, in `--neon-identity-*`. Use these
+and nothing else, so our chat reads as native:
+
+| Name | Value | Name | Value |
+|---|---|---|---|
+| bubblegum | `#FEA0CF` | neon | `#75FD45` |
+| celeste | `#A0F6FE` | powder | `#A0D5FE` |
+| coral | `#FEA0A0` | rose | `#FD72B8` |
+| cyan | `#18E9FB` | sand | `#FEDAA0` |
+| lavender | `#EACDFE` | sky | `#45ADFC` |
+| lime | `#B8FEA0` | sunshine | `#FCB645` |
+| melon | `#FECDCD` | violet | `#D8A0FE` |
+| mint | `#18FBB0` | mist | `#A0FEDE` |
+
+All 16 are ramp steps 100 to 500, so they stay light on a dark ground and they all clear contrast on
+`--bg-surface`. A badge filled with an identity colour takes ink text `#0B0B0C`, because
+`--neon-identity-onIdentity` is `neutral-950` ✅.
 
 ---
 
 ## 2. Typography
 
-**KICK's display wordmark is a custom typeface** ✅ (their brand toolkit describes proprietary type). It is not publicly available and we should not attempt to clone it — clause 7(f) makes third-party font licensing our problem.
+**KICK sets display type in Booster Polygonal** ✅, loaded as `boosterPolygonal` and
+`boosterPolygonalCompact`. It is a retail font from Blaze Type, we hold no licence, and clause 7(f)
+makes font licensing our problem. **KICK does not put its display face in the product anyway**: kick.com
+loads Inter and nothing else ✅. So this file needs no display face. Brand Identity Section 4 covers the
+substitute for media.
 
 ### Our stack 🔧
 
@@ -105,32 +151,50 @@ Reserve `--live` strictly for live/on-air state. If everything is red, nothing i
 --font-mono:    'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
 ```
 
-Inter for all UI — it's what most streaming interfaces use and it will read as native. Archivo (or Inter at weight 800 with tight tracking) for the loud display moments. Both are SIL Open Font License, so they're safely sublicensable to KICK.
+**Inter is KICK's UI face, confirmed.** `--neon-font-family-default` is `Inter` ✅, and kick.com loads
+Inter and nothing else. Archivo is our display substitute for the loud moments. Both are SIL Open
+Font License, so they are safely sublicensable to KICK. Take both from `assets/fonts/`.
 
-### Scale 🔧
+**KICK names three weights, not nine** ✅: `font-weight-default` is Regular, `font-weight-thick` is
+SemiBold, `font-weight-heavy` is Bold. **So a KICK UI uses 400, 600 and 700, and nothing else.**
+Weight 800 is a media choice, and it belongs in the deck, not in the product.
+
+### Scale ✅
+
+KICK's type scale is **12, 14, 16, 18, 20, 24, 28, 32, 36, 48**. There is no 11 and no 13. Every size
+below sits on that scale.
 
 | Token | Size / line-height | Weight | Use |
 |---|---|---|---|
-| `--t-display` | 48 / 52 | 800, `-0.03em` | Hero numbers, the one big stat |
-| `--t-h1` | 32 / 38 | 700, `-0.02em` | Screen titles |
-| `--t-h2` | 24 / 30 | 700, `-0.02em` | Section headers |
-| `--t-h3` | 18 / 24 | 600, `-0.01em` | Card titles |
-| `--t-body` | 14 / 21 | 400 | Default. **Chat messages live here** |
-| `--t-sm` | 13 / 18 | 400 | Secondary |
+| `--t-display` | 48 / 56 | 700 | Hero numbers, the one big stat |
+| `--t-h1` | 32 / 40 | 700 | Screen titles |
+| `--t-h2` | 24 / 32 | 700 | Section headers |
+| `--t-h3` | 18 / 24 | 600 | Card titles |
+| `--t-body` | 16 / 24 | 400 | Default. **Chat messages live here** ✅ |
+| `--t-sm` | 14 / 20 | 400 | Secondary |
 | `--t-xs` | 12 / 16 | 500 | Metadata, timestamps |
-| `--t-label` | 11 / 14 | 700, `0.06em`, uppercase | Badges, eyebrow labels |
+| `--t-label` | 12 / 16 | 700, `0.06em`, uppercase | Badges, eyebrow labels |
 
-**Rule:** tighten tracking as size increases. Display type at default tracking looks generic; at `-0.03em` it looks designed.
+**Chat is 16px, not 14px.** KICK sets `--chatroom-font-size:16px` ✅. This was our biggest sizing
+error, and chat is the densest surface we build, so it is the one most likely to give us away.
+
+**Tracking stays at `normal` in UI.** The old rule here tightened tracking as size grew. KICK does
+not do that: its headings measure at `letter-spacing:normal` ✅. Only `--t-label` tracks out, which is
+normal practice for small caps. Brand Identity Section 4 says the same for media.
 
 ---
 
 ## 3. Spacing, radius, elevation
 
-### Spacing — 4px base 🔧
+### Spacing — the KICK number scale ✅
 
-`4 · 8 · 12 · 16 · 20 · 24 · 32 · 40 · 48 · 64`
+`1 · 2 · 4 · 6 · 8 · 10 · 12 · 14 · 16 · 20 · 24 · 28 · 32 · 36 · 40 · 44 · 48 · 56 · 64 · 80 · 96 · 112 · 128`
 
-Nothing off-scale. If something needs 15px, it needs 16.
+Read from `--neon-number-*`. Nothing off-scale. If something needs 15px, it needs 14 or 16.
+
+**The scale is finer than a strict 4px grid.** KICK includes 6, 10, 14 and 44, so a dense surface like
+chat can take a step that a 4px grid would forbid. Use the small odd steps for chat and badges, and
+keep to multiples of 8 for layout.
 
 **Component padding defaults**
 
@@ -175,7 +239,7 @@ Dark UIs elevate with **lighter surfaces**, not heavy shadows. Change the backgr
 
 | Variant | Spec |
 |---|---|
-| **Primary** | bg `--kick-green`, text `#0B0E0F` (dark text on green — never white), weight 600, radius `--r-md`, padding `10px 18px` |
+| **Primary** | bg `--kick-green`, text `#0B0B0C` (ink on green, never white ✅), weight 600, radius `--r-md`, padding `10px 18px` |
 | **Secondary** | bg `--bg-raised`, text `--text-primary`, 1px `--border` |
 | **Ghost** | transparent, text `--text-body`, hover bg `--bg-raised` |
 | **Danger** | bg `--danger`, text white |
@@ -194,9 +258,9 @@ Muted eye icon + count in `--t-xs` at `--text-muted`. Numbers abbreviated (`1.2K
 
 ```
 padding: 6px 12px;
-font-size: 14px; line-height: 21px;
+font-size: 16px; line-height: 24px;   /* KICK sets --chatroom-font-size:16px ✅ */
 ```
-Username in `--text-primary` weight 600, coloured per-user; message body in `--text-body` weight 400. Badges inline before the username, 16px tall, 4px gap. Hover: bg `--bg-raised`. No border between rows — density comes from tight padding, not dividers.
+Username weight 600, coloured per-user from the **16 identity colours in Section 1** ✅; message body in `--text-body` weight 400. Badges inline before the username, 16px tall, 4px gap. Hover: bg `--bg-raised`. No border between rows — density comes from tight padding, not dividers.
 
 ### Cards
 
@@ -210,31 +274,73 @@ bg `--bg-base` (recessed, darker than the surface around it), 1px `--border`, ra
 
 ## 5. Icons
 
-**Use [Lucide](https://lucide.dev)** — ISC licence, cleanly sublicensable to KICK under clause 7(f), and stylistically very close to what streaming UIs use. `lucide-react` if we're in React.
+### What KICK actually ships ✅
+
+Read from kick.com on 25 July 2026. **KICK uses a custom icon set, and it is part of the neon
+system.** The components are named `<name>Icon`, and one family carries a `Neon` prefix:
+`NeonSearchIcon`, `NeonDashboardIcon`, `NeonWalletIcon`, `NeonVerifiedIcon` and more. We counted
+**114 named icons**.
+
+| Property | KICK's icons ✅ |
+|---|---|
+| Grid | `viewBox="0 0 32 32"`, with some at `0 0 16 16`. Third-party brand marks sit on `0 0 24 24` |
+| Style | **Solid fill. No stroke at all** |
+| Colour | `fill="currentColor"` |
+| Rendered size | Tailwind `size-4`, so **16px** |
+| Geometry | Hard edges, flat corners, no rounded joins. Their home icon is a house with zero curves |
+
+**This is the opposite of Lucide.** Lucide is a 24 grid, stroked, rounded outline set. Placing Lucide
+next to KICK's chrome reads wrong immediately, and this section used to specify Lucide.
+
+`assets/icons/kick-inline/` holds **18 of KICK's real icons**, lifted verbatim from the markup
+kick.com serves. Use them as the geometry reference.
+
+### What we do instead 🔧
+
+**Draw our own, filled, on a 32 grid.** An overlay needs about a dozen icons, and a dozen hard-edged
+filled glyphs is an afternoon. It costs less than a dependency and it is the single cheapest way to
+look native.
 
 | Spec | Value |
 |---|---|
-| Sizes | 16 (inline/dense) · 20 (default) · 24 (nav/prominent) |
-| Stroke width | `2` at 20–24px, `2.25` at 16px |
-| Colour | Inherit `currentColor` — never hard-code |
+| Grid | `viewBox="0 0 32 32"`, drawn to the pixel |
+| Style | Solid fill, no stroke |
+| Sizes | 16 (default, matching KICK) · 20 · 24 (nav) |
+| Colour | `fill="currentColor"` — never hard-code |
 | Alignment | Optically centred against text, not box-centred |
 
 Do **not** mix icon sets. One family, whole build.
 
-Common set: `eye` (viewers) · `radio` (live) · `message-square` (chat) · `heart` (follow) · `zap` (hype) · `trophy` (leaderboard) · `shield` (mod) · `trending-up` (growth) · `users` (community) · `settings` · `x` · `chevron-down`.
+Common set: viewers (eye) · live (dot) · chat · follow (heart) · hype (bolt) · leaderboard (trophy) ·
+mod (shield) · growth (arrow) · community (people) · settings · close · chevron.
+
+**If we run out of time, fall back to [Phosphor](https://phosphoricons.com) at weight `fill`** (MIT,
+sublicensable under clause 7(f)). It is filled, so it is much closer than Lucide. Never ship the
+outline weight.
 
 ---
 
-## 6. Motion 🔧
+## 6. Motion ✅
 
-| Token | Value | Use |
-|---|---|---|
-| `--ease` | `cubic-bezier(.2,.8,.2,1)` | Default |
-| `--fast` | `120ms` | Hover, colour |
-| `--base` | `200ms` | Enter/exit, layout |
-| `--slow` | `400ms` | Celebratory, attention |
+Counted across the stylesheets kick.com and about.kick.com load, on 25 July 2026.
 
-KICK's brand voice is "chaotically creative" ✅ — motion should be **snappy and slightly overshooting**, not smooth and corporate. But: a real-time overlay updating constantly with animation is nauseating. Animate **state changes and events**, never continuous data. A number ticking up every 200ms should not animate each tick.
+| Token | Value | KICK usage | Use |
+|---|---|---|---|
+| `--ease` | `cubic-bezier(.4,0,.2,1)` | **22 uses. Their default** ✅ | Everything, unless a row below applies |
+| `--ease-overlay` | `cubic-bezier(.16,1,.3,1)` | 12 uses ✅ | Anything that opens over the top: menu, popover, tooltip |
+| `--ease-media` | `cubic-bezier(.87,0,.13,1)` | 2 uses ✅ | Brand surfaces only. The deck uses this, the overlay does not |
+| `--fast` | `120ms` 🔧 | | Hover, colour |
+| `--base` | `200ms` 🔧 | | Enter, layout |
+| `--overlay` | `400ms` ✅ | KICK pairs 400ms with `--ease-overlay` | Menus and popovers |
+| `--slow` | `400ms` 🔧 | | Celebratory, attention |
+
+The old `--ease:cubic-bezier(.2,.8,.2,1)` 🔧 was close to nothing KICK uses. **`cubic-bezier(.4,0,.2,1)`
+replaces it**, and it is the standard material curve, which is what KICK settled on.
+
+KICK's brand voice is "chaotically creative" ✅, but its interface motion is not chaotic at all: one
+neutral curve, 22 times. **Keep the chaos in the deck and out of the product.** A real-time overlay
+that animates constantly is nauseating. Animate **state changes and events**, never continuous data.
+A number ticking up every 200ms should not animate each tick.
 
 Respect `prefers-reduced-motion`.
 
@@ -247,7 +353,7 @@ If we ship an OBS browser source, different constraints apply — this is where 
 - **Transparent background.** `body { background: transparent }`. Never paint a full-bleed backdrop.
 - **Canvas 1920×1080**, designed at 1×. Assume it's scaled.
 - **Safe margins: 64px** from every edge. Streamers crop, and platform UI overlaps corners.
-- **Readable over arbitrary video.** Text needs a carrier — a semi-opaque plate (`rgba(11,14,15,.82)`) or a tight text shadow (`0 2px 8px rgba(0,0,0,.9)`). White text straight onto gameplay is unreadable half the time.
+- **Readable over arbitrary video.** Text needs a carrier — a semi-opaque plate (`rgba(11,11,12,.82)`) or a tight text shadow (`0 2px 8px rgba(0,0,0,.9)`). White text straight onto gameplay is unreadable half the time.
 - **Nothing in the lower third** — that's where the streamer's own alerts and captions live. Non-intrusive is a hard gate in our spec (Section 7 C3).
 - **No audio from the overlay** unless the streamer explicitly added it as a source. Per our cross-platform constraint (C4), sound that only fires on Kick is broken for a simulcasting streamer.
 - **Self-recovering.** OBS browser sources get refreshed mid-stream. It must reconnect and repaint without intervention.
@@ -268,58 +374,73 @@ Cheap to hit, and "polished for a prototype" is 10% of our score.
 
 ## 9. Drop-in tokens
 
-Paste into `tokens.css` on day one. Correct the eight flagged values after the DevTools pass in Section 0.
+Paste into `tokens.css` on day one. **Every value marked ✅ is a KICK value**, read from their live CSS
+on 25 July 2026 and cross-checked against `assets/reference/kick-neon-tokens.css`. Do not "improve"
+one.
 
 ```css
 :root{
-  /* brand */
-  --kick-green:#53FC18;
-  --kick-green-hover:#42D912;
-  --kick-green-dim:#2E8F0C;
-  --kick-green-glow:rgba(83,252,24,.24);
+  /* brand ✅ */
+  --kick-green:#53FC18;         /* green-500 */
+  --kick-green-bright:#75FD45;  /* green-400 */
+  --kick-green-hover:#3AD903;   /* green-600 */
+  --kick-green-dim:#2BA202;     /* green-700 */
+  --kick-green-glow:rgba(83,252,24,.24);   /* ours */
 
-  /* surfaces */
-  --bg-base:#0B0E0F;
-  --bg-surface:#121517;
-  --bg-raised:#191D1F;
-  --bg-overlay:#22282A;
-  --border:#282F31;
-  --border-strong:#3A4245;
+  /* surfaces ✅ */
+  --bg-base:#0B0B0C;            /* neutral-950 */
+  --bg-surface:#171A1C;         /* neutral-900 */
+  --bg-raised:#232629;          /* neutral-800 */
+  --bg-overlay:rgba(11,11,12,.8);          /* surfaceOverlay-base */
+  --border:rgba(240,241,242,.16);          /* outline-decorative */
+  --border-strong:rgba(240,241,242,.4);    /* outline-region */
 
-  /* text */
+  /* text ✅ */
   --text-primary:#FFFFFF;
-  --text-body:#E3E7E8;
-  --text-muted:#8B9598;
-  --text-disabled:#5A6467;
+  --text-body:#E9ECED;          /* text-base */
+  --text-secondary:#D3D8DB;     /* text-secondary */
+  --text-muted:#9FA6AD;         /* neutral-400 */
+  --text-disabled:rgba(240,241,242,.24);   /* disabled-onSurface */
 
-  /* semantic */
-  --live:#FF1744;
-  --warn:#FFB020;
-  --danger:#FF4757;
-  --info:#3EA6FF;
+  /* semantic ✅ */
+  --live:#FB1818;               /* red-500 */
+  --danger:#D80303;             /* red-600 */
+  --warn:#FBA418;               /* orange-500 */
+  --info:#1899FB;               /* blue-500 */
 
-  /* type */
+  /* chat username colours, the 16 KICK identity colours ✅ */
+  --id-bubblegum:#FEA0CF; --id-celeste:#A0F6FE; --id-coral:#FEA0A0;
+  --id-cyan:#18E9FB;      --id-lavender:#EACDFE; --id-lime:#B8FEA0;
+  --id-melon:#FECDCD;     --id-mint:#18FBB0;    --id-mist:#A0FEDE;
+  --id-neon:#75FD45;      --id-powder:#A0D5FE;  --id-rose:#FD72B8;
+  --id-sand:#FEDAA0;      --id-sky:#45ADFC;     --id-sunshine:#FCB645;
+  --id-violet:#D8A0FE;
+  --id-on:#0B0B0C;              /* text on an identity fill */
+
+  /* type ✅ Inter is KICK's face. Scale: 12 14 16 18 20 24 28 32 36 48 */
   --font-ui:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
   --font-display:'Archivo','Inter',sans-serif;
   --font-mono:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
 
-  /* radius */
+  /* radius, ours. KICK exposes no radius token 🔧 */
   --r-sm:4px; --r-md:6px; --r-lg:8px; --r-xl:12px; --r-full:9999px;
 
-  /* elevation */
+  /* elevation 🔧 */
   --shadow-md:0 4px 12px rgba(0,0,0,.4);
   --shadow-lg:0 8px 28px rgba(0,0,0,.55);
   --glow:0 0 0 3px var(--kick-green-glow);
 
-  /* motion */
-  --ease:cubic-bezier(.2,.8,.2,1);
-  --fast:120ms; --base:200ms; --slow:400ms;
+  /* motion ✅ */
+  --ease:cubic-bezier(.4,0,.2,1);           /* KICK's default, 22 uses */
+  --ease-overlay:cubic-bezier(.16,1,.3,1);  /* menus and popovers */
+  --ease-media:cubic-bezier(.87,0,.13,1);   /* brand surfaces only */
+  --fast:120ms; --base:200ms; --overlay:400ms; --slow:400ms;
 }
 
 *{box-sizing:border-box}
 body{
   margin:0; background:var(--bg-base); color:var(--text-body);
-  font-family:var(--font-ui); font-size:14px; line-height:21px;
+  font-family:var(--font-ui); font-size:16px; line-height:24px;
   -webkit-font-smoothing:antialiased;
 }
 .tabular{font-variant-numeric:tabular-nums}
@@ -331,14 +452,17 @@ body{
 ```js
 theme:{extend:{
   colors:{
-    kick:{DEFAULT:'#53FC18',hover:'#42D912',dim:'#2E8F0C'},
-    base:'#0B0E0F', surface:'#121517', raised:'#191D1F', overlay:'#22282A',
-    line:{DEFAULT:'#282F31',strong:'#3A4245'},
-    ink:{DEFAULT:'#E3E7E8',bright:'#FFFFFF',muted:'#8B9598',off:'#5A6467'},
-    live:'#FF1744',
+    kick:{DEFAULT:'#53FC18',bright:'#75FD45',hover:'#3AD903',dim:'#2BA202'},
+    base:'#0B0B0C', surface:'#171A1C', raised:'#232629',
+    overlay:'rgba(11,11,12,.8)',
+    line:{DEFAULT:'rgba(240,241,242,.16)',strong:'rgba(240,241,242,.4)'},
+    ink:{DEFAULT:'#E9ECED',bright:'#FFFFFF',secondary:'#D3D8DB',muted:'#9FA6AD',off:'rgba(240,241,242,.24)'},
+    live:'#FB1818', danger:'#D80303', warn:'#FBA418', info:'#1899FB',
   },
   fontFamily:{sans:['Inter','sans-serif'],display:['Archivo','Inter','sans-serif']},
+  fontSize:{xs:'12px',sm:'14px',base:'16px',lg:'18px',xl:'20px','2xl':'24px','3xl':'28px','4xl':'32px','5xl':'36px','6xl':'48px'},
   borderRadius:{sm:'4px',md:'6px',lg:'8px',xl:'12px'},
+  transitionTimingFunction:{DEFAULT:'cubic-bezier(.4,0,.2,1)',overlay:'cubic-bezier(.16,1,.3,1)',media:'cubic-bezier(.87,0,.13,1)'},
 }}
 ```
 
@@ -356,4 +480,7 @@ Before we demo, screenshot our UI next to a real kick.com screenshot. If the dif
 
 ---
 
-*Compiled 25 July 2026. Tokens tagged 🔧 are our construction, not KICK's. Run the Section 0 DevTools pass before Friday.*
+*Compiled 25 July 2026. Corrected 25 July 2026 against KICK's own neon tokens, read from their live
+CSS. Tokens tagged ✅ are KICK values. Tokens tagged 🔧 are our construction, and Section 0 lists all
+three of them. This file and `.claude/KICK-BRAND-IDENTITY.md` now agree, and Brand Identity Section 3
+records what changed.*

@@ -231,40 +231,55 @@ Rules for a flood:
 - **Floods are rationed.** In any one piece, two floods maximum: the open and the close. A third makes it wallpaper.
 - Product UI inside a media piece keeps the Design System Section 1 budget.
 
-### Where the Design System disagrees
+### The Design System is now aligned ✅
 
-The Design System is locked, so this file does not change it. These gaps are reported, not fixed.
-Design System Section 0 asks for a DevTools pass to correct flagged values, and **this is that pass. It is
-now complete**, because KICK publishes the tokens.
+**These two files agree.** On 25 July 2026 we corrected every drifted value in the Design System
+against KICK's own tokens. The DevTools pass its Section 0 used to ask for is done, because KICK
+publishes the tokens.
 
-| Design System token | Our value | KICK own token ✅ | KICK value |
+This is the record of what moved. Read it once, then trust the Design System.
+
+| Design System token | Was 🔧 | Now ✅ | KICK token |
 |---|---|---|---|
-| `--kick-green` | `#53FC18` 🟡 | `color-green-500` | `#53FC18`. **Exact. Promote to verified** |
-| `--kick-green-hover` | `#42D912` 🔧 | `color-green-600` | `#3AD903` |
-| `--kick-green-dim` | `#2E8F0C` 🔧 | `color-green-700` | `#2BA202` |
-| `--bg-base` | `#0B0E0F` 🔧 | `color-neutral-950` | `#0B0B0C` |
-| `--bg-surface` | `#121517` 🔧 | `color-neutral-900` | `#171A1C` |
-| `--bg-raised` | `#191D1F` 🔧 | `color-neutral-800` | `#232629` |
-| `--bg-overlay` | `#22282A` 🔧 | `surfaceOverlay-base` | `#0B0B0C` at 80%, not a solid grey |
-| `--border` | `#282F31` 🔧 | `outline-decorative` | `#F0F1F2` at 16%, not a solid grey |
-| `--border-strong` | `#3A4245` 🔧 | `outline-region` | `#F0F1F2` at 40% |
-| `--text-primary` | `#FFFFFF` 🔧 | `color-white` | `#FFFFFF`. **Correct** |
-| `--text-body` | `#E3E7E8` 🔧 | `text-base` | `#E9ECED` |
-| `--text-muted` | `#8B9598` 🔧 | `color-neutral-400` | `#9FA6AD` |
-| `--warn` | `#FFB020` 🔧 | `warning-base` | `#FBA418` |
-| `--danger` | `#FF4757` 🔧 | `danger-base` | `#FB1818` |
-| `--info` | `#3EA6FF` 🔧 | `color-blue-500` | `#1899FB` |
-| `--live` | `#FF1744` 🔧 | **no token** | KICK ships no live-red token. Ours is invented, so keep it and say so |
-| `--t-sm` / `--t-label` | `13px` / `11px` 🔧 | type scale | **Off system.** KICK runs 12, 14, 16, 18, 20, 24, 28, 32, 36, 48 |
-| `--r-sm` / `--r-lg` / `--r-full` | `4px` / `8px` / `9999px` 🔧 | | Unchanged. No radius token is exposed |
+| `--kick-green` | `#53FC18` 🟡 | `#53FC18` **exact** | `green-500` |
+| `--kick-green-hover` | `#42D912` | `#3AD903` | `green-600` |
+| `--kick-green-dim` | `#2E8F0C` | `#2BA202` | `green-700` |
+| `--bg-base` | `#0B0E0F` | `#0B0B0C` | `neutral-950` |
+| `--bg-surface` | `#121517` | `#171A1C` | `neutral-900` |
+| `--bg-raised` | `#191D1F` | `#232629` | `neutral-800` |
+| `--bg-overlay` | `#22282A` | `rgba(11,11,12,.8)` | `surfaceOverlay-base` |
+| `--border` | `#282F31` | `rgba(240,241,242,.16)` | `outline-decorative` |
+| `--border-strong` | `#3A4245` | `rgba(240,241,242,.4)` | `outline-region` |
+| `--text-primary` | `#FFFFFF` | `#FFFFFF` **correct** | `color-white` |
+| `--text-body` | `#E3E7E8` | `#E9ECED` | `text-base` |
+| `--text-muted` | `#8B9598` | `#9FA6AD` | `neutral-400` |
+| `--live` | `#FF1744` | `#FB1818` | `red-500` |
+| `--danger` | `#FF4757` | `#D80303` | `red-600` |
+| `--warn` | `#FFB020` | `#FBA418` | `orange-500` |
+| `--info` | `#3EA6FF` | `#1899FB` | `blue-500` |
+| `--ease` | `cubic-bezier(.2,.8,.2,1)` | `cubic-bezier(.4,0,.2,1)` | 22 uses on KICK |
+| Chat font size | `14px` | `16px` | `--chatroom-font-size` |
+| `--t-sm` / `--t-label` | `13px` / `11px` | `14px` / `12px` | The type scale has no 11 or 13 |
+| Icons | Lucide, stroked, 24 grid | Our own, filled, 32 grid | KICK ships 114 custom filled icons |
+| Radius | `4 / 6 / 8 / 12` 🔧 | unchanged 🔧 | KICK exposes no radius token |
 
-**Three findings worth saying out loud.**
+**Four findings worth saying out loud.**
 
-1. **Our greens and our whites were right. Our greys and our semantics were not.** Every grey moves.
-2. **`--border` and `--bg-overlay` are the wrong kind of value, not just the wrong number.** KICK uses translucent light and translucent ink, so its panels stack. A flat grey border does not.
-3. **`--live` has no KICK equivalent.** Design System Section 3 argues red for on-air and green for brand, and that argument still holds. It is our idea, so do not attribute it to KICK.
+1. **Our greens and our whites were right. Our greys, our semantics and our motion were not.**
+2. **`--border` and `--bg-overlay` were the wrong kind of value, not just the wrong number.** KICK uses translucent light and translucent ink, so its panels stack. A flat grey border cannot.
+3. **Chat was 14px and KICK sets 16px.** Chat is the densest thing we build, so that one error would have given us away fastest.
+4. **We specified a stroked icon set against a filled one.** See Design System Section 5.
 
-Ask before changing the locked file.
+### Where the two files still differ, and why
+
+These are not gaps. UI and media are different jobs, so three rules are deliberately opposite:
+
+| Rule | Design System, for UI | This file, for media |
+|---|---|---|
+| Green | Under 10% of pixels. An accent | A flood. Whole screens |
+| Display tracking | `normal`, per KICK's own headings ✅ | `normal`, and leading of exactly 1.0 |
+| Entry curve | `--ease`, KICK's 22-use default | `--ease-media`, for brand surfaces only |
+| Weight | 400, 600, 700. KICK names three ✅ | 800 for display. Our choice, media only |
 
 ---
 
@@ -411,7 +426,8 @@ uses it for anything that opens over the top of something else. Use it for a pan
 infinite` and passes the duration per instance, so 40s is one instance and not the rule. KICK also
 ships a vertical marquee.
 
-The Design System `--ease:cubic-bezier(.2,.8,.2,1)` 🔧 is close to neither. Keep it for UI until the locked file is corrected, and use the measured curves for media.
+The Design System now carries all three curves, and its `--ease` is KICK's `cubic-bezier(.4,0,.2,1)`.
+Use `--ease-media` on brand surfaces only. Never put the media curve on a product control.
 
 ### Rules
 

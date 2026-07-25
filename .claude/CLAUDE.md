@@ -21,6 +21,13 @@ Any docs we generate go in the `docs/` folder — never into `.claude/`. The API
 exception: it is a source of truth, so it lives in `.claude/`. Change it only to match the live
 docs at `docs.kick.com`, and record the date you checked.
 
+### `assets/`: every brand file and font, committed
+
+`assets/README.md` names every file, its source URL, the date we read it, and its licence. Take
+fonts, the KICK wordmark and the pattern plates from here. Never fetch one at build time.
+`assets/reference/kick-neon-tokens.css` holds KICK own 282 design tokens, read from their live CSS.
+It is read-only ground truth, and Brand Identity §3 lists what it corrects.
+
 ## How to work
 
 - **Every idea gets run against the Spec Test** (`.claude/KICK-HACKATHON-BRIEF.md` §7) before it gets build time. Any ❌ in Part A (published requirements) or Part B (rules compliance) kills the idea. Then score it: ship above 75, keep prototyping 60–75, kill below 60.

@@ -283,7 +283,15 @@ Rules:
 
 **Brand Identity §7 holds the licence gate and the imagery rules.** Every asset on a slide must pass it.
 
-`prototypes/hypeprops/src/assets` already holds `kick-logo.svg`. `prototypes/hypeprops/src/assets/fonts` holds `kick-font.ttf` with `kick-font-license.txt` next to it. Reuse those files. Copy the licence file with the font.
+**Take every asset from `assets/`.** It holds the official wordmark, Inter and Archivo with their OFL
+licences, the community KICK font, KICK own pattern plates, and the extracted token file. Do not
+fetch a font or a logo from the network at build time, and do not add a second copy of one.
+
+`assets/README.md` names every file, its source and its licence. Copy a licence file whenever you
+copy a font.
+
+**Read `assets/brand/patterns/cta-section.png` before you build a slide background.** It is KICK own
+1920x1080 plate, and it decides §6 more than any rule written here.
 
 ### The KICK wordmark 🔧
 

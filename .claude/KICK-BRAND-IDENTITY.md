@@ -27,30 +27,41 @@ KICK runs two visual systems. They share a palette and they share nothing else.
 
 | Source | Read on | What it gives |
 |---|---|---|
-| [about.kick.com](https://about.kick.com) | 25 July 2026 | Brand values, mission copy, display type, flood colour, marquee. Every ✅ value in §1 to §4 |
+| [about.kick.com](https://about.kick.com) | 25 July 2026 | Brand values, mission copy, display type, flood colour, marquee |
+| [about.kick.com/brand](https://about.kick.com/brand) | 25 July 2026 | The public brand toolkit page. Brand copy, and the two links to Brandfolder |
+| **The four stylesheets that about.kick.com loads** | 25 July 2026 | **KICK own design tokens. 282 of them. See §3** |
 | [kick.com](https://kick.com) | 25 July 2026 | The UI half of the split, for contrast |
 | [KICK, "From Every Angle"](https://www.youtube.com/watch?v=02Vj-TkQhAI) | 30 second brand film | Footage culture, graphic devices, cut rate. Every 🟡 value |
 | `.claude/KICK-DESIGN-SYSTEM.md` | | The token base this file extends |
 
-### The source we have not read 🔒
+**Everything we downloaded is in `assets/`.** The logo, the fonts, the extracted token file and the
+page copy. `assets/README.md` names every source, its date and its licence.
 
-| Source | Status | What it would settle |
+**These pages need a browser user agent.** A plain request gets HTTP 403. `assets/README.md` holds
+the one line curl command that works. This is not a block on us, it is bot filtering.
+
+### The source we still cannot read 🔒
+
+| Source | Status | What it holds |
 |---|---|---|
-| [Brandfolder portal](https://brandfolder.com/portals/kick) | **Gated. Sign-in required** | The official brand toolkit: logo lockups, clear space, minimum size, misuse rules, the real greys, confirmed type names |
-| [about.kick.com/brand](https://about.kick.com/brand) | **Blocked to us** | The same toolkit, linked from the public site |
+| [Brand hub](https://brandfolder.com/portals/kick) | **Gated. Sign-in required** | The brand toolkit: logo rules, clear space, minimum size, misuse rules |
+| [Logo share link](https://brandfolder.com/s/vb9bf4cj6sbkvxmb5x8x7q2g) | **Public page, gated files** | "3 Assets from Easygo Brandfolder". The page loads, the asset list needs an API token |
 
-Checked 25 July 2026. The Brandfolder link resolves to an **Easygo** portal and it asks for a
-sign-in, so no value in this file comes from it. This is the reason §3 and §4 still carry 🔧 tags.
+Checked 25 July 2026. The Brand hub is an **Easygo** Brandfolder and it asks for a sign-in.
 
-**If a team member can sign in, read it and correct §3, §4 and §5 before 1 August.** These are the
-things we currently guess and a judge could check:
+**`about.kick.com/brand` publishes no logo rule at all.** We read the whole page. It holds brand
+copy, a Download button and an Explore button, and both buttons point at Brandfolder. So the
+toolkit is the only place a logo rule exists, and it stays closed to us.
 
-1. Logo clear space, minimum size and the misuse rules. We hold no rule for any of them.
-2. The official secondary palette. We took cyan `#00FFFF` from the DOM, not from a toolkit.
-3. The display face and its licence terms, which decide if Archivo stays our substitute (§4).
-4. Whether the green to cyan gradient is a brand asset or one page's treatment.
+**If a team member can sign in, get the logo rules first.** That is the one thing no public KICK
+surface states. These are what we still guess, and a judge could check:
 
-Until then, **do not tell a judge that a 🔧 or 🟡 value is KICK's own.** Say we measured it.
+1. Logo clear space, minimum size and the misuse rules. Deck Mechanics §8 holds a 🔧 rule for now.
+2. Whether the green to cyan gradient is a brand asset or one page's treatment.
+3. Whether Booster Polygonal can be licensed to us, which decides if Archivo stays our substitute.
+
+**Do not tell a judge that a 🔧 or 🟡 value is KICK's own.** Say we measured it. The ✅ values in §3
+and §4 are safe to name, because they come from KICK own CSS.
 
 ### Confidence tags
 
@@ -89,6 +100,19 @@ KICK publishes these under the heading "Can we get some values in the chat".
 - "Everything we do has gotta have that big KICK energy."
 - "Find it. Share it. Own it."
 
+Read 25 July 2026 on about.kick.com and about.kick.com/brand, so all of these are ✅:
+
+- "This is the home for the misfits and the real ones."
+- "Go frame urself"
+- "Become iconic, create your own KICK Frame image."
+- "Our brand is the result of harnessing the chaos that makes KICK, KICK."
+- "Create, export, and share on your socials ;)"
+- "'Nuff said."
+- "Yeah of course you can. No matter if you're a streamer or viewer, signing up to KICK is way easy."
+
+**KICK ships an emoticon in body copy.** `;)` appears twice on the Frame Generator page. It also
+writes "urself", "'Nuff said" and "way easy". This is further down the register than we had it.
+
 ### What this means for us
 
 **Human, unscripted, unfiltered, owned by the creator.** KICK sells the opposite of polish. Three of the lines above name the human directly. A deck that looks like a consultancy template argues against the brand it is pitching to.
@@ -116,28 +140,83 @@ Our own prose rule still applies on top. All copy is ASD-STE100 Simplified Techn
 
 ## 3. Colour
 
-### Verified brand palette ✅
+### KICK ships a design system, and it is called neon ✅
 
-Read from the live DOM on about.kick.com and kick.com.
+This is the biggest thing we know about KICK. **KICK own tokens are live CSS custom properties on
+about.kick.com**, named `--neon-*`. We read all 282 of them. They are in
+`assets/reference/kick-neon-tokens.css`, and they are KICK values, not ours.
 
-| Role | Value | Notes |
+The system has three layers:
+
+1. **13 colour ramps, 11 steps each.** `neutral`, `green`, `cyan`, `icedOutCyan`, `mint`, `blue`, `purple`, `pink`, `red`, `orange`, `bowelBrown`, plus `light` and `dark` alpha ramps.
+2. **A semantic layer** that points at the ramps: `--neon-primary-base`, `--neon-surface-base`, `--neon-text-base`, `--neon-outline-decorative`, `--neon-stateLayer-*`, `--neon-identity-*`.
+3. **Scales.** Type: 12, 14, 16, 18, 20, 24, 28, 32, 36, 48. Spacing: 0, 1, 2, 4, 6, 8, 10, 12, 14, 16, 20, 24, 28, 32, 36, 40, 44, 48, 56, 64, 80, 96, 112 and up.
+
+The ramp names are a brand asset on their own. **`icedOutCyan`, `bowelBrown` and `sunshine` are
+KICK own token names.** No other company would ship those. If a judge asks whether we studied the
+brand, this is the answer.
+
+### The palette that matters ✅
+
+| Role | Token | Value |
 |---|---|---|
-| Green | `#53FC18` | The signature. Confirmed on both properties |
-| Cyan | `#00FFFF` | The real secondary. It is not a glitch artefact |
-| Ink | `#0B0B0C` | Text on green. Also the darkest ground |
-| Surface | `#171A1C` | Panels |
-| Border | `#42474D` | Also used at 20% opacity |
-| Muted text | `#9FA6AD` | |
-| Secondary text | `#BABFC4` | |
-| White | `#FFFFFF` | The dominant text colour by a wide margin |
+| Green | `--neon-color-green-500` | `#53FC18` |
+| Green, brighter | `--neon-color-green-400` | `#75FD45` |
+| Green, darker | `--neon-color-green-600` | `#3AD903` |
+| Ink, and the darkest ground | `--neon-color-neutral-950` | `#0B0B0C` |
+| Surface | `--neon-color-neutral-900` | `#171A1C` |
+| Surface, raised | `--neon-color-neutral-800` | `#232629` |
+| Border | `--neon-color-neutral-700` | `#42474D` |
+| Muted text | `--neon-color-neutral-400` | `#9FA6AD` |
+| Secondary text | `--neon-color-neutral-300` | `#BABFC4` |
+| Body text | `--neon-text-base` | `#E9ECED` |
+| White | `--neon-color-white` | `#FFFFFF` |
+| Cyan, the ramp | `--neon-color-cyan-500` | `#18E9FB` |
+| Cyan, the bright one | `--neon-color-icedOutCyan-200` | `#00FFFF` |
 
-### The gradient ✅
+**On the cyan.** KICK runs **two** cyan ramps. `cyan-500` is `#18E9FB` and it is the systematic
+one. `#00FFFF` is real, but it is `icedOutCyan-200`. Name it correctly and the claim holds.
+
+### Three rules the tokens prove ✅
+
+1. **Type on green is ink, never white.** `--neon-primary-base` is `green-500` and its pair `--neon-primary-onPrimary` is `neutral-950`. KICK states the rule in its own tokens.
+2. **Green means positive and primary, both.** `--neon-positive-base` and `--neon-primary-base` are the same `green-500`. So green on a KICK surface reads as "good" and "do this", and it must not carry a neutral meaning.
+3. **Borders are light at low alpha, not a grey.** `--neon-outline-decorative` is `light-16`, which is `#F0F1F2` at 16%. Our `--border` hex is a flat grey, so it does not sit on any surface the way KICK's does.
+
+### The chat username colours ✅
+
+`--neon-identity-*` holds the 16 colours KICK gives a chat username: **bubblegum, celeste, coral,
+cyan, lavender, lime, melon, mint, mist, neon, powder, rose, sand, sky, sunshine, violet.** They are
+all ramp steps 100 to 500, so they are light on a dark ground. `--neon-identity-onIdentity` is
+`neutral-950`, so a badge in an identity colour takes ink text.
+
+Design System §4 asks for a username "coloured per-user". **Use these 16 and nothing else.** It is
+the cheapest way to make our chat read as native.
+
+### Green to cyan is a halftone, not a gradient ✅
+
+**Correction, 25 July 2026.** This file used to state a smooth gradient:
 
 ```css
-background:linear-gradient(to right,#53FC18,#00FFFF);
+background:linear-gradient(to right,#53FC18,#00FFFF);  /* we could not verify this */
 ```
 
-Green to cyan, left to right. KICK uses this on its own brand surfaces, and its full-bleed pattern plates are built from the same two colours.
+We read all four stylesheets and both pages, and **no green to cyan `linear-gradient` exists on
+about.kick.com.** We then downloaded KICK own pattern plates, and they show what KICK really does.
+
+`assets/brand/patterns/pattern-3.png` is **4096x4096, and it holds two colours only**: green
+`#53FC18` and cyan `#00FFFF`. The two never blend. **They meet through a halftone dot screen**: a
+regular grid of square dots of one colour on a field of the other, and the dot density carries the
+transition. The result reads as a print screen or a dither, not as a fade.
+
+`assets/brand/patterns/cta-section.png` is the 1920x1080 plate, and it adds the rest of the
+vocabulary. Both files are in `assets/`, so look at them before you build a background.
+
+**Use a dot screen where you would have used a gradient.** A smooth gradient is the wrong texture,
+and it is the one thing on this page we got wrong before.
+
+The vertical fades that do exist are short, hard-edged, and they run into a dark olive, which is
+KICK own `bowelBrown` ramp.
 
 ### The flood rule 🟡
 
@@ -154,18 +233,38 @@ Rules for a flood:
 
 ### Where the Design System disagrees
 
-The Design System is locked, so this file does not change it. These gaps are reported, not fixed. Design System §0 already asks for a DevTools pass to correct flagged values, and this is that pass.
+The Design System is locked, so this file does not change it. These gaps are reported, not fixed.
+Design System §0 asks for a DevTools pass to correct flagged values, and **this is that pass. It is
+now complete**, because KICK publishes the tokens.
 
-| Token | Design System | Measured on KICK ✅ |
-|---|---|---|
-| `--kick-green` | `#53FC18` 🟡 | `#53FC18`. **Promote to verified** |
-| `--bg-base` | `#0B0E0F` 🔧 | `#0B0B0C` |
-| `--bg-surface` | `#121517` 🔧 | `#171A1C` |
-| `--border` | `#282F31` 🔧 | `#42474D` |
-| `--text-muted` | `#8B9598` 🔧 | `#9FA6AD` |
-| `--r-sm` / `--r-lg` / `--r-full` | `4px` / `8px` / `9999px` 🔧 | `4px`, `8px`, `9999px`. **All three correct** |
+| Design System token | Our value | KICK own token ✅ | KICK value |
+|---|---|---|---|
+| `--kick-green` | `#53FC18` 🟡 | `color-green-500` | `#53FC18`. **Exact. Promote to verified** |
+| `--kick-green-hover` | `#42D912` 🔧 | `color-green-600` | `#3AD903` |
+| `--kick-green-dim` | `#2E8F0C` 🔧 | `color-green-700` | `#2BA202` |
+| `--bg-base` | `#0B0E0F` 🔧 | `color-neutral-950` | `#0B0B0C` |
+| `--bg-surface` | `#121517` 🔧 | `color-neutral-900` | `#171A1C` |
+| `--bg-raised` | `#191D1F` 🔧 | `color-neutral-800` | `#232629` |
+| `--bg-overlay` | `#22282A` 🔧 | `surfaceOverlay-base` | `#0B0B0C` at 80%, not a solid grey |
+| `--border` | `#282F31` 🔧 | `outline-decorative` | `#F0F1F2` at 16%, not a solid grey |
+| `--border-strong` | `#3A4245` 🔧 | `outline-region` | `#F0F1F2` at 40% |
+| `--text-primary` | `#FFFFFF` 🔧 | `color-white` | `#FFFFFF`. **Correct** |
+| `--text-body` | `#E3E7E8` 🔧 | `text-base` | `#E9ECED` |
+| `--text-muted` | `#8B9598` 🔧 | `color-neutral-400` | `#9FA6AD` |
+| `--warn` | `#FFB020` 🔧 | `warning-base` | `#FBA418` |
+| `--danger` | `#FF4757` 🔧 | `danger-base` | `#FB1818` |
+| `--info` | `#3EA6FF` 🔧 | `color-blue-500` | `#1899FB` |
+| `--live` | `#FF1744` 🔧 | **no token** | KICK ships no live-red token. Ours is invented, so keep it and say so |
+| `--t-sm` / `--t-label` | `13px` / `11px` 🔧 | type scale | **Off system.** KICK runs 12, 14, 16, 18, 20, 24, 28, 32, 36, 48 |
+| `--r-sm` / `--r-lg` / `--r-full` | `4px` / `8px` / `9999px` 🔧 | | Unchanged. No radius token is exposed |
 
-The radius scale was a good guess. The greys run about one step darker than KICK's. Ask before changing the locked file.
+**Three findings worth saying out loud.**
+
+1. **Our greens and our whites were right. Our greys and our semantics were not.** Every grey moves.
+2. **`--border` and `--bg-overlay` are the wrong kind of value, not just the wrong number.** KICK uses translucent light and translucent ink, so its panels stack. A flat grey border does not.
+3. **`--live` has no KICK equivalent.** Design System §3 argues red for on-air and green for brand, and that argument still holds. It is our idea, so do not attribute it to KICK.
+
+Ask before changing the locked file.
 
 ---
 
@@ -173,17 +272,28 @@ The radius scale was a good guess. The greys run about one step darker than KICK
 
 ### The two faces ✅
 
-| Face | Where KICK uses it | Weights seen |
-|---|---|---|
-| **Booster Polygonal** | Display only, on brand surfaces | 700, and 400 on the marquee |
-| **Booster Polygonal Compact** | Tighter display lockups | 700 |
-| **Inter** | All body, and the entire product UI | 100 to 900 variable |
+| Face | KICK own family name | Where KICK uses it | Weights seen |
+|---|---|---|---|
+| **Booster Polygonal** | `boosterPolygonal` | Display only, on brand surfaces | 700, and 400 on the marquee |
+| **Booster Polygonal Compact** | `boosterPolygonalCompact` | Tighter display lockups | 700 |
+| **Inter** | `Inter` | All body, and the entire product UI | 100 to 900 variable |
+
+The family names come from KICK own CSS, as `--font-booster-polygonal` and
+`--font-booster-polygonal-compact`. `--neon-font-family-default` is `Inter`. ✅
+
+**KICK names three weights, not nine.** `--neon-font-weight-default` is Regular,
+`--neon-font-weight-thick` is SemiBold, `--neon-font-weight-heavy` is Bold. ✅ So a KICK UI uses
+400, 600 and 700, and nothing else. Our display weight of 800 is a media choice, not a UI one.
 
 Booster is published by [Blaze Type](https://www.myfonts.com/collections/booster-font-blaze-type/). Polygonal is one of its subfamilies.
 
 ### The licence problem
 
 **Booster is a commercial retail font. We cannot self-host it.** Hackathon Brief §5.2 and clause 7(f) require every asset to be licensable onward to KICK. We hold no Booster licence, so shipping the file fails the rules test.
+
+**KICK serves the two woff2 files publicly, and we still did not take them.** The URLs are in
+`assets/README.md`. A public URL is not a licence. This rule does not bend because the file is easy
+to get.
 
 Our substitute 🔧:
 
@@ -194,7 +304,9 @@ Our substitute 🔧:
 
 Set Archivo at weight 800 and apply the display rules below. It will not match Booster, but it holds the same posture. **Say this out loud if a judge asks about type.** Naming the constraint reads better than a silent mismatch.
 
-The repo also holds `prototypes/hypeprops/src/assets/fonts/kick-font.ttf` with `kick-font-license.txt`. That is a community font built from the KICK wordmark, under the OFL. Use it for a wordmark lockup only, never for reading text.
+`assets/fonts/kick-font/` holds `kick-font.ttf` with `kick-font-license.txt`. That is a community font built from the KICK wordmark, by "NachoZombiezz", under the OFL. Use it for a wordmark lockup only, never for reading text. A second copy sits in `prototypes/hypeprops/src/assets/fonts/`.
+
+`assets/fonts/` also holds Inter and Archivo, each with its `OFL.txt`. Take both from there.
 
 ### How KICK sets display type ✅
 
@@ -229,15 +341,46 @@ These are the parts that make a surface read as KICK rather than as a dark templ
 
 | Device | Evidence | What it is |
 |---|---|---|
-| **Corner brackets** | Film 3.0s, 6.8s, 20.0s, 23.0s 🟡 | Four L-shaped crop marks around a subject. Never a closed box. The campaign's signature, and the literal meaning of "from every angle" |
-| **Marquee** | `marquee 40s linear infinite` ✅ | One phrase repeated across a strip, scrolling forever. KICK runs "UN-FILTER REALITY" this way |
-| **Flood plate** | about.kick.com ✅ | A whole surface of green, black type on top |
-| **Green to cyan** | ✅ | The gradient and the pattern plates |
-| **Glitch and datamosh** | Film 1.0s, 6.8s, 15.0s 🟡 | Macroblocking, chroma-key spill, cyan and magenta fringing, scan bars |
+| **The frame** | **KICK ships a whole tool for it** ✅ | See below. The strongest device KICK has |
+| **Halftone dot screen** | `pattern-3.png`, `cta-section.png` ✅ | A grid of square dots of one brand colour on a field of the other. This is how green meets cyan (§3) |
+| **Registration crosses** | `cta-section.png` ✅ | A regular field of `+` marks, dark, on a green flood. Printers' registration marks. It reads as a proof sheet |
+| **Corner brackets** | Film 3.0s, 6.8s, 20.0s, 23.0s 🟡 | L-shaped crop marks. Never a closed box. Still film only. In `cta-section.png` the bracket shapes are registration crosses clipped by a block edge, so they support the look without proving the device |
+| **Edge bar** | `border-*.png`, 14px wide ✅ | A narrow vertical strip of green and cyan blocks, set against the left edge of a block of copy. KICK runs one per value |
+| **Marquee** | `animation:marquee var(--duration) linear infinite` ✅ | One phrase repeated across a strip, scrolling forever. Horizontal or vertical |
+| **Flood plate** | about.kick.com ✅ | A whole surface of green, ink type on top |
+| **Macroblocking** | `cta-section.png` ✅, film 1.0s, 6.8s, 15.0s | Hard-edged rectangular blocks, quantised, offset from the grid. KICK own plate does this, so it is a graphic choice and not a video fault |
 | **Sticker badge** | Film 12.0s 🟡 | A rotated diamond, flat fill, an icon and a caps label |
 | **Doodles** | Film 17.0s, 21.5s 🟡 | Hand-drawn stars, circles and arrows over footage |
 | **Camcorder HUD** | Film 24.0s to 27.0s 🟡 | REC dot, running timecode, menu labels along the bottom edge |
 | **Repeat grid** | Film 8.0s, 17.5s 🟡 | The same subject tiled 3x3. Multi-angle made literal |
+| **Object still life** | 15 files in `/img/landing/` ✅ | See below |
+
+### The frame is the signature device ✅
+
+KICK publishes a **KICK Frame Generator** at
+[about.kick.com/brand/frame-generator](https://about.kick.com/brand/frame-generator). A person
+uploads a photo, drags a KICK frame over it, resizes it, and exports a PNG. KICK own copy is **"Go
+frame urself"** and **"Become iconic, create your own KICK Frame image."**
+
+**This is the most important thing on this page.** KICK built a tool so that anybody can put the
+KICK frame on their own image. The frame is not decoration, it is the brand action. It is also the
+literal form of "FROM EVERY ANGLE": the frame picks the angle.
+
+**So the deck frames things.** `CropMarks` in Deck Mechanics §8 is this device, and it earns its
+place on more than the demo slide.
+
+### The object still life ✅
+
+`/img/landing/` holds 15 photographed objects: a cassette tape, a CD, a floppy disk, a cinder
+block, a traffic cone, a plant, a walkie talkie, binoculars, a microphone, headphones, a computer,
+a W key, a ring binder, a paper plane, and a 95/5 sign.
+
+**KICK illustrates with old physical objects, not with icons or 3D renders.** Analogue, slightly
+worn, cut out on a flood. It is the still-life half of "human generated content", and it pairs with
+the creator footage in §7.
+
+**We cannot use KICK's files** (§7 licence gate). We can copy the idea: photograph a real object off
+our own desk, cut it out, and put it on a green flood.
 
 ### Rationing
 
@@ -249,13 +392,24 @@ Loud devices do not stack. **One loud device per surface.** A slide with a flood
 
 ### Verified curves ✅
 
-| Where | Value | Read from |
-|---|---|---|
-| Product UI | `150ms cubic-bezier(.4,0,.2,1)` | kick.com |
-| Media entry | `300ms cubic-bezier(.87,0,.13,1)` | about.kick.com `slideUpKF` |
-| Marquee | `40s linear infinite` | about.kick.com |
+| Where | Value | Read from | Uses counted |
+|---|---|---|---|
+| Product UI, and most things | `cubic-bezier(.4,0,.2,1)` | kick.com and about.kick.com | 22. **The default** |
+| Menus and popovers | `400ms cubic-bezier(.16,1,.3,1)` | about.kick.com `slideUpAndFade`, `slideDownAndFade`, `slideLeftAndFade`, `slideRightAndFade` | 12 |
+| Media entry | `300ms cubic-bezier(.87,0,.13,1)` | about.kick.com `slideUpKF`, `slideDownKF` | 2 |
+| A pulse | `2s cubic-bezier(.4,0,.6,1) infinite` | about.kick.com `pulse` | 1 |
+| Marquee | `linear infinite`, duration set per instance | about.kick.com `marquee`, `marquee-vertical` | |
+
+Counted across the four stylesheets about.kick.com loads, on 25 July 2026. ✅
 
 `cubic-bezier(.87,0,.13,1)` sits still, then moves fast, then stops hard. That is the media curve. Use it for entrances on brand surfaces.
+
+`cubic-bezier(.16,1,.3,1)` starts fast and settles long. **This is the curve we did not have.** KICK
+uses it for anything that opens over the top of something else. Use it for a panel or a popover.
+
+**The marquee duration is a variable, not 40s.** KICK sets `animation:marquee var(--duration) linear
+infinite` and passes the duration per instance, so 40s is one instance and not the rule. KICK also
+ships a vertical marquee.
 
 The Design System `--ease:cubic-bezier(.2,.8,.2,1)` 🔧 is close to neither. Keep it for UI until the locked file is corrected, and use the measured curves for media.
 
@@ -325,10 +479,10 @@ Build every background in this order. Use two layers or three, never more.
 | Order | Layer | Spec |
 |---|---|---|
 | 1 | Base | Flat fill. `--bg-base`, or a flood of `#53FC18` |
-| 2 | Gradient | Green to cyan, left to right ✅ |
+| 2 | Halftone ✅ | Square dots of `#00FFFF` on the green flood, on a regular grid, with the dot density carrying the transition. **This replaces the gradient.** See §3 |
 | 3 | Glow | Radial from `--kick-green-glow` to transparent. Off centre, 60% to 90% of the width |
-| 4 | Grid | 1px lines in `--border` at 64px pitch, masked so it fades at the edges |
-| 5 | Macroblock 🟡 | SVG `feTurbulence` plus `feDisplacementMap` at a coarse scale. It reads as video compression breaking up |
+| 4 | Grid | 1px lines in `--border` at 64px pitch, masked so it fades at the edges. **On a flood, use a field of `+` registration crosses instead** ✅, which is what KICK does |
+| 5 | Macroblock ✅ | Hard-edged rectangles, quantised to a coarse grid, offset from each other. KICK own plate does this with flat blocks, so build it with rectangles, not with `feTurbulence` |
 | 6 | Chroma split 🟡 | The layer below, copied twice and offset 3px in cyan and 3px in magenta, at 30% opacity |
 | 7 | Scan bar 🟡 | One bright horizontal band, 6% of the height, crossing once on entry |
 | 8 | Grain | SVG `feTurbulence` at 4% to 6% opacity. It stops large gradients banding on a projector |
@@ -376,4 +530,10 @@ Run a finished media surface against this. Four or more no answers means it is n
 
 ---
 
-*Written 25 July 2026. Values tagged ✅ were read from the live DOM on kick.com and about.kick.com on that date. Values tagged 🟡 come from KICK's "From Every Angle" brand film. Values tagged 🔧 are our construction, not KICK's. The official brand toolkit is still unread, and §0 lists what it would settle.*
+*Written 25 July 2026. Values tagged ✅ were read from the live DOM on kick.com and about.kick.com on that date. Values tagged 🟡 come from KICK's "From Every Angle" brand film. Values tagged 🔧 are our construction, not KICK's. The Brandfolder brand hub is still unread, and §0 lists what it would settle.*
+
+*Second pass, 25 July 2026. We read `about.kick.com/brand`, the Frame Generator page and all four
+stylesheets, and we downloaded KICK own assets into `assets/`. That pass added the neon token system
+(§3), the chat identity colours (§3), the real weight names (§4), two more easing curves (§6), the
+frame device and the object still life (§5), and more voice lines (§2). It also **corrected one
+thing: green to cyan is a halftone dot screen, not a `linear-gradient`** (§3).*

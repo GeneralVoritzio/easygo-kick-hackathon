@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>KICK Hackathon — Idea Scorer</title>
+<style>
+:root{
+  color-scheme: light;
+  --bg:#ffffff;
+  --panel:#f6f7f8;
+  --panel2:#eef0f2;
+  --border:#e0e3e6;
+  --text:#12141a;
+  --muted:#6b7280;
+  --kick:#00b300;
+  --kick-bright:#53fc18;
+  --danger:#d92d20;
+  --warn:#b54708;
+  --warn-bg:#fffaeb;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);
+  font:14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,sans-serif;}
+.wrap{max-width:1080px;margin:0 auto;padding:20px 20px 80px}
+h1{font-size:22px;margin:0 0 4px;letter-spacing:-.02em}
+h2{font-size:15px;margin:0 0 10px;letter-spacing:-.01em}
+h3{font-size:13px;margin:0 0 6px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.sub{color:var(--muted);font-size:13px;margin:0 0 18px}
+.card{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:14px}
+.tabs{display:flex;gap:4px;margin-bottom:18px;border-bottom:1px solid var(--border);flex-wrap:wrap}
+.tab{padding:9px 14px;cursor:pointer;border:none;background:none;font:inherit;font-weight:600;
+  color:var(--muted);border-bottom:2px solid transparent;margin-bottom:-1px}
+.tab.on{color:var(--text);border-bottom-color:var(--kick)}
+.pane{display:none}.pane.on{display:block}
+
+/* strategy bar */
+.mathgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+@media(max-width:760px){.mathgrid{grid-template-columns:1fr}}
+.mathbox{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:12px}
+.mathbox .big{font-size:26px;font-weight:800;letter-spacing:-.03em}
+.mathbox .lbl{font-size:12px;color:var(--muted);margin-top:2px}
+.mathbox.a .big{color:var(--kick)}
+.mathbox.b .big{color:#0b62d6}
+.mathbox.c .big{color:var(--warn)}
+
+/* form */
+label{display:block;font-size:12px;font-weight:600;color:var(--muted);margin:0 0 4px}
+input[type=text],textarea,select{width:100%;padding:8px 10px;border:1px solid var(--border);
+  border-radius:7px;background:var(--bg);color:var(--text);font:inherit}
+textarea{resize:vertical;min-height:52px}
+.row{display:flex;gap:10px;flex-wrap:wrap}
+.row>*{flex:1;min-width:180px}
+.btn{padding:9px 16px;border-radius:7px;border:1px solid var(--border);background:var(--bg);
+  color:var(--text);font:inherit;font-weight:600;cursor:pointer}
+.btn:hover{background:var(--panel2)}
+.btn.pri{background:var(--kick);border-color:var(--kick);color:#fff}
+.btn.pri:hover{background:#009900}
+.btn.sm{padding:5px 10px;font-size:12px}
+.btn.danger{color:var(--danger);border-color:#f3c5c1}
+
+/* gates */
+.gates{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+@media(max-width:760px){.gates{grid-template-columns:1fr}}
+.gate{display:flex;gap:8px;align-items:flex-start;background:var(--bg);border:1px solid var(--border);
+  border-radius:7px;padding:9px 10px;cursor:pointer}
+.gate input{margin-top:2px;accent-color:var(--kick);flex:none}
+.gate .gt{font-weight:600;font-size:13px}
+.gate .gd{font-size:12px;color:var(--muted)}
+.gate.fail{border-color:#f3c5c1;background:#fef4f3}
+
+/* criteria */
+.crit{border-top:1px solid var(--border);padding:12px 0}
+.crit:first-of-type{border-top:none}
+.crithead{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px}
+.crithead .nm{font-weight:700;font-size:13px}
+.wt{font-size:11px;font-weight:700;color:var(--kick);background:#e9fbe6;border-radius:20px;padding:2px 9px}
+.q{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:5px 0}
+.q .qt{font-size:13px;color:var(--text)}
+.seg{display:flex;gap:3px;flex:none}
+.seg button{width:30px;height:28px;border:1px solid var(--border);background:var(--bg);border-radius:6px;
+  cursor:pointer;font:inherit;font-size:12px;font-weight:600;color:var(--muted)}
+.seg button.on{background:var(--kick);border-color:var(--kick);color:#fff}
+
+/* leaderboard */
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);
+  padding:8px 8px;border-bottom:1px solid var(--border)}
+td{padding:10px 8px;border-bottom:1px solid var(--border);vertical-align:top}
+tr.blocked td{opacity:.55}
+.score{font-weight:800;font-size:17px;letter-spacing:-.02em}
+.bar{height:5px;border-radius:3px;background:var(--panel2);margin-top:5px;overflow:hidden;min-width:70px}
+.bar i{display:block;height:100%;background:var(--kick)}
+.pill{display:inline-block;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;
+  padding:2px 7px;border-radius:20px;background:var(--panel2);color:var(--muted)}
+.pill.c1{background:#e9fbe6;color:#046c04}
+.pill.wild{background:#f0e9fb;color:#5b21b6}
+.pill.block{background:#fde8e6;color:var(--danger)}
+.mini{font-size:12px;color:var(--muted);margin-top:3px}
+
+.note{background:var(--warn-bg);border:1px solid #fedf89;border-radius:8px;padding:12px;font-size:13px;margin-bottom:12px}
+.note b{color:var(--warn)}
+ul.tight{margin:6px 0 0;padding-left:18px}
+ul.tight li{margin:4px 0}
+.blk{display:flex;gap:9px;align-items:flex-start;padding:7px 0;border-bottom:1px solid var(--border);font-size:13px}
+.blk:last-child{border:none}
+.blk .n{font-weight:700;color:var(--muted);flex:none;width:20px}
+.hit{color:var(--danger);font-weight:600;font-size:12px}
+.wf{display:flex;gap:12px;padding:11px 0;border-bottom:1px solid var(--border)}
+.wf:last-child{border:none}
+.wf .d{flex:none;width:112px;font-weight:700;font-size:12px;color:var(--kick)}
+.wf .b{font-size:13px}
+.chk{display:flex;gap:8px;align-items:flex-start;padding:6px 0;font-size:13px}
+.chk input{accent-color:var(--kick);margin-top:3px;flex:none}
+.chk.done span{text-decoration:line-through;color:var(--muted)}
+.empty{text-align:center;color:var(--muted);padding:28px;font-size:13px}
+.formula{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;background:var(--bg);
+  border:1px solid var(--border);border-radius:7px;padding:11px;color:var(--text);overflow-x:auto}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>KICK Hackathon — Idea Scorer</h1>
+<p class="sub">Challenge 1: Hype Tracker / Stream Companion Overlay &nbsp;·&nbsp; Sat 1 Aug 2026, Fortress Melbourne &nbsp;·&nbsp; 4–5 hrs build &nbsp;·&nbsp; $50,000</p>
+
+<div class="card">
+  <h3>Where the points actually are</h3>
+  <div class="mathgrid">
+    <div class="mathbox a"><div class="big">50%</div><div class="lbl">Decided <b>before</b> you arrive — Problem Solving (25) + Creativity (25). This is concept selection. It is the whole game.</div></div>
+    <div class="mathbox b"><div class="big">30%</div><div class="lbl">Nearly free — Presentation (10) + Collaboration (10) + UX (10). Independent of the idea. Pure preparation. Most teams drop these.</div></div>
+    <div class="mathbox c"><div class="big">20%</div><div class="lbl">Technical Execution. The <i>only</i> part that rewards ambitious code — and you have 4 hours. Do not spend the week here.</div></div>
+  </div>
+  <div class="note" style="margin:12px 0 0">
+    <b>Read this twice:</b> a modest idea built flawlessly caps out around 60. A sharp, original idea with a scrappy build and a rehearsed demo clears 80. Optimise for concept and delivery, not engineering scope.
+  </div>
+</div>
+
+<div class="tabs">
+  <button class="tab on" data-p="score">Score an idea</button>
+  <button class="tab" data-p="board">Leaderboard</button>
+  <button class="tab" data-p="generic">Generic-idea blocklist</button>
+  <button class="tab" data-p="plan">Workflow to Sunday</button>
+  <button class="tab" data-p="free">Free-points checklist</button>
+  <button class="tab" data-p="rules">Rules that bite</button>
+</div>
+
+<!-- SCORE -->
+<div class="pane on" id="p-score">
+  <div class="card">
+    <div class="row">
+      <div style="flex:2"><label>Idea name</label><input type="text" id="f-name" placeholder="e.g. Kick Director"></div>
+      <div style="flex:0 0 170px"><label>Track</label>
+        <select id="f-track"><option value="c1">Challenge 1</option><option value="wild">Wildcard</option></select></div>
+    </div>
+    <div style="margin-top:10px"><label>One-line pitch — who it's for and the moment it hurts</label>
+      <textarea id="f-pitch" placeholder="For [user], when [painful moment], this [does X] so they [outcome]."></textarea></div>
+  </div>
+
+  <div class="card">
+    <h2>Hard gates</h2>
+    <p class="sub" style="margin:-6px 0 12px">Any unchecked box kills the idea outright. Don't negotiate with these — a blocked idea burns a week and dies on the day.</p>
+    <div class="gates" id="gates"></div>
+  </div>
+
+  <div class="card">
+    <h2>Weighted score</h2>
+    <p class="sub" style="margin:-6px 0 10px">Two proxy questions per judging criterion. Score each 1–5. Be brutal — everything scores 4 when you're in love with it.</p>
+    <div id="crits"></div>
+  </div>
+
+  <div class="card">
+    <div class="row" style="align-items:flex-end">
+      <div style="flex:2"><label>Demo risk — how likely is this to break or fall flat on stage? <span style="font-weight:400">(We're on mocked data, so most ideas are now ×1.00)</span></label>
+        <select id="f-risk">
+          <option value="1">Solid — scripted fixture drives it end-to-end (×1.00)</option>
+          <option value="0.85">Some risk — complex state or timing that's hard to rehearse (×0.85)</option>
+          <option value="0.65">Fragile — needs live data, real viewers, or luck (×0.65)</option>
+        </select></div>
+      <div style="flex:0 0 auto;display:flex;gap:8px">
+        <button class="btn" id="btn-clear">Clear</button>
+        <button class="btn pri" id="btn-save">Save idea</button>
+      </div>
+    </div>
+    <div id="live" style="margin-top:14px"></div>
+  </div>
+
+  <div class="card">
+    <h3>The formula</h3>
+    <div class="formula">GATES = G1 · G2 · G3 · G4 · G5 · G6            (all must pass, else score = 0)
+
+RAW   = Σ  weight(c) × ( avg(q1,q2) / 5 )       for c in the 6 judging criteria
+        weights: Product 25 · Creativity 25 · Technical 20 · Demo 10 · Team 10 · UX 10
+
+FINAL = GATES × RAW × RISK                      RISK ∈ {1.00, 0.85, 0.65}</div>
+    <p class="mini">Ship anything above 75. Between 60–75, keep prototyping. Below 60, kill it Sunday night — no sunk-cost arguments.</p>
+  </div>
+</div>
+
+<!-- BOARD -->
+<div class="pane" id="p-board">
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+      <h2 style="margin:0">Ranked ideas</h2>
+      <button class="btn sm danger" id="btn-reset">Reset all</button>
+    </div>
+    <div id="board"></div>
+  </div>
+</div>
+
+<!-- GENERIC -->
+<div class="pane" id="p-generic">
+  <div class="card">
+    <h2>The 20 ideas every other team will bring</h2>
+    <p class="sub" style="margin:-6px 0 12px">This is the baseline an LLM produces from the challenge statement. If your idea is on this list or one hop from it, Creativity &amp; Innovation is capped at 2/5 — and that's a quarter of the total score gone. Use it as a blocklist, not a brainstorm.</p>
+    <div id="blocklist"></div>
+  </div>
+  <div class="card">
+    <h3>Where your current three sit</h3>
+    <ul class="tight">
+      <li><b>Kick Director</b> — collides with #12 and #17. A mod dashboard is the single most predictable answer to this challenge statement. Strong product thinking, weak originality, and dashboards demo badly (nothing moves on stage).</li>
+      <li><b>Extension library / plugin platform</b> — genuinely original, but it's a <i>platform</i>, not a feature. It fails the 4-hour gate, and platforms demo as abstractions. The escape hatch: build one killer extension and <i>imply</i> the platform in the pitch.</li>
+      <li><b>Profile customisation / badges (wildcard)</b> — collides with #11. Also not real-time, which is an explicit requirement ("reflects real-time stream behaviour").</li>
+    </ul>
+    <p class="mini" style="margin-top:10px">None of these are dead — but none clear 75 as stated. That's the point of scoring them Sunday rather than defending them Friday.</p>
+  </div>
+  <div class="card">
+    <h3>Three angles the blocklist leaves open</h3>
+    <ul class="tight">
+      <li><b>Aim at the viewer who isn't watching.</b> Every listed idea serves the streamer or the person already in chat. Nobody builds for the 90% who have the tab muted in the background.</li>
+      <li><b>Make the overlay the thing viewers compete over</b>, not a readout the streamer consumes. Readouts are inert on stage; contested state is theatre.</li>
+      <li><b>Cross-platform is in your brief and nobody else's.</b> You already flagged that streamers are simulcasting. A companion that survives off-Kick is a real differentiator and a real product argument.</li>
+    </ul>
+  </div>
+</div>
+
+<!-- PLAN -->
+<div class="pane" id="p-plan">
+  <div class="card">
+    <h2>Consolidation workflow</h2>
+    <div class="note"><b>Rule zero:</b> nobody discusses ideas in the group chat before Sunday's session. The first idea posted anchors everyone else, and you end up defending it instead of beating it. Diverge in private, converge in the room.</div>
+    <div id="plan"></div>
+  </div>
+  <div class="card">
+    <h3>How the Sunday session runs (90 minutes)</h3>
+    <ul class="tight">
+      <li><b>0–10</b> Everyone drops their 5 ideas into this tool cold. No pitching, no reactions.</li>
+      <li><b>10–25</b> Gate pass only. Anything that fails a hard gate is out. Silent, fast, no defending.</li>
+      <li><b>25–60</b> Score survivors together. One person drives, one person argues the low score for every question. If a score is unanimous first-try, you're not being honest.</li>
+      <li><b>60–75</b> Rank. Take the top 3 into the week.</li>
+      <li><b>75–90</b> Assign each top-3 an owner who has to bring a 45-minute clickable mock by Wednesday.</li>
+    </ul>
+  </div>
+  <div class="card">
+    <h3>Rapid prototyping rule</h3>
+    <p class="mini" style="margin:0">45 minutes per mock, hard stop. If it isn't compelling as a rough mock, it will not be compelling as a polished build — polish adds maybe 10 points to a concept, never 30. Kill it and move on. You want to arrive on 1 Aug having killed at least four ideas.</p>
+  </div>
+</div>
+
+<!-- FREE -->
+<div class="pane" id="p-free">
+  <div class="card">
+    <h2>The 30% almost nobody prepares</h2>
+    <p class="sub" style="margin:-6px 0 12px">Presentation, Collaboration and UX are worth as much as Technical Execution and Creativity combined <i>minus five points</i>. They're checklist work. Tick every box and you bank 30 while other teams are still debugging.</p>
+    <div id="free"></div>
+  </div>
+</div>
+
+<!-- RULES -->
+<div class="pane" id="p-rules">
+  <div class="card">
+    <div class="note"><b>The pre-building problem.</b> Detailed specs, technical requirements and datasets are released <i>on the day</i>. Clause 9 warrants your submission is original work created by you and your teammates, and clause 5(a) requires good faith throughout. Turning up with a finished product is both a rules risk and a strategic one — if the released spec differs from your assumption, a pre-built solution is harder to pivot than an empty repo.</div>
+    <h3>Safe to build this week</h3>
+    <ul class="tight">
+      <li>Repo boilerplate, build tooling, deploy target</li>
+      <li>Kick API auth flow working end-to-end (you don't want to burn hour one on OAuth)</li>
+      <li>A mock-data generator that fakes a live stream — chat velocity, events, viewer counts</li>
+      <li>A Kick-accurate design system: dark base, <code>#53fc18</code>, type scale, components</li>
+      <li>The pitch narrative, roles, and who speaks when</li>
+    </ul>
+    <h3>Build on the day</h3>
+    <ul class="tight"><li>The feature itself. All of it. That's the part being judged and the part that has to match the released spec.</li></ul>
+  </div>
+  <div class="card">
+    <h3>Other clauses worth knowing</h3>
+    <ul class="tight">
+      <li><b>3(e)</b> — Easygo allocates teams to challenges at its sole discretion, and each team does <i>one</i> challenge. Worth confirming in writing that you're locked to Challenge 1 before you spend the week on it.</li>
+      <li><b>3(a)–(c)</b> — Easygo forms the teams, and can amend them at any time. Build a plan that survives losing or gaining a person.</li>
+      <li><b>3(h)</b> — Final submission goes by email to <code>events@easygo.io</code>, and you must delete local copies afterwards. Have the packaging step ready before the clock runs out.</li>
+      <li><b>3(g)</b> — You must use the public API at <code>docs.kick.com</code>. Anything outside it needs to be materials Easygo expressly provided.</li>
+      <li><b>7(d)–(e)</b> — Kick gets a perpetual worldwide licence to your submission, and owns improvements to their materials outright. Fine for a hackathon; just don't bring an idea you were planning to commercialise.</li>
+      <li><b>Collaboration is 10%</b> and explicitly looks for "evidence of a contribution from every team member." Commit history is that evidence. Everyone commits under their own name, and everyone speaks in the demo.</li>
+    </ul>
+  </div>
+</div>
+
+</div>
+
+<script>
+const GATES=[
+ ["g1","Real-time","Reacts to live stream behaviour as it happens — not a static readout or a post-stream report."],
+ ["g2","Real API capability","We run on MOCKED data — the API is our schema reference. So: could the live docs.kick.com API genuinely produce every data point this needs? Mock the volume and timing, never a capability that doesn't exist. The judges built the API."],
+ ["g3","4-hour core loop","The demoable core works in 4 hours with the riskiest part built first. Not the full vision — the loop."],
+ ["g4","Demos without a live audience","Works on mock or recorded data. Nothing that needs real viewers showing up on cue."],
+ ["g5","Non-intrusive","Doesn't touch, break or compete with the streamer's existing overlays and alerts."],
+ ["g6","Not on the blocklist","Doesn't appear on the 20 generic ideas, and isn't one obvious hop from one."]
+];
+const CRITS=[
+ ["ps","Problem Solving & Product Thinking",25,[
+  "Can you name the exact user and the exact moment it hurts, in one sentence?",
+  "Is it still being used on day 30 — or only during the demo?"]],
+ ["ci","Creativity & Innovation",25,[
+  "How far is this from the generic blocklist? (1 = it's on it)",
+  "Does a judge lean forward and say 'huh, I hadn't thought of that'?"]],
+ ["te","Technical Execution",20,[
+  "Does it genuinely reflect live stream behaviour rather than faking motion?",
+  "Confidence the core loop is working and stable by the 4-hour mark?"]],
+ ["pd","Presentation & Demo",10,[
+  "Can a stranger understand the value in 90 seconds with no explanation?",
+  "Is there a single visible 'wow' beat you can trigger on stage?"]],
+ ["ct","Collaboration & Teamwork",10,[
+  "Can 4–5 people work on this in parallel without blocking each other?",
+  "Does every member get a visible, ownable piece to demo and commit to?"]],
+ ["ux","User Experience & Design",10,[
+  "Does it look like it shipped from Kick — dark, green, loud, native?",
+  "Zero learning curve, and do the empty and loading states exist?"]]
+];
+const BLOCK=[
+ "AI-generated highlight / auto-clip detection","Chat sentiment heat meter","Real-time chat translation overlay",
+ "Hype meter driven by message velocity","Live polls and voting overlay","Prediction / betting mini-game on stream events",
+ "Emote rain and reaction bursts","AI co-host commentary bot","Live leaderboard of top chatters",
+ "'Catch me up' AI summary for late joiners","Watch-time loyalty points and rewards","Toxicity detection moderation dashboard",
+ "Live game stats overlay (K/D, rank, score)","Donation and sub-goal progress bar","Watch party / synced co-viewing",
+ "Second-screen mobile companion app","Q&A queue pulled from chat","Live captions / subtitle overlay",
+ "Timeline scrubber marked with hype peaks","Clip-of-the-week voting"
+];
+const PLAN=[
+ ["Sat 25 — tonight","Everyone reads the judging criteria and the blocklist. No idea discussion. Each person privately writes 5 ideas that are <i>not</i> on the blocklist. Silence in the group chat is the deliverable."],
+ ["Sun 26","90-minute session. Gate, score, rank in this tool. Walk out with a top 3 and an owner for each. Wildcard gets the same treatment in a second pass."],
+ ["Mon–Wed","Each owner brings a 45-minute clickable mock. Daily 15-minute standup. Kill on sight — you want at least two of the three dead by Wednesday night."],
+ ["Thu 30","Lock the concept. Write the pitch narrative: who, the painful moment, the fix, why it drives engagement, the proof. Everyone learns their speaking part."],
+ ["Fri 31 — in person","Alicia's in Melbourne. Harness only: repo, auth, mock-data generator, design system. Assign build roles. Rehearse the pitch twice, timed. No feature code."],
+ ["Sat 1 Aug","Specs and datasets drop. Adapt the concept to what's actually released, build the feature, rehearse once more with the real build, demo."]
+];
+const FREE=[
+ ["pres1","<b>90-second story</b> — who it's for, the moment it hurts, the fix, the proof. Written down, not improvised."],
+ ["pres2","<b>One wow beat</b> you trigger live, at a known timestamp, that makes the room react."],
+ ["pres3","<b>Interactive, never a slideshow.</b> Someone from the audience should be able to touch it."],
+ ["pres4","<b>Rehearsed twice, timed</b>, with the actual build — not the mock."],
+ ["team1","<b>Every member commits under their own name.</b> Git history is the evidence the criterion asks for."],
+ ["team2","<b>Every member speaks</b> during the demo, even for twenty seconds."],
+ ["team3","<b>Name the roles out loud</b> in the pitch — who owned what."],
+ ["ux1","<b>Kick-native styling</b> — dark base, <code>#53fc18</code>, matching type and spacing."],
+ ["ux2","<b>Empty, loading and error states exist.</b> This is what 'polished for a prototype' means."],
+ ["ux3","<b>No explanation needed</b> to use it. If you have to narrate the UI, redesign the UI."],
+ ["ops1","<b>Submission packaged and emailed</b> to events@easygo.io before the clock stops, local copies deleted after."]
+];
+
+let ideas=JSON.parse(localStorage.getItem('kick_ideas')||'[]');
+let checks=JSON.parse(localStorage.getItem('kick_checks')||'{}');
+let cur=blank();
+function blank(){const s={};CRITS.forEach(c=>{s[c[0]]=[3,3]});
+  const g={};GATES.forEach(x=>g[x[0]]=true);
+  return{name:'',track:'c1',pitch:'',gates:g,scores:s,risk:1};}
+
+function raw(i){let t=0;CRITS.forEach(c=>{const a=(i.scores[c[0]][0]+i.scores[c[0]][1])/2;t+=c[2]*(a/5)});return t;}
+function passes(i){return GATES.every(g=>i.gates[g[0]]);}
+function fails(i){return GATES.filter(g=>!i.gates[g[0]]).map(g=>g[1]);}
+function final(i){return passes(i)?raw(i)*i.risk:0;}
+function verdict(s){return s>=75?['SHIP IT','#046c04']:s>=60?['KEEP PROTOTYPING','#b54708']:['KILL IT SUNDAY','#d92d20'];}
+
+function drawGates(){document.getElementById('gates').innerHTML=GATES.map(g=>
+ `<label class="gate ${cur.gates[g[0]]?'':'fail'}"><input type="checkbox" data-g="${g[0]}" ${cur.gates[g[0]]?'checked':''}>
+  <div><div class="gt">${g[1]}</div><div class="gd">${g[2]}</div></div></label>`).join('');
+ document.querySelectorAll('#gates input').forEach(el=>el.onchange=()=>{
+   cur.gates[el.dataset.g]=el.checked;drawGates();drawLive();});}
+
+function drawCrits(){document.getElementById('crits').innerHTML=CRITS.map(c=>
+ `<div class="crit"><div class="crithead"><span class="nm">${c[1]}</span><span class="wt">${c[2]}%</span></div>
+  ${c[3].map((q,qi)=>`<div class="q"><span class="qt">${q}</span><span class="seg">
+   ${[1,2,3,4,5].map(v=>`<button data-c="${c[0]}" data-q="${qi}" data-v="${v}" class="${cur.scores[c[0]][qi]===v?'on':''}">${v}</button>`).join('')}
+  </span></div>`).join('')}</div>`).join('');
+ document.querySelectorAll('#crits button').forEach(b=>b.onclick=()=>{
+   cur.scores[b.dataset.c][+b.dataset.q]=+b.dataset.v;drawCrits();drawLive();});}
+
+function drawLive(){const s=final(cur),v=verdict(s),f=fails(cur);
+ document.getElementById('live').innerHTML=
+  `<div style="display:flex;gap:18px;align-items:center;flex-wrap:wrap">
+    <div><div class="score" style="font-size:34px;color:${passes(cur)?v[1]:'#d92d20'}">${s.toFixed(1)}</div>
+      <div class="mini">raw ${raw(cur).toFixed(1)} × risk ${cur.risk.toFixed(2)}</div></div>
+    <div style="flex:1;min-width:200px">
+      <div style="font-weight:700;color:${passes(cur)?v[1]:'#d92d20'}">${passes(cur)?v[0]:'BLOCKED — '+f.join(', ')}</div>
+      <div class="bar"><i style="width:${s}%;background:${v[1]}"></i></div></div>
+  </div>`;}
+
+function drawBoard(){const el=document.getElementById('board');
+ if(!ideas.length){el.innerHTML='<div class="empty">No ideas scored yet. Score one and it lands here.</div>';return;}
+ const sorted=[...ideas].sort((a,b)=>final(b)-final(a));
+ el.innerHTML=`<table><thead><tr><th style="width:34px">#</th><th>Idea</th><th style="width:110px">Score</th><th style="width:150px">Verdict</th><th style="width:60px"></th></tr></thead><tbody>`+
+  sorted.map((i,n)=>{const s=final(i),v=verdict(s),ok=passes(i);
+   return `<tr class="${ok?'':'blocked'}"><td style="font-weight:700;color:var(--muted)">${n+1}</td>
+    <td><b>${esc(i.name)}</b> <span class="pill ${i.track}">${i.track==='c1'?'Challenge 1':'Wildcard'}</span>
+      ${ok?'':'<span class="pill block">blocked</span>'}
+      ${i.pitch?`<div class="mini">${esc(i.pitch)}</div>`:''}</td>
+    <td><span class="score" style="color:${ok?v[1]:'#d92d20'}">${s.toFixed(1)}</span>
+      <div class="bar"><i style="width:${s}%;background:${v[1]}"></i></div></td>
+    <td style="font-size:12px;font-weight:600;color:${ok?v[1]:'#d92d20'}">${ok?v[0]:fails(i).join(', ')}</td>
+    <td><button class="btn sm danger" data-del="${i.id}">del</button></td></tr>`}).join('')+'</tbody></table>';
+ el.querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>{
+   ideas=ideas.filter(x=>x.id!==b.dataset.del);save();drawBoard();});}
+
+function esc(s){return (s||'').replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]))}
+function save(){localStorage.setItem('kick_ideas',JSON.stringify(ideas));}
+
+document.getElementById('btn-save').onclick=()=>{
+ const n=document.getElementById('f-name').value.trim();
+ if(!n){document.getElementById('f-name').focus();return;}
+ cur.name=n;cur.track=document.getElementById('f-track').value;
+ cur.pitch=document.getElementById('f-pitch').value.trim();
+ cur.id='i'+Date.now();ideas.push(JSON.parse(JSON.stringify(cur)));save();drawBoard();
+ document.querySelector('[data-p="board"]').click();
+ cur=blank();resetForm();};
+document.getElementById('btn-clear').onclick=()=>{cur=blank();resetForm();};
+function resetForm(){document.getElementById('f-name').value='';document.getElementById('f-pitch').value='';
+ document.getElementById('f-risk').value='1';drawGates();drawCrits();drawLive();}
+document.getElementById('f-risk').onchange=e=>{cur.risk=+e.target.value;drawLive();};
+document.getElementById('btn-reset').onclick=()=>{if(confirm('Delete all scored ideas?')){ideas=[];save();drawBoard();}};
+
+document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>{
+ document.querySelectorAll('.tab').forEach(x=>x.classList.remove('on'));
+ document.querySelectorAll('.pane').forEach(x=>x.classList.remove('on'));
+ t.classList.add('on');document.getElementById('p-'+t.dataset.p).classList.add('on');});
+
+document.getElementById('blocklist').innerHTML=BLOCK.map((b,i)=>{
+ const hit=[3,19,10].includes(i);
+ return `<div class="blk"><span class="n">${i+1}</span><span>${b} ${hit?'<span class="hit">← one of yours is here</span>':''}</span></div>`}).join('');
+document.getElementById('plan').innerHTML=PLAN.map(p=>
+ `<div class="wf"><div class="d">${p[0]}</div><div class="b">${p[1]}</div></div>`).join('');
+document.getElementById('free').innerHTML=FREE.map(f=>
+ `<label class="chk ${checks[f[0]]?'done':''}"><input type="checkbox" data-k="${f[0]}" ${checks[f[0]]?'checked':''}><span>${f[1]}</span></label>`).join('');
+document.querySelectorAll('#free input').forEach(el=>el.onchange=()=>{
+ checks[el.dataset.k]=el.checked;localStorage.setItem('kick_checks',JSON.stringify(checks));
+ el.parentElement.classList.toggle('done',el.checked);});
+
+// seed the three existing ideas so the board isn't empty
+if(!ideas.length&&!localStorage.getItem('kick_seeded')){
+ localStorage.setItem('kick_seeded','1');
+ const mk=(name,track,pitch,g,sc,risk)=>{const b=blank();b.name=name;b.track=track;b.pitch=pitch;
+  b.risk=risk;Object.keys(g).forEach(k=>b.gates[k]=g[k]);Object.keys(sc).forEach(k=>b.scores[k]=sc[k]);
+  b.id='seed'+name.length+Math.random().toString(36).slice(2,6);return b;};
+ ideas=[
+  mk('Kick Director','c1','Companion dashboard giving streamers and mods extra live metrics and a question queue.',
+     {g6:false},{ps:[4,4],ci:[2,2],te:[4,4],pd:[3,2],ct:[4,4],ux:[4,4]},1),
+  mk('Extension library','c1','A plugin platform letting anyone build addons for a channel.',
+     {g3:false},{ps:[4,3],ci:[4,4],te:[2,2],pd:[2,3],ct:[3,4],ux:[3,3]},0.85),
+  mk('Profile customisation & badges','wild','Banners, borders and achievement badges on your Kick account.',
+     {g1:false,g6:false},{ps:[3,3],ci:[2,2],te:[4,4],pd:[3,3],ct:[4,4],ux:[4,4]},1)
+ ];save();}
+
+drawGates();drawCrits();drawLive();drawBoard();
+</script>
+</body>
+</html>

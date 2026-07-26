@@ -1,6 +1,8 @@
+import { useState } from 'react';
 import { Link, useLocation } from 'react-router';
-import { Keyboard, Layers, Search } from 'lucide-react';
+import { Bell, Compass, Keyboard, Layers, Search } from 'lucide-react';
 import { usePinnedStreams } from '../context/PinnedStreamsContext';
+import { NotificationSettingsPopover } from './NotificationSettingsPopover';
 
 interface NavbarProps {
   onOpenShortcuts: () => void;
@@ -14,6 +16,7 @@ interface NavbarProps {
 export function Navbar({ onOpenShortcuts }: NavbarProps) {
   const { pathname } = useLocation();
   const { pinnedIds } = usePinnedStreams();
+  const [settingsOpen, setSettingsOpen] = useState(false);
 
   return (
     <header className="flex h-14 shrink-0 items-center gap-4 border-b border-line bg-page px-4 sm:px-6">
@@ -49,6 +52,28 @@ export function Navbar({ onOpenShortcuts }: NavbarProps) {
             </span>
           )}
         </Link>
+        <Link
+          to="/expeditions"
+          title="Kick Expedition — desktop only"
+          className={`hidden items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-semibold transition-colors lg:flex ${
+            pathname.startsWith('/expedition') ? 'text-ink-bright' : 'text-ink-muted hover:text-ink-bright'
+          }`}
+        >
+          <Compass size={16} strokeWidth={2.25} />
+          Expeditions
+        </Link>
+        <div className="relative">
+          <button
+            type="button"
+            onClick={() => setSettingsOpen((open) => !open)}
+            aria-label="Notification settings"
+            title="Notification settings"
+            className="rounded-lg p-2 text-ink-muted transition-colors hover:text-ink-bright"
+          >
+            <Bell size={18} strokeWidth={2.25} />
+          </button>
+          {settingsOpen && <NotificationSettingsPopover onClose={() => setSettingsOpen(false)} />}
+        </div>
         <button
           type="button"
           onClick={onOpenShortcuts}

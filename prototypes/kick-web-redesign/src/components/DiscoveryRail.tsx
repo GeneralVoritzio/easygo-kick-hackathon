@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { ChevronDown, ChevronUp } from 'lucide-react';
 import type { StreamCard } from '../types';
 import { StreamCardTile } from './StreamCardTile';
 
@@ -6,6 +7,10 @@ interface DiscoveryRailProps {
   title: string;
   subtitle?: string;
   cards: StreamCard[];
+  /** The full catalog, so a card here can resolve its party mates even if
+   *  they're not all in this particular rail's own (sometimes filtered)
+   *  `cards` list — see `StreamCardTile`. */
+  catalog: StreamCard[];
 }
 
 const APPEND_THRESHOLD_PX = 600;
@@ -33,9 +38,14 @@ const MAX_CYCLES = 20;
  *  but the biggest one) never became scrollable at all. This now also
  *  tops itself up after every render (and on window resize) until the
  *  content actually overflows or the cap is hit, so every rail is
- *  scrollable from the moment it's wide enough to need to be. */
-export function DiscoveryRail({ title, subtitle, cards }: DiscoveryRailProps) {
+ *  scrollable from the moment it's wide enough to need to be.
+ *
+ *  "Show more" is the alternative to horizontal scrolling entirely: it
+ *  swaps the strip for a wrapping grid of the same (finite, uncycled)
+ *  `cards` pool, for anyone who'd rather scroll the page than the rail. */
+export function DiscoveryRail({ title, subtitle, cards, catalog }: DiscoveryRailProps) {
   const [cycles, setCycles] = useState(1);
+  const [expanded, setExpanded] = useState(false);
   const scrollerRef = useRef<HTMLDivElement>(null);
 
   const handleScroll = () => {
@@ -67,17 +77,40 @@ export function DiscoveryRail({ title, subtitle, cards }: DiscoveryRailProps) {
       <div className="mb-3 flex items-baseline gap-2 px-4 sm:px-6">
         <h2 className="text-lg font-extrabold text-ink-bright">{title}</h2>
         {subtitle && <span className="text-xs text-ink-muted">{subtitle}</span>}
+        <button
+          type="button"
+          onClick={() => setExpanded((e) => !e)}
+          className="ml-auto flex shrink-0 items-center gap-1 rounded-lg px-2 py-1 text-xs font-semibold text-ink-muted transition-colors hover:text-ink-bright"
+        >
+          {expanded ? (
+            <>
+              Show less <ChevronUp size={14} strokeWidth={2.5} />
+            </>
+          ) : (
+            <>
+              Show more <ChevronDown size={14} strokeWidth={2.5} />
+            </>
+          )}
+        </button>
       </div>
 
-      <div
-        ref={scrollerRef}
-        onScroll={handleScroll}
-        className="no-scrollbar grid grid-flow-col grid-rows-2 gap-3 overflow-x-auto px-4 pb-2 sm:px-6"
-      >
-        {Array.from({ length: cycles }).map((_, cycle) =>
-          cards.map((card) => <StreamCardTile key={`${card.id}::${cycle}`} card={card} />)
-        )}
-      </div>
+      {expanded ? (
+        <div className="grid grid-cols-2 gap-3 px-4 sm:grid-cols-3 sm:px-6 lg:grid-cols-4 xl:grid-cols-6">
+          {cards.map((card) => (
+            <StreamCardTile key={card.id} card={card} catalog={catalog} />
+          ))}
+        </div>
+      ) : (
+        <div
+          ref={scrollerRef}
+          onScroll={handleScroll}
+          className="no-scrollbar grid grid-flow-col grid-rows-2 gap-3 overflow-x-auto px-4 pb-2 sm:px-6"
+        >
+          {Array.from({ length: cycles }).map((_, cycle) =>
+            cards.map((card) => <StreamCardTile key={`${card.id}::${cycle}`} card={card} catalog={catalog} />)
+          )}
+        </div>
+      )}
     </section>
   );
 }

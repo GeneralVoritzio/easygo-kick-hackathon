@@ -34,5 +34,12 @@ export function useLiveChat(channelId: string) {
     setMessages((prev) => [...prev.slice(-MAX_MESSAGES + 1), { id: `chat-you-${Date.now()}`, viewerName: 'you', text: trimmed }]);
   };
 
-  return { messages, sendMessage };
+  const sendSystemMessage = (text: string) => {
+    setMessages((prev) => [
+      ...prev.slice(-MAX_MESSAGES + 1),
+      { id: `chat-system-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`, viewerName: '', text, system: true },
+    ]);
+  };
+
+  return { messages, sendMessage, sendSystemMessage };
 }

@@ -6,7 +6,7 @@ interface ShortcutsHelpProps {
 }
 
 function groupByScope(entries: ShortcutEntry[]): [ShortcutEntry['scope'], ShortcutEntry[]][] {
-  const order: ShortcutEntry['scope'][] = ['Everywhere', 'Browsing streams', 'Watching a stream', 'Multiview'];
+  const order: ShortcutEntry['scope'][] = ['Everywhere', 'Browsing streams', 'Watching a stream', 'Multiview', 'Kick Boss fight'];
   return order.map((scope) => [scope, entries.filter((e) => e.scope === scope)]);
 }
 

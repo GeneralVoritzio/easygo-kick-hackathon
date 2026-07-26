@@ -1,7 +1,7 @@
 export interface ShortcutEntry {
   keys: string;
   description: string;
-  scope: 'Everywhere' | 'Browsing streams' | 'Watching a stream' | 'Multiview';
+  scope: 'Everywhere' | 'Browsing streams' | 'Watching a stream' | 'Multiview' | 'Kick Boss fight';
 }
 
 /** Single source of truth for both what the shortcuts actually do (each
@@ -18,6 +18,10 @@ export const SHORTCUTS: ShortcutEntry[] = [
   { keys: 'M', description: 'Toggle audio', scope: 'Watching a stream' },
   { keys: 'P', description: 'Pin or unpin this stream', scope: 'Watching a stream' },
   { keys: '1 – 9', description: 'Switch audio to that tile', scope: 'Multiview' },
+  { keys: 'L', description: 'Like (repeatable)', scope: 'Kick Boss fight' },
+  { keys: 'F', description: 'Follow', scope: 'Kick Boss fight' },
+  { keys: 'S', description: 'Subscribe', scope: 'Kick Boss fight' },
+  { keys: 'G', description: 'Open the gift picker', scope: 'Kick Boss fight' },
 ];
 
 /** Shortcuts never fire while the target is a text field — a chat message

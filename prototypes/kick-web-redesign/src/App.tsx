@@ -1,15 +1,22 @@
 import { useMemo, useState } from 'react';
 import { BrowserRouter, Route, Routes } from 'react-router';
+import { AnimatePresence } from 'framer-motion';
 import { createCatalog } from './mock/catalog';
 import { createFeaturedStreamer } from './mock/featured';
+import { SettingsProvider } from './context/SettingsContext';
 import { PinnedStreamsProvider } from './context/PinnedStreamsContext';
+import { ExpeditionProvider } from './context/ExpeditionContext';
+import { KickBossProvider, useKickBoss } from './context/KickBossContext';
 import { useGlobalShortcuts } from './hooks/useGlobalShortcuts';
 import { Navbar } from './components/Navbar';
 import { Sidebar } from './components/Sidebar';
 import { ShortcutsHelp } from './components/ShortcutsHelp';
+import { KickBossRewardToast } from './components/KickBossRewardToast';
 import { HomePage } from './pages/HomePage';
 import { WatchPage } from './pages/WatchPage';
 import { MultiviewPage } from './pages/MultiviewPage';
+import { ExpeditionsPage } from './pages/ExpeditionsPage';
+import { ExpeditionPage } from './pages/ExpeditionPage';
 import type { StreamCard, FeaturedStreamer } from './types';
 
 interface AppShellProps {
@@ -23,6 +30,8 @@ function AppShell({ catalog, featured }: AppShellProps) {
   const [helpOpen, setHelpOpen] = useState(false);
   useGlobalShortcuts(helpOpen, setHelpOpen);
 
+  const { lastResult, dismissResult } = useKickBoss();
+
   return (
     <div className="flex h-dvh flex-col overflow-hidden">
       <Navbar onOpenShortcuts={() => setHelpOpen(true)} />
@@ -33,10 +42,15 @@ function AppShell({ catalog, featured }: AppShellProps) {
             <Route path="/" element={<HomePage catalog={catalog} featured={featured} />} />
             <Route path="/watch/:id" element={<WatchPage catalog={catalog} />} />
             <Route path="/multiview" element={<MultiviewPage catalog={catalog} />} />
+            <Route path="/expeditions" element={<ExpeditionsPage />} />
+            <Route path="/expedition/:id" element={<ExpeditionPage />} />
           </Routes>
         </main>
       </div>
       {helpOpen && <ShortcutsHelp onClose={() => setHelpOpen(false)} />}
+      <AnimatePresence>
+        {lastResult?.participated && <KickBossRewardToast key={lastResult.boss.id} result={lastResult} onClose={dismissResult} />}
+      </AnimatePresence>
     </div>
   );
 }
@@ -49,10 +63,16 @@ export function App() {
   const featured = useMemo(() => createFeaturedStreamer(catalog), [catalog]);
 
   return (
-    <PinnedStreamsProvider>
-      <BrowserRouter>
-        <AppShell catalog={catalog} featured={featured} />
-      </BrowserRouter>
-    </PinnedStreamsProvider>
+    <SettingsProvider>
+      <PinnedStreamsProvider>
+        <ExpeditionProvider catalog={catalog}>
+          <KickBossProvider catalog={catalog}>
+            <BrowserRouter>
+              <AppShell catalog={catalog} featured={featured} />
+            </BrowserRouter>
+          </KickBossProvider>
+        </ExpeditionProvider>
+      </PinnedStreamsProvider>
+    </SettingsProvider>
   );
 }

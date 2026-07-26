@@ -80,6 +80,17 @@ const TEMPLATES: CardTemplate[] = [
   { name: 'ghostie', category: 'Grand Theft Auto V', tags: ['Roleplay'], tier: 'rising' },
 ];
 
+/** Streamer parties: several channels live at once, in the same lobby or
+ *  house, matched up here by the hand-written template's own name so it
+ *  survives the id-generation step below untouched. Both parties span
+ *  more than one tier on purpose — a party is exactly the kind of thing
+ *  that pulls a rising-tier name in front of a viewer who followed a
+ *  popular one in. */
+const PARTY_DEFINITIONS: { id: string; name: string; memberNames: string[] }[] = [
+  { id: 'party-vinewood-heist', name: 'Vinewood Heist Crew', memberNames: ['BLKOUT', 'ClipFarmer', 'ghostie'] },
+  { id: 'party-clout-house', name: 'The Clout House', memberNames: ['N3on', 'KAIDO', 'sade_'] },
+];
+
 /** Combinatorial handle generator for filler cards — every category needs
  *  enough depth for a real 2-row rail, and we can't hand-write a real small
  *  streamer's name for the same reason we can't hand-write a real one
@@ -139,11 +150,16 @@ function randomViewers(tier: StreamTier): number {
 export function createCatalog(): StreamCard[] {
   const templates = [...TEMPLATES, ...generateFillerTemplates(TEMPLATES)];
   const seen = new Set<string>();
+  const partyByName = new Map<string, { id: string; name: string }>();
+  for (const party of PARTY_DEFINITIONS) {
+    for (const memberName of party.memberNames) partyByName.set(memberName, party);
+  }
 
   return templates.map((t) => {
     let id = t.embedId ?? t.name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
     while (seen.has(id)) id = `${id}-2`;
     seen.add(id);
+    const party = partyByName.get(t.name);
 
     return {
       id,
@@ -155,8 +171,17 @@ export function createCatalog(): StreamCard[] {
       isLive: true,
       embedId: t.embedId,
       gradient: streamGradient(id),
+      partyId: party?.id,
+      partyName: party?.name,
     };
   });
+}
+
+/** The other live members of `card`'s party, if it has one — never
+ *  includes `card` itself. */
+export function partyMatesOf(card: StreamCard, catalog: StreamCard[]): StreamCard[] {
+  if (!card.partyId) return [];
+  return catalog.filter((c) => c.partyId === card.partyId && c.id !== card.id);
 }
 
 /** Cards grouped by category, in `CATEGORY_POOL` order — what the homepage's

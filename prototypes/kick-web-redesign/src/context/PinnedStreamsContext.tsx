@@ -6,7 +6,15 @@ interface PinnedStreamsContextValue {
   pinnedIds: string[];
   isPinned: (id: string) => boolean;
   togglePin: (id: string) => void;
+  /** Pins every id not already pinned, in order, up to `MAX_PINS` total —
+   *  the rest are silently skipped rather than bumping anything already
+   *  pinned. Used by "Add all to Multiview" on a streamer party. */
+  pinMany: (ids: string[]) => void;
   unpin: (id: string) => void;
+  /** The other half of "Add all to Multiview" — once every party member is
+   *  pinned, the same button flips to "Remove all," and this drops them
+   *  all in one click instead of one pin at a time. */
+  unpinMany: (ids: string[]) => void;
   canPinMore: boolean;
   /** Which pinned stream currently has audio, across Multiview and the
    *  watch page — only one at a time, same rule everywhere in the app. */
@@ -38,10 +46,30 @@ export function PinnedStreamsProvider({ children }: { children: ReactNode }) {
     });
   };
 
+  const pinMany = (ids: string[]) => {
+    setPinnedIds((prev) => {
+      const next = [...prev];
+      for (const id of ids) {
+        if (next.includes(id) || next.length >= MAX_PINS) continue;
+        next.push(id);
+      }
+      if (audioActiveId === null && next.length > 0) setAudioActiveId(next[0]);
+      return next;
+    });
+  };
+
   const unpin = (id: string) => {
     setPinnedIds((prev) => {
       const next = prev.filter((p) => p !== id);
       if (audioActiveId === id) setAudioActiveId(next[0] ?? null);
+      return next;
+    });
+  };
+
+  const unpinMany = (ids: string[]) => {
+    setPinnedIds((prev) => {
+      const next = prev.filter((p) => !ids.includes(p));
+      if (audioActiveId && ids.includes(audioActiveId)) setAudioActiveId(next[0] ?? null);
       return next;
     });
   };
@@ -51,7 +79,9 @@ export function PinnedStreamsProvider({ children }: { children: ReactNode }) {
       pinnedIds,
       isPinned: (id) => pinnedIds.includes(id),
       togglePin,
+      pinMany,
       unpin,
+      unpinMany,
       canPinMore: pinnedIds.length < MAX_PINS,
       audioActiveId,
       setAudioActiveId,

@@ -110,7 +110,7 @@ docs/         original specs (HypeProps, Interaction Engine) + full Kick API map
 
 Per-frame face pose never touches React state; chat events flow through one ingest
 boundary shaped like Kick's webhook payload. `npm test` runs the 35-test engine suite.
-`AUDIT.md` holds the HypeProps plan audit; `docs/KICK_API_MAP.md` maps every public
+`AUDIT.md` holds the HypeProps plan audit; `.claude/KICK-API-MAP.md` maps every public
 Kick endpoint/webhook/scope to these products.
 
 ## Demo-day dependencies & troubleshooting

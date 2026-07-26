@@ -1,0 +1,271 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>kick-timelines 2, the viewer scrubber</title>
+<link rel="stylesheet" href="css/tokens.css">
+<link rel="stylesheet" href="css/kick.css">
+<link rel="stylesheet" href="css/player.css">
+<link rel="stylesheet" href="css/clip.css">
+</head>
+<body>
+
+<header class="nav">
+  <button class="navicon" data-icon="menu" aria-label="Collapse sidebar"></button>
+  <a class="nav__logo" href="#" aria-label="Kick home">
+    <img src="assets/kick-logo.svg" width="97" height="26" alt="Kick">
+  </a>
+  <div class="nav__search">
+    <span class="nav__searchicon" data-icon="search" aria-hidden="true"></span>
+    <input type="text" placeholder="Search" aria-label="Search">
+    <button class="nav__clear" data-icon="close" data-icon-size="13" aria-label="Clear search" hidden></button>
+  </div>
+  <div class="nav__right">
+    <button class="navicon" data-icon="globe" data-icon-size="20" aria-label="Language"></button>
+    <button class="navavatar" id="navAvatar"></button>
+  </div>
+</header>
+
+<div class="shell">
+
+  <aside class="side">
+    <nav class="side__nav">
+      <a class="side__link is-active" href="#"><span data-icon="home" data-icon-size="16"></span>Home</a>
+      <a class="side__link" href="#"><span data-icon="browse" data-icon-size="16"></span>Browse</a>
+      <a class="side__link" href="#"><span data-icon="following" data-icon-size="16"></span>Following</a>
+    </nav>
+    <div class="side__scroll">
+      <h2 class="side__head">Following</h2>
+      <div class="side__list" id="followList"></div>
+      <h2 class="side__head">Recommended</h2>
+      <div class="side__list" id="sideList"></div>
+    </div>
+  </aside>
+
+  <main class="main no-scrollbar">
+
+    <div class="player" id="player">
+      <div class="frame" id="frame">
+        <canvas class="frame__canvas" id="frameCanvas"></canvas>
+
+        <div class="overlay glass" id="overlay" hidden>
+          <div class="overlay__head">
+            <div>
+              <h2 class="overlay__title">Timeline</h2>
+              <p class="overlay__sub" id="overlaySub"></p>
+            </div>
+            <div class="overlay__filters" role="group" aria-label="Filter moments">
+              <button class="chip is-active" data-filter="all">All</button>
+              <button class="chip" data-filter="peak">Peaks</button>
+              <button class="chip" data-filter="clip">Clips</button>
+              <button class="chip" data-filter="raid">Raids</button>
+              <button class="chip" data-filter="kicks">Gifts</button>
+              <button class="chip" data-filter="poll">Polls</button>
+            </div>
+            <button class="iconbtn" id="overlayClose" data-icon="close" aria-label="Close the timeline"></button>
+          </div>
+
+          <div class="overlay__curve" id="overlayCurve">
+            <svg viewBox="0 0 1000 90" preserveAspectRatio="none" aria-hidden="true">
+              <path class="curve__area" id="curveArea" d=""/>
+              <path class="curve__line" id="curveLine" d=""/>
+            </svg>
+            <div class="curve__pins" id="curvePins"></div>
+            <div class="curve__head" id="curveHead"></div>
+          </div>
+
+          <div class="overlay__scroll">
+            <section class="missed" id="missed" hidden>
+              <h3 class="overlay__h3">Before you joined</h3>
+              <div class="cards" id="missedCards"></div>
+            </section>
+            <section>
+              <h3 class="overlay__h3" id="momentsHead">Every moment</h3>
+              <div class="cards" id="momentCards"></div>
+            </section>
+          </div>
+        </div>
+
+        <div class="controls" id="controls">
+          <div class="seekbar" id="seekbar">
+            <div class="rail" id="rail" tabindex="0" role="slider" aria-label="Stream timeline"
+                 aria-valuemin="0" aria-valuemax="13620" aria-valuenow="0">
+              <div class="rail__spark" aria-hidden="true">
+                <svg viewBox="0 0 1000 24" preserveAspectRatio="none">
+                  <path class="spark__area" id="sparkArea" d=""/>
+                  <path class="spark__line" id="sparkLine" d=""/>
+                </svg>
+              </div>
+              <div class="rail__bar">
+                <div class="rail__buffer"></div>
+                <div class="rail__played" id="railPlayed"></div>
+                <div class="rail__notches" id="railNotches"></div>
+                <div class="rail__thumb" id="railThumb"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="controls__row">
+            <button class="pbtn" id="btnPlay" aria-label="Pause"></button>
+            <div class="volume" id="volume">
+              <button class="pbtn" id="btnMute" aria-label="Mute"></button>
+              <div class="volume__slider" id="volumeSlider" role="slider" tabindex="0"
+                   aria-label="Volume" aria-valuemin="0" aria-valuemax="100" aria-valuenow="50">
+                <div class="volume__track"><div class="volume__fill" id="volumeFill"></div></div>
+                <div class="volume__thumb" id="volumeThumb"></div>
+              </div>
+            </div>
+            <span class="ptime tabular" id="clockNow">00:00:00</span>
+            <button class="plive" id="btnLive"><i class="dot"></i>LIVE</button>
+            <span class="pspacer"></span>
+            <button class="pbtn pbtn--wide" id="btnTimeline"><span data-icon="timeline" data-icon-size="18"></span>Timeline</button>
+            <button class="pbtn" data-icon="clip" data-icon-size="20" aria-label="Clip"></button>
+            <button class="pbtn" data-icon="pip" data-icon-size="20" aria-label="Picture in picture"></button>
+            <button class="pbtn" data-icon="theatre" data-icon-size="20" aria-label="Theatre mode"></button>
+            <button class="pbtn" id="btnFull" data-icon="fullscreen" data-icon-size="20" aria-label="Full screen"></button>
+            <button class="pbtn" data-icon="settings" data-icon-size="20" aria-label="Settings"></button>
+          </div>
+        </div>
+
+        <div class="scrubcard glass" id="scrubcard" hidden>
+          <div class="clipthumb" id="scrubStage" hidden>
+            <canvas class="clipthumb__canvas" id="scrubPreview"></canvas>
+            <em class="clipthumb__badge tabular" id="scrubDuration"></em>
+            <em class="clipthumb__views" id="scrubViews"></em>
+          </div>
+          <div class="scrubcard__text" id="scrubText"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="chanbar">
+      <div class="chanbar__avatar">
+        <span class="avatar" id="channelAvatar" aria-hidden="true"></span>
+        <span class="avatar__live">LIVE</span>
+      </div>
+      <div class="chanbar__meta">
+        <h1 class="chanbar__name">ClutchGoblin
+          <span class="verified" data-icon="verified" data-icon-size="20" role="img" aria-label="Verified"></span>
+        </h1>
+        <p class="chanbar__title" id="channelTitle"></p>
+        <div class="chanbar__tags">
+          <a class="chanbar__cat" href="#" id="channelCategory"></a>
+          <button class="tag">English</button>
+          <button class="tag">Aussie</button>
+          <button class="tag">Ranked</button>
+        </div>
+      </div>
+      <div class="chanbar__actions">
+        <span class="viewers"><i class="dot"></i><b class="tabular" id="statViewers">0</b> watching</span>
+        <button class="btn btn--primary">Follow</button>
+        <button class="btn btn--secondary"><span data-icon="gift" data-icon-size="16"></span>Subscribe</button>
+        <button class="pbtn" data-icon="share" data-icon-size="20" aria-label="Share via"></button>
+      </div>
+    </div>
+  </main>
+
+  <div class="resize" id="chatResize" role="separator" tabindex="0"
+       aria-label="Resize chatroom" aria-orientation="vertical"
+       aria-valuemin="280" aria-valuemax="460" aria-valuenow="340"></div>
+
+  <aside class="chat">
+    <div class="chat__head">
+      <button class="chaticon" data-icon="collapseChat" aria-label="Expand chat"></button>
+      <span class="chat__title">Chat</span>
+      <button class="chaticon" data-icon="chatters" aria-label="Show active chatters"></button>
+    </div>
+
+    <div class="chat__board" id="chatBoard"></div>
+    <div class="chat__body" id="chatBody"></div>
+
+    <div class="chat__foot">
+      <div class="chat__field">
+        <input id="chatInput" maxlength="500" placeholder="Send a message" aria-label="Send a message">
+        <button class="chaticon" data-icon="gift" data-icon-size="18" aria-label="Send a gift"></button>
+      </div>
+      <div class="chat__send">
+        <button class="btn btn--primary btn--sm" id="chatSend">Chat</button>
+      </div>
+    </div>
+  </aside>
+</div>
+
+<div class="clipviewer" id="clipViewer" hidden>
+  <div class="clipviewer__scrim" id="clipScrim"></div>
+  <div class="clipviewer__panel" role="dialog" aria-modal="true" aria-label="Clip">
+    <div class="clipviewer__video" id="clipVideo">
+      <canvas class="clipviewer__canvas" id="clipCanvas"></canvas>
+
+      <div class="clipviewer__head">
+        <p class="clipviewer__headline" id="clipHeadline"></p>
+        <p class="clipviewer__byline" id="clipByline"></p>
+      </div>
+      <button class="clipviewer__close" id="clipClose" data-icon="close" data-icon-size="16"
+              aria-label="Close the clip"></button>
+
+      <div class="clipviewer__controls">
+        <div class="clipviewer__seek" id="clipSeek" role="slider" tabindex="0"
+             aria-label="Clip position" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+          <div class="clipviewer__track">
+            <div class="clipviewer__hover" id="clipHover"></div>
+            <div class="clipviewer__played" id="clipPlayed"></div>
+            <div class="clipviewer__thumb" id="clipThumb"></div>
+            <span class="clipviewer__remain tabular" id="clipRemain" hidden></span>
+          </div>
+        </div>
+        <div class="clipviewer__row">
+          <button class="pbtn" id="clipPlay" aria-label="Pause"></button>
+          <button class="pbtn" id="clipMute" aria-label="Mute"></button>
+          <span class="ptime tabular" id="clipTime">00:00 / 00:00</span>
+          <span class="pspacer"></span>
+          <button class="pbtn" id="clipFull" data-icon="fullscreen" data-icon-size="20"
+                  aria-label="Full screen"></button>
+        </div>
+      </div>
+    </div>
+
+    <aside class="clipviewer__side">
+      <div class="chat__head">
+        <button class="chaticon" data-icon="collapseChat" aria-label="Expand chat"></button>
+        <span class="chat__title">Chat</span>
+        <span class="chaticon" aria-hidden="true"></span>
+      </div>
+
+      <div class="clipviewer__about">
+        <span class="avatar avatar--md" id="clipAvatar" aria-hidden="true"></span>
+        <div class="clipviewer__names">
+          <p class="clipviewer__channel">ClutchGoblin
+            <span class="verified" data-icon="verified" data-icon-size="16" role="img"
+                  aria-label="Verified"></span>
+          </p>
+          <p class="clipviewer__streamtitle" id="clipStreamTitle"></p>
+        </div>
+      </div>
+
+      <div class="clipviewer__actions">
+        <button class="btn btn--primary clipviewer__follow">Follow</button>
+        <button class="pbtn" data-icon="share" data-icon-size="18" aria-label="Share via"></button>
+      </div>
+
+      <button class="btn clipviewer__full" id="clipWatchFull">Watch full video</button>
+
+      <div class="clipviewer__replay">
+        <div class="chat__body chat__body--replay" id="clipChat"></div>
+      </div>
+    </aside>
+  </div>
+</div>
+
+<script src="js/mock-api.js"></script>
+<script src="js/icons.js"></script>
+<script src="js/player.js"></script>
+<script src="js/moments.js"></script>
+<script src="js/stage.js"></script>
+<script src="js/clip.js"></script>
+<script src="js/scrubber.js"></script>
+<script src="js/overlay.js"></script>
+<script src="js/chat.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

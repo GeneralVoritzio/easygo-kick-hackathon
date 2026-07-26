@@ -1,9 +1,9 @@
-# KICK Hackathon — Team Spec
+# KICK Hackathon — Team Brief
 
 **Easygo Mini Hackathon, Powered by KICK**
 Saturday 1 August 2026 · Fortress Melbourne (Shop 25/23 Caledonian Ln) · In-person
 
-> This is our source of truth for what we're allowed to build and what wins. Every idea gets run against **§7 The Spec Test** before it gets a minute of build time.
+> This is our source of truth for what we're allowed to build and what wins. Every idea gets run against **Section 7 The Spec Test** before it gets a minute of build time.
 >
 > **Sourcing:** everything here is taken from the Devpost overview, rules page and resources page unless tagged `[MIXER]` (told to us verbally, not published) or `[TEAM]` (our own self-imposed constraint). Treat `[MIXER]` items as unconfirmed until we get them in writing.
 
@@ -67,7 +67,7 @@ All teams are expected to:
 
 **Decision: we run on mocked data, not live API calls or live webhooks. The KICK Public API is our schema reference, not our runtime dependency.**
 
-This is the right call. It removes the single biggest demo risk (see §2A.3) and buys us total control over the demo timeline. But it comes with three obligations we have to be disciplined about.
+This is the right call. It removes the single biggest demo risk (see Section 2A.3) and buys us total control over the demo timeline. But it comes with three obligations we have to be disciplined about.
 
 ### 2A.1 Mock the volume, never the capability
 
@@ -83,7 +83,7 @@ The judges are four KICK engineering managers and a staff DevOps engineer. They 
 | Kicks gifted, subs, follows at any rate | Emote or reaction events (the API has none) |
 | Months of channel history we don't have | Anything from a non-KICK platform |
 
-The ten ideas killed in **§7 of the Idea Bank stay killed.** Mocking doesn't revive them — it just hides the problem until a judge asks.
+The ten ideas killed in **Section 7 of the Idea Bank stay killed.** Mocking doesn't revive them — it just hides the problem until a judge asks.
 
 ### 2A.2 Clause 3(g) — the compliance risk
 
@@ -105,7 +105,7 @@ A pure mock with no real API integration is arguably non-compliant. Three mitiga
 ### 2A.4 Obligations this creates
 
 - **Payload fidelity is now a scored surface.** Our fixtures must match the real payload shapes — `chat.message.sent` with its `identity` object, `replies_to` and `created_at`; `kicks.gifted` with `pinned_time_seconds`; and so on. A mock that mirrors the real schema is evidence of technical thinking. A mock with invented field names looks lazy, and these judges will read it.
-- **The mock generator is now our most valuable pre-build asset.** It's already on the safe-to-build-this-week list in §5.1. It should be someone's named job by Monday.
+- **The mock generator is now our most valuable pre-build asset.** It's already on the safe-to-build-this-week list in Section 5.1. It should be someone's named job by Monday.
 - **It must still be interactive and real-time.** Requirement 3 and 4 don't relax. A scripted fixture replayed on a timeline is fine; a static JSON blob rendered once is not. The system must genuinely react to events as they arrive.
 - **Build the scrubber.** A demo timeline we can pause, rewind and jump within is worth real points under Presentation, and takes about twenty minutes.
 
@@ -119,13 +119,13 @@ Not on Devpost. Per the mixer briefing: a second, open-ended build targeting **a
 
 - Whether it's judged on the same six criteria or separately
 - Whether it's scored at all, or is a tiebreaker / bonus
-- Whether the real-time requirement in §2 applies to it
+- Whether the real-time requirement in Section 2 applies to it
 - How much of our 4–5 hours it's expected to consume
 
 **Working assumptions until confirmed** — deliberately conservative:
 
 - Same judging criteria apply
-- The five mandatory requirements in §2 apply, **including real-time**. If the wildcard idea isn't real-time, we're gambling.
+- The five mandatory requirements in Section 2 apply, **including real-time**. If the wildcard idea isn't real-time, we're gambling.
 - It gets **no more than 20% of build time**. Challenge 1 is where $50,000 is. A half-finished wildcard that damages the main demo is a net loss.
 - It must be demoable in **under 60 seconds** as a coda to the main pitch.
 
@@ -148,7 +148,7 @@ Not on Devpost. Per the mixer briefing: a second, open-ended build targeting **a
 
 **50% is decided before we arrive.** Problem Solving and Creativity are properties of the *concept*, not the build. Concept selection is the highest-leverage work we do, and it happens this weekend — not on 1 August.
 
-**30% is preparation, not invention.** Presentation, Collaboration and UX are idea-independent. They're a checklist. Most teams will spend the last hour debugging and drop all thirty points. See §8.
+**30% is preparation, not invention.** Presentation, Collaboration and UX are idea-independent. They're a checklist. Most teams will spend the last hour debugging and drop all thirty points. See Section 8.
 
 **Only 20% rewards ambitious code**, and it explicitly rewards *appropriateness* to a hackathon build and *reliability* — not scope. "Does the solution work reliably" is a warning about over-reach.
 
@@ -244,8 +244,8 @@ Fine for a hackathon. **Don't bring an idea we intended to commercialise ourselv
 
 | # | Test | Source |
 |---|---|---|
-| B1 | **Modelled on a real KICK API capability** — every data point we mock must be something the live API could actually produce. See §2A.1. | 3(g) |
-| B1b | Runs through the **adapter layer**, with real OAuth wired and at least one live endpoint demonstrable? | 3(g), §2A.2 |
+| B1 | **Modelled on a real KICK API capability** — every data point we mock must be something the live API could actually produce. See Section 2A.1. | 3(g) |
+| B1b | Runs through the **adapter layer**, with real OAuth wired and at least one live endpoint demonstrable? | 3(g), Section 2A.2 |
 | B2 | Complies with KICK **ToS and Community Guidelines**? | 5(a) |
 | B3 | Every dependency, asset and font **licensable onward to KICK**? | 5(b), 7(f) |
 | B4 | Original work by our team, no pre-existing material we can't license? | 9 |

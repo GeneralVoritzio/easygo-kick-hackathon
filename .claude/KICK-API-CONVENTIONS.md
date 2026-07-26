@@ -4,7 +4,7 @@
 > `api.kick.com`, hold tokens, subscribe to real webhooks, or depend on any network at runtime.
 > The KICK Public API is used **only as a schema and naming reference** — we copy its shapes so
 > our fixtures are indistinguishable from real payloads. Everything the app consumes is generated
-> by us. (This is the deliberate call in Hackathon Spec §2A: it kills the biggest demo risk and
+> by us. (This is the deliberate call in Hackathon Brief Section 2A: it kills the biggest demo risk and
 > gives us total control of the timeline.)
 
 > **The KICK Public API is our reference implementation.** Two rules follow from that:
@@ -17,9 +17,9 @@
 >    following the conventions identified below. A judge should not be able to tell our
 >    invented surface from the real one by its style.
 >
-> Ground truth for what actually exists: [../docs/KICK_API_MAP.md](../docs/KICK_API_MAP.md) and
+> Ground truth for what actually exists: [KICK-API-MAP.md](KICK-API-MAP.md) and
 > https://docs.kick.com. If a capability isn't there, we can't claim the API produces it — see
-> Hackathon Spec §2A.1 ("mock the volume, never the capability").
+> Hackathon Brief Section 2A.1 ("mock the volume, never the capability").
 
 ---
 
@@ -110,6 +110,23 @@ KICK built it, so the fixtures read as one coherent API. Model it on the convent
 | Field: who triggered it | a new `{userName,id}` blob | the shared **subject** object |
 | Scope: trigger a prop | `props_write` | `props:write` |
 
+### Label the two sets apart
+
+Anywhere we write an endpoint or an event name, the name carries a label:
+
+| Label | Meaning | Example |
+|---|---|---|
+| `kick` | KICK publishes this surface | `kick GET /public/v2/livestreams`, `kick kicks.gifted` |
+| `fake-kick` | We invented this surface | `fake-kick POST /public/v1/timelines/markers`, `fake-kick timeline.marker.created` |
+
+The label goes in front of the verb and the path, or in front of the event name. It is a label for
+readers, not part of the path. A mock payload keeps the real path (`/public/v1/...`), because the
+invented surface still reads as KICK style.
+
+Use the label in code, in docs and in UI copy. Keep the two sets in separate files: a mock API file
+holds the `kick` labels only, and the code that consumes it holds the `fake-kick` labels. A
+reader then knows which surface is real without a second file open.
+
 Rules of thumb:
 - Reuse a real KICK field before minting a new one (`kicks.gifted` already carries
   `pinned_time_seconds`, `amount`, `tier`, `message` — a prop drop is that event, not a new shape).
@@ -157,13 +174,13 @@ Keep a shared, growing name pool and draw from it, so the crowd is consistent ac
 - **Avatars/URLs:** shape them like real KICK asset URLs (`https://files.kick.com/images/...`),
   not `example.com`.
 - **Colours:** real hex values already in use (`#53fc18` reserved for the KICK/bot voice, used
-  sparingly per the Design Spec).
+  sparingly per the Design System).
 
 ### Quick self-check before a fixture ships
 - [ ] Zero placeholders — every name, message, brand, URL and number is a specific real-looking value
 - [ ] Usernames blend KICK-streamer flavour with funny random handles
 - [ ] Field/endpoint/event names match Part 1 (or Part 2 for invented surface) exactly
-- [ ] No value implies a capability the API lacks (Hackathon Spec §2A.1)
+- [ ] No value implies a capability the API lacks (Hackathon Brief Section 2A.1)
 
 ---
 

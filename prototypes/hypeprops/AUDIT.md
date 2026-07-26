@@ -8,12 +8,12 @@ are fixable details, and all of them are already fixed in this implementation.
 
 ## Spec bugs found (fixed in this repo)
 
-1. **State machine has no `expiring → active` edge.** §5's diagram only flows forward,
+1. **State machine has no `expiring → active` edge.** Section 5's diagram only flows forward,
    but the whole product moment is a hype surge rescuing a dying placement: if the timer
    is pulsing at 3s and chat pushes it back to 20s, the slot must return to `active`.
    Fixed in `src/engine/slotMachine.ts` + regression test.
 
-2. **"Timer visibly jumps (0:12 → 0:41)" contradicts the extension math.** §6's
+2. **"Timer visibly jumps (0:12 → 0:41)" contradicts the extension math.** Section 6's
    `extensionSec += k·max(0, score−baseline)·dt` accrues *gradually* (a few sec per
    sec) — a surge would make the countdown *pause*, not jump. Fixed: `triggerHypeSurge()`
    grants an immediate +15s bonus *and* spikes the crowd, so accrual continues on top.
@@ -25,7 +25,7 @@ are fixable details, and all of them are already fixed in this implementation.
    the charge gain so sustained-input equilibrium ≈ 1.8× raw pressure: ambient idles
    ~15–20%, a chat spike reads ~40–50%, only a surge saturates. Verified in-browser.
 
-4. **`object-fit` overlay trap.** §7 says to size the canvas to the video's *displayed*
+4. **`object-fit` overlay trap.** Section 7 says to size the canvas to the video's *displayed*
    rect, but if the video is cropped (`cover`) or the container aspect differs from the
    capture aspect (Mac cameras often deliver 4:3, not 16:9), the 1:1 pixel mapping breaks
    and props float off the face. Fixed: `FaceStage` measures the container and letterboxes

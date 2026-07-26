@@ -104,12 +104,17 @@ export function Sidebar({ collapsed }: { collapsed: boolean }) {
                 end={item.to === "/"}
                 title={item.label}
                 className={({ isActive }) =>
-                  `group relative box-border flex h-10 w-full items-center justify-center rounded transition-all state-layer-surface [&_svg]:size-4 [&_svg]:fill-current ${
+                  `group relative box-border flex h-10 w-full items-center justify-center rounded transition-all state-layer-surface ${
                     isActive ? "!bg-secondary-base text-white" : "bg-transparent text-white"
                   }`
                 }
               >
-                {({ isActive }) => <Icon name={isActive ? item.activeIcon : item.icon} />}
+                {({ isActive }) => (
+                  <Icon
+                    name={isActive ? item.activeIcon : item.icon}
+                    className="size-4 shrink-0 fill-current"
+                  />
+                )}
               </NavLink>
             </li>
           ))}
@@ -157,7 +162,10 @@ export function Sidebar({ collapsed }: { collapsed: boolean }) {
             >
               {({ isActive }) => (
                 <>
-                  <Icon name={isActive ? item.activeIcon : item.icon} />
+                  <Icon
+                    name={isActive ? item.activeIcon : item.icon}
+                    className="size-4 shrink-0 fill-current"
+                  />
                   {item.label}
                 </>
               )}

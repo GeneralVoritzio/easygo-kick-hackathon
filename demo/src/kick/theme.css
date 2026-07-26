@@ -227,6 +227,21 @@
   .state-layer-surface:active::after { background: var(--color-stateLayer-surfacePress) }
 }
 
+button:not(:disabled),
+[role="button"]:not([aria-disabled="true"]),
+[role="switch"],
+[role="tab"],
+a[href],
+summary,
+label[for] {
+  cursor: pointer;
+}
+
+button:disabled,
+[aria-disabled="true"] {
+  cursor: not-allowed;
+}
+
 html, body, #root { height: 100% }
 
 body {

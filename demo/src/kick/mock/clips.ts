@@ -13,7 +13,20 @@ export type Clip = {
 
 export const CLIPS_NOW = new Date("2026-07-26T12:00:00Z");
 
-const thumb = (seed: string) => `https://picsum.photos/seed/${seed}/640/360`;
+const art = import.meta.glob("../art/*.svg", {
+  eager: true,
+  query: "?url",
+  import: "default",
+}) as Record<string, string>;
+
+let thumbIndex = 0;
+const thumb = (_seed: string) => {
+  const slugs = ["old-school-runescape", "just-chatting", "irl"];
+  const slug = slugs[thumbIndex % slugs.length];
+  const variant = (thumbIndex % 3) + 1;
+  thumbIndex += 1;
+  return art[`../art/thumb-${slug}-${variant}.svg`] ?? "";
+};
 
 const cat = (slug: string) => {
   const c = categories.find((x) => x.slug === slug) ?? categories[0];

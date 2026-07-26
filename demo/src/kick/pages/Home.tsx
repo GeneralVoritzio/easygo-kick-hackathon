@@ -4,6 +4,7 @@ import { Icon } from "../Icon";
 import { PageShell } from "../components/Layout";
 import { StreamGrid } from "../components/StreamCard";
 import { CategoryGrid } from "../components/CategoryCard";
+import { HomeBanner } from "../components/HomeBanner";
 import { livestreams, categories, currentUser, followedChannels } from "../mock/api";
 
 const heroStreams = livestreams.slice(0, 6);
@@ -184,6 +185,7 @@ export function Home() {
 
   return (
     <PageShell>
+      <HomeBanner />
       <HeroCarousel />
 
       <section className="relative flex flex-col gap-y-3 lg:gap-y-4">

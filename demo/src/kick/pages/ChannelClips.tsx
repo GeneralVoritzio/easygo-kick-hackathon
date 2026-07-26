@@ -3,10 +3,10 @@ import { Link } from "react-router-dom";
 import { Icon } from "../Icon";
 import { PageShell } from "../components/Layout";
 import { ClipGrid } from "../components/ClipCard";
-import { evscape, formatFollowers } from "../mock/api";
+import { evscape, formatFollowers, bannerFor } from "../mock/api";
 import { CLIPS_NOW, clips } from "../mock/clips";
 
-const banner = "https://picsum.photos/seed/evscape-banner/1600/300";
+const banner = bannerFor("evscape");
 
 const tabs = [
   { label: "Videos", to: `/${evscape.slug}` },

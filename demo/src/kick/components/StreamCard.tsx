@@ -66,12 +66,13 @@ export function StreamCard({ stream }: { stream: Livestream }) {
           </Link>
           <div className="mt-1 flex max-h-[22px] w-full flex-row flex-wrap gap-x-1 overflow-hidden">
             {stream.tags.map((t) => (
-              <span
+              <button
                 key={t}
-                className="flex h-[22px] items-center rounded-full bg-surface-highest px-2 text-xs font-semibold leading-none text-surface-onSurfaceSecondary"
+                type="button"
+                className="flex h-[22px] items-center rounded-full bg-surface-highest px-2 text-xs font-semibold leading-none text-surface-onSurfaceSecondary transition-colors betterhover:hover:bg-neutral-700 betterhover:hover:text-white"
               >
                 {t}
-              </span>
+              </button>
             ))}
           </div>
         </div>

@@ -21,10 +21,17 @@ export type Livestream = {
   hide_viewer_count?: boolean;
 };
 
-const avatar = (seed: string) =>
-  `https://api.dicebear.com/9.x/thumbs/svg?seed=${seed}`;
-const still = (seed: string, w = 640, h = 360) =>
-  `https://picsum.photos/seed/${seed}/${w}/${h}`;
+const art = import.meta.glob("../art/*.svg", {
+  eager: true,
+  query: "?url",
+  import: "default",
+}) as Record<string, string>;
+
+const artUrl = (name: string) => art[`../art/${name}.svg`] ?? "";
+
+export const bannerFor = (seed: string) => artUrl(`banner-${seed}`);
+
+const avatar = (seed: string) => artUrl(`avatar-${seed}`);
 
 const channel = (
   slug: string,
@@ -34,18 +41,18 @@ const channel = (
 ): Channel => ({ slug, username, avatar: avatar(slug), verified, followers });
 
 export const categories = [
-  { name: "Old School RuneScape", slug: "old-school-runescape", viewers: 41208, thumbnail: still("osrs", 285, 380) },
-  { name: "Just Chatting", slug: "just-chatting", viewers: 189440, thumbnail: still("justchatting", 285, 380) },
-  { name: "Slots & Casino", slug: "slots-casino", viewers: 96317, thumbnail: still("slots", 285, 380) },
-  { name: "Grand Theft Auto V", slug: "grand-theft-auto-v", viewers: 33902, thumbnail: still("gtav", 285, 380) },
-  { name: "IRL", slug: "irl", viewers: 27655, thumbnail: still("irl", 285, 380) },
-  { name: "Counter-Strike 2", slug: "counter-strike-2", viewers: 21044, thumbnail: still("cs2", 285, 380) },
-  { name: "Gakuen Idolmaster", slug: "gakuen-idolmaster", viewers: 4821, thumbnail: still("idolmaster", 285, 380) },
-  { name: "Just Sleeping", slug: "just-sleeping", viewers: 15773, thumbnail: still("sleeping", 285, 380) },
-  { name: "Minecraft", slug: "minecraft", viewers: 12988, thumbnail: still("minecraft", 285, 380) },
-  { name: "League of Legends", slug: "league-of-legends", viewers: 18402, thumbnail: still("lol", 285, 380) },
-  { name: "Music", slug: "music", viewers: 9120, thumbnail: still("music", 285, 380) },
-  { name: "VR Chat", slug: "vr-chat", viewers: 6644, thumbnail: still("vrchat", 285, 380) },
+  { name: "Old School RuneScape", slug: "old-school-runescape", viewers: 41208, thumbnail: artUrl("cat-old-school-runescape") },
+  { name: "Just Chatting", slug: "just-chatting", viewers: 189440, thumbnail: artUrl("cat-just-chatting") },
+  { name: "Slots & Casino", slug: "slots-casino", viewers: 96317, thumbnail: artUrl("cat-slots-casino") },
+  { name: "Grand Theft Auto V", slug: "grand-theft-auto-v", viewers: 33902, thumbnail: artUrl("cat-grand-theft-auto-v") },
+  { name: "IRL", slug: "irl", viewers: 27655, thumbnail: artUrl("cat-irl") },
+  { name: "Counter-Strike 2", slug: "counter-strike-2", viewers: 21044, thumbnail: artUrl("cat-counter-strike-2") },
+  { name: "Gakuen Idolmaster", slug: "gakuen-idolmaster", viewers: 4821, thumbnail: artUrl("cat-gakuen-idolmaster") },
+  { name: "Just Sleeping", slug: "just-sleeping", viewers: 15773, thumbnail: artUrl("cat-just-sleeping") },
+  { name: "Minecraft", slug: "minecraft", viewers: 12988, thumbnail: artUrl("cat-minecraft") },
+  { name: "League of Legends", slug: "league-of-legends", viewers: 18402, thumbnail: artUrl("cat-league-of-legends") },
+  { name: "Music", slug: "music", viewers: 9120, thumbnail: artUrl("cat-music") },
+  { name: "VR Chat", slug: "vr-chat", viewers: 6644, thumbnail: artUrl("cat-vr-chat") },
 ];
 
 const cat = (slug: string) => {
@@ -65,7 +72,7 @@ export const livestreams: Livestream[] = [
     is_live: true,
     language: "English",
     tags: ["Ironman", "HCIM", "No Deaths"],
-    thumbnail: still("evscape"),
+    thumbnail: artUrl("thumb-old-school-runescape-1"),
     started_at: "2026-07-26T09:12:00Z",
     is_mature: false,
     hide_viewer_count: true,
@@ -79,7 +86,7 @@ export const livestreams: Livestream[] = [
     is_live: true,
     language: "English",
     tags: ["Sleeping"],
-    thumbnail: still("adrienbroner"),
+    thumbnail: artUrl("thumb-just-sleeping-1"),
     started_at: "2026-07-26T02:40:00Z",
     is_mature: false,
   },
@@ -92,7 +99,7 @@ export const livestreams: Livestream[] = [
     is_live: true,
     language: "English",
     tags: ["Sleeping", "24/7"],
-    thumbnail: still("deenthegreat"),
+    thumbnail: artUrl("thumb-just-sleeping-2"),
     started_at: "2026-07-25T20:05:00Z",
     is_mature: false,
   },
@@ -105,7 +112,7 @@ export const livestreams: Livestream[] = [
     is_live: true,
     language: "English",
     tags: ["Slots", "Bonus Buys"],
-    thumbnail: still("hummdog"),
+    thumbnail: artUrl("thumb-slots-casino-1"),
     started_at: "2026-07-26T11:30:00Z",
     is_mature: true,
   },
@@ -118,7 +125,7 @@ export const livestreams: Livestream[] = [
     is_live: true,
     language: "English",
     tags: ["Fight Caves"],
-    thumbnail: still("gnomonkey"),
+    thumbnail: artUrl("thumb-old-school-runescape-2"),
     started_at: "2026-07-26T10:02:00Z",
     is_mature: false,
   },
@@ -131,7 +138,7 @@ export const livestreams: Livestream[] = [
     is_live: true,
     language: "Japanese",
     tags: ["Idol", "JP"],
-    thumbnail: still("kanzaki"),
+    thumbnail: artUrl("thumb-gakuen-idolmaster-1"),
     started_at: "2026-07-26T12:15:00Z",
     is_mature: false,
   },
@@ -144,7 +151,7 @@ export const livestreams: Livestream[] = [
     is_live: true,
     language: "English",
     tags: ["IRL", "Travel"],
-    thumbnail: still("blame"),
+    thumbnail: artUrl("thumb-irl-1"),
     started_at: "2026-07-26T06:44:00Z",
     is_mature: false,
   },
@@ -157,7 +164,7 @@ export const livestreams: Livestream[] = [
     is_live: true,
     language: "English",
     tags: ["Slots", "UK"],
-    thumbnail: still("degendan"),
+    thumbnail: artUrl("thumb-slots-casino-2"),
     started_at: "2026-07-26T13:00:00Z",
     is_mature: true,
   },
@@ -170,7 +177,7 @@ export const livestreams: Livestream[] = [
     is_live: true,
     language: "English",
     tags: ["Just Chatting"],
-    thumbnail: still("thedoctor"),
+    thumbnail: artUrl("thumb-just-chatting-1"),
     started_at: "2026-07-26T12:50:00Z",
     is_mature: false,
   },
@@ -183,7 +190,7 @@ export const livestreams: Livestream[] = [
     is_live: true,
     language: "English",
     tags: ["Minecraft", "Building"],
-    thumbnail: still("sludgewizard"),
+    thumbnail: artUrl("thumb-minecraft-1"),
     started_at: "2026-07-26T08:20:00Z",
     is_mature: false,
   },
@@ -196,7 +203,7 @@ export const livestreams: Livestream[] = [
     is_live: true,
     language: "English",
     tags: ["Ranked", "FPS"],
-    thumbnail: still("pixelgremlin"),
+    thumbnail: artUrl("thumb-counter-strike-2-1"),
     started_at: "2026-07-26T07:55:00Z",
     is_mature: false,
   },
@@ -209,7 +216,7 @@ export const livestreams: Livestream[] = [
     is_live: true,
     language: "English",
     tags: ["Cooking", "IRL"],
-    thumbnail: still("tinnedbeans"),
+    thumbnail: artUrl("thumb-irl-2"),
     started_at: "2026-07-26T11:05:00Z",
     is_mature: false,
   },
@@ -249,7 +256,7 @@ export type OfflineChannel = {
 const video = (
   id: number,
   title: string,
-  seed: string,
+  _seed: string,
   duration_seconds: number,
   view_count: number,
   catSlug: string,
@@ -259,7 +266,7 @@ const video = (
   return {
     id,
     title,
-    thumbnail: still(seed),
+    thumbnail: artUrl(`thumb-${c.slug}-${(id % 3) + 1}`),
     duration_seconds,
     view_count,
     category: { name: c.name, slug: c.slug },
@@ -275,7 +282,7 @@ const catTile = (slug: string) => {
 export const offlineChannels: OfflineChannel[] = [
   {
     channel: channel("eddie", "Eddie", 283204, true),
-    banner: still("eddie-banner", 1964, 134),
+    banner: artUrl("banner-eddie"),
     last_live_at: "2026-07-25T16:00:00Z",
     videos: [
       video(1, "Kick Talk Episode 99 Ft. Chat", "eddie-v1", 3981, 23700, "just-chatting", "2026-07-25T16:00:00Z"),
@@ -295,7 +302,7 @@ export const offlineChannels: OfflineChannel[] = [
   },
   {
     channel: channel("theburntpeanut", "TheBurntPeanut", 30211),
-    banner: still("peanut-banner", 1964, 134),
+    banner: artUrl("banner-theburntpeanut"),
     last_live_at: "2026-07-22T21:30:00Z",
     videos: [
       video(21, "burnt the roast again, chat is furious", "peanut-v1", 5210, 8800, "irl", "2026-07-22T21:30:00Z"),
@@ -309,7 +316,7 @@ export const offlineChannels: OfflineChannel[] = [
   },
   {
     channel: channel("slotden", "SlotDen", 51902),
-    banner: still("slotden-banner", 1964, 134),
+    banner: artUrl("banner-slotden"),
     last_live_at: "2026-07-24T02:15:00Z",
     videos: [
       video(41, "the den opens at midnight, bring your own luck", "slotden-v1", 9100, 41200, "slots-casino", "2026-07-24T02:15:00Z"),

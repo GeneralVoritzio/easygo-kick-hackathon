@@ -14,7 +14,8 @@ These come from the user. Follow them without being asked again.
 
 | Rule | Why |
 |---|---|
-| **Measure the live site, do not guess.** Open the page, read the DOM, take the numbers | Every mismatch so far came from guessing |
+| **Grep the scrape, then measure, and never guess.** `demo/kick-reference/` answers most questions in seconds. Read the live DOM for what it cannot hold | Every mismatch so far came from a remembered number |
+| **Never change content to make a layout match** | Two different jobs. Fixing one by breaking the other hides the fault |
 | **Scroll the whole page and click things before saying it is done** | Faults were found below the fold and behind clicks |
 | **Never pay for anything, never subscribe, never buy KICKs** | Verification only |
 | **If a link goes nowhere, do not navigate.** Render the control, keep the hover, do nothing on click | A dead route that renders blank looks broken |
@@ -81,74 +82,29 @@ towards the next level.
 | Gift Subs, Subscribe | 116 by 40 on `#42474D`, 124 by 40 on `#53FC18` |
 | Sections | Stream Videos, Popular Clips, Recently Streamed Categories, each with `View all` |
 
-### The home banner
+### The home page, the grids and the z scale
 
-Read from the home page markup in `demo/kick-reference/html/home.logged-out.html`.
+**Site Reference Sections 15 to 18** hold these: the page column, the stream and category grids,
+the hero, the banner and the z-index scale. They are measured facts about kick.com, so they live
+in the reference and not here.
 
-| Thing | Value |
-|---|---|
-| Wrapper | `bg-surface-lowest lg:pt-4` |
-| Frame | `grid grid-cols-[1fr_auto_1fr] grid-rows-1 items-center gap-4 rounded-lg bg-surface-base bg-cover bg-center bg-no-repeat p-4` |
-| Height | **Not fixed. 112px follows from the content**: 16 padding, 28 title, 16 gap, 36 button, 16 padding |
-| Columns | Three. Left and right are empty and carry `empty:hidden`. The content sits in column 2, `justify-self-center` |
-| Content stack | `flex-col gap-4 items-center text-center` |
-| Title | 24px weight 700, line height 28, uppercase, `text-shadow: rgb(0 0 0 / 65%) 0 1px 8px`, `aria-label="Announcement"` |
-| Button | **h-9, `w-fit`, padding `0 8px`**, 14px weight 600, `bg-primary-base`, `state-layer-base` |
-| Below `lg` | KICK renders a second copy: the whole banner is a link, the title drops to 20px and **the button is not shown**. We do the same with responsive classes on one node |
+Two decisions that are ours, not KICK's:
 
-The artwork stays ours. KICK's plate is a CMS promo image that holds licensed third party art, so
-we do not commit it. Only the frame, the height and the button placement are copied.
+- **The banner plate is ours.** KICK's is a CMS promo image that holds licensed third party art, so
+  we do not commit it. We copy the frame, the height and the button placement, and put our own
+  plate inside.
+- **Our home keeps `Streams For You`.** kick.com runs one rail per category, with 8 cards each. We
+  hold 13 streams across 12 categories, so a per-category rail would draw one card. The layout is
+  KICK's. The section names are ours until the mock data can fill the real ones.
 
-### The page column, and the grids
+### Build notes for the clone
 
-Read from `demo/kick-reference/html/`. The home page and the browse page do not share their
-spacing, so one shared shell with one set of values is wrong.
-
-| Thing | Home | Browse |
-|---|---|---|
-| Scroll container | no top padding | `pt-3 lg:pt-6` |
-| Column | `gap-y-5 pt-3 lg:gap-y-7 lg:pt-0` | `gap-y-3` |
-
-Both pages share `px-4 lg:px-8 xl:px-10` and `m-auto max-w-[125rem]`.
-
-**Home sections are one row. Browse sections wrap.** KICK holds a section to one row with
-`grid-rows-1` and `auto-rows-[0]`, so the extra cards collapse to zero height, and
-`overflow-y-hidden` clips them. Below `lg` the same section is a horizontal snap scroller with
-`-mx-4 px-4 snap-x snap-mandatory` and a fixed child width, 268px for a stream and 108px for a
-category.
-
-Stream grid columns, from both pages:
-
-`grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4 2xl:grid-cols-5 3xl:grid-cols-6`, with
-`group-data-[sidebar=false]/main:` adding one column at `xl`, `2xl` and `3xl`. Gaps are
-`gap-x-4 gap-y-5 lg:gap-y-6`.
-
-Category grid columns: `grid-cols-2 sm:grid-cols-4 md:grid-cols-5`, then
-**`repeat(auto-fill, minmax(139px, 1fr))`** from `lg`. The column gap is **8px**, not 16px, and
-the card gap is 4px.
-
-A custom utility needs `@utility` in Tailwind v4. A plain class in `@layer utilities` gets no
-`lg:` variant, so `lg:grid-cols-auto-fill-category` silently did nothing.
-
-### The home hero
-
-| Thing | Value |
-|---|---|
-| Aspect box | `w-[calc((2*100%-12px)/3)]`, `3xl:w-[calc((3*100%-12px)/4)]`, gap 12 to the chat |
-| Chat aside | `w-[calc((100%-24px)/3)]`, `3xl:w-[calc((100%-36px)/4)]`, radius 8, 1px `outline-region`, `pb-4` |
-| Chat header | **Absolute over the body**, `top-0 w-full rounded-t-lg p-4`, no bottom border |
-| Chat body | `px-4 pt-20`, each line `h-[30px] gap-2` |
-| Overlay | `absolute inset-x-4 bottom-4 flex gap-3 rounded-lg bg-dark-64 p-4 backdrop-blur-sm` |
-| Overlay layout | The avatar is a **sibling of the whole stack**, so the dots start under the title, not under the avatar |
-| Avatar | `size-9 lg:size-14` |
-| Watch now | **100 by 36**, radius 6 |
-| Live badge | **64 by 28**, radius 4, at 16 in from the top left |
-| Dots | 8px, the active one 48 by 8 with `ml-1` |
-
-### The z-index scale
-
-`z-absolute` 101, `z-player` 201, `z-controls` 202, `z-navbar` 301, `z-popover` 401. Ours used
-300, 400 and 500, which was invented.
+- A custom Tailwind v4 utility needs **`@utility`**. A plain class in `@layer utilities` gets no
+  `lg:` variant, so `lg:grid-cols-auto-fill-category` compiled to nothing and failed in silence.
+- The page root carries `data-sidebar`, which the content grids read with
+  `group-data-[sidebar=false]/main:`. The chrome state changes the grid.
+- The top padding of a page lives in `PageShell`, not in the scroll container, because home and
+  browse do not agree on it. A page that needs no padding passes its own column classes.
 
 ### The creator dashboard
 

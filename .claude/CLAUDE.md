@@ -1,10 +1,10 @@
-# KICK Hackathon — Working Agreement
+# KICK Hackathon, Working Agreement
 
 Easygo Mini Hackathon powered by KICK · Saturday 1 August 2026 · Challenge 1 (Hype Tracker / Stream Companion Overlay).
 
 ## Repository layout
 
-### `.claude/` — sources of truth.
+### `.claude/`, the sources of truth
 
 | File | What it is | Editable? |
 |---|---|---|
@@ -13,13 +13,14 @@ Easygo Mini Hackathon powered by KICK · Saturday 1 August 2026 · Challenge 1 (
 | `.claude/KICK-BRAND-IDENTITY.md` | What KICK looks like, sounds like and believes, for **media**: values, voice, flood colour, display type, graphic devices, motion feel, footage rules | ✍️ Extend as we learn |
 | `.claude/KICK-API-MAP.md` | The real KICK API: every object, endpoint, webhook event and scope, from a sweep of `docs.kick.com`. Ground truth for what the API does and does not have | 🔄 Only from the live docs |
 | `.claude/KICK-SITE-REFERENCE.md` | What kick.com actually looks like, measured from the live site: the page grid, the navbar, the sidebar, the player, the channel bar and the chat panel. Read it before you build any page that must look like KICK | 🔄 Only from the live site |
+| `.claude/KICK-DEMO-NOTES.md` | The clone in `demo/`: the standing instructions from the user, the decisions that are ours and not KICK's, the mistakes already made, and the open list. It does not repeat a measured fact, it points at the Site Reference | ✍️ Extend as we learn |
 | `.claude/KICK-API-CONVENTIONS.md` | Our API style guide: use KICK's real endpoint/field/event names, name invented endpoints the same way, and the mock-data naming rules | ✍️ Extend as we learn |
 | `.claude/KICK-PITCH-DECK-MECHANICS.md` | **Deck layout and mechanics only, no theming.** It must look like slides and not a website: the slide frame, the deck type scale, mock product elements, Reveal rules, the slide sequence, delivery. Colour, type styling, texture and motion feel come from the Brand Identity. **Applies only to files in `pitch/`** | ✍️ Extend as we learn |
 | `.claude/KICK-ASSETS.md` | Where every brand file came from: source URL, date read, licence. Read it before you add or replace an asset | ✍️ Extend as we learn |
 | `.claude/reference/` | Machine-readable ground truth read from KICK, today `kick-neon-tokens.css` | 🔄 Only from the live source |
 | `.claude/research/` | Longer write-ups that are not a source of truth: specs, summaries, working notes | ✍️ Extend as we learn |
 
-The two **locked** files are the inputs everything else is derived from. **Never edit, rewrite, reformat or "improve" them as a side effect of another task.** If something in them is wrong or has been superseded, say so and wait for an explicit instruction to change it — then change only what was asked.
+The two **locked** files are the inputs everything else is derived from. **Never edit, rewrite, reformat or "improve" them as a side effect of another task.** If something in them is wrong or has been superseded, say so and wait for an explicit instruction to change it, then change only what was asked.
 
 **All research lives in `.claude/`. There is no `docs/` folder.** Anything we read, measure or
 work out about KICK goes here, so one folder answers every question. Longer write-ups that are not
@@ -32,7 +33,12 @@ match the live source, and record the date you checked.
 
 **Page snapshots are not research, they are build inputs, so they live with the build.**
 `demo/kick-reference/` holds the scrape of kick.com: the raw HTML, KICK's own CSS, the DOM trees
-and the icon set. It sits beside the code that consumes it.
+and the icon set. It sits beside the code that consumes it. Read its README first. It says how to
+answer a question from the folder in three steps.
+
+**A measured fact goes in one file, and every other file points at it.** The Site Reference holds
+what kick.com is. The demo notes hold what we decided. When the same table appears in both, one of
+them goes stale and a reader cannot tell which.
 
 ### Assets: every project owns its own files
 
@@ -53,19 +59,28 @@ It is read-only ground truth, and Brand Identity Section 3 lists what it correct
 
 Never fetch an asset from the network at build time or at run time.
 
+**Copy KICK's structure, not their marketing artwork.** Their wordmark, icon set and font are
+committed, because we need them to look native. A campaign plate, a promo banner image or a game
+tile is different: it holds licensed third party work, it changes every week, and it is not ours
+to commit. Rebuild the frame that holds it, to the pixel, and put our own plate inside.
+
 ## How to work
 
 - **Every idea gets run against the Spec Test** (`.claude/KICK-HACKATHON-BRIEF.md` Section 7) before it gets build time. Any ❌ in Part A (published requirements) or Part B (rules compliance) kills the idea. Then score it: ship above 75, keep prototyping 60–75, kill below 60.
 - **Know whether you are building UI or media.** If a user operates it, it is UI, and `.claude/KICK-DESIGN-SYSTEM.md` rules. If a user watches it, it is media, and `.claude/KICK-BRAND-IDENTITY.md` rules. Our overlay is UI. The pitch deck is media. A screenshot of our overlay inside the deck is still UI. KICK runs the same split: kick.com loads Inter only, and about.kick.com loads its display face on top.
-- **Every UI uses the design tokens** from `.claude/KICK-DESIGN-SYSTEM.md` Section 9 verbatim. Dark base, `#53fc18` used sparingly — the green stays under 10% of visible pixels.
+- **Every UI uses the design tokens** from `.claude/KICK-DESIGN-SYSTEM.md` Section 9 verbatim. Dark base, `#53fc18` used sparingly. The green stays under 10% of visible pixels.
 - **A page that must look like KICK copies the real page.** Read `.claude/KICK-SITE-REFERENCE.md` and rebuild the surface KICK already ships: the same grid, the same chrome, the same component metrics. Our feature is then the only new thing on the screen, which is what makes it read as native. Do not invent a layout when KICK has one. If the reference does not cover the page you need, measure the live site, build from what you measured, and add a section to the reference so nobody measures it twice. Run the finished page against Site Reference Section 12.
+- **Answer from the scrape before you open a browser.** `demo/kick-reference/` holds KICK's own markup and their whole CSS build. Almost every question about a size, a gap, a colour or a breakpoint is a `grep` away. The order is: find the element in `html/`, resolve its class names in `css/`, then read a live page only for what the scrape cannot hold, which is card content, hover states, and any page behind a login. A number you grepped is a fact. A number you remembered is a guess, and every mismatch so far came from a guess.
+- **KICK does not share one shell between pages.** The home page and the browse page use different column spacing, different grids and different top padding. Read the page you are building. Do not copy the page next to it, and do not push one page's values into a shared component without checking the other pages that use it.
+- **Layout fidelity and content fidelity are separate jobs.** Never change what a section says to make its layout match, and never keep wrong spacing because the copy is right. If our mock data cannot fill KICK's layout, say so and ask for more data. Do not rename a section to fit what we happen to hold.
+- **Say what you did.** "Measured" means you read values off the running page. "Looked at" means you saw it render. They are not the same, and a reader needs to know which one backs a claim.
 - **Copy KICK's assets. Never draw an approximation.** The wordmark (`demo/src/kick/brand/kick-logo.svg`), the icon set (`demo/src/kick/icons/`) and Inter (`demo/src/kick/fonts/`) are committed. A hand-drawn icon, a wordmark set in a font, or a stroked outline icon set gives the copy away faster than any layout error. If you need an icon KICK has and we do not hold, read it from the live markup and add it to `demo/src/kick/icons/`. If KICK has no such icon, draw it on their grid and record it as ours in `.claude/KICK-ASSETS.md`.
 - **Every media surface follows the Brand Identity.** In media the green floods, the display type is ALL CAPS on leading of 1.0, and the copy sounds like chat. Run the finished thing against Brand Identity Section 10.
 - **Respect the API boundary.** No video/audio frames, no game state, no per-viewer telemetry, no emote events, no injection into the KICK player. We run on mocked data, but every mocked data point must be something the live API could actually produce.
-- **Follow KICK's API conventions** (`.claude/KICK-API-CONVENTIONS.md`). Use real KICK names for anything the API exposes; name and shape invented endpoints/events/fields the same way. Mock data uses real, creative names (KICK-streamer flavour + funny handles) — **never placeholders**.
+- **Follow KICK's API conventions** (`.claude/KICK-API-CONVENTIONS.md`). Use real KICK names for anything the API exposes; name and shape invented endpoints/events/fields the same way. Mock data uses real, creative names (KICK-streamer flavour and funny handles), **never placeholders**.
 - **Label every endpoint and event.** `kick` for surface KICK publishes, `fake-kick` for surface we invented: `kick GET /public/v2/livestreams`, `fake-kick POST /public/v1/timelines/markers`. The label goes in front of the verb and path, and in front of an event name. Use it in code, in docs and in UI copy, so a reader can tell the two apart at a glance. Keep the two sets in separate places: a mock API file holds the `kick` labels only, and the code that consumes it holds the `fake-kick` labels.
 - **Anything in `pitch/` follows the Deck Mechanics file** (`.claude/KICK-PITCH-DECK-MECHANICS.md`) for how the deck is built, and the Brand Identity for how it looks. The Deck Mechanics file does not restate the brand rules. Outside `pitch/`, ignore it.
-- **Cite the source file when you derive from it** — quote the section (e.g. "Design System Section 3") so claims are traceable back to a locked source rather than invented.
+- **Cite the source file when you derive from it.** Quote the section (e.g. "Design System Section 3") so claims are traceable back to a locked source rather than invented.
 - Confidence tags in the Design System and the Brand Identity (✅ verified / 🟡 high confidence / 🔧 derived) carry meaning. Don't promote a 🔧 value to a fact.
 
 ## Coding style

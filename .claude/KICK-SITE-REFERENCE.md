@@ -243,15 +243,15 @@ the file, do not draw an approximation.**
 
 | Thing | Where it is | Rule |
 |---|---|---|
-| The wordmark | `assets/brand/kick-logo.svg` | 97 by 26, one green path plus a white `BETA`. Never set the word KICK in a font |
-| The icons | `assets/icons/kick-inline/`, 22 files | KICK's own. Solid fill, no stroke, 32 grid, `currentColor`, rendered at 16px |
-| Inter | `assets/fonts/inter/` | kick.com loads Inter and nothing else |
+| The wordmark | `demo/src/kick/brand/kick-logo.svg` | 97 by 26, one green path plus a white `BETA`. Never set the word KICK in a font |
+| The icons | `demo/src/kick/icons/`, 67 files | KICK's own. Solid fill, no stroke, 32 grid, `currentColor`, rendered at 16px |
+| Inter | `demo/src/kick/fonts/` | kick.com loads Inter and nothing else |
 
 **A stroked, rounded icon set is the fastest way to look wrong.** KICK's icons are hard edged and
 filled, with no curves at all where a curve is avoidable. Their home icon is a house with zero
 round joins. Lucide, Feather and Tabler all read as a different product immediately.
 
-Three icons in that folder are ours, not KICK's: `pause`, `mute` and `timeline`. `assets/README.md`
+Three icons in that folder are ours, not KICK's: `pause`, `mute` and `timeline`. `.claude/KICK-ASSETS.md`
 says why.
 
 ---
@@ -309,7 +309,7 @@ Two practical points:
   Drop it. If you keep it and set a fill, the icon paints as a solid square.
 
 Take only the icons the page you are building needs, and record where each one came from in
-`assets/README.md`. These are KICK trademarks, held so we can match the chrome.
+`.claude/KICK-ASSETS.md`. These are KICK trademarks, held so we can match the chrome.
 
 ---
 
@@ -324,9 +324,11 @@ anything.
 2. **The secondary button.** Design System Section 4 puts secondary on `--bg-raised` `#232629`. The
    live `Subscribe` button is **`#42474D`**, which is lighter. Use `#42474D` for a button that sits
    beside a green primary.
-3. **The icon reference folder.** Design System Section 5 points at `assets/icons/kick-inline/`.
-   On 26 July 2026 we filled that folder with 22 icons read from the live site, so the Design
-   System now points at something real. Section 8 above covers it.
+3. **The icon reference folder.** Design System Section 5 points at the old `assets/icons/kick-inline/`
+   path and says 18 icons. The set now holds **67 icons** and lives at `demo/src/kick/icons/`. The
+   Design System is locked, so the path in it is stale. Section 8 above is correct.
+4. **Asset paths.** The Design System still points at a root `assets/` folder. That folder is gone.
+   `.claude/KICK-ASSETS.md` records where every file lives now.
 
 ---
 
@@ -342,8 +344,8 @@ Run a finished page against this list.
 - [ ] The search field is transparent with a border, 450 by 32, not a filled box.
 
 **Assets**
-- [ ] The wordmark is `assets/brand/kick-logo.svg`, not type set in a font.
-- [ ] Every icon comes from `assets/icons/kick-inline/`. Filled, no stroke, 16px.
+- [ ] The wordmark is `demo/src/kick/brand/kick-logo.svg`, not type set in a font.
+- [ ] Every icon comes from `demo/src/kick/icons/`. Filled, no stroke, 16px.
 - [ ] Inter, and nothing else.
 
 **The player**
@@ -361,3 +363,58 @@ Run a finished page against this list.
 
 **Last**
 - [ ] Green stays under 10% of visible pixels (Design System Section 1).
+
+---
+
+## 13. The sidebar channel row
+
+Read from the live DOM on 26 July 2026, logged in. This row repeats under `Following` and under
+`Recommended`, and it is easy to get subtly wrong.
+
+The row has **two children, not three.** The viewer count is not a third column.
+
+```
+a           flex h-11 w-full flex-row items-center gap-2 rounded px-1.5
+  div       the avatar, size-7, rounded-full
+  div       flex min-w-0 max-w-full shrink grow flex-col gap-0.5
+    span    the username, text-sm font-bold leading-[1.2], white
+    span    the category, text-xs font-bold leading-normal, #929EA6
+  div       flex w-fit shrink-0 flex-nowrap items-center gap-x-1 self-start text-white
+    div     the live dot, h-2 w-2 rounded-full bg-green-500
+    span    the count, text-sm font-semibold, white
+```
+
+| Thing | Live value |
+|---|---|
+| Row height | 44px (`h-11`) |
+| Avatar | 28px (`size-7`) |
+| Username | 14px, weight 700, white |
+| Category | 12px, weight 700, `#929EA6` |
+| Viewer count | 14px, weight 600, **white** |
+| Live dot | **A plain 8px `div`**, `rounded-full`, `bg-green-500`. It is not an SVG icon |
+| Count alignment | **`self-start`.** It sits on the username's line, not centred in the row |
+
+Two details decide whether this reads as KICK:
+
+- **The count uses `self-start`.** Centring it across both lines is the common mistake.
+- **The dot is a `div`, not an icon.** Reaching for an SVG circle gives the wrong size and colour.
+
+An offline row dims the avatar with `mix-blend-luminosity grayscale` and sets the username to
+`text-neutral-700`.
+
+---
+
+## 14. Where the scrape lives
+
+`demo/kick-reference/` holds the machine-readable capture this file is written from:
+
+| Folder | What it holds |
+|---|---|
+| `html/` | The raw server response for nine URLs |
+| `css/` | KICK's four live CSS chunks, 239 KB. Every class in the trees resolves here |
+| `trees/` | Each page's DOM as an indented tree, repeated siblings collapsed |
+| `icons/` | 67 inline SVG icons |
+
+**KICK renders all page content on the client.** The server sends skeleton placeholders where every
+card will appear. The saved HTML gives correct chrome and correct card geometry, but no card
+content. Read a live page when you need the filled markup.

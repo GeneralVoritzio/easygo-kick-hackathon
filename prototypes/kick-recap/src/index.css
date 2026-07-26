@@ -1,0 +1,62 @@
+@import "tailwindcss";
+
+/* Values from .claude/KICK-DESIGN-SPEC.md §9 (locked). */
+@theme {
+  --color-kick: #53fc18;
+  --color-kick-hover: #42d912;
+  --color-kick-dim: #2e8f0c;
+
+  --color-page: #0b0e0f;
+  --color-surface: #121517;
+  --color-raised: #191d1f;
+  --color-overlay: #22282a;
+  --color-line: #282f31;
+  --color-line-strong: #3a4245;
+
+  --color-ink: #e3e7e8;
+  --color-ink-bright: #ffffff;
+  --color-ink-muted: #8b9598;
+  --color-ink-disabled: #5a6467;
+
+  --color-live: #ff1744;
+  --color-warn: #ffb020;
+  --color-danger: #ff4757;
+  --color-info: #3ea6ff;
+
+  --shadow-glow: 0 0 0 3px rgba(83, 252, 24, 0.24);
+
+  --font-display: 'Archivo', 'Inter', sans-serif;
+
+  --animate-live-pulse: live-pulse 1.6s ease-in-out infinite;
+
+  @keyframes live-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.35; }
+  }
+}
+
+html, body, #root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background-color: var(--color-page);
+  color: var(--color-ink);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 14px;
+  line-height: 21px;
+  -webkit-font-smoothing: antialiased;
+  overflow: hidden;
+}
+
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation: none !important;
+    transition: none !important;
+  }
+}

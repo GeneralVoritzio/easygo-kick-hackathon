@@ -16,6 +16,7 @@ Easygo Mini Hackathon powered by KICK · Saturday 1 August 2026 · Challenge 1 (
 | `.claude/KICK-API-CONVENTIONS.md` | Our API style guide: use KICK's real endpoint/field/event names, name invented endpoints the same way, and the mock-data naming rules | ✍️ Extend as we learn |
 | `.claude/KICK-PITCH-DECK-MECHANICS.md` | **Deck layout and mechanics only, no theming.** It must look like slides and not a website: the slide frame, the deck type scale, mock product elements, Reveal rules, the slide sequence, delivery. Colour, type styling, texture and motion feel come from the Brand Identity. **Applies only to files in `pitch/`** | ✍️ Extend as we learn |
 | `.claude/KICK-ASSETS.md` | Where every brand file came from: source URL, date read, licence. Read it before you add or replace an asset | ✍️ Extend as we learn |
+| `.claude/skills/` | Skills that Claude Code loads on demand. Today `kick-page-clone`, which captures a kick.com page and rebuilds it in `demo/` | ✍️ Extend as we learn |
 | `.claude/reference/` | Machine-readable ground truth read from KICK, today `kick-neon-tokens.css` | 🔄 Only from the live source |
 | `.claude/research/` | Longer write-ups that are not a source of truth: specs, summaries, working notes | ✍️ Extend as we learn |
 
@@ -33,6 +34,12 @@ match the live source, and record the date you checked.
 **Page snapshots are not research, they are build inputs, so they live with the build.**
 `demo/kick-reference/` holds the scrape of kick.com: the raw HTML, KICK's own CSS, the DOM trees
 and the icon set. It sits beside the code that consumes it.
+
+
+**A page that must look like KICK starts with the `kick-page-clone` skill.** It holds the capture
+method, the class and token mapping, the icon rules, the grid and spacing numbers, and the
+measurement pass that proves the copy matches. It also holds the scripts, so nobody writes the
+capture again.
 
 ### Assets: every project owns its own files
 

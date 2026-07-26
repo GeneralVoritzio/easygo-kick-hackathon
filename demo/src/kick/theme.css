@@ -213,8 +213,10 @@
   .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none }
   .no-scrollbar::-webkit-scrollbar { display: none }
 
-  .state-layer-surface { position: relative }
-  .state-layer-surface::after {
+  .state-layer-surface,
+  .state-layer-base { position: relative }
+  .state-layer-surface::after,
+  .state-layer-base::after {
     content: "";
     position: absolute;
     inset: 0;
@@ -225,6 +227,8 @@
   }
   .state-layer-surface:hover::after { background: var(--color-stateLayer-surfaceHover) }
   .state-layer-surface:active::after { background: var(--color-stateLayer-surfacePress) }
+  .state-layer-base:hover::after { background: var(--color-stateLayer-defaultHover) }
+  .state-layer-base:active::after { background: var(--color-stateLayer-defaultPress) }
 }
 
 button:not(:disabled),

@@ -81,6 +81,24 @@ towards the next level.
 | Gift Subs, Subscribe | 116 by 40 on `#42474D`, 124 by 40 on `#53FC18` |
 | Sections | Stream Videos, Popular Clips, Recently Streamed Categories, each with `View all` |
 
+### The home banner
+
+Read from the home page markup in `demo/kick-reference/html/home.logged-out.html`.
+
+| Thing | Value |
+|---|---|
+| Wrapper | `bg-surface-lowest lg:pt-4` |
+| Frame | `grid grid-cols-[1fr_auto_1fr] grid-rows-1 items-center gap-4 rounded-lg bg-surface-base bg-cover bg-center bg-no-repeat p-4` |
+| Height | **Not fixed. 112px follows from the content**: 16 padding, 28 title, 16 gap, 36 button, 16 padding |
+| Columns | Three. Left and right are empty and carry `empty:hidden`. The content sits in column 2, `justify-self-center` |
+| Content stack | `flex-col gap-4 items-center text-center` |
+| Title | 24px weight 700, line height 28, uppercase, `text-shadow: rgb(0 0 0 / 65%) 0 1px 8px`, `aria-label="Announcement"` |
+| Button | **h-9, `w-fit`, padding `0 8px`**, 14px weight 600, `bg-primary-base`, `state-layer-base` |
+| Below `lg` | KICK renders a second copy: the whole banner is a link, the title drops to 20px and **the button is not shown**. We do the same with responsive classes on one node |
+
+The artwork stays ours. KICK's plate is a CMS promo image that holds licensed third party art, so
+we do not commit it. Only the frame, the height and the button placement are copied.
+
 ### The creator dashboard
 
 `dashboard.kick.com/stream`. Its own shell, no search field.
@@ -157,12 +175,12 @@ Raised on 26 July 2026 and not yet done.
 | # | Item | State |
 |---|---|---|
 | 1 | Dashboard colours and spacing do not match. Needs a scroll and click pass per panel | **Open** |
-| 2 | The home banner must be the one kick.com actually shows, not our stand-in | **Open** |
-| 3 | Artwork must be reworked to the darker direction in Section 4 | **Open** |
+| 2 | The home banner frame, height and button placement must match kick.com | **Done**, 27 July 2026 |
+| 3 | Artwork must be reworked to the darker direction in Section 4 | **Done**, 26 July 2026 |
 | 4 | Dead links must stop navigating. Category links, channel `About`/`Videos`/`Chat`, settings tabs other than Profile and Preferences, dashboard items other than Stream | **Partly done** |
 | 5 | Collapsing the rail shifts things oddly, and expanding shows selection borders | **Open** |
-| 6 | Live channel page `Follow`, `Gift Subs`, `Subscribe` are wrong. Check the followed state too, then unfollow | **Open** |
-| 7 | The live ring around the channel avatar is wrong. The collapsed rail avatars need the green ring | **Open** |
+| 6 | Live channel page `Follow`, `Gift Subs`, `Subscribe` are wrong. Check the followed state too, then unfollow | **Done**, 26 July 2026 |
+| 7 | The live ring around the channel avatar is wrong. The collapsed rail avatars need the green ring | **Done**, 26 July 2026 |
 | 8 | Following and settings pages have never been checked against the live site | **Open** |
 | 9 | No bell icon. KICK has one next to the heart on a channel page | **Open** |
 | 10 | Video cards have no `⋮` overflow control | **Open** |

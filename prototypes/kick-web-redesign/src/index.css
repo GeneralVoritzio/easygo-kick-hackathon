@@ -1,0 +1,97 @@
+@import "tailwindcss";
+
+/* Values from .claude/KICK-DESIGN-SPEC.md §9 (locked). */
+@theme {
+  --color-kick: #53fc18;
+  --color-kick-hover: #42d912;
+  --color-kick-dim: #2e8f0c;
+
+  --color-page: #0b0e0f;
+  --color-surface: #121517;
+  --color-raised: #191d1f;
+  --color-overlay: #22282a;
+  --color-line: #282f31;
+  --color-line-strong: #3a4245;
+
+  --color-ink: #e3e7e8;
+  --color-ink-bright: #ffffff;
+  --color-ink-muted: #8b9598;
+  --color-ink-disabled: #5a6467;
+
+  --color-live: #ff1744;
+  --color-warn: #ffb020;
+  --color-danger: #ff4757;
+  --color-info: #3ea6ff;
+
+  --shadow-glow: 0 0 0 3px rgba(83, 252, 24, 0.24);
+
+  --font-display: 'Archivo', 'Inter', sans-serif;
+
+  --animate-live-pulse: live-pulse 1.6s ease-in-out infinite;
+  --animate-bg-pan: bg-pan 6s ease-in-out infinite;
+  --animate-boss-glow: boss-glow 2.2s ease-in-out infinite;
+  --animate-boss-glow-critical: boss-glow-critical 0.9s ease-in-out infinite;
+  --animate-boss-glow-victory: boss-glow-victory 1.4s ease-in-out infinite;
+
+  @keyframes live-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.35; }
+  }
+  @keyframes bg-pan {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+  }
+  /* Same red glow the browser shows while an agent is actively driving it —
+     borrowed here for "a Kick Boss is on screen." Inset box-shadow so it
+     reads as the screen's own edges glowing, not a shape drawn over it. */
+  @keyframes boss-glow {
+    0%, 100% { box-shadow: inset 0 0 60px 10px rgba(255, 23, 68, 0.35); }
+    50% { box-shadow: inset 0 0 90px 20px rgba(255, 23, 68, 0.55); }
+  }
+  /* The boss is nearly dead: same glow, bigger and faster. */
+  @keyframes boss-glow-critical {
+    0%, 100% { box-shadow: inset 0 0 110px 30px rgba(255, 23, 68, 0.55); }
+    50% { box-shadow: inset 0 0 170px 55px rgba(255, 23, 68, 0.85); }
+  }
+  /* Defeated: the same treatment in kick green instead of live red. */
+  @keyframes boss-glow-victory {
+    0%, 100% { box-shadow: inset 0 0 80px 20px rgba(83, 252, 24, 0.4); }
+    50% { box-shadow: inset 0 0 130px 40px rgba(83, 252, 24, 0.7); }
+  }
+}
+
+html, body, #root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background-color: var(--color-page);
+  color: var(--color-ink);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 14px;
+  line-height: 21px;
+  -webkit-font-smoothing: antialiased;
+}
+
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+/* The discovery rails scroll horizontally on mouse/trackpad/touch, but the
+   scrollbar itself is visual noise for a rail meant to read as an endless
+   strip of cards. */
+.no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation: none !important;
+    transition: none !important;
+  }
+}

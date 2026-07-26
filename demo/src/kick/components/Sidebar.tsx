@@ -71,6 +71,9 @@ function ChannelRow({
 
 const STEP = 5;
 
+const followedSlugs = new Set(followedChannels.map((c) => c.slug));
+const recommended = livestreams.filter((s) => !followedSlugs.has(s.channel.slug));
+
 export function Sidebar({ open }: { open: boolean }) {
   const [shown, setShown] = useState(10);
 
@@ -118,7 +121,7 @@ export function Sidebar({ open }: { open: boolean }) {
             <div className="flex h-9 w-full items-center px-1.5 text-sm font-semibold leading-[1.2]">
               Recommended
             </div>
-            {livestreams.slice(0, shown).map((s) => (
+            {recommended.slice(0, shown).map((s) => (
               <ChannelRow
                 key={s.id}
                 slug={s.channel.slug}
@@ -130,10 +133,10 @@ export function Sidebar({ open }: { open: boolean }) {
               />
             ))}
             <div className="flex h-9 w-full items-center justify-between px-1.5">
-              {shown < livestreams.length ? (
+              {shown < recommended.length ? (
                 <button
                   type="button"
-                  onClick={() => setShown((n) => Math.min(n + STEP, livestreams.length))}
+                  onClick={() => setShown((n) => Math.min(n + STEP, recommended.length))}
                   className="text-xs font-semibold text-subtle betterhover:hover:text-white"
                 >
                   Show More

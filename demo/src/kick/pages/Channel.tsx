@@ -46,7 +46,7 @@ export function Channel() {
   return (
     <div
       ref={rowRef}
-      className={`-mt-3 -mb-6 flex h-[calc(100vh-var(--navbar-height))] w-full overflow-hidden bg-surface-lowest lg:-mt-6 ${
+      className={`-mb-6 flex h-[calc(100vh-var(--navbar-height))] w-full overflow-hidden bg-surface-lowest ${
         isDragging ? "select-none" : ""
       }`}
     >

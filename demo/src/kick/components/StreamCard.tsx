@@ -82,9 +82,14 @@ export function StreamCard({ stream }: { stream: Livestream }) {
   );
 }
 
-export function StreamGrid({ streams }: { streams: Livestream[] }) {
+import { oneRowGrid } from "./Layout";
+
+const streamColumns =
+  "h-full grid-cols-1 gap-x-4 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4 2xl:grid-cols-5 3xl:grid-cols-6 group-data-[sidebar=false]/main:xl:grid-cols-5 group-data-[sidebar=false]/main:2xl:grid-cols-6 group-data-[sidebar=false]/main:3xl:grid-cols-7";
+
+export function StreamGrid({ streams, oneRow }: { streams: Livestream[]; oneRow?: boolean }) {
   return (
-    <section className="grid h-full grid-cols-1 gap-x-4 gap-y-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 lg:gap-y-6 3xl:grid-cols-6">
+    <section className={`${streamColumns} ${oneRow ? `${oneRowGrid} [&>div]:w-[268px]` : "grid gap-y-5 lg:gap-y-6"}`}>
       {streams.map((s) => (
         <StreamCard key={s.id} stream={s} />
       ))}

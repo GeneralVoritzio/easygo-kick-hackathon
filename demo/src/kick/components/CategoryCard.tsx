@@ -1,3 +1,4 @@
+import { oneRowGrid } from "./Layout";
 import { formatViewers } from "../mock/api";
 
 type Category = {
@@ -9,7 +10,7 @@ type Category = {
 
 export function CategoryCard({ category }: { category: Category }) {
   return (
-    <div className="group/card relative flex w-full shrink-0 grow-0 flex-col gap-2 will-change-transform">
+    <div className="group/card relative flex w-full shrink-0 grow-0 flex-col items-start gap-1 overflow-hidden will-change-transform">
       <button type="button" className="block w-full">
         <img
           src={category.thumbnail}
@@ -32,9 +33,12 @@ export function CategoryCard({ category }: { category: Category }) {
   );
 }
 
-export function CategoryGrid({ categories }: { categories: Category[] }) {
+const categoryColumns =
+  "h-full grid-cols-2 gap-x-2 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-auto-fill-category";
+
+export function CategoryGrid({ categories, oneRow }: { categories: Category[]; oneRow?: boolean }) {
   return (
-    <section className="grid h-full grid-cols-2 gap-x-4 gap-y-5 sm:grid-cols-3 lg:grid-cols-5 xl:grid-cols-6 lg:gap-y-6 3xl:grid-cols-8">
+    <section className={`${categoryColumns} ${oneRow ? `${oneRowGrid} [&>div]:w-[108px]` : "grid gap-y-5 lg:gap-y-6"}`}>
       {categories.map((c) => (
         <CategoryCard key={c.slug} category={c} />
       ))}

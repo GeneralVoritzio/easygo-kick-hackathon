@@ -33,7 +33,7 @@ function SectionHeading({
       </Link>
       <Link
         to={viewAllHref}
-        className="shrink-0 text-xs font-semibold text-surface-onSurfaceSecondary betterhover:hover:text-white lg:text-sm"
+        className="shrink-0 text-xs font-semibold text-surface-onSurface focus-visible:underline lg:text-sm"
       >
         View all
       </Link>
@@ -70,7 +70,7 @@ function HeroCarousel() {
             className="absolute inset-0 h-full w-full object-cover"
           />
 
-          <span className="absolute left-4 top-4 rounded bg-negative-base px-2 py-1 text-xs font-bold uppercase leading-none text-white">
+          <span className="absolute left-4 top-4 flex h-7 w-16 items-center justify-center rounded bg-negative-base text-xs font-bold uppercase leading-none text-white">
             Live
           </span>
 
@@ -84,93 +84,98 @@ function HeroCarousel() {
             </button>
           </div>
 
-          <div className="absolute inset-x-4 bottom-4 flex flex-col gap-3 overflow-hidden rounded-lg bg-dark-64 p-4 backdrop-blur-sm">
-            <div className="flex flex-row items-center gap-6">
-              <Link to={`/${stream.channel.slug}`} className="shrink-0">
-                <img
-                  src={stream.channel.avatar}
-                  alt={stream.channel.username}
-                  className="size-9 shrink-0 rounded-full lg:size-14"
-                />
-              </Link>
-              <div className="flex min-w-0 grow flex-col gap-1">
-                <Link
-                  to={`/${stream.channel.slug}`}
-                  className="truncate text-base font-bold leading-[1.2] text-white lg:text-xl"
-                >
-                  {stream.session_title}
-                </Link>
-                <div className="flex flex-wrap items-center gap-2">
+          <div className="z-controls absolute inset-x-4 bottom-4 flex gap-3 overflow-hidden rounded-lg bg-dark-64 p-4 backdrop-blur-sm">
+            <Link to={`/${stream.channel.slug}`} className="shrink-0">
+              <img
+                src={stream.channel.avatar}
+                alt={stream.channel.username}
+                className="size-9 shrink-0 rounded-full lg:size-14"
+              />
+            </Link>
+
+            <div className="flex min-w-0 grow flex-col gap-1">
+              <div className="flex flex-row gap-6">
+                <div className="flex min-w-0 grow flex-col gap-1">
                   <Link
                     to={`/${stream.channel.slug}`}
-                    className="flex items-center gap-1 text-sm font-semibold leading-[1.2] text-white betterhover:hover:text-surface-onSurfaceSecondary"
+                    className="truncate text-base font-bold leading-[1.2] text-white lg:text-xl"
                   >
-                    {stream.channel.username}
-                    {stream.channel.verified && (
-                      <Icon name="verified" className="size-3.5 shrink-0 text-surface-onSurfacePrimary" />
-                    )}
+                    {stream.session_title}
                   </Link>
-                  <Pill>{stream.category.name}</Pill>
-                  <Pill>{stream.language}</Pill>
+                  <div className="flex items-center gap-2">
+                    <Link
+                      to={`/${stream.channel.slug}`}
+                      className="flex items-center gap-1 text-sm font-semibold leading-[1.2] text-white betterhover:hover:text-surface-onSurfaceSecondary"
+                    >
+                      {stream.channel.username}
+                      {stream.channel.verified && (
+                        <Icon name="verified" className="size-3.5 shrink-0 text-surface-onSurfacePrimary" />
+                      )}
+                    </Link>
+                    <div className="flex items-center gap-1">
+                      <Pill>{stream.category.name}</Pill>
+                      <Pill>{stream.language}</Pill>
+                    </div>
+                  </div>
                 </div>
+                <Link
+                  to={`/${stream.channel.slug}`}
+                  className="inline-flex h-9 w-[100px] shrink-0 select-none items-center justify-center whitespace-nowrap rounded-md bg-primary-base text-sm font-semibold text-primary-onPrimary transition-all state-layer-base betterhover:active:scale-[0.98]"
+                >
+                  Watch now
+                </Link>
               </div>
-              <Link
-                to={`/${stream.channel.slug}`}
-                className="inline-flex h-9 shrink-0 items-center justify-center whitespace-nowrap rounded bg-primary-base px-4 text-sm font-semibold text-primary-onPrimary transition-all select-none betterhover:hover:bg-green-400 betterhover:active:scale-[0.98]"
-              >
-                Watch now
-              </Link>
-            </div>
 
-            <div className="flex w-full min-w-0 items-center justify-between gap-2">
-              <div className="flex items-center gap-2 overflow-x-auto">
-                {heroStreams.map((s, i) => (
+              <div className="flex w-full min-w-0 items-center justify-between gap-2">
+                <div className="flex items-center gap-2 overflow-x-auto">
+                  {heroStreams.map((s, i) => (
+                    <button
+                      key={s.id}
+                      type="button"
+                      aria-label={`Show ${s.channel.username}`}
+                      onClick={() => setIndex(i)}
+                      className={
+                        i === index
+                          ? "ml-1 h-2 w-12 shrink-0 rounded-full bg-white transition-all"
+                          : "size-2 shrink-0 scale-[0.88] rounded-full bg-white/35 transition-all"
+                      }
+                    />
+                  ))}
+                </div>
+                <div className="flex shrink-0 gap-1">
                   <button
-                    key={s.id}
                     type="button"
-                    aria-label={`Show ${s.channel.username}`}
-                    onClick={() => setIndex(i)}
-                    className={
-                      i === index
-                        ? "h-2 w-12 shrink-0 rounded-full bg-white transition-all"
-                        : "size-2 shrink-0 scale-[0.88] rounded-full bg-white/35 transition-all"
-                    }
-                  />
-                ))}
-              </div>
-              <div className="flex shrink-0 gap-1">
-                <button
-                  type="button"
-                  aria-label="Previous stream"
-                  onClick={goPrev}
-                  className="flex size-9 items-center justify-center rounded-md bg-white/10 text-white transition-colors betterhover:hover:bg-white/20"
-                >
-                  <Icon name="chevron-left" className="size-4 fill-current" />
-                </button>
-                <button
-                  type="button"
-                  aria-label="Next stream"
-                  onClick={goNext}
-                  className="flex size-9 items-center justify-center rounded-md bg-white/10 text-white transition-colors betterhover:hover:bg-white/20"
-                >
-                  <Icon name="chevron-right" className="size-4 fill-current" />
-                </button>
+                    aria-label="Previous stream"
+                    onClick={goPrev}
+                    className="flex size-9 items-center justify-center rounded-md bg-white/10 text-white transition-colors betterhover:hover:bg-white/20"
+                  >
+                    <Icon name="chevron-left" className="size-4 fill-current" />
+                  </button>
+                  <button
+                    type="button"
+                    aria-label="Next stream"
+                    onClick={goNext}
+                    className="flex size-9 items-center justify-center rounded-md bg-white/10 text-white transition-colors betterhover:hover:bg-white/20"
+                  >
+                    <Icon name="chevron-right" className="size-4 fill-current" />
+                  </button>
+                </div>
               </div>
             </div>
           </div>
         </div>
 
-        <aside className="relative hidden h-full w-[calc((100%-24px)/3)] shrink-0 flex-col rounded-lg border border-outline-decorative pb-4 lg:flex 3xl:w-[calc((100%-36px)/4)]">
-          <div className="flex h-[50px] shrink-0 items-center justify-center border-b-2 border-surface-highest px-4">
+        <aside className="relative hidden h-full w-[calc((100%-24px)/3)] shrink-0 rounded-lg border border-outline-decorative pb-4 lg:block 3xl:w-[calc((100%-36px)/4)]">
+          <div className="absolute top-0 w-full rounded-t-lg bg-surface-lowest p-4">
             <span className="text-sm font-semibold text-white">Chat</span>
           </div>
-          <div className="no-scrollbar flex flex-1 flex-col justify-end gap-1 overflow-y-auto px-3 py-2">
+          <div className="flex h-full flex-col justify-end overflow-hidden px-4 pt-20">
             {heroChat.map((m, i) => (
-              <div key={i} className="rounded-lg px-2 py-1 text-sm leading-[1.55]">
+              <div key={i} className="flex h-[30px] shrink-0 items-center gap-2 text-sm leading-[1.55]">
                 <span className="font-bold" style={{ color: m.color }}>
                   {m.author}
                 </span>
-                <span className="text-white">: {m.message}</span>
+                <span className="truncate text-white">{m.message}</span>
               </div>
             ))}
           </div>
@@ -184,23 +189,26 @@ export function Home() {
   const casinoStreams = livestreams.filter((s) => s.category.slug === "slots-casino");
 
   return (
-    <PageShell>
+    <PageShell column="gap-y-5 pt-3 lg:gap-y-7 lg:pt-0">
       <HomeBanner />
-      <HeroCarousel />
+
+      <div className="flex w-full flex-col gap-3">
+        <HeroCarousel />
+      </div>
 
       <section className="relative flex flex-col gap-y-3 lg:gap-y-4">
-        <SectionHeading green="Streams" white="For You" viewAllHref="/browse" />
-        <StreamGrid streams={livestreams} />
+        <SectionHeading white="Top Live Categories" viewAllHref="/browse/categories" />
+        <CategoryGrid categories={categories} oneRow />
       </section>
 
       <section className="relative flex flex-col gap-y-3 lg:gap-y-4">
-        <SectionHeading green="Categories" white="For You" viewAllHref="/browse/categories" />
-        <CategoryGrid categories={categories} />
+        <SectionHeading green="Streams" white="For You" viewAllHref="/browse" />
+        <StreamGrid streams={livestreams} oneRow />
       </section>
 
       <section className="relative flex flex-col gap-y-3 lg:gap-y-4">
         <SectionHeading white="Slots & Casino" viewAllHref="/browse/slots-casino" />
-        <StreamGrid streams={casinoStreams} />
+        <StreamGrid streams={casinoStreams} oneRow />
       </section>
     </PageShell>
   );

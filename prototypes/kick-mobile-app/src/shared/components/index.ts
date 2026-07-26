@@ -1,0 +1,1 @@
+export { ChannelBadge } from './ChannelBadge';

@@ -1,0 +1,148 @@
+/*
+  A clip, presented the way kick.com/browse/clips presents one, and the viewer
+  that opens when you press it. Measured from the screenshots in
+  docs/matt/kick-timelines-references/.
+*/
+
+/* the thumbnail, with the length top left and the views bottom left */
+.clipthumb{position:relative; display:block; margin-bottom:8px}
+.clipthumb__canvas{
+  display:block; width:100%; aspect-ratio:16/9;
+  border-radius:var(--r-lg); background:var(--bg-surface);
+}
+.clipthumb__badge,.clipthumb__views{
+  position:absolute; left:8px; padding:2px 6px; border-radius:var(--r-sm);
+  background:var(--bg-overlay); color:var(--text-primary);
+  font-style:normal; font-size:12px; line-height:16px; font-weight:600;
+}
+.clipthumb__badge{top:8px}
+.clipthumb__views{bottom:8px; font-weight:400}
+
+/* the row under it: avatar, channel, title, then the category and the age */
+.clipmeta{display:grid; grid-template-columns:32px 1fr; gap:8px; align-items:start}
+.avatar--sm,.avatar--md{
+  flex:none; color:var(--id-on); font-weight:700;
+}
+.avatar--sm{width:32px; height:32px; font-size:12px; line-height:16px}
+.avatar--md{width:48px; height:48px; font-size:16px; line-height:24px}
+.clipmeta__text{min-width:0; display:grid; gap:2px}
+.clipmeta__channel{font-size:14px; line-height:20px; font-weight:700; color:var(--text-primary)}
+.clipmeta__title{
+  font-size:14px; line-height:20px; color:var(--text-body);
+  overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+}
+.clipmeta__foot{
+  display:flex; align-items:center; gap:6px;
+  font-size:12px; line-height:16px; color:var(--text-muted);
+}
+.clipmeta__cat{
+  padding:1px 8px; border-radius:var(--r-full);
+  background:var(--kick-on-glass-strong); color:var(--text-body);
+  font-size:12px; line-height:16px;
+}
+
+/*
+  The viewer. It covers the page, so the stream stays where it was underneath.
+  The clip and the chat are two panels with a gap, not one box.
+*/
+.clipviewer{position:fixed; inset:0; z-index:50; display:flex; align-items:center; justify-content:center}
+/* KICK's scrim token is ink at 80%, the same value as --bg-overlay. */
+.clipviewer__scrim{position:absolute; inset:0; background:var(--bg-overlay)}
+.clipviewer__panel{
+  position:relative;
+  --clip-height:min(80vh, calc((94vw - var(--chatroom-width) - 16px) * 9 / 16));
+  display:grid; gap:16px;
+  grid-template-columns:calc(var(--clip-height) * 16 / 9) var(--chatroom-width);
+  height:var(--clip-height);
+  animation:clipin var(--overlay) var(--ease-overlay);
+}
+@keyframes clipin{from{opacity:0; transform:scale(.98)}}
+
+.clipviewer__video{
+  position:relative; min-width:0; overflow:hidden;
+  background:#000; border-radius:var(--r-lg);
+  --clip-chrome:0;
+}
+.clipviewer__canvas{display:block; width:100%; height:100%}
+
+/* The clip names itself over the video, and the chrome appears on hover. */
+.clipviewer__video:hover,.clipviewer__video:focus-within{--clip-chrome:1}
+
+.clipviewer__head{
+  position:absolute; top:0; left:0; right:56px; padding:14px 16px; z-index:1;
+  background:linear-gradient(rgba(11,11,12,.72), transparent);
+  opacity:var(--clip-chrome); transition:opacity var(--base) var(--ease);
+  pointer-events:none;
+}
+.clipviewer__headline{
+  margin:0; font-size:14px; line-height:20px; font-weight:700; color:var(--text-primary);
+}
+.clipviewer__byline{
+  margin:2px 0 0; font-size:12px; line-height:16px; font-weight:600; color:var(--text-secondary);
+}
+.clipviewer__close{
+  position:absolute; top:12px; right:12px; z-index:2;
+  display:flex; align-items:center; justify-content:center; width:32px; height:32px;
+  padding:0; background:none; border:none;
+  color:var(--text-secondary); cursor:pointer;
+  opacity:var(--clip-chrome); transition:opacity var(--base) var(--ease);
+}
+/* It brightens. It never takes a fill, and it never takes the accent. */
+.clipviewer__close:hover{color:var(--text-primary)}
+
+.clipviewer__controls{
+  position:absolute; inset:auto 0 0 0; z-index:1; padding-bottom:3px;
+  background:linear-gradient(transparent, rgba(11,11,12,.72) 42%);
+  opacity:var(--clip-chrome); transition:opacity var(--base) var(--ease);
+}
+.clipviewer__seek{position:relative; height:14px; display:flex; align-items:flex-end;
+  padding:0 16px 5px; cursor:pointer; touch-action:none}
+.clipviewer__seek:focus{outline:none}
+.clipviewer__seek:focus-visible .clipviewer__track{outline:2px solid var(--kick-green); outline-offset:3px}
+.clipviewer__track{position:relative; width:100%; height:4px; background:rgba(255,255,255,.3)}
+/* The hover fill runs to the pointer, under the played fill. */
+.clipviewer__hover{position:absolute; inset:0 auto 0 0; width:0; background:rgba(255,255,255,.5)}
+.clipviewer__played{position:absolute; inset:0 auto 0 0; width:0; background:var(--kick-green)}
+.clipviewer__thumb{
+  position:absolute; top:50%; width:12px; height:12px; margin:-6px 0 0 -6px;
+  border-radius:var(--r-full); background:var(--kick-green);
+}
+/* The time left at the point under the pointer, not at the playhead. */
+.clipviewer__remain{
+  position:absolute; bottom:12px; transform:translateX(-50%);
+  font-size:12px; line-height:16px; font-weight:600; color:var(--text-primary);
+  text-shadow:0 1px 4px rgba(0,0,0,.9); pointer-events:none; white-space:nowrap;
+}
+.clipviewer__row{display:flex; align-items:center; gap:2px; height:44px; padding:0 12px}
+
+/* the chat rail */
+.clipviewer__side{
+  display:flex; flex-direction:column; min-height:0; overflow:hidden;
+  background:var(--bg-surface); border-radius:var(--r-lg);
+}
+.clipviewer__about{display:grid; grid-template-columns:48px 1fr; gap:10px; flex:none; padding:14px 12px 10px}
+.clipviewer__names{min-width:0; align-self:center}
+.clipviewer__channel{
+  display:flex; align-items:center; gap:4px; margin:0;
+  font-size:20px; line-height:24px; font-weight:700; color:var(--text-primary);
+}
+.clipviewer__streamtitle{
+  margin:0; font-size:12px; line-height:16px; color:var(--text-muted);
+  overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+}
+.clipviewer__actions{display:flex; align-items:center; gap:8px; flex:none; padding:0 12px 12px}
+.clipviewer__follow{flex:1; justify-content:center}
+.clipviewer__actions .pbtn{
+  width:32px; height:32px; flex:none;
+  background:var(--bg-raised); border-radius:var(--r-sm);
+}
+.clipviewer__full{
+  flex:none; margin:0 12px 12px; justify-content:center;
+  font-size:14px; line-height:20px;
+}
+
+/* Chat replay shows the timestamp. Live chat hides it, Site Reference Section 6. */
+.chat__body--replay{border-top:1px solid var(--border); font-size:var(--chatroom-font-size)}
+.chat__body--replay .msg__time{
+  margin-right:6px; font-size:12px; font-weight:600; color:var(--text-muted);
+}

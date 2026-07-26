@@ -4,28 +4,43 @@
   progress bar, a 44px control row, and no background plate.
 */
 
-.player{position:relative; background:var(--bg-base)}
+.player{position:relative; background:var(--bg-base); --controls-opacity:0; --controls-events:none}
 
+/*
+  The frame keeps 16:9 and never grows past the height left under the navbar,
+  so the channel bar cannot be pushed out of the column. Without the cap a wide
+  short window, an ultrawide monitor for example, makes the middle pane scroll.
+  ponytail: --chanbar-height is measured, not computed. Change it if the channel
+  bar gains a row, or move .player to a size container and read 100cqh.
+*/
 .frame{
+  --chanbar-height:108px;
   position:relative; aspect-ratio:16/9; overflow:hidden; background:var(--bg-surface);
+  width:min(100%, calc((100vh - var(--navbar-height) - var(--chanbar-height)) * 16 / 9));
+  margin:0 auto;
   display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px;
 }
-.frame__canvas{position:absolute; inset:0; width:100%; height:100%; display:block}
+/* Full screen has no navbar and no channel bar to leave room for. */
+.player:fullscreen{display:flex; align-items:center; justify-content:center}
+.player:fullscreen .frame{width:min(100%, calc(100vh * 16 / 9))}
 
-/* Says what the picture is. It appears with the controls, not over the scene. */
-.frame__truth{
-  position:absolute; left:16px; bottom:70px; margin:0; z-index:1;
-  font-size:11px; color:var(--text-muted); text-shadow:0 1px 4px rgba(0,0,0,.9);
-  opacity:0; transition:opacity var(--base) var(--ease); pointer-events:none;
-}
-.player:hover .frame__truth{opacity:1}
+.frame__canvas{position:absolute; inset:0; width:100%; height:100%; display:block}
 
 .dot{width:7px; height:7px; border-radius:50%; background:currentColor; display:inline-block}
 
-/* the control bar */
+/*
+  The control bar appears on hover, the way KICK's does (Site Reference
+  Section 4). It also stays up while the stream is paused, and while the
+  timeline is open, because the overlay leaves this strip clear on purpose.
+*/
+.player:hover,.player:focus-within,
+.player.is-paused,.player.is-timeline{--controls-opacity:1; --controls-events:auto}
+
 .controls{
   position:absolute; inset:auto 0 0 0; z-index:3; padding-bottom:3px;
   background:linear-gradient(transparent, rgba(11,11,12,.72) 42%);
+  opacity:var(--controls-opacity); pointer-events:var(--controls-events);
+  transition:opacity var(--base) var(--ease);
 }
 
 .seekbar{position:relative}
@@ -76,7 +91,8 @@
 .pbtn{width:44px; height:44px; color:var(--text-primary)}
 .pbtn:hover{color:var(--kick-green)}
 .pbtn--wide{
-  width:auto; gap:7px; padding:0 12px; font:inherit; font-size:14px; font-weight:600;
+  width:auto; gap:7px; padding:0 12px;
+  font:inherit; font-size:14px; line-height:20px; font-weight:600;
 }
 
 /* Volume, Site Reference Section 4. A white 16px thumb, revealed on hover. */
@@ -94,35 +110,48 @@
   border-radius:var(--r-full); background:#fff; pointer-events:none;
 }
 
-.ptime{margin:0 10px 0 6px; font-size:14px; font-weight:600; color:#fff}
+.ptime{margin:0 10px 0 6px; font-size:14px; line-height:20px; font-weight:600; color:#fff}
 
 /* The live chip is a green dot and white text, never a red badge. */
 .plive{
   display:inline-flex; align-items:center; gap:4px; height:20px; padding:0 4px;
   background:none; border:none;
-  color:#fff; font:inherit; font-size:14px; font-weight:600; cursor:pointer;
+  color:#fff; font:inherit; font-size:14px; line-height:20px; font-weight:600; cursor:pointer;
 }
 .plive .dot{width:8px; height:8px; background:var(--kick-green)}
 .plive.is-behind{color:var(--text-muted)}
 .plive.is-behind .dot{background:var(--text-disabled)}
 .plive.is-behind:hover{color:#fff}
 
-/* the hover card */
+/* the hover card. The glass comes from the .glass class in kick.css. */
 .scrubcard{
   position:absolute; left:0; bottom:70px; transform:translateX(-50%); z-index:4;
-  min-width:150px; max-width:240px; padding:8px 10px;
-  background:var(--bg-raised); border-radius:var(--r-lg); box-shadow:var(--shadow-md);
+  min-width:150px; max-width:240px; padding:12px;
   pointer-events:none; display:grid; gap:2px;
 }
-.scrubcard strong{color:var(--text-primary); font-size:13px; font-weight:600; line-height:18px}
-.scrubcard b{color:var(--text-body); font-size:13px; font-weight:600}
-.scrubcard span{color:var(--text-muted); font-size:12px}
-.scrubcard__label{font-style:normal; font-size:10px; letter-spacing:.06em; text-transform:uppercase}
+/*
+  A clip card is sized around the thumbnail, not the text, and it takes the
+  pointer so a viewer can move up off the rail and press it. The bridge closes
+  the 9px gap to the rail, or the card would shut on the way up. It sits above
+  the control row, so it covers no button.
+*/
+.scrubcard.has-preview{width:288px; min-width:0; max-width:none; pointer-events:auto; cursor:pointer}
+.scrubcard.has-preview::after{content:''; position:absolute; left:0; right:0; top:100%; height:10px}
 
-/* the overlay. It clears the control bar, so the viewer can still scrub. */
+/* Direct children only. A clip puts its own markup in here, and it sets its own type. */
+.scrubcard__text{display:grid; gap:2px}
+.scrubcard__text > strong{color:var(--text-primary); font-size:14px; line-height:20px; font-weight:600}
+.scrubcard__text > b{color:var(--text-body); font-size:14px; line-height:20px; font-weight:600}
+.scrubcard__text > span{color:var(--text-muted); font-size:12px; line-height:16px}
+
+/*
+  The overlay is a glass pane that floats over the video, so it is inset on every
+  side and it clears the control bar. The glass itself comes from kick.css.
+*/
 .overlay{
-  position:absolute; inset:0 0 56px 0; z-index:2; display:flex; flex-direction:column;
-  background:var(--bg-base); animation:fade var(--overlay) var(--ease-overlay);
+  position:absolute; inset:14px 14px 70px; z-index:2; display:flex; flex-direction:column;
+  overflow:hidden;
+  animation:fade var(--overlay) var(--ease-overlay);
 }
 @keyframes fade{from{opacity:0}}
 
@@ -131,22 +160,23 @@
   padding:14px 16px 12px; border-bottom:1px solid var(--border);
 }
 .overlay__title{margin:0; font-size:20px; line-height:24px; color:var(--text-primary); font-weight:700}
-.overlay__sub{margin:2px 0 0; font-size:12px; color:var(--text-muted)}
+.overlay__sub{margin:2px 0 0; font-size:12px; line-height:16px; color:var(--text-muted)}
 .overlay__filters{display:flex; gap:6px; flex-wrap:wrap; margin-left:auto}
 .iconbtn{
   display:inline-flex; align-items:center; justify-content:center; width:32px; height:32px;
   background:none; border:none; border-radius:var(--r-sm);
   color:var(--text-secondary); cursor:pointer;
 }
-.iconbtn:hover{color:var(--text-primary); background:var(--bg-surface)}
+/* No fill on hover. A plate on glass reads as a solid patch. */
+.iconbtn:hover{color:var(--text-primary)}
 
 .chip{
-  padding:3px 11px; background:var(--bg-surface); border:none;
+  padding:3px 11px; background:var(--kick-on-glass); border:none;
   border-radius:var(--r-full); color:var(--text-secondary);
-  font:inherit; font-size:12px; line-height:18px; font-weight:600; cursor:pointer;
+  font:inherit; font-size:12px; line-height:16px; font-weight:600; cursor:pointer;
   transition:color var(--fast) var(--ease), background-color var(--fast) var(--ease);
 }
-.chip:hover{background:var(--bg-raised); color:var(--text-primary)}
+.chip:hover{background:var(--kick-on-glass-strong); color:var(--text-primary)}
 .chip.is-active{background:var(--kick-green); color:var(--bg-base)}
 
 .overlay__curve{position:relative; height:90px; margin:0 16px; flex:none}
@@ -171,18 +201,18 @@
 
 .overlay__scroll{flex:1; overflow-y:auto; padding:14px 16px 0}
 .overlay__h3{
-  margin:0 0 8px; font-size:12px; font-weight:600; letter-spacing:.06em;
+  margin:0 0 8px; font-size:12px; line-height:16px; font-weight:600; letter-spacing:.06em;
   text-transform:uppercase; color:var(--text-muted);
 }
 .missed{margin-bottom:18px}
 
-.cards{display:grid; grid-template-columns:repeat(auto-fill,minmax(172px,1fr)); gap:10px}
+.cards{display:grid; grid-template-columns:repeat(auto-fill,minmax(180px,1fr)); gap:10px}
 
 .card{
-  position:relative; padding-bottom:28px; background:var(--bg-surface);
+  position:relative; padding-bottom:28px; background:var(--kick-on-glass);
   border-radius:var(--r-lg); overflow:hidden;
 }
-.card:hover{background:var(--bg-raised)}
+.card:hover{background:var(--kick-on-glass-strong)}
 .card__go{
   display:grid; gap:2px; width:100%; padding:8px; text-align:left;
   background:none; border:none; color:inherit; font:inherit; cursor:pointer;
@@ -191,15 +221,19 @@
 
 .card__thumb{
   display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px;
-  height:54px; margin-bottom:6px; border-radius:var(--r-sm); background:var(--bg-raised);
+  height:54px; margin-bottom:6px; border-radius:var(--r-sm); background:var(--kick-on-glass-strong);
 }
-.card:hover .card__thumb{background:var(--bg-surface)}
-.card__thumb em{font-style:normal; font-size:12px; color:var(--text-secondary)}
-.card__noframe{font-size:10px; color:var(--text-disabled)}
-.card__label{font-size:10px; letter-spacing:.06em; text-transform:uppercase; font-weight:600}
-.card__title{font-size:13px; line-height:18px; font-weight:600; color:var(--text-primary)}
-.card__byline{font-size:12px; line-height:17px; color:var(--text-secondary)}
-.card__time{font-size:11px; color:var(--text-muted)}
+.card:hover .card__thumb{background:var(--kick-on-glass)}
+.card__thumb em{font-style:normal; font-size:12px; line-height:16px; color:var(--text-secondary)}
+.card__title{font-size:14px; line-height:20px; font-weight:600; color:var(--text-primary)}
+.card__byline{font-size:12px; line-height:16px; color:var(--text-secondary)}
+.card__time{font-size:12px; line-height:16px; color:var(--text-muted)}
+
+/* The eyebrow label, Design System Section 2. Both surfaces use one rule. */
+.scrubcard__label,.card__label{
+  font-style:normal; font-size:12px; line-height:16px; font-weight:700;
+  letter-spacing:.06em; text-transform:uppercase;
+}
 
 .scrubcard__label--peak,.card__label--peak{color:var(--kick-green)}
 .scrubcard__label--clip,.card__label--clip{color:var(--id-sky)}
@@ -211,13 +245,9 @@
 .react{
   position:absolute; bottom:6px; right:8px;
   display:inline-flex; align-items:center; gap:4px; padding:2px 7px;
-  background:var(--bg-raised); border:none; border-radius:var(--r-full);
-  color:var(--text-secondary); font:inherit; font-size:11px; cursor:pointer;
+  background:var(--kick-on-glass-strong); border:none; border-radius:var(--r-full);
+  color:var(--text-secondary); font:inherit; font-size:12px; line-height:16px; cursor:pointer;
 }
 .react:hover{color:var(--text-primary)}
 .react.is-on{color:var(--id-rose)}
 
-.overlay__foot{
-  margin:0; padding:10px 16px; border-top:1px solid var(--border);
-  font-size:11px; color:var(--text-muted);
-}

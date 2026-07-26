@@ -7,6 +7,7 @@
 <link rel="stylesheet" href="css/tokens.css">
 <link rel="stylesheet" href="css/kick.css">
 <link rel="stylesheet" href="css/player.css">
+<link rel="stylesheet" href="css/clip.css">
 </head>
 <body>
 
@@ -22,8 +23,7 @@
   </div>
   <div class="nav__right">
     <button class="navicon" data-icon="globe" data-icon-size="20" aria-label="Language"></button>
-    <button class="btn btn--ghost btn--sm">Log In</button>
-    <button class="btn btn--primary btn--sm">Sign Up</button>
+    <button class="navavatar" id="navAvatar"></button>
   </div>
 </header>
 
@@ -35,9 +35,12 @@
       <a class="side__link" href="#"><span data-icon="browse" data-icon-size="16"></span>Browse</a>
       <a class="side__link" href="#"><span data-icon="following" data-icon-size="16"></span>Following</a>
     </nav>
-    <h2 class="side__head">Recommended</h2>
-    <div class="side__list" id="sideList"></div>
-    <div class="side__foot"><a href="#">About Kick</a><a href="#">Start Live</a></div>
+    <div class="side__scroll">
+      <h2 class="side__head">Following</h2>
+      <div class="side__list" id="followList"></div>
+      <h2 class="side__head">Recommended</h2>
+      <div class="side__list" id="sideList"></div>
+    </div>
   </aside>
 
   <main class="main no-scrollbar">
@@ -45,9 +48,8 @@
     <div class="player" id="player">
       <div class="frame" id="frame">
         <canvas class="frame__canvas" id="frameCanvas"></canvas>
-        <p class="frame__truth">Synthetic scene, drawn from the playhead. The API gives no video.</p>
 
-        <div class="overlay" id="overlay" hidden>
+        <div class="overlay glass" id="overlay" hidden>
           <div class="overlay__head">
             <div>
               <h2 class="overlay__title">Timeline</h2>
@@ -83,8 +85,6 @@
               <div class="cards" id="momentCards"></div>
             </section>
           </div>
-
-          <p class="overlay__foot" id="overlayFoot"></p>
         </div>
 
         <div class="controls" id="controls">
@@ -128,13 +128,20 @@
           </div>
         </div>
 
-        <div class="scrubcard" id="scrubcard" hidden></div>
+        <div class="scrubcard glass" id="scrubcard" hidden>
+          <div class="clipthumb" id="scrubStage" hidden>
+            <canvas class="clipthumb__canvas" id="scrubPreview"></canvas>
+            <em class="clipthumb__badge tabular" id="scrubDuration"></em>
+            <em class="clipthumb__views" id="scrubViews"></em>
+          </div>
+          <div class="scrubcard__text" id="scrubText"></div>
+        </div>
       </div>
     </div>
 
     <div class="chanbar">
       <div class="chanbar__avatar">
-        <span class="avatar" aria-hidden="true">CG</span>
+        <span class="avatar" id="channelAvatar" aria-hidden="true"></span>
         <span class="avatar__live">LIVE</span>
       </div>
       <div class="chanbar__meta">
@@ -156,14 +163,11 @@
         <button class="pbtn" data-icon="share" data-icon-size="20" aria-label="Share via"></button>
       </div>
     </div>
-
-    <details class="sources">
-      <summary>Where this data comes from</summary>
-      <ul id="sourceList"></ul>
-    </details>
   </main>
 
-  <div class="resize" aria-hidden="true"></div>
+  <div class="resize" id="chatResize" role="separator" tabindex="0"
+       aria-label="Resize chatroom" aria-orientation="vertical"
+       aria-valuemin="280" aria-valuemax="460" aria-valuenow="340"></div>
 
   <aside class="chat">
     <div class="chat__head">
@@ -181,11 +185,74 @@
         <button class="chaticon" data-icon="gift" data-icon-size="18" aria-label="Send a gift"></button>
       </div>
       <div class="chat__send">
-        <span class="chat__hint">Rewind the stream and chat rewinds with it</span>
         <button class="btn btn--primary btn--sm" id="chatSend">Chat</button>
       </div>
     </div>
   </aside>
+</div>
+
+<div class="clipviewer" id="clipViewer" hidden>
+  <div class="clipviewer__scrim" id="clipScrim"></div>
+  <div class="clipviewer__panel" role="dialog" aria-modal="true" aria-label="Clip">
+    <div class="clipviewer__video" id="clipVideo">
+      <canvas class="clipviewer__canvas" id="clipCanvas"></canvas>
+
+      <div class="clipviewer__head">
+        <p class="clipviewer__headline" id="clipHeadline"></p>
+        <p class="clipviewer__byline" id="clipByline"></p>
+      </div>
+      <button class="clipviewer__close" id="clipClose" data-icon="close" data-icon-size="16"
+              aria-label="Close the clip"></button>
+
+      <div class="clipviewer__controls">
+        <div class="clipviewer__seek" id="clipSeek" role="slider" tabindex="0"
+             aria-label="Clip position" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+          <div class="clipviewer__track">
+            <div class="clipviewer__hover" id="clipHover"></div>
+            <div class="clipviewer__played" id="clipPlayed"></div>
+            <div class="clipviewer__thumb" id="clipThumb"></div>
+            <span class="clipviewer__remain tabular" id="clipRemain" hidden></span>
+          </div>
+        </div>
+        <div class="clipviewer__row">
+          <button class="pbtn" id="clipPlay" aria-label="Pause"></button>
+          <button class="pbtn" id="clipMute" aria-label="Mute"></button>
+          <span class="ptime tabular" id="clipTime">00:00 / 00:00</span>
+          <span class="pspacer"></span>
+          <button class="pbtn" id="clipFull" data-icon="fullscreen" data-icon-size="20"
+                  aria-label="Full screen"></button>
+        </div>
+      </div>
+    </div>
+
+    <aside class="clipviewer__side">
+      <div class="chat__head">
+        <button class="chaticon" data-icon="collapseChat" aria-label="Expand chat"></button>
+        <span class="chat__title">Chat</span>
+        <span class="chaticon" aria-hidden="true"></span>
+      </div>
+
+      <div class="clipviewer__about">
+        <span class="avatar avatar--md" id="clipAvatar" aria-hidden="true"></span>
+        <div class="clipviewer__names">
+          <p class="clipviewer__channel">ClutchGoblin
+            <span class="verified" data-icon="verified" data-icon-size="16" role="img"
+                  aria-label="Verified"></span>
+          </p>
+          <p class="clipviewer__streamtitle" id="clipStreamTitle"></p>
+        </div>
+      </div>
+
+      <div class="clipviewer__actions">
+        <button class="btn btn--primary btn--sm clipviewer__follow">Follow</button>
+        <button class="pbtn" data-icon="share" data-icon-size="18" aria-label="Share via"></button>
+      </div>
+
+      <button class="btn btn--secondary clipviewer__full" id="clipWatchFull">Watch full video</button>
+
+      <div class="chat__body chat__body--replay" id="clipChat"></div>
+    </aside>
+  </div>
 </div>
 
 <script src="js/mock-api.js"></script>
@@ -193,6 +260,7 @@
 <script src="js/player.js"></script>
 <script src="js/moments.js"></script>
 <script src="js/stage.js"></script>
+<script src="js/clip.js"></script>
 <script src="js/scrubber.js"></script>
 <script src="js/overlay.js"></script>
 <script src="js/chat.js"></script>

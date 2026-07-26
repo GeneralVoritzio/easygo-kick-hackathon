@@ -11,7 +11,7 @@
   var MISSED_LIMIT = 3;
 
   var root, curveArea, curveLine, pinHost, head, cardHost, missedBox, missedHost;
-  var momentsHead, sub, foot, filter = 'all';
+  var momentsHead, sub, filter = 'all';
 
   function drawCurve() {
     var rows = api.getBuckets();
@@ -33,14 +33,12 @@
 
   function thumbFor(m) {
     var category = api.categoryAt(m.t);
-    return '<span class="card__thumb card__thumb--' + m.group + '">' +
-      '<em>' + category.name + '</em>' +
-      '<span class="card__noframe">no frame, by design</span></span>';
+    return '<span class="card__thumb"><em>' + category.name + '</em></span>';
   }
 
   function cardHtml(m) {
     return '<article class="card" data-id="' + m.id + '">' +
-      '<button class="card__go" data-seek="' + m.t + '">' +
+      '<button class="card__go" data-seek="' + m.t + '" data-id="' + m.id + '">' +
       thumbFor(m) +
       '<span class="card__label card__label--' + m.group + '">' + m.label + '</span>' +
       '<span class="card__title">' + m.title + '</span>' +
@@ -95,12 +93,8 @@
       missedHost = document.getElementById('missedCards');
       momentsHead = document.getElementById('momentsHead');
       sub = document.getElementById('overlaySub');
-      foot = document.getElementById('overlayFoot');
 
-      sub.textContent = 'You joined at ' + moments.hms(player.state.joinedAt) +
-        '. Pick a moment and the player goes there.';
-      foot.textContent = 'Moments come from ' + KT2.FAKE_SOURCES.markers +
-        '. A heart posts to ' + KT2.FAKE_SOURCES.reactions + '.';
+      sub.textContent = 'You joined at ' + moments.hms(player.state.joinedAt);
 
       root.addEventListener('click', function (e) {
         var chip = e.target.closest('[data-filter]');
@@ -114,7 +108,19 @@
         }
 
         var go = e.target.closest('[data-seek]');
-        if (go) { player.seek(+go.dataset.seek); KT2.overlay.close(); }
+        if (!go) return;
+
+        /*
+          A clip is a thing you watch, so it opens in the viewer. Every other
+          moment is a point in the stream, so it seeks.
+        */
+        var clip = moments.byGroup('clip').filter(function (m) {
+          return m.id === go.dataset.id;
+        })[0];
+        if (clip) { KT2.overlay.close(); KT2.clip.open(clip); return; }
+
+        player.seek(+go.dataset.seek);
+        KT2.overlay.close();
       });
 
       document.getElementById('overlayClose').addEventListener('click', KT2.overlay.close);
@@ -125,6 +131,7 @@
 
     open: function () {
       root.hidden = false;
+      document.getElementById('player').classList.add('is-timeline');
       drawCurve();
       renderCards();
       renderMissed();
@@ -132,7 +139,10 @@
       document.getElementById('overlayClose').focus();
     },
 
-    close: function () { root.hidden = true; },
+    close: function () {
+      root.hidden = true;
+      document.getElementById('player').classList.remove('is-timeline');
+    },
 
     toggle: function () { KT2.overlay.isOpen() ? KT2.overlay.close() : KT2.overlay.open(); }
   };

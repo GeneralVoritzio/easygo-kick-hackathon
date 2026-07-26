@@ -11,20 +11,9 @@
 
   var MAX_ROWS = 120;
   var SEEK_GAP_SECONDS = 5;
+  var REPLAY_LIMIT = 80;
 
   var body, board, lastT = null, carry = 0;
-
-  // The 16 KICK identity colours, Design System Section 1.
-  var IDENTITY = [
-    '#FEA0CF', '#A0F6FE', '#FEA0A0', '#18E9FB', '#EACDFE', '#B8FEA0', '#FECDCD', '#18FBB0',
-    '#A0FEDE', '#75FD45', '#A0D5FE', '#FD72B8', '#FEDAA0', '#45ADFC', '#FCB645', '#D8A0FE'
-  ];
-
-  function identityColour(name) {
-    var h = 0;
-    for (var i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) & 0xffff;
-    return IDENTITY[h % IDENTITY.length];
-  }
 
   /*
     api.chatAt returns the same four lines for a given moment, which reads as a
@@ -53,13 +42,14 @@
     });
   }
 
-  function rowHtml(message) {
+  function rowHtml(message, stamp) {
     var name = message.sender.username;
     var badges = badgesFor(name).map(function (b) {
       return '<span class="msg__badge msg__badge--' + b + '" title="' + b + '"></span>';
     }).join('');
-    return '<div class="msg"><div class="msg__inner">' + badges +
-      '<span class="msg__name" style="color:' + identityColour(name) + '">' +
+    var time = stamp ? '<span class="msg__time tabular">' + stamp + '</span>' : '';
+    return '<div class="msg"><div class="msg__inner">' + time + badges +
+      '<span class="msg__name" style="color:' + message.sender.identity.username_color + '">' +
       escape(name) + '</span><span class="msg__sep">: </span>' +
       '<span class="msg__body">' + escape(message.content) + '</span></div></div>';
   }
@@ -126,7 +116,7 @@
       function send() {
         var text = input.value.trim();
         if (!text) return;
-        append(rowHtml({ sender: api.subject('you'), content: text }));
+        append(rowHtml({ sender: api.subject(api.VIEWER_ME), content: text }));
         input.value = '';
       }
       document.getElementById('chatSend').addEventListener('click', send);
@@ -135,6 +125,24 @@
       player.on(tick);
     },
 
-    say: function (text) { append(systemHtml(text)); }
+    say: function (text) { append(systemHtml(text)); },
+
+    /*
+      The room as it was, for a window of the stream. Each row carries its offset
+      from the start of the window, which is what a clip replay shows. Real
+      capability: every kick chat.message.sent event is timestamped against
+      started_at, so a recorder can rebuild this.
+    */
+    replayHtml: function (from, span) {
+      var rows = [];
+      for (var i = 0; i < span && rows.length < REPLAY_LIMIT; i++) {
+        var rate = moments.bucketAt(from + i).messages_count / api.BUCKET_SECONDS;
+        var count = Math.max(1, Math.round(rate));
+        for (var k = 0; k < count && rows.length < REPLAY_LIMIT; k++) {
+          rows.push(rowHtml(nextMessage(from + i), moments.mmss(i)));
+        }
+      }
+      return rows.join('');
+    }
   };
 })(window);

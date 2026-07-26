@@ -135,7 +135,8 @@
   the 9px gap to the rail, or the card would shut on the way up. It sits above
   the control row, so it covers no button.
 */
-.scrubcard.has-preview{width:288px; min-width:0; max-width:none; pointer-events:auto; cursor:pointer}
+/* 344 puts the thumbnail at 320 by 180, the size kick.com/browse/clips uses. */
+.scrubcard.has-preview{width:344px; min-width:0; max-width:none; pointer-events:auto; cursor:pointer}
 .scrubcard.has-preview::after{content:''; position:absolute; left:0; right:0; top:100%; height:10px}
 
 /* Direct children only. A clip puts its own markup in here, and it sets its own type. */

@@ -67,8 +67,9 @@ Hover the rail and it opens: the track grows to 6px, the notches grow, and the
 hype curve fades in above. Hover near a notch and a card names the moment, the
 time and the viewer count. Click or drag to go there.
 
-**A clip is a clip card.** Hover a clip on the rail and the card grows to 288px
-and shows the card `kick.com/browse/clips` shows, copied from
+**A clip is a clip card.** Hover a clip on the rail and the card grows to 344px,
+which puts the thumbnail at the 320 by 180 the live grid uses. It shows the card
+`kick.com/browse/clips` shows, measured from
 `docs/matt/kick-timelines-references/clip-display.png`:
 
 - A 16:9 still frame, with the length top left and the view count bottom left.
@@ -86,7 +87,9 @@ Three of the four clips hold a notch: 01:05:48, 02:01:06 and 02:25:12. The
 fourth sits 24 seconds from the 5,000 kicks notch, which wins the hover.
 
 **The clip viewer.** Press a clip card, or a clip card in the timeline, and the
-clip opens over the page. Two panels with a 14px gap, not one box:
+clip opens over the page. One box at 70vh, split into a 16:9 clip and a 340px
+chat rail. The two are flush: only the outer corners take the 8px radius, and
+the seam between them is square.
 
 - **The clip**, 16:9, on the left. It names itself over the video, top left:
   `title • category` on the first line, then `Clipped by X • N Views • age`. The
@@ -94,12 +97,15 @@ clip opens over the page. Two panels with a 14px gap, not one box:
   mute, `MM:SS / MM:SS`, and full screen, with the remaining time centred over
   the bar. All of it appears on hover, the way the page player's does, and it is
   up when the viewer opens because focus lands inside.
-- **The chat rail** on the right, at the chat width. The channel avatar, the
-  channel name and the **stream** title, then `Follow` and share, then
-  `Watch full video`, then the chat as it was, each row stamped from the start
-  of the clip.
+- **The chat rail** on the right, at the chat width. A 64px channel avatar, the
+  channel name and the **stream** title, then `Follow` and share, then a rule,
+  then `Watch full video`, then a second rule, then the chat as it was, each row
+  stamped from the start of the clip. Every row sits 14px in from each edge, the
+  two rules are 2px in `#24272C`, and the chat replay drops back to the page
+  colour inside the rail.
 
-The bar is scrubbable, and it measures the track, not the padded box around it.
+The bar runs edge to edge, 4px at rest and 6px under the pointer, with a 16px
+green thumb, the same metrics the page player uses (Site Reference Section 4).
 The `-MM:SS` over the bar is the time left **at the point under the pointer**, not
 at the playhead, and a lighter fill runs out to meet it. That is what the
 screenshot shows: the label reads `-02:13` at 25.9% of a 3:00 clip.
@@ -266,6 +272,42 @@ Five differences, each on purpose.
   UI copy as well as in code and docs, so this page meets two of the three. The
   data section above carries the labels.
 
+## What the reference screenshots measure
+
+The two clip screenshots in `docs/matt/kick-timelines-references/` are 1:1 with
+CSS pixels, so every number below is read from them and not from a guess. The
+scale is fixed by the KICK wordmark, which is 26px tall in
+`clip-clicked-popup.png`, and by the 320 by 180 thumbnail in `clip-display.png`.
+Nobody has to measure these again.
+
+**The clip viewer**, from `clip-clicked-popup-hovered.png`:
+
+| Part | Live value |
+|---|---|
+| The box | 16:9 clip and a 340px rail, flush, 8px on the outer corners only |
+| Height | 912px in a 1297px viewport, so 70vh |
+| Rail rows | 14px in from each edge, so 312px of content |
+| Chat header | 50px, a 2px `#24272C` bottom border, `Chat` at 16px |
+| Channel avatar | 64px, 16px to the text |
+| Stream title | 14px |
+| `Follow` | 40px tall, and it takes the width the icon buttons leave |
+| Icon buttons | 40 by 40 on `color-light-4`, 8px apart |
+| `Watch full video` | 312 by 40 on `color-light-4`, a 2px rule 16px above and below |
+| The replay | The page colour, inset 14px, 8px radius |
+| The seek bar | Edge to edge, 6px under the pointer, a 16px green thumb |
+
+**The clip card**, from `clip-display.png`:
+
+| Part | Live value |
+|---|---|
+| Thumbnail | 320 by 180, 8px to the row under it |
+| Length, views | 14px on a dark plate, 20px tall, top left and bottom left |
+| Avatar | 36px, 16px to the text |
+| Channel name | 14px weight 700 |
+| Clip title | 14px |
+| Category chip | 14px on `#42474D`, 22px tall, a full radius |
+| Age | 14px, muted, on the same line as the chip |
+
 ## Glass
 
 A pane that sits over the video uses KICK's glass, not their surfaceOverlay.
@@ -278,6 +320,11 @@ KICK keeps the two apart, and the values come from
 | `--kick-glass-frost` | `effect-glass-frost` | `8`, used as `blur(8px)` |
 | `--kick-on-glass` | none. Ours 🔧 | `rgba(240,241,242,.08)` |
 | `--kick-on-glass-strong` | none. Ours 🔧 | `rgba(240,241,242,.14)` |
+| `--kick-light-4` | `color-light-4` | `rgba(240,241,242,.04)` |
+
+`--kick-light-4` is a plate on an opaque surface, not on glass. The clip viewer
+uses it for the icon buttons and for `Watch full video`, which is what the live
+screenshot measures: `#1F2325`, which is `color-light-4` over `surface-base`.
 
 The `.glass` class in `css/kick.css` carries the whole treatment, so a pane opts in with one
 class. The flare is a `-45deg` gradient at 10% white, which follows KICK's

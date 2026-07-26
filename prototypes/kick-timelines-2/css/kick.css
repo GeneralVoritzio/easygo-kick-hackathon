@@ -34,6 +34,9 @@
   --kick-glass:rgba(11,11,12,.64);   /* glass-base, color-dark-64 */
   --kick-glass-frost:8px;            /* effect-glass-frost */
 
+  /* A plate on an opaque surface. KICK's color-light-4, read from the clip viewer. */
+  --kick-light-4:rgba(240,241,242,.04);
+
   /*
     A raised layer on glass. Ours, not KICK's: KICK publishes no token for it.
     It follows their idiom, which builds a surface from light at a low alpha
@@ -241,7 +244,7 @@ body{overflow:hidden}
   display:flex; align-items:center; justify-content:space-between; flex:none;
   min-height:38px; padding:12px 6px; border-bottom:2px solid var(--kick-chat-rule);
 }
-.chat__title{font-size:14px; line-height:20px; font-weight:600; color:var(--text-primary)}
+.chat__title{font-size:16px; line-height:24px; font-weight:600; color:var(--text-primary)}
 .chat__board{
   display:flex; align-items:center; gap:14px; flex:none; height:34px; padding:0 20px;
   border-top:1px solid var(--border); border-bottom:1px solid var(--border);

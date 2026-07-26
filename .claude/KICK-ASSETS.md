@@ -1,16 +1,32 @@
-# Assets
+# KICK assets
 
-Every brand asset and font we hold. All files here are local and committed, so nothing is fetched
-from the network.
+Where every brand asset and font came from. This file is the record. It is not a folder you build
+against, because **there is no root `assets/` folder any more.**
 
-**This folder is a library you copy from, not a folder you build against.** A project that needs a
-file copies it into its own folder and imports it locally, per the Working Agreement. Never point a
-build at this folder with a path that climbs out of the project: a bundler will not serve it in dev.
-**Copy the licence file with the asset**, and record in the project README which file the copy came
-from.
+**Every project holds its own copies.** A project that needs a font, a logo or a plate keeps that
+file in its own folder and imports it locally. Never point a build at a path that climbs out of the
+project, because a bundler will not serve it in dev. **Keep the licence file with the asset**, and
+say in the project README which file the copy came from.
 
-Current copies: `pitch/src/assets/` holds the two fonts and the wordmark.
-`prototypes/hypeprops/src/assets/` holds the wordmark and the community KICK font.
+Nothing is fetched from the network, at build time or at run time.
+
+## Where each file lives now
+
+| Asset | Home | Used by |
+|---|---|---|
+| Inter variable, with `OFL.txt` | `demo/src/kick/fonts/`, `pitch/src/assets/fonts/inter/`, `prototypes/kick-timelines-2/assets/fonts/` | Every UI |
+| Archivo variable, with `OFL.txt` | `pitch/src/assets/fonts/archivo/` | The deck |
+| KICK display font, with its licence | `pitch/src/assets/fonts/kick-font/` | The deck |
+| The wordmark `kick-logo.svg` | `demo/src/kick/brand/`, `pitch/src/assets/brand/`, `prototypes/hypeprops/src/assets/` | Every surface |
+| Favicon and social logos | `pitch/src/assets/brand/` | The deck |
+| Border devices and patterns | `pitch/src/assets/brand/devices/`, `pitch/src/assets/brand/patterns/` | The deck |
+| The icon set, 67 files | `demo/src/kick/icons/` | The demo |
+| KICK's 282 design tokens | `.claude/reference/kick-neon-tokens.css` | Read-only ground truth |
+| The page scrape | `demo/kick-reference/` | The demo |
+
+The icon set grew from 22 to 67 when we scraped kick.com on 26 July 2026. See
+`.claude/KICK-SITE-REFERENCE.md` Section 10 and `demo/kick-reference/README.md`.
+
 
 Read 25 July 2026. To refresh a file, use the source URL in the table and record the new date.
 

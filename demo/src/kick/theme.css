@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@source not "../../kick-reference";
+
 @custom-variant betterhover (@media (hover: hover));
 
 @font-face {

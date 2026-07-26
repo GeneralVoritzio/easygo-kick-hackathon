@@ -15,28 +15,41 @@ Easygo Mini Hackathon powered by KICK · Saturday 1 August 2026 · Challenge 1 (
 | `.claude/KICK-SITE-REFERENCE.md` | What kick.com actually looks like, measured from the live site: the page grid, the navbar, the sidebar, the player, the channel bar and the chat panel. Read it before you build any page that must look like KICK | 🔄 Only from the live site |
 | `.claude/KICK-API-CONVENTIONS.md` | Our API style guide: use KICK's real endpoint/field/event names, name invented endpoints the same way, and the mock-data naming rules | ✍️ Extend as we learn |
 | `.claude/KICK-PITCH-DECK-MECHANICS.md` | **Deck layout and mechanics only, no theming.** It must look like slides and not a website: the slide frame, the deck type scale, mock product elements, Reveal rules, the slide sequence, delivery. Colour, type styling, texture and motion feel come from the Brand Identity. **Applies only to files in `pitch/`** | ✍️ Extend as we learn |
+| `.claude/KICK-ASSETS.md` | Where every brand file came from: source URL, date read, licence. Read it before you add or replace an asset | ✍️ Extend as we learn |
+| `.claude/reference/` | Machine-readable ground truth read from KICK, today `kick-neon-tokens.css` | 🔄 Only from the live source |
+| `.claude/research/` | Longer write-ups that are not a source of truth: specs, summaries, working notes | ✍️ Extend as we learn |
 
 The two **locked** files are the inputs everything else is derived from. **Never edit, rewrite, reformat or "improve" them as a side effect of another task.** If something in them is wrong or has been superseded, say so and wait for an explicit instruction to change it — then change only what was asked.
 
-Any docs we generate go in the `docs/` folder — never into `.claude/`. Two files are the exception,
-because they are sources of truth read from KICK and not written by us: the **API map**, which
-tracks `docs.kick.com`, and the **site reference**, which tracks `kick.com`. Change either one only
-to match the live source, and record the date you checked.
+**All research lives in `.claude/`. There is no `docs/` folder.** Anything we read, measure or
+work out about KICK goes here, so one folder answers every question. Longer write-ups that are not
+a source of truth go in `.claude/research/`. Raw machine-readable ground truth goes in
+`.claude/reference/`.
 
-### `assets/`: every brand file and font, committed
+Two files track a live source and are not written by us: the **API map**, which tracks
+`docs.kick.com`, and the **site reference**, which tracks `kick.com`. Change either one only to
+match the live source, and record the date you checked.
 
-`assets/README.md` names every file, its source URL, the date we read it, and its licence.
-`assets/reference/kick-neon-tokens.css` holds KICK own 282 design tokens, read from their live CSS.
-It is read-only ground truth, and Brand Identity Section 3 lists what it corrects.
+**Page snapshots are not research, they are build inputs, so they live with the build.**
+`demo/kick-reference/` holds the scrape of kick.com: the raw HTML, KICK's own CSS, the DOM trees
+and the icon set. It sits beside the code that consumes it.
 
-**`assets/` is a library you copy from, not a folder you build against.** A project that needs a
-font, a logo or a plate **copies that file into its own folder** and imports it locally. Never point
-a build at `assets/` with a path that climbs out of the project.
+### Assets: every project owns its own files
+
+**There is no root `assets/` folder.** A project that needs a font, a logo or a plate **holds that
+file in its own folder** and imports it locally. Never point a build at a path that climbs out of
+the project.
 
 - A relative path out of a project breaks the dev server, because a bundler only serves its own root.
 - A project that owns its files stays runnable on its own, and it stays easy to move.
-- **Copy the licence file with the asset.** An OFL font without its `OFL.txt` is a rules problem.
+- **Keep the licence file with the asset.** An OFL font without its `OFL.txt` is a rules problem.
 - Say in the project README which file each copy came from, so a reader can refresh it.
+
+`.claude/KICK-ASSETS.md` records where every brand file came from, its source URL, the date we read
+it, and its licence. Read it before you add or replace an asset.
+
+`.claude/reference/kick-neon-tokens.css` holds KICK own 282 design tokens, read from their live CSS.
+It is read-only ground truth, and Brand Identity Section 3 lists what it corrects.
 
 Never fetch an asset from the network at build time or at run time.
 
@@ -46,7 +59,7 @@ Never fetch an asset from the network at build time or at run time.
 - **Know whether you are building UI or media.** If a user operates it, it is UI, and `.claude/KICK-DESIGN-SYSTEM.md` rules. If a user watches it, it is media, and `.claude/KICK-BRAND-IDENTITY.md` rules. Our overlay is UI. The pitch deck is media. A screenshot of our overlay inside the deck is still UI. KICK runs the same split: kick.com loads Inter only, and about.kick.com loads its display face on top.
 - **Every UI uses the design tokens** from `.claude/KICK-DESIGN-SYSTEM.md` Section 9 verbatim. Dark base, `#53fc18` used sparingly — the green stays under 10% of visible pixels.
 - **A page that must look like KICK copies the real page.** Read `.claude/KICK-SITE-REFERENCE.md` and rebuild the surface KICK already ships: the same grid, the same chrome, the same component metrics. Our feature is then the only new thing on the screen, which is what makes it read as native. Do not invent a layout when KICK has one. If the reference does not cover the page you need, measure the live site, build from what you measured, and add a section to the reference so nobody measures it twice. Run the finished page against Site Reference Section 12.
-- **Copy KICK's assets. Never draw an approximation.** The wordmark (`assets/brand/kick-logo.svg`), the icon set (`assets/icons/kick-inline/`) and Inter (`assets/fonts/inter/`) are committed. A hand-drawn icon, a wordmark set in a font, or a stroked outline icon set gives the copy away faster than any layout error. If you need an icon KICK has and we do not hold, read it from the live markup and add it to `assets/icons/kick-inline/`. If KICK has no such icon, draw it on their grid and record it as ours in `assets/README.md`.
+- **Copy KICK's assets. Never draw an approximation.** The wordmark (`demo/src/kick/brand/kick-logo.svg`), the icon set (`demo/src/kick/icons/`) and Inter (`demo/src/kick/fonts/`) are committed. A hand-drawn icon, a wordmark set in a font, or a stroked outline icon set gives the copy away faster than any layout error. If you need an icon KICK has and we do not hold, read it from the live markup and add it to `demo/src/kick/icons/`. If KICK has no such icon, draw it on their grid and record it as ours in `.claude/KICK-ASSETS.md`.
 - **Every media surface follows the Brand Identity.** In media the green floods, the display type is ALL CAPS on leading of 1.0, and the copy sounds like chat. Run the finished thing against Brand Identity Section 10.
 - **Respect the API boundary.** No video/audio frames, no game state, no per-viewer telemetry, no emote events, no injection into the KICK player. We run on mocked data, but every mocked data point must be something the live API could actually produce.
 - **Follow KICK's API conventions** (`.claude/KICK-API-CONVENTIONS.md`). Use real KICK names for anything the API exposes; name and shape invented endpoints/events/fields the same way. Mock data uses real, creative names (KICK-streamer flavour + funny handles) — **never placeholders**.

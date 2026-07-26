@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { NavLink, Link } from "react-router-dom";
 import { Icon, type KickIconName } from "../Icon";
 import { followedChannels, livestreams, formatViewers } from "../mock/api";
@@ -29,7 +30,7 @@ function ChannelRow({
   return (
     <Link
       to={`/${slug}`}
-      className="flex h-11 w-full flex-row items-center gap-2 rounded px-1.5 state-layer-surface"
+      className="flex h-11 w-full flex-row items-center gap-x-2 rounded px-1.5 py-1 state-layer-surface"
     >
       <div className="relative size-7 shrink-0">
         <img
@@ -55,20 +56,24 @@ function ChannelRow({
         )}
       </div>
       {live ? (
-        <div className="flex w-fit shrink-0 flex-nowrap items-center gap-x-1 text-surface-onSurfaceSecondary">
-          <div className="size-1.5 rounded-full bg-primary-base" />
-          <span className="text-xs font-semibold leading-4">
+        <div className="flex w-fit shrink-0 flex-nowrap items-center gap-x-1 self-start text-white">
+          <div className="h-2 w-2 rounded-full bg-green-500" />
+          <span className="text-sm font-semibold">
             {viewers === undefined ? "LIVE" : formatViewers(viewers)}
           </span>
         </div>
       ) : (
-        <Icon name="heart-slash" className="size-4 shrink-0 fill-neutral-700" />
+        <Icon name="heart-slash" className="size-4 shrink-0 self-start fill-neutral-700" />
       )}
     </Link>
   );
 }
 
+const STEP = 5;
+
 export function Sidebar({ open }: { open: boolean }) {
+  const [shown, setShown] = useState(10);
+
   if (!open) return null;
 
   return (
@@ -113,17 +118,41 @@ export function Sidebar({ open }: { open: boolean }) {
             <div className="flex h-9 w-full items-center px-1.5 text-sm font-semibold leading-[1.2]">
               Recommended
             </div>
-            {livestreams.slice(0, 10).map((s) => (
+            {livestreams.slice(0, shown).map((s) => (
               <ChannelRow
                 key={s.id}
                 slug={s.channel.slug}
                 username={s.channel.username}
                 avatar={s.channel.avatar}
                 category={s.category.name}
-                viewers={s.viewer_count}
+                viewers={s.hide_viewer_count ? undefined : s.viewer_count}
                 live
               />
             ))}
+            <div className="flex h-9 w-full items-center justify-between px-1.5">
+              {shown < livestreams.length ? (
+                <button
+                  type="button"
+                  onClick={() => setShown((n) => Math.min(n + STEP, livestreams.length))}
+                  className="text-xs font-semibold text-subtle betterhover:hover:text-white"
+                >
+                  Show More
+                </button>
+              ) : (
+                <span />
+              )}
+              {shown > STEP ? (
+                <button
+                  type="button"
+                  onClick={() => setShown((n) => Math.max(n - STEP, STEP))}
+                  className="text-xs font-semibold text-subtle betterhover:hover:text-white"
+                >
+                  Show Less
+                </button>
+              ) : (
+                <span />
+              )}
+            </div>
           </section>
         </div>
       </div>

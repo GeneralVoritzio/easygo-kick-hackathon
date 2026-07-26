@@ -18,6 +18,7 @@ export type Livestream = {
   thumbnail: string;
   started_at: string;
   is_mature: boolean;
+  hide_viewer_count?: boolean;
 };
 
 const avatar = (seed: string) =>
@@ -67,6 +68,7 @@ export const livestreams: Livestream[] = [
     thumbnail: still("evscape"),
     started_at: "2026-07-26T09:12:00Z",
     is_mature: false,
+    hide_viewer_count: true,
   },
   {
     id: 2,

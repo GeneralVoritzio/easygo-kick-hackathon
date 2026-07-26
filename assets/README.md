@@ -43,6 +43,30 @@ curl -L -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML,
 `cta-section.png` is the single most useful file here. Brand Identity Section 3 and Section 8 are
 written from it.
 
+### `icons/kick-inline/`: KICK own icons, 22 files
+
+Lifted verbatim from the markup `kick.com` serves, read **26 July 2026**. Design System Section 5
+names this folder, and until now the folder was missing.
+
+| Property | Value |
+|---|---|
+| Grid | `viewBox="0 0 32 32"`, with `menu`, `home` and `browse` on `0 0 16 16` |
+| Style | Solid fill, no stroke |
+| Colour | `fill="currentColor"` |
+| Rendered size | 16px on kick.com, Tailwind `size-4` |
+
+Real KICK icons: `menu` `search` `close` `home` `browse` `following` `collapseChat` `play`
+`volume` `pip` `clip` `theatre` `fullscreen` `settings` `share` `chatters` `gift` `globe`
+`verified`.
+
+**Three are ours, not KICK's:** `pause` and `mute`, because a logged out page never shows them, and
+`timeline`, because KICK has no such icon. All three are drawn on the same grid from KICK's own
+`play` and `volume` geometry. Do not present them as KICK's.
+
+**These are KICK trademarks.** They are here so we can match the chrome, not so we can ship them.
+
+Current copy: `prototypes/kick-timelines-2/js/icons.js`.
+
 ### `brand/devices/`: the edge bar
 
 | File | Size |

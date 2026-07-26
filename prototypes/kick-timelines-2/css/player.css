@@ -1,0 +1,223 @@
+/*
+  The player, the rail and the timeline overlay. The control bar copies the
+  metrics in .claude/KICK-SITE-REFERENCE.md Section 4: a 4px full bleed
+  progress bar, a 44px control row, and no background plate.
+*/
+
+.player{position:relative; background:var(--bg-base)}
+
+.frame{
+  position:relative; aspect-ratio:16/9; overflow:hidden; background:var(--bg-surface);
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px;
+}
+.frame__canvas{position:absolute; inset:0; width:100%; height:100%; display:block}
+
+/* Says what the picture is. It appears with the controls, not over the scene. */
+.frame__truth{
+  position:absolute; left:16px; bottom:70px; margin:0; z-index:1;
+  font-size:11px; color:var(--text-muted); text-shadow:0 1px 4px rgba(0,0,0,.9);
+  opacity:0; transition:opacity var(--base) var(--ease); pointer-events:none;
+}
+.player:hover .frame__truth{opacity:1}
+
+.dot{width:7px; height:7px; border-radius:50%; background:currentColor; display:inline-block}
+
+/* the control bar */
+.controls{
+  position:absolute; inset:auto 0 0 0; z-index:3; padding-bottom:3px;
+  background:linear-gradient(transparent, rgba(11,11,12,.72) 42%);
+}
+
+.seekbar{position:relative}
+
+.rail{
+  position:relative; height:14px; display:flex; align-items:flex-end;
+  padding-bottom:5px; cursor:pointer; touch-action:none;
+}
+.rail:focus{outline:none}
+.rail:focus-visible .rail__bar{outline:2px solid var(--kick-green); outline-offset:3px}
+
+.rail__bar{
+  position:relative; width:100%; height:4px;
+  background:rgba(255,255,255,.2); transition:height var(--fast) var(--ease);
+}
+.rail.is-open .rail__bar{height:6px}
+.rail__buffer{position:absolute; inset:0; background:rgba(255,255,255,.5)}
+.rail__played{position:absolute; inset:0 auto 0 0; width:0; background:var(--kick-green)}
+.rail__thumb{
+  position:absolute; top:50%; width:16px; height:16px; margin:-8px 0 0 -8px;
+  border-radius:50%; background:var(--kick-green);
+  transform:scale(0); transition:transform var(--fast) var(--ease);
+}
+.rail.is-open .rail__thumb{transform:scale(1)}
+
+.rail__notches{position:absolute; inset:0; pointer-events:none}
+.notch{
+  position:absolute; top:50%; width:2px; height:10px; margin-top:-5px; margin-left:-1px;
+  background:var(--text-primary);
+  transition:height var(--fast) var(--ease), margin-top var(--fast) var(--ease);
+}
+.notch--peak{background:var(--kick-green-bright)}
+.rail.is-open .notch{height:14px; margin-top:-7px}
+
+.rail__spark{
+  position:absolute; left:0; right:0; bottom:9px; height:24px;
+  opacity:0; transform:translateY(4px); pointer-events:none;
+  transition:opacity var(--base) var(--ease), transform var(--base) var(--ease);
+}
+.rail.is-open .rail__spark{opacity:1; transform:translateY(0)}
+.rail__spark svg{width:100%; height:24px; display:block}
+.spark__line{fill:none; stroke:var(--kick-green); stroke-width:1.2; vector-effect:non-scaling-stroke}
+.spark__area{fill:var(--kick-green); fill-opacity:.14}
+
+.controls__row{display:flex; align-items:center; gap:2px; height:44px; padding:0 20px}
+.pspacer{flex:1}
+
+.pbtn{width:44px; height:44px; color:var(--text-primary)}
+.pbtn:hover{color:var(--kick-green)}
+.pbtn--wide{
+  width:auto; gap:7px; padding:0 12px; font:inherit; font-size:14px; font-weight:600;
+}
+
+/* Volume, Site Reference Section 4. A white 16px thumb, revealed on hover. */
+.volume{display:flex; align-items:center}
+.volume__slider{
+  position:relative; display:flex; align-items:center; flex:none;
+  width:0; opacity:0; overflow:hidden; cursor:pointer; touch-action:none;
+  transition:width var(--base) var(--ease), opacity var(--base) var(--ease);
+}
+.volume:hover .volume__slider,.volume__slider:focus-visible{width:74px; opacity:1; margin-right:8px}
+.volume__track{width:100%; height:4px; background:rgba(255,255,255,.3); border-radius:var(--r-full)}
+.volume__fill{height:100%; background:#fff; border-radius:var(--r-full)}
+.volume__thumb{
+  position:absolute; top:50%; width:16px; height:16px; margin:-8px 0 0 -8px;
+  border-radius:var(--r-full); background:#fff; pointer-events:none;
+}
+
+.ptime{margin:0 10px 0 6px; font-size:14px; font-weight:600; color:#fff}
+
+/* The live chip is a green dot and white text, never a red badge. */
+.plive{
+  display:inline-flex; align-items:center; gap:4px; height:20px; padding:0 4px;
+  background:none; border:none;
+  color:#fff; font:inherit; font-size:14px; font-weight:600; cursor:pointer;
+}
+.plive .dot{width:8px; height:8px; background:var(--kick-green)}
+.plive.is-behind{color:var(--text-muted)}
+.plive.is-behind .dot{background:var(--text-disabled)}
+.plive.is-behind:hover{color:#fff}
+
+/* the hover card */
+.scrubcard{
+  position:absolute; left:0; bottom:70px; transform:translateX(-50%); z-index:4;
+  min-width:150px; max-width:240px; padding:8px 10px;
+  background:var(--bg-raised); border-radius:var(--r-lg); box-shadow:var(--shadow-md);
+  pointer-events:none; display:grid; gap:2px;
+}
+.scrubcard strong{color:var(--text-primary); font-size:13px; font-weight:600; line-height:18px}
+.scrubcard b{color:var(--text-body); font-size:13px; font-weight:600}
+.scrubcard span{color:var(--text-muted); font-size:12px}
+.scrubcard__label{font-style:normal; font-size:10px; letter-spacing:.06em; text-transform:uppercase}
+
+/* the overlay. It clears the control bar, so the viewer can still scrub. */
+.overlay{
+  position:absolute; inset:0 0 56px 0; z-index:2; display:flex; flex-direction:column;
+  background:var(--bg-base); animation:fade var(--overlay) var(--ease-overlay);
+}
+@keyframes fade{from{opacity:0}}
+
+.overlay__head{
+  display:flex; align-items:flex-start; gap:16px;
+  padding:14px 16px 12px; border-bottom:1px solid var(--border);
+}
+.overlay__title{margin:0; font-size:20px; line-height:24px; color:var(--text-primary); font-weight:700}
+.overlay__sub{margin:2px 0 0; font-size:12px; color:var(--text-muted)}
+.overlay__filters{display:flex; gap:6px; flex-wrap:wrap; margin-left:auto}
+.iconbtn{
+  display:inline-flex; align-items:center; justify-content:center; width:32px; height:32px;
+  background:none; border:none; border-radius:var(--r-sm);
+  color:var(--text-secondary); cursor:pointer;
+}
+.iconbtn:hover{color:var(--text-primary); background:var(--bg-surface)}
+
+.chip{
+  padding:3px 11px; background:var(--bg-surface); border:none;
+  border-radius:var(--r-full); color:var(--text-secondary);
+  font:inherit; font-size:12px; line-height:18px; font-weight:600; cursor:pointer;
+  transition:color var(--fast) var(--ease), background-color var(--fast) var(--ease);
+}
+.chip:hover{background:var(--bg-raised); color:var(--text-primary)}
+.chip.is-active{background:var(--kick-green); color:var(--bg-base)}
+
+.overlay__curve{position:relative; height:90px; margin:0 16px; flex:none}
+.overlay__curve svg{width:100%; height:90px; display:block}
+.curve__line{fill:none; stroke:var(--kick-green); stroke-width:1.5; vector-effect:non-scaling-stroke}
+.curve__area{fill:var(--kick-green); fill-opacity:.12}
+.curve__pins{position:absolute; inset:0}
+.curve__head{position:absolute; top:0; bottom:0; width:2px; background:var(--text-primary)}
+
+.pin{
+  position:absolute; bottom:0; width:10px; height:10px; margin-left:-5px; padding:0;
+  background:var(--text-body); border:2px solid var(--bg-base); border-radius:50%;
+  cursor:pointer; transition:transform var(--fast) var(--ease);
+}
+.pin:hover{transform:scale(1.5)}
+.pin--peak{background:var(--kick-green)}
+.pin--clip{background:var(--id-sky)}
+.pin--raid{background:var(--id-violet)}
+.pin--kicks{background:var(--id-sunshine)}
+.pin--poll{background:var(--id-mint)}
+.pin--category_change{background:var(--text-muted)}
+
+.overlay__scroll{flex:1; overflow-y:auto; padding:14px 16px 0}
+.overlay__h3{
+  margin:0 0 8px; font-size:12px; font-weight:600; letter-spacing:.06em;
+  text-transform:uppercase; color:var(--text-muted);
+}
+.missed{margin-bottom:18px}
+
+.cards{display:grid; grid-template-columns:repeat(auto-fill,minmax(172px,1fr)); gap:10px}
+
+.card{
+  position:relative; padding-bottom:28px; background:var(--bg-surface);
+  border-radius:var(--r-lg); overflow:hidden;
+}
+.card:hover{background:var(--bg-raised)}
+.card__go{
+  display:grid; gap:2px; width:100%; padding:8px; text-align:left;
+  background:none; border:none; color:inherit; font:inherit; cursor:pointer;
+}
+.card__go:focus-visible{outline:2px solid var(--kick-green); outline-offset:-2px}
+
+.card__thumb{
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px;
+  height:54px; margin-bottom:6px; border-radius:var(--r-sm); background:var(--bg-raised);
+}
+.card:hover .card__thumb{background:var(--bg-surface)}
+.card__thumb em{font-style:normal; font-size:12px; color:var(--text-secondary)}
+.card__noframe{font-size:10px; color:var(--text-disabled)}
+.card__label{font-size:10px; letter-spacing:.06em; text-transform:uppercase; font-weight:600}
+.card__title{font-size:13px; line-height:18px; font-weight:600; color:var(--text-primary)}
+.card__byline{font-size:12px; line-height:17px; color:var(--text-secondary)}
+.card__time{font-size:11px; color:var(--text-muted)}
+
+.scrubcard__label--peak,.card__label--peak{color:var(--kick-green)}
+.scrubcard__label--clip,.card__label--clip{color:var(--id-sky)}
+.scrubcard__label--raid,.card__label--raid{color:var(--id-violet)}
+.scrubcard__label--kicks,.card__label--kicks{color:var(--id-sunshine)}
+.scrubcard__label--poll,.card__label--poll{color:var(--id-mint)}
+.scrubcard__label--category_change,.card__label--category_change{color:var(--text-muted)}
+
+.react{
+  position:absolute; bottom:6px; right:8px;
+  display:inline-flex; align-items:center; gap:4px; padding:2px 7px;
+  background:var(--bg-raised); border:none; border-radius:var(--r-full);
+  color:var(--text-secondary); font:inherit; font-size:11px; cursor:pointer;
+}
+.react:hover{color:var(--text-primary)}
+.react.is-on{color:var(--id-rose)}
+
+.overlay__foot{
+  margin:0; padding:10px 16px; border-top:1px solid var(--border);
+  font-size:11px; color:var(--text-muted);
+}

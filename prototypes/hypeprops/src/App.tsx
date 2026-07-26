@@ -8,6 +8,7 @@ import CirclesPage from './circles/CirclesPage'
 import BrowsePage from './browse/BrowsePage'
 import DashboardPage from './dashboard/DashboardPage'
 import AuthModal from './auth/AuthModal'
+import DiscoveryPage from './discovery/DiscoveryPage'
 
 export default function App() {
   useEffect(() => startEngineTick(), [])
@@ -20,6 +21,7 @@ export default function App() {
         <Route path="/brand" element={<BrandConsole />} />
         <Route path="/solution" element={<SolutionPage />} />
         <Route path="/circles" element={<CirclesPage />} />
+        <Route path="/discovery" element={<DiscoveryPage />} />
         <Route path="/browse" element={<BrowsePage />} />
         <Route path="/dashboard" element={<DashboardPage />} />
       </Routes>

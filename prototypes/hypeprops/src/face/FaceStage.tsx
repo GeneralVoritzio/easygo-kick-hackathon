@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useEngine } from '../engine/store'
+import KickPlayer from '../stream/KickPlayer'
 import PropCanvas from './PropCanvas'
 import { useFaceTracker } from './useFaceTracker'
 
@@ -38,14 +39,7 @@ export default function FaceStage({ className = '' }: { className?: string }) {
   if (feedMode === 'kick') {
     return (
       <div className={`relative h-full w-full overflow-hidden bg-black ${className}`}>
-        <iframe
-          src={`https://player.kick.com/${kickChannel}?autoplay=true&muted=true`}
-          title={`${kickChannel} live on Kick`}
-          className="absolute inset-0 h-full w-full border-0"
-          allow="autoplay; fullscreen; encrypted-media"
-          allowFullScreen
-          scrolling="no"
-        />
+        <KickPlayer channel={kickChannel} className="absolute inset-0" />
       </div>
     )
   }

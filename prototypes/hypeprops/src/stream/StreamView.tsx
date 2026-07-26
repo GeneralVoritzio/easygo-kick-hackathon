@@ -1,4 +1,6 @@
 import { useEffect } from 'react'
+import { useSearchParams } from 'react-router'
+import { useEngine } from '../engine/store'
 import { startMockEvents } from '../engine/mockEvents'
 import { useTranscript } from '../engine/useTranscript'
 import FaceStage from '../face/FaceStage'
@@ -13,6 +15,17 @@ import InteractionMeter from './InteractionMeter'
 export default function StreamView() {
   useEffect(() => startMockEvents(), [])
   useTranscript()
+
+  // arriving from Discovery: /stream?channel={kickSlug} switches the player
+  // to that channel's Kick feed
+  const [searchParams] = useSearchParams()
+  const channelParam = searchParams.get('channel')
+  useEffect(() => {
+    if (!channelParam) return
+    const { setFeedMode, setKickChannel } = useEngine.getState()
+    setFeedMode('kick')
+    setKickChannel(channelParam)
+  }, [channelParam])
 
   return (
     <div className="flex h-screen w-screen flex-col overflow-hidden bg-kick-dark text-kick-text">

@@ -18,7 +18,7 @@ export function Navbar({ onToggleSidebar }: NavbarProps) {
           type="button"
           aria-label="Collapse sidebar"
           onClick={onToggleSidebar}
-          className="group flex size-9 shrink-0 items-center justify-center rounded state-layer-surface"
+          className="group flex size-10 shrink-0 items-center justify-center rounded state-layer-surface"
         >
           <Icon name="collapse-sidebar" className="size-4 fill-current" />
         </button>

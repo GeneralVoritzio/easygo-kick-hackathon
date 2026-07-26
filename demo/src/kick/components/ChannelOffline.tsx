@@ -93,11 +93,21 @@ export function ChannelOffline({ data }: { data: OfflineChannel }) {
 
   return (
     <div className="flex w-full flex-col">
-      <img
-        src={banner}
-        alt={`${channel.username} banner`}
-        className="h-[var(--channel-desktop-banner-height)] w-full shrink-0 object-cover"
-      />
+      <div className="relative block h-[var(--channel-desktop-banner-height)] w-full shrink-0 overflow-hidden bg-black">
+        <img
+          src={banner}
+          alt={`${channel.username} banner`}
+          className="absolute inset-x-0 top-0 h-full w-full object-cover"
+        />
+        <div className="z-player absolute left-7 top-7 flex h-fit w-fit items-center gap-4 rounded bg-surface-base p-5 font-bold leading-[1.2]">
+          <span className="rounded-[2px] bg-white p-1 text-sm font-bold uppercase leading-5 text-surface-lowest">
+            Offline
+          </span>
+          <h2 className="text-2xl font-bold leading-8 text-white">
+            {channel.username} is offline
+          </h2>
+        </div>
+      </div>
 
       <div className="flex w-full flex-row items-start justify-between gap-4 px-4 pt-4">
         <div className="flex min-w-0 flex-row items-center gap-3">
@@ -180,10 +190,6 @@ export function ChannelOffline({ data }: { data: OfflineChannel }) {
       </div>
 
       <div className="flex w-full flex-col gap-8 px-4 py-6">
-        <h2 className="text-2xl font-bold leading-[1.2] text-white">
-          {channel.username} is offline
-        </h2>
-
         <Row title="Stream Videos" videos={videos} channelName={channel.username} avatar={channel.avatar} />
         <Row title="Popular Clips" videos={clips} channelName={channel.username} avatar={channel.avatar} />
 

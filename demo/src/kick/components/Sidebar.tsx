@@ -4,9 +4,9 @@ import { Icon, type KickIconName } from "../Icon";
 import { followedChannels, livestreams, formatViewers } from "../mock/api";
 
 const navItems: { to: string; label: string; icon: KickIconName; activeIcon: KickIconName }[] = [
-  { to: "/", label: "Home", icon: "home", activeIcon: "home-active" },
-  { to: "/browse", label: "Browse", icon: "browse", activeIcon: "browse" },
-  { to: "/following", label: "Following", icon: "following-active", activeIcon: "following-active" },
+  { to: "/", label: "Home", icon: "nav-home", activeIcon: "nav-home-active" },
+  { to: "/browse", label: "Browse", icon: "nav-browse", activeIcon: "nav-browse-active" },
+  { to: "/following", label: "Following", icon: "nav-following", activeIcon: "nav-following-active" },
 ];
 
 const navLinkClass =

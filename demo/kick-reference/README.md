@@ -110,3 +110,22 @@ empty states, which use `icons/empty-livestreams.svg` and `icons/empty-categorie
 Card and tile content on `/`, `/browse` and the channel pages is client rendered, so the saved
 HTML shows the skeleton, not the filled card. The skeleton keeps the real wrapper and size
 classes, so the geometry is correct and only the inner content needs reading from a live page.
+
+## How to refresh this folder
+
+**Not with `curl`.** kick.com answers 403 to every client that is not a real browser, and
+`.claude/hooks/kick-browser-only.mjs` now blocks the attempt before it runs.
+
+Use the `kick-page-clone` skill. It opens the page in the user's own Chrome, where their session
+is already there, so the cards hold real data instead of the skeletons in `html/`.
+
+`css/` is the exception. `assets.kick.com` answers a plain request, so the chunks download by
+script:
+
+```bash
+node .claude/skills/kick-page-clone/scripts/fetch-css.mjs <url> <url> ...
+```
+
+The file names are content hashed, so a new name means KICK redeployed and our copy is stale.
+**Checked on 27 July 2026: the four names here are the four the live page links, so this CSS is
+current.**

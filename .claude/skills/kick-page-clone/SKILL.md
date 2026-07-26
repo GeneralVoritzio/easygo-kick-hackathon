@@ -25,14 +25,20 @@ ls demo/kick-reference/html demo/kick-reference/css
 
 If the page is already there, go to Phase 2. Re-capturing costs time and adds nothing.
 
-**Fetch the page in a browser, then take the source out of it.** Open kick.com in Chrome, read the
-markup and the styles off the live page, and build from what you took. An HTTP request is not an
-option: `kick.com` answers **403** to `curl` and to Node, because Cloudflare rejects any client that
-is not a real browser.
+**Open kick.com in the user's own Chrome, then take the source out of the page.** This is not a
+preference, and a hook enforces it. `.claude/hooks/kick-browser-only.mjs` fails any `Bash` or
+`WebFetch` call that names a `kick.com` URL, because:
 
-1. **Open the page.** Use the user's own Chrome (`mcp__claude-in-chrome__*`) whenever the page needs
-   their session: `/following`, `/settings/*` and `dashboard.kick.com` show a login shell to anyone
-   else. The Browser pane (`mcp__Claude_Browser__*`) is enough for a public page.
+- Cloudflare answers **403** to `curl`, to Node and to `WebFetch`. They check the client, not the
+  cookie, so no header fixes it.
+- A logged out page returns **skeleton placeholders instead of cards**, so even a reply you can read
+  has no content in it.
+
+The user's Chrome solves both at once. Their session is already open, so `/following`,
+`/settings/*` and `dashboard.kick.com` render in full, and every card holds real data.
+
+1. **Open the page** with `mcp__claude-in-chrome__navigate`. The Browser pane
+   (`mcp__Claude_Browser__*`) works for a public page, but it is logged out, so prefer Chrome.
 2. **Find the part you want** with `scripts/in-page/tree.js` in `javascript_tool`. Set `ROOT`. It
    returns the structure with every class name, the `data-testid` of each component, the text of
    each leaf, the path count of each icon, and the stylesheet URLs. A whole page is 700 KB, so
@@ -52,11 +58,14 @@ node .claude/skills/kick-page-clone/scripts/fetch-css.mjs <url> <url> ...
 Icons come one at a time. Find the `<svg>` in the tree, read its `outerHTML`, and save it under
 `demo/src/kick/icons/` named after the `aria-label` of the button that holds it.
 
-Rules for a live account, always:
+**This runs in the user's real, signed in browser, so it is a read-only errand.**
 
 - Never type a password, and never create an account. If a page needs a login the user does not
   already hold, stop and say so.
-- Never buy, subscribe, gift or claim anything. This is a read-only errand.
+- Never buy, subscribe, gift or claim anything, and never spend KICKs.
+- Never post, send, follow, unfollow or change a setting to see what it does. Read the state that
+  is there. If you need to see a variation, build it in the clone, not on their account.
+- Reading is free. Everything that writes needs the user to say yes first.
 
 Write down the URL, the date, the viewport and whether the session was logged in. Every later
 number depends on those four facts.

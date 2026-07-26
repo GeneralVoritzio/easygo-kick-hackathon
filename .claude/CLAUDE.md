@@ -17,6 +17,8 @@ Easygo Mini Hackathon powered by KICK · Saturday 1 August 2026 · Challenge 1 (
 | `.claude/KICK-PITCH-DECK-MECHANICS.md` | **Deck layout and mechanics only, no theming.** It must look like slides and not a website: the slide frame, the deck type scale, mock product elements, Reveal rules, the slide sequence, delivery. Colour, type styling, texture and motion feel come from the Brand Identity. **Applies only to files in `pitch/`** | ✍️ Extend as we learn |
 | `.claude/KICK-ASSETS.md` | Where every brand file came from: source URL, date read, licence. Read it before you add or replace an asset | ✍️ Extend as we learn |
 | `.claude/skills/` | Skills that Claude Code loads on demand. Today `kick-page-clone`, which captures a kick.com page and rebuilds it in `demo/` | ✍️ Extend as we learn |
+| `.claude/hooks/` | Hooks that Claude Code runs on a tool call. Today `kick-browser-only.mjs`, which stops any attempt to read kick.com without a browser | ✍️ Extend as we learn |
+| `.claude/settings.json` | Wires the hooks. Checked in, so the rule holds for everybody | ✍️ Extend as we learn |
 | `.claude/reference/` | Machine-readable ground truth read from KICK, today `kick-neon-tokens.css` | 🔄 Only from the live source |
 | `.claude/research/` | Longer write-ups that are not a source of truth: specs, summaries, working notes | ✍️ Extend as we learn |
 
@@ -40,6 +42,11 @@ and the icon set. It sits beside the code that consumes it.
 method, the class and token mapping, the icon rules, the grid and spacing numbers, and the
 measurement pass that proves the copy matches. It also holds the scripts, so nobody writes the
 capture again.
+
+**kick.com is read in the browser, and a hook enforces it.** Cloudflare answers 403 to `curl`,
+to Node and to `WebFetch`, and a logged out page returns skeletons instead of cards. Open the
+page in the user's own Chrome, where their session is already there. `assets.kick.com` is open,
+so their CSS still downloads by script.
 
 ### Assets: every project owns its own files
 

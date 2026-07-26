@@ -162,8 +162,10 @@ meet.
 
 ## 8. Build gotchas, each one paid for
 
-0. **`curl` and Node get 403 from kick.com.** Cloudflare rejects every client that is not a real
-   browser. Capture through the browser. `assets.kick.com` is open, so the CSS still downloads.
+0. **`curl`, Node and `WebFetch` all get 403 from kick.com.** Cloudflare checks the client, not the
+   cookie, so no header fixes it. `.claude/hooks/kick-browser-only.mjs` now blocks the attempt
+   before it runs. Read the page in the user's Chrome, where the session is already open and the
+   cards hold real data. `assets.kick.com` stays open, so the CSS still downloads.
 1. **Guessing a hash instead of deriving it** mislabelled five icons, including turning
    `youtube.svg` into `search.svg`. Derive a name from real path data or a real `aria-label`.
 2. **`[&_svg]:size-4` does not always apply.** Size the `Icon` directly with a `className`.

@@ -84,7 +84,11 @@ function RailRow({ slug, username, avatar, live }: { slug: string; username: str
       <img
         src={avatar}
         alt={username}
-        className={`size-7 shrink-0 rounded-full ${live ? "" : "mix-blend-luminosity grayscale"}`}
+        className={`size-7 shrink-0 rounded-full ${
+          live
+            ? "ring-2 ring-primary-base ring-offset-2 ring-offset-surface-lowest"
+            : "mix-blend-luminosity grayscale"
+        }`}
       />
     </Link>
   );
@@ -95,7 +99,7 @@ export function Sidebar({ collapsed }: { collapsed: boolean }) {
 
   if (collapsed) {
     return (
-      <div className="absolute bottom-0 left-0 top-[var(--navbar-height)] z-[401] flex h-full max-h-[calc(100%-var(--navbar-height))] w-[var(--sidebar-collapsed-width)] shrink-0 flex-col overflow-hidden bg-surface-lowest xl:relative xl:inset-0 xl:max-h-full">
+      <div className="absolute bottom-0 left-0 top-[var(--navbar-height)] z-[401] flex h-full max-h-[calc(100%-var(--navbar-height))] w-[var(--sidebar-collapsed-width)] shrink-0 select-none flex-col overflow-hidden bg-surface-lowest xl:relative xl:inset-0 xl:max-h-full">
         <ul className="flex w-full flex-col px-2">
           {navItems.map((item) => (
             <li key={item.to}>
@@ -149,7 +153,7 @@ export function Sidebar({ collapsed }: { collapsed: boolean }) {
   }
 
   return (
-    <div className="absolute bottom-0 left-0 top-[var(--navbar-height)] z-[401] flex h-full max-h-[calc(100%-var(--navbar-height))] w-[var(--sidebar-expanded-width)] shrink-0 flex-col overflow-hidden bg-surface-lowest xl:relative xl:inset-0 xl:max-h-full">
+    <div className="absolute bottom-0 left-0 top-[var(--navbar-height)] z-[401] flex h-full max-h-[calc(100%-var(--navbar-height))] w-[var(--sidebar-expanded-width)] shrink-0 select-none flex-col overflow-hidden bg-surface-lowest xl:relative xl:inset-0 xl:max-h-full">
       <ul className="flex w-full flex-col px-2">
         {navItems.map((item) => (
           <li key={item.to}>

@@ -63,13 +63,12 @@ export function ProfileMenu({ onClose }: { onClose: () => void }) {
         <span className="text-xs font-semibold text-surface-onSurfacePrimary">
           {PROGRESS}% towards Level {LEVEL + 1}
         </span>
-        <Link
-          to={`/${currentUser.username.toLowerCase()}`}
-          onClick={onClose}
-          className="mt-2 flex h-8 w-full items-center justify-center rounded bg-secondary-base px-3 py-1.5 text-sm font-semibold text-white"
+        <button
+          type="button"
+          className="mt-2 flex h-8 w-full items-center justify-center rounded bg-secondary-base px-3 py-1.5 text-sm font-semibold text-white betterhover:hover:bg-neutral-600"
         >
           View your channel
-        </Link>
+        </button>
       </div>
 
       <div className="px-2 pb-1">

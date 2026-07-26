@@ -58,12 +58,12 @@ export function StreamCard({ stream }: { stream: Livestream }) {
               <Icon name="verified" className="size-3.5 shrink-0 text-surface-onSurfacePrimary" />
             )}
           </Link>
-          <Link
-            to={`/browse/${stream.category.slug}`}
-            className="truncate text-sm font-normal leading-[1.2] text-surface-onSurfacePrimary"
+          <button
+            type="button"
+            className="max-w-full truncate text-left text-sm font-normal leading-[1.2] text-surface-onSurfacePrimary betterhover:hover:underline"
           >
             {stream.category.name}
-          </Link>
+          </button>
           <div className="mt-1 flex max-h-[22px] w-full flex-row flex-wrap gap-x-1 overflow-hidden">
             {stream.tags.map((t) => (
               <button

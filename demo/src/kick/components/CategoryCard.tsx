@@ -1,4 +1,3 @@
-import { Link } from "react-router-dom";
 import { formatViewers } from "../mock/api";
 
 type Category = {
@@ -11,20 +10,20 @@ type Category = {
 export function CategoryCard({ category }: { category: Category }) {
   return (
     <div className="group/card relative flex w-full shrink-0 grow-0 flex-col gap-2 will-change-transform">
-      <Link to={`/browse/${category.slug}`} className="block w-full">
+      <button type="button" className="block w-full">
         <img
           src={category.thumbnail}
           alt={category.name}
           className="aspect-[3/4] w-full rounded object-cover"
         />
-      </Link>
+      </button>
       <div className="flex w-full min-w-0 flex-col items-start gap-0.5">
-        <Link
-          to={`/browse/${category.slug}`}
-          className="w-full truncate text-sm font-semibold leading-[1.2] text-white"
+        <button
+          type="button"
+          className="w-full truncate text-left text-sm font-semibold leading-[1.2] text-white betterhover:hover:text-surface-onSurfacePrimary"
         >
           {category.name}
-        </Link>
+        </button>
         <span className="text-sm font-normal leading-[1.2] text-surface-onSurfaceSecondary">
           {formatViewers(category.viewers)} viewers
         </span>

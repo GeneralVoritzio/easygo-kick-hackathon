@@ -55,12 +55,15 @@
     }
   };
 
+  // The signed in viewer. The page always renders logged in.
+  var VIEWER_ME = 'bucket_hat_bailey';
+
   // The sidebar list. One page of kick GET /public/v2/livestreams.
   var LIVE_CHANNELS = [
-    { username: 'ClutchGoblin', category: 'Just Chatting', viewer_count: 7840 },
-    { username: 'Ac7ionMan', category: 'GTA V', viewer_count: 24100 },
-    { username: 'BogansOnBikes', category: 'IRL', viewer_count: 12650 },
-    { username: 'she_clutch', category: 'Counter-Strike 2', viewer_count: 9310 },
+    { username: 'ClutchGoblin', category: 'Just Chatting', viewer_count: 7840, is_following: true },
+    { username: 'Ac7ionMan', category: 'GTA V', viewer_count: 24100, is_following: true },
+    { username: 'BogansOnBikes', category: 'IRL', viewer_count: 12650, is_following: true },
+    { username: 'she_clutch', category: 'Counter-Strike 2', viewer_count: 9310, is_following: true },
     { username: 'NanaBread77', category: 'Just Chatting', viewer_count: 4180 },
     { username: 'ZeroPingZeke', category: 'League of Legends', viewer_count: 3025 },
     { username: 'servo_pie_guy', category: 'Food & Drink', viewer_count: 1490 },
@@ -80,7 +83,11 @@
   ];
   var MODS = ['toastedGG', 'NanaBread77', 'RegionalRandy'];
 
-  var COLOURS = ['#3EA6FF', '#FFB020', '#FF6BA9', '#8AE1FF', '#C4A5FF', '#7BE38A', '#FF9A6B', '#E3E7E8'];
+  // The 16 KICK identity colours, Design System Section 1.
+  var COLOURS = [
+    '#FEA0CF', '#A0F6FE', '#FEA0A0', '#18E9FB', '#EACDFE', '#B8FEA0', '#FECDCD', '#18FBB0',
+    '#A0FEDE', '#75FD45', '#A0D5FE', '#FD72B8', '#FEDAA0', '#45ADFC', '#FCB645', '#D8A0FE'
+  ];
 
   function colourFor(name) {
     var h = 0;
@@ -288,7 +295,7 @@
       detail: { category_from: CATEGORIES.cs2, category_to: CATEGORIES.gta }
     }),
     marker({
-      type: 'clip', offset_seconds: 7266, title: '1v4 retake on Nuke',
+      type: 'clip', offset_seconds: 7266, title: 'police chase ends in the LS river',
       source_event: 'timeline.marker.created',
       detail: {
         flagged_by: subject('toastedGG', [{ text: 'Moderator', type: 'moderator', count: 1 }]),
@@ -433,6 +440,7 @@
     CATEGORIES: CATEGORIES,
     KICK_SOURCES: KICK_SOURCES,
     LIVE_CHANNELS: LIVE_CHANNELS,
+    VIEWER_ME: VIEWER_ME,
     SEGMENTS: SEGMENTS,
     VIEWERS: VIEWERS,
     MODS: MODS,

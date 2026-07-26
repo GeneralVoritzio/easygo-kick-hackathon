@@ -5,20 +5,11 @@
 
   var el = {};
   ['clockNow', 'btnPlay', 'btnMute', 'btnLive', 'btnTimeline',
-    'btnFull', 'channelTitle', 'channelCategory', 'statViewers', 'sourceList', 'sideList',
+    'btnFull', 'channelTitle', 'channelCategory', 'channelAvatar', 'statViewers',
+    'sideList', 'followList', 'navAvatar',
     'player', 'volume', 'volumeSlider', 'volumeFill', 'volumeThumb'].forEach(function (id) {
       el[id] = document.getElementById(id);
     });
-
-  function initials(name) {
-    var parts = name.replace(/[^a-zA-Z]/g, ' ').trim().split(/\s+/);
-    if (parts.length > 1) return (parts[0][0] + parts[1][0]).toUpperCase();
-    return name.slice(0, 2).toUpperCase();
-  }
-
-  function abbreviate(n) {
-    return n >= 1000 ? (n / 1000).toFixed(1).replace(/\.0$/, '') + 'K' : String(n);
-  }
 
   function behindText(seconds) {
     var m = Math.floor(seconds / 60);
@@ -49,6 +40,7 @@
     write('playing', state.isPlaying, function (v) {
       el.btnPlay.innerHTML = icons.get(v ? 'pause' : 'play', 20);
       el.btnPlay.setAttribute('aria-label', v ? 'Pause' : 'Play');
+      el.player.classList.toggle('is-paused', !v);
     });
 
     write('live', state.isFollowingLive, function (v) {
@@ -61,33 +53,30 @@
       : 'You are ' + behindText(player.secondsBehindLive()) + '. Go to the live edge';
   }
 
-  function renderSidebar() {
-    el.sideList.innerHTML = api.LIVE_CHANNELS.map(function (c) {
-      return '<a class="sidechan" href="#">' +
-        '<span class="sidechan__pic">' + initials(c.username) + '</span>' +
-        '<span class="sidechan__text">' +
-        '<div class="sidechan__name">' + c.username + '</div>' +
-        '<div class="sidechan__cat">' + c.category + '</div></span>' +
-        '<span class="sidechan__count"><i class="dot"></i>' + abbreviate(c.viewer_count) + '</span></a>';
-    }).join('');
+  function channelHtml(c) {
+    return '<a class="sidechan" href="#">' +
+      '<span class="sidechan__pic" style="background:' + api.colourFor(c.username) + '">' +
+      moments.initials(c.username) + '</span>' +
+      '<span class="sidechan__text">' +
+      '<div class="sidechan__name">' + c.username + '</div>' +
+      '<div class="sidechan__cat">' + c.category + '</div></span>' +
+      '<span class="sidechan__count"><i class="dot"></i>' + moments.abbreviate(c.viewer_count) + '</span></a>';
   }
 
-  function renderSources() {
-    var rows = [
-      [api.KICK_SOURCES.channels, 'Channel identity, stream_title and started_at'],
-      [api.KICK_SOURCES.livestreams, 'The sidebar list, viewer_count and the hype curve'],
-      [api.KICK_SOURCES.chat_message_sent, 'Chat, the chat rate and every peak'],
-      [api.KICK_SOURCES.kicks_gifted, 'Gift moments and the gifter leaderboard'],
-      [api.KICK_SOURCES.channel_subscription, 'Sub train moments'],
-      [api.KICK_SOURCES.livestream_metadata_updated, 'Category changes, and the category on each card'],
-      [KT2.FAKE_SOURCES.window, 'How far back the rail can go'],
-      [KT2.FAKE_SOURCES.markers, 'Every notch and every card'],
-      [KT2.FAKE_SOURCES.reactions, 'The heart on a card']
-    ];
-    el.sourceList.innerHTML = rows.map(function (r) {
-      var kind = r[0].indexOf('fake-kick') === 0 ? 'fake' : 'real';
-      return '<li><code class="src src--' + kind + '">' + r[0] + '</code><span>' + r[1] + '</span></li>';
-    }).join('');
+  function renderSidebar() {
+    function listFor(isFollowing) {
+      return api.LIVE_CHANNELS.filter(function (c) {
+        return !!c.is_following === isFollowing;
+      }).map(channelHtml).join('');
+    }
+    el.followList.innerHTML = listFor(true);
+    el.sideList.innerHTML = listFor(false);
+  }
+
+  function renderViewer() {
+    el.navAvatar.textContent = moments.initials(api.VIEWER_ME);
+    el.navAvatar.style.background = api.colourFor(api.VIEWER_ME);
+    el.navAvatar.setAttribute('aria-label', 'Account, ' + api.VIEWER_ME);
   }
 
   var volume = { level: 0.5, isMuted: false };
@@ -129,6 +118,44 @@
     renderVolume();
   });
 
+  var CHAT_MIN_WIDTH = 280;
+  var CHAT_MAX_WIDTH = 460;
+  var handle = document.getElementById('chatResize');
+  var chatWidth = parseFloat(
+    getComputedStyle(document.documentElement).getPropertyValue('--chatroom-width')
+  );
+
+  /*
+    The frame reads the column width, so the canvas is sized again on release.
+    Sizing it on every move would reallocate the canvas 60 times a second.
+  */
+  function setChatWidth(px) {
+    chatWidth = Math.max(CHAT_MIN_WIDTH, Math.min(CHAT_MAX_WIDTH, Math.round(px)));
+    document.documentElement.style.setProperty('--chatroom-width', chatWidth + 'px');
+    handle.setAttribute('aria-valuenow', chatWidth);
+  }
+
+  var isResizingChat = false;
+  handle.addEventListener('pointerdown', function (e) {
+    isResizingChat = true;
+    handle.setPointerCapture(e.pointerId);
+  });
+  handle.addEventListener('pointermove', function (e) {
+    if (isResizingChat) setChatWidth(window.innerWidth - e.clientX);
+  });
+  handle.addEventListener('pointerup', function (e) {
+    isResizingChat = false;
+    handle.releasePointerCapture(e.pointerId);
+    window.dispatchEvent(new Event('resize'));
+  });
+  handle.addEventListener('keydown', function (e) {
+    var step = e.key === 'ArrowLeft' ? 16 : (e.key === 'ArrowRight' ? -16 : 0);
+    if (!step) return;
+    e.preventDefault();
+    setChatWidth(chatWidth + step);
+    window.dispatchEvent(new Event('resize'));
+  });
+
   var search = document.querySelector('.nav__search input');
   var searchClear = document.querySelector('.nav__clear');
   search.addEventListener('input', function () { searchClear.hidden = !search.value; });
@@ -152,6 +179,9 @@
     if (tag === 'INPUT' || tag === 'TEXTAREA') return;
     var key = e.key.toLowerCase();
 
+    if (key === 'escape' && KT2.clip.isOpen()) { KT2.clip.close(); return; }
+    if (KT2.clip.isOpen()) return;
+
     if (key === 'escape' && KT2.overlay.isOpen()) { KT2.overlay.close(); return; }
     if (key === 't') { KT2.overlay.toggle(); return; }
     if (key === 'l') { player.goLive(); return; }
@@ -164,11 +194,13 @@
 
   icons.paint();
   el.channelTitle.textContent = api.getChannel().stream_title;
+  el.channelAvatar.textContent = moments.initials(api.getChannel().username);
   renderSidebar();
-  renderSources();
+  renderViewer();
   renderVolume();
 
   KT2.stage.mount();
+  KT2.clip.mount();
   KT2.scrubber.mount();
   KT2.overlay.mount();
   KT2.chat.mount();

@@ -26,15 +26,27 @@
     return PALETTES[api.categoryAt(t).id] || PALETTES[15];
   }
 
-  function resize() {
-    var box = canvas.getBoundingClientRect();
+  /*
+    Sizing a canvas clears it, so it happens once per target and never per frame.
+    A view is the three things every draw function reads.
+  */
+  function sizeTo(target) {
+    var box = target.getBoundingClientRect();
     var ratio = Math.min(global.devicePixelRatio || 1, 2);
-    width = box.width;
-    height = box.height;
-    canvas.width = Math.round(width * ratio);
-    canvas.height = Math.round(height * ratio);
-    ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+    target.width = Math.round(box.width * ratio);
+    target.height = Math.round(box.height * ratio);
+    var context = target.getContext('2d');
+    context.setTransform(ratio, 0, 0, ratio, 0, 0);
+    return { ctx: context, width: box.width, height: box.height };
   }
+
+  function use(view) {
+    ctx = view.ctx;
+    width = view.width;
+    height = view.height;
+  }
+
+  function resize() { use(sizeTo(canvas)); }
 
   function drawSky(p, horizon) {
     var grad = ctx.createLinearGradient(0, 0, 0, horizon);
@@ -156,10 +168,24 @@
   KT2.stage = {
     mount: function () {
       canvas = document.getElementById('frameCanvas');
-      ctx = canvas.getContext('2d');
       resize();
       global.addEventListener('resize', function () { resize(); draw(KT2.player.state.t); });
       KT2.player.on(function (state) { draw(state.t); });
+    },
+
+    /*
+      The scene is a function of the playhead, so a thumbnail is the same scene
+      at a smaller size. Returns a function that draws one second into the
+      target. The target must be laid out before this runs, or it measures zero.
+    */
+    preview: function (target) {
+      var view = sizeTo(target);
+      return function (t) {
+        var frame = { ctx: ctx, width: width, height: height };
+        use(view);
+        draw(t);
+        use(frame);
+      };
     }
   };
 })(window);

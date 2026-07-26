@@ -35,11 +35,36 @@
     return buckets[i];
   }
 
+  function pad(n) { return n < 10 ? '0' + n : '' + n; }
+
   function hms(t) {
     var s = Math.max(0, Math.floor(t));
-    var h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60);
-    function pad(n) { return n < 10 ? '0' + n : '' + n; }
-    return pad(h) + ':' + pad(m) + ':' + pad(s % 60);
+    return pad(Math.floor(s / 3600)) + ':' + pad(Math.floor((s % 3600) / 60)) + ':' + pad(s % 60);
+  }
+
+  // A clip length and a replay stamp read as minutes and seconds, never hours.
+  function mmss(t) {
+    var s = Math.max(0, Math.floor(t));
+    return pad(Math.floor(s / 60)) + ':' + pad(s % 60);
+  }
+
+  function abbreviate(n) {
+    return n >= 1000 ? (n / 1000).toFixed(1).replace(/\.0$/, '') + 'K' : String(n);
+  }
+
+  /*
+    A KICK handle is camel case as often as it is split by a separator, so
+    ClutchGoblin has to read as CG and not CL. A capital after the first letter
+    wins, then a separator, then the first two letters.
+  */
+  function initials(name) {
+    var letters = name.replace(/[^A-Za-z]/g, '');
+    if (!letters) return '??';
+    var capital = letters.slice(1).match(/[A-Z]/);
+    if (capital) return (letters[0] + capital[0]).toUpperCase();
+    var words = name.split(/[^A-Za-z]+/).filter(Boolean);
+    if (words.length > 1) return (words[0][0] + words[1][0]).toUpperCase();
+    return letters.slice(0, 2).toUpperCase();
   }
 
   function findPeaks(minGap, limit) {
@@ -99,6 +124,8 @@
       group: GROUPS[m.type],
       label: LABELS[GROUPS[m.type]],
       t: m.offset_seconds,
+      duration: (m.detail || {}).duration_seconds || 0,
+      view_count: (m.detail || {}).view_count || 0,
       title: titleFor(m),
       byline: bylineFor(m),
       source_event: m.source_event,
@@ -183,6 +210,9 @@
       return m;
     },
     bucketAt: bucketAt,
-    hms: hms
+    hms: hms,
+    mmss: mmss,
+    abbreviate: abbreviate,
+    initials: initials
   };
 })(window);

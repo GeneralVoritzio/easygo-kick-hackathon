@@ -74,10 +74,74 @@ const STEP = 5;
 const followedSlugs = new Set(followedChannels.map((c) => c.slug));
 const recommended = livestreams.filter((s) => !followedSlugs.has(s.channel.slug));
 
-export function Sidebar({ open }: { open: boolean }) {
+function RailRow({ slug, username, avatar, live }: { slug: string; username: string; avatar: string; live: boolean }) {
+  return (
+    <Link
+      to={`/${slug}`}
+      title={username}
+      className="flex h-11 w-full shrink-0 items-center justify-center rounded state-layer-surface"
+    >
+      <img
+        src={avatar}
+        alt={username}
+        className={`size-7 shrink-0 rounded-full ${live ? "" : "mix-blend-luminosity grayscale"}`}
+      />
+    </Link>
+  );
+}
+
+export function Sidebar({ collapsed }: { collapsed: boolean }) {
   const [shown, setShown] = useState(10);
 
-  if (!open) return null;
+  if (collapsed) {
+    return (
+      <div className="absolute bottom-0 left-0 top-[var(--navbar-height)] z-[401] flex h-full max-h-[calc(100%-var(--navbar-height))] w-[var(--sidebar-collapsed-width)] shrink-0 flex-col overflow-hidden bg-surface-lowest xl:relative xl:inset-0 xl:max-h-full">
+        <ul className="flex w-full flex-col px-2">
+          {navItems.map((item) => (
+            <li key={item.to}>
+              <NavLink
+                to={item.to}
+                end={item.to === "/"}
+                title={item.label}
+                className={({ isActive }) =>
+                  `group relative box-border flex h-10 w-full items-center justify-center rounded transition-all state-layer-surface [&_svg]:size-4 [&_svg]:fill-current ${
+                    isActive ? "!bg-secondary-base text-white" : "bg-transparent text-white"
+                  }`
+                }
+              >
+                {({ isActive }) => <Icon name={isActive ? item.activeIcon : item.icon} />}
+              </NavLink>
+            </li>
+          ))}
+        </ul>
+
+        <div className="w-full px-3 py-1">
+          <div className="h-px w-full bg-outline-decorative" />
+        </div>
+
+        <div className="no-scrollbar flex h-full max-h-full flex-col overflow-y-auto px-2">
+          <div className="flex h-9 w-full items-center justify-center text-subtle">
+            <Icon name="nav-following-active" className="size-4" />
+          </div>
+          {followedChannels.map((c) => (
+            <RailRow key={c.slug} slug={c.slug} username={c.username} avatar={c.avatar} live={c.live} />
+          ))}
+          <div className="flex h-9 w-full items-center justify-center text-subtle">
+            <Icon name="nav-browse-active" className="size-4" />
+          </div>
+          {recommended.map((s) => (
+            <RailRow
+              key={s.id}
+              slug={s.channel.slug}
+              username={s.channel.username}
+              avatar={s.channel.avatar}
+              live
+            />
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="absolute bottom-0 left-0 top-[var(--navbar-height)] z-[401] flex h-full max-h-[calc(100%-var(--navbar-height))] w-[var(--sidebar-expanded-width)] shrink-0 flex-col overflow-hidden bg-surface-lowest xl:relative xl:inset-0 xl:max-h-full">

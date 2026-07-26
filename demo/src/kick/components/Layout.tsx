@@ -4,16 +4,16 @@ import { Navbar } from "./Navbar";
 import { Sidebar } from "./Sidebar";
 
 export function Layout() {
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [collapsed, setCollapsed] = useState(false);
 
   return (
     <div
       className="group/main flex h-screen flex-col"
-      data-sidebar={sidebarOpen}
+      data-sidebar={!collapsed}
     >
-      <Navbar onToggleSidebar={() => setSidebarOpen((v) => !v)} />
+      <Navbar onToggleSidebar={() => setCollapsed((v) => !v)} />
       <div className="flex w-screen flex-1 lg:overflow-hidden">
-        <Sidebar open={sidebarOpen} />
+        <Sidebar collapsed={collapsed} />
         <div
           id="main-container"
           className="no-scrollbar h-full flex-1 overflow-y-auto overflow-x-hidden pb-6 pt-3 outline-none lg:w-full lg:pt-6"

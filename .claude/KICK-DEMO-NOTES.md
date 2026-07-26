@@ -99,6 +99,57 @@ Read from the home page markup in `demo/kick-reference/html/home.logged-out.html
 The artwork stays ours. KICK's plate is a CMS promo image that holds licensed third party art, so
 we do not commit it. Only the frame, the height and the button placement are copied.
 
+### The page column, and the grids
+
+Read from `demo/kick-reference/html/`. The home page and the browse page do not share their
+spacing, so one shared shell with one set of values is wrong.
+
+| Thing | Home | Browse |
+|---|---|---|
+| Scroll container | no top padding | `pt-3 lg:pt-6` |
+| Column | `gap-y-5 pt-3 lg:gap-y-7 lg:pt-0` | `gap-y-3` |
+
+Both pages share `px-4 lg:px-8 xl:px-10` and `m-auto max-w-[125rem]`.
+
+**Home sections are one row. Browse sections wrap.** KICK holds a section to one row with
+`grid-rows-1` and `auto-rows-[0]`, so the extra cards collapse to zero height, and
+`overflow-y-hidden` clips them. Below `lg` the same section is a horizontal snap scroller with
+`-mx-4 px-4 snap-x snap-mandatory` and a fixed child width, 268px for a stream and 108px for a
+category.
+
+Stream grid columns, from both pages:
+
+`grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4 2xl:grid-cols-5 3xl:grid-cols-6`, with
+`group-data-[sidebar=false]/main:` adding one column at `xl`, `2xl` and `3xl`. Gaps are
+`gap-x-4 gap-y-5 lg:gap-y-6`.
+
+Category grid columns: `grid-cols-2 sm:grid-cols-4 md:grid-cols-5`, then
+**`repeat(auto-fill, minmax(139px, 1fr))`** from `lg`. The column gap is **8px**, not 16px, and
+the card gap is 4px.
+
+A custom utility needs `@utility` in Tailwind v4. A plain class in `@layer utilities` gets no
+`lg:` variant, so `lg:grid-cols-auto-fill-category` silently did nothing.
+
+### The home hero
+
+| Thing | Value |
+|---|---|
+| Aspect box | `w-[calc((2*100%-12px)/3)]`, `3xl:w-[calc((3*100%-12px)/4)]`, gap 12 to the chat |
+| Chat aside | `w-[calc((100%-24px)/3)]`, `3xl:w-[calc((100%-36px)/4)]`, radius 8, 1px `outline-region`, `pb-4` |
+| Chat header | **Absolute over the body**, `top-0 w-full rounded-t-lg p-4`, no bottom border |
+| Chat body | `px-4 pt-20`, each line `h-[30px] gap-2` |
+| Overlay | `absolute inset-x-4 bottom-4 flex gap-3 rounded-lg bg-dark-64 p-4 backdrop-blur-sm` |
+| Overlay layout | The avatar is a **sibling of the whole stack**, so the dots start under the title, not under the avatar |
+| Avatar | `size-9 lg:size-14` |
+| Watch now | **100 by 36**, radius 6 |
+| Live badge | **64 by 28**, radius 4, at 16 in from the top left |
+| Dots | 8px, the active one 48 by 8 with `ml-1` |
+
+### The z-index scale
+
+`z-absolute` 101, `z-player` 201, `z-controls` 202, `z-navbar` 301, `z-popover` 401. Ours used
+300, 400 and 500, which was invented.
+
 ### The creator dashboard
 
 `dashboard.kick.com/stream`. Its own shell, no search field.
@@ -165,6 +216,10 @@ A stream's thumbnail matches its own category.
 7. **picsum and dicebear were fetched at run time,** which broke the no-network rule.
 8. **Reading React state immediately after a click in the same evaluation** returns the old value.
    Read it in a separate call.
+9. **Giving every page the same column spacing.** Home and browse do not match. See Section 2.
+10. **Building home sections as wrapping grids.** They are one row on kick.com.
+11. **Declaring a custom utility in `@layer utilities`.** Tailwind v4 gives it no variants. Use
+    `@utility`.
 
 ---
 

@@ -6,6 +6,8 @@ import BrandConsole from './brand/BrandConsole'
 import SolutionPage from './circles/SolutionPage'
 import CirclesPage from './circles/CirclesPage'
 import BrowsePage from './browse/BrowsePage'
+import DashboardPage from './dashboard/DashboardPage'
+import AuthModal from './auth/AuthModal'
 import DiscoveryPage from './discovery/DiscoveryPage'
 
 export default function App() {
@@ -21,7 +23,10 @@ export default function App() {
         <Route path="/circles" element={<CirclesPage />} />
         <Route path="/discovery" element={<DiscoveryPage />} />
         <Route path="/browse" element={<BrowsePage />} />
+        <Route path="/dashboard" element={<DashboardPage />} />
       </Routes>
+      {/* auth modal is global — any page can open it via useAuth */}
+      <AuthModal />
     </BrowserRouter>
   )
 }

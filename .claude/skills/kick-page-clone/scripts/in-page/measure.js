@@ -1,11 +1,13 @@
-// Paste into javascript_tool against the running clone, or against kick.com itself.
-// Edit TARGETS, then compare the two runs line by line.
+// Paste into javascript_tool, once on kick.com and once on the clone, at the same
+// viewport. Save each result, then diff them with scripts/compare.mjs.
 // Wrap it in (() => { ... })() so a repeated run does not clash on a declared name.
 
 (() => {
+  // Every selector must match on kick.com and on the clone, or the two runs
+  // cannot be compared.
   const TARGETS = {
     navbar: "header, nav",
-    sidebar: "[class*='sidebar-expanded-width']",
+    sidebar: "#sidebar-wrapper, [class*='sidebar-expanded-width']",
     column: ".max-w-\\[125rem\\]",
     firstGrid: "section[class*='grid-cols']",
     firstCard: "section[class*='grid-cols'] > *",

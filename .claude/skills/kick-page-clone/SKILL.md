@@ -1,6 +1,6 @@
 ---
 name: kick-page-clone
-description: Capture a kick.com page and rebuild it exactly in demo/. Use when asked to clone, copy, replicate, or fix the fidelity of any kick.com page, or to add a KICK page, component, or icon. Covers the capture, the class and token mapping, the icon rules, the grid and spacing rules, and the measurement pass that proves the copy matches.
+description: Fetch a kick.com page in Chrome, take its real HTML and CSS, and rebuild it exactly in demo/. Also checks a page we already built is still current, by measuring kick.com again and diffing. Use when asked to clone, copy, replicate, verify or fix the fidelity of any kick.com page, or to add a KICK page, component or icon.
 ---
 
 # Clone a kick.com page
@@ -9,7 +9,8 @@ Rebuild a kick.com surface so it reads as native. The rule that decides success:
 read is a fact, a number you remember is a guess.** Every fidelity fault we have shipped came
 from a guess.
 
-Work in four phases. Do not skip Phase 1, and do not report done before Phase 4.
+Work in four phases. Do not skip Phase 1, and do not report done before Phase 4. Phase 5 runs the
+same tools backwards, to check a page we already built is still current.
 
 ---
 
@@ -24,21 +25,32 @@ ls demo/kick-reference/html demo/kick-reference/css
 
 If the page is already there, go to Phase 2. Re-capturing costs time and adds nothing.
 
-**Every capture goes through a browser.** `kick.com` answers **403** to `curl` and to Node, because
-Cloudflare rejects any client that is not a real browser. There is no HTTP shortcut. `assets.kick.com`
-is open, so their CSS still downloads by script.
+**Fetch the page in a browser, then take the source out of it.** Open kick.com in Chrome, read the
+markup and the styles off the live page, and build from what you took. An HTTP request is not an
+option: `kick.com` answers **403** to `curl` and to Node, because Cloudflare rejects any client that
+is not a real browser.
 
-1. **Open the page.** Use the Browser pane (`mcp__Claude_Browser__*`) for a public page. Use the
-   user's own Chrome (`mcp__claude-in-chrome__*`) for `/following`, `/settings/*` and
-   `dashboard.kick.com`, which show a login shell to anyone else.
-2. **Distil the DOM in the page**, so only a small result reaches you. Paste
-   `scripts/in-page/tree.js` into `javascript_tool`. Set `ROOT` to the part you need. It returns
-   the tree, the text of each leaf, the path count of each icon, and the stylesheet URLs.
-3. **Take the CSS.** Pass the URLs the tree printed to the downloader:
+1. **Open the page.** Use the user's own Chrome (`mcp__claude-in-chrome__*`) whenever the page needs
+   their session: `/following`, `/settings/*` and `dashboard.kick.com` show a login shell to anyone
+   else. The Browser pane (`mcp__Claude_Browser__*`) is enough for a public page.
+2. **Find the part you want** with `scripts/in-page/tree.js` in `javascript_tool`. Set `ROOT`. It
+   returns the structure with every class name, the `data-testid` of each component, the text of
+   each leaf, the path count of each icon, and the stylesheet URLs. A whole page is 700 KB, so
+   never read one raw.
+3. **Take its source** with `scripts/in-page/source.js`. Set `SELECTOR` to what the tree showed you.
+   It returns the real `outerHTML` with the icons replaced by placeholders. The navbar comes to
+   6 KB. **This is the markup you port.** It carries what a tree drops, such as the `box-shadow`
+   the navbar wears instead of a bottom border.
+4. **Take its CSS** with `scripts/in-page/css.js`. Set `FROM` to the same selector and it collects
+   every class the subtree uses, then reports what each one does. `assets.kick.com` is open, so the
+   chunks also download when you want them greppable:
 
 ```bash
 node .claude/skills/kick-page-clone/scripts/fetch-css.mjs <url> <url> ...
 ```
+
+Icons come one at a time. Find the `<svg>` in the tree, read its `outerHTML`, and save it under
+`demo/src/kick/icons/` named after the `aria-label` of the button that holds it.
 
 Rules for a live account, always:
 
@@ -145,6 +157,36 @@ Then run the finished page against `.claude/KICK-SITE-REFERENCE.md` Section 12.
 **Say what you did.** "Measured" means you read values off the running page. "Looked at" means you
 saw it render. If the Browser pane is not displayed, screenshots fail and only measurement is
 available. Say which one backs your claim.
+
+---
+
+## Phase 5. Use the same tools to check a page is still current
+
+The skill runs in reverse as a drift check. Two questions, one method.
+
+**Has kick.com changed since we copied it?** Measure the live page again and diff it against the
+baseline we saved. A changed number means KICK shipped something, and our copy is now stale.
+
+**Does our copy still match?** Measure both and diff them.
+
+```bash
+# run scripts/in-page/measure.js on kick.com, save the JSON as kick-browse.json
+# run the same script on the clone, save it as clone-browse.json
+node .claude/skills/kick-page-clone/scripts/compare.mjs kick-browse.json clone-browse.json
+```
+
+`compare.mjs` prints only what differs, and exits 1 when anything does. Keep each baseline under
+`demo/kick-reference/measured/<page>.json` with the date and the viewport in the file, so the next
+check has something to diff against.
+
+Two things that are not faults:
+
+- **A different row count.** Our mock data holds fewer cards, so a grid's height and its
+  `gridTemplateRows` differ by design. Compare the column count, the gaps and the card size.
+- **A different viewport.** `compare.mjs` warns and keeps going, but the numbers are noise. Measure
+  both at the same size.
+
+Everything else is a fault. A 4px drift is a fault, not a rounding error.
 
 ---
 

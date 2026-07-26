@@ -6,7 +6,21 @@
 // Never estimate a value you can read.
 
 (() => {
+  // Name the classes you care about, or set FROM to a selector and take every
+  // class its subtree uses. FROM wins when both are set.
   const NAMES = ["grid-cols-auto-fill-category", "z-navbar", "state-layer-base"];
+  const FROM = "";
+
+  if (FROM) {
+    const root = document.querySelector(FROM);
+    if (!root) return `no element matches ${FROM}`;
+    const found = new Set();
+    for (const el of [root, ...root.querySelectorAll("*")]) {
+      for (const c of el.classList) found.add(c);
+    }
+    NAMES.length = 0;
+    NAMES.push(...found);
+  }
 
   // A probe beats reading the stylesheet, because KICK serves its CSS from
   // assets.kick.com, and a cross origin sheet will not hand over its rules.
@@ -26,24 +40,33 @@
   };
 
   const lines = [];
+  const quiet = [];
   for (const name of NAMES) {
     probe.className = name;
     const own = diff(null);
     const after = diff("::after");
     const before = diff("::before");
-    lines.push(`${name}`);
-    lines.push(`  ${own.length ? own.join("; ") : "nothing on the element itself"}`);
+    if (!own.length && !after.length && !before.length) {
+      quiet.push(name);
+      continue;
+    }
+    lines.push(name);
+    if (own.length) lines.push(`  ${own.join("; ")}`);
     if (after.length) lines.push(`  ::after  ${after.join("; ")}`);
     if (before.length) lines.push(`  ::before ${before.join("; ")}`);
   }
   base.remove();
   probe.remove();
 
-  // A class that only exists behind a variant, a state or a parent selector shows
-  // nothing on a bare div. Fall back to the rules, and then to the files.
+  // A class that only works behind a variant, a state or a parent selector shows
+  // nothing on a bare div. That is not a fault, it is how the class is built.
+  if (quiet.length) lines.push("", `no effect on a bare div: ${quiet.join(" ")}`);
+
+  // Then the rules, for anything the probe could not show. Skipped when FROM
+  // gathered hundreds of names, because the output stops being readable.
   const blocked = [];
   const rules = [];
-  for (const sheet of document.styleSheets) {
+  for (const sheet of NAMES.length > 40 ? [] : document.styleSheets) {
     let list;
     try {
       list = sheet.cssRules;
@@ -67,12 +90,14 @@
   }
 
   if (rules.length) lines.push("", "matching rules", ...rules.map((r) => `  ${r}`));
-  if (blocked.length) {
+
+  const sheets = [...document.styleSheets].map((s) => s.href).filter(Boolean);
+  if (blocked.length || NAMES.length > 40) {
     lines.push(
       "",
-      `${blocked.length} sheets are cross origin, so their rules are closed here.`,
-      "Download them, which works, because assets.kick.com is open:",
-      `  node .claude/skills/kick-page-clone/scripts/fetch-css.mjs ${blocked.join(" ")}`,
+      "KICK serves its CSS from another host, so a stylesheet will not hand over its rules here.",
+      "The probe above reads through that. To hold the files as well:",
+      `  node .claude/skills/kick-page-clone/scripts/fetch-css.mjs ${sheets.join(" ")}`,
     );
   }
 

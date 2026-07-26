@@ -19,7 +19,7 @@ or a texture, it is not here and it must not be added here. A rule written twice
 place first.
 
 **Copy an asset into `pitch/src/assets/` before you use it**, per the Working Agreement. Never import
-from `assets/` with a path that climbs out of `pitch/`: a bundler will not serve it in dev. Copy the
+with a path that climbs out of `pitch/`: a bundler will not serve it in dev. Keep the
 licence file with the asset, and record where the copy came from in `pitch/README.md`.
 
 ---

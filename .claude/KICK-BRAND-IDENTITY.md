@@ -34,10 +34,10 @@ KICK runs two visual systems. They share a palette and they share nothing else.
 | [KICK, "From Every Angle"](https://www.youtube.com/watch?v=02Vj-TkQhAI) | 30 second brand film | Footage culture, graphic devices, cut rate. Every 🟡 value |
 | `.claude/KICK-DESIGN-SYSTEM.md` | | The token base this file extends |
 
-**Everything we downloaded is in `assets/`.** The logo, the fonts, the extracted token file and the
-page copy. `assets/README.md` names every source, its date and its licence.
+**Everything we downloaded is committed.** The logo, the fonts, the extracted token file and the
+page copy. `.claude/KICK-ASSETS.md` names every source, its date and its licence.
 
-**These pages need a browser user agent.** A plain request gets HTTP 403. `assets/README.md` holds
+**These pages need a browser user agent.** A plain request gets HTTP 403. `.claude/KICK-ASSETS.md` holds
 the one line curl command that works. This is not a block on us, it is bot filtering.
 
 ### The source we still cannot read 🔒
@@ -144,7 +144,7 @@ Our own prose rule still applies on top. All copy is ASD-STE100 Simplified Techn
 
 This is the biggest thing we know about KICK. **KICK own tokens are live CSS custom properties on
 about.kick.com**, named `--neon-*`. We read all 282 of them. They are in
-`assets/reference/kick-neon-tokens.css`, and they are KICK values, not ours.
+`.claude/reference/kick-neon-tokens.css`, and they are KICK values, not ours.
 
 The system has three layers:
 
@@ -204,13 +204,13 @@ background:linear-gradient(to right,#53FC18,#00FFFF);  /* we could not verify th
 We read all four stylesheets and both pages, and **no green to cyan `linear-gradient` exists on
 about.kick.com.** We then downloaded KICK own pattern plates, and they show what KICK really does.
 
-`assets/brand/patterns/pattern-3.png` is **4096x4096, and it holds two colours only**: green
+`pitch/src/assets/brand/patterns/pattern-3.png` is **4096x4096, and it holds two colours only**: green
 `#53FC18` and cyan `#00FFFF`. The two never blend. **They meet through a halftone dot screen**: a
 regular grid of square dots of one colour on a field of the other, and the dot density carries the
 transition. The result reads as a print screen or a dither, not as a fade.
 
-`assets/brand/patterns/cta-section.png` is the 1920x1080 plate, and it adds the rest of the
-vocabulary. Both files are in `assets/`, so look at them before you build a background.
+`pitch/src/assets/brand/patterns/cta-section.png` is the 1920x1080 plate, and it adds the rest of the
+vocabulary. Both files are in `pitch/src/assets/brand/patterns/`, so look at them before you build a background.
 
 **Use a dot screen where you would have used a gradient.** A smooth gradient is the wrong texture,
 and it is the one thing on this page we got wrong before.
@@ -307,7 +307,7 @@ Booster is published by [Blaze Type](https://www.myfonts.com/collections/booster
 **Booster is a commercial retail font. We cannot self-host it.** Hackathon Brief Section 5.2 and clause 7(f) require every asset to be licensable onward to KICK. We hold no Booster licence, so shipping the file fails the rules test.
 
 **KICK serves the two woff2 files publicly, and we still did not take them.** The URLs are in
-`assets/README.md`. A public URL is not a licence. This rule does not bend because the file is easy
+`.claude/KICK-ASSETS.md`. A public URL is not a licence. This rule does not bend because the file is easy
 to get.
 
 Our substitute 🔧:
@@ -319,9 +319,9 @@ Our substitute 🔧:
 
 Set Archivo at weight 800 and apply the display rules below. It will not match Booster, but it holds the same posture. **Say this out loud if a judge asks about type.** Naming the constraint reads better than a silent mismatch.
 
-`assets/fonts/kick-font/` holds `kick-font.ttf` with `kick-font-license.txt`. That is a community font built from the KICK wordmark, by "NachoZombiezz", under the OFL. Use it for a wordmark lockup only, never for reading text. A second copy sits in `prototypes/hypeprops/src/assets/fonts/`.
+`pitch/src/assets/fonts/kick-font/` holds `kick-font.ttf` with `kick-font-license.txt`. That is a community font built from the KICK wordmark, by "NachoZombiezz", under the OFL. Use it for a wordmark lockup only, never for reading text. A second copy sits in `prototypes/hypeprops/src/assets/fonts/`.
 
-`assets/fonts/` also holds Inter and Archivo, each with its `OFL.txt`. Take both from there.
+Inter sits in `demo/src/kick/fonts/` and Archivo in `pitch/src/assets/fonts/archivo/`, each with its `OFL.txt`. Take a copy into the project that needs it.
 
 ### How KICK sets display type ✅
 
@@ -399,7 +399,7 @@ our own desk, cut it out, and put it on a green flood.
 
 ### The wordmark 🔧
 
-`assets/brand/kick-logo.svg` is the official wordmark: a 97x26 viewBox, one path, `fill="#53FC18"`.
+`demo/src/kick/brand/kick-logo.svg` is the official wordmark: a 97x26 viewBox, one path, `fill="#53FC18"`.
 
 **We hold no official logo rule, because the brand toolkit is gated (Section 0).** These rules are ours.
 They are conservative, so a real toolkit is unlikely to contradict them. Replace them if we get access.
@@ -563,7 +563,7 @@ Run a finished media surface against this. Four or more no answers means it is n
 *Written 25 July 2026. Values tagged ✅ were read from the live DOM on kick.com and about.kick.com on that date. Values tagged 🟡 come from KICK's "From Every Angle" brand film. Values tagged 🔧 are our construction, not KICK's. The Brandfolder brand hub is still unread, and Section 0 lists what it would settle.*
 
 *Second pass, 25 July 2026. We read `about.kick.com/brand`, the Frame Generator page and all four
-stylesheets, and we downloaded KICK own assets into `assets/`. That pass added the neon token system
+stylesheets, and we downloaded KICK own assets. That pass added the neon token system
 (Section 3), the chat identity colours (Section 3), the real weight names (Section 4), two more easing curves (Section 6), the
 frame device and the object still life (Section 5), and more voice lines (Section 2). It also **corrected one
 thing: green to cyan is a halftone dot screen, not a `linear-gradient`** (Section 3).*

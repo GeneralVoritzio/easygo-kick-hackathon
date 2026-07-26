@@ -66,7 +66,7 @@ This agrees with `.claude/KICK-SITE-REFERENCE.md` Section 10. The method stays t
 
 `icons/` holds 58 files. Names come from three places:
 
-1. A byte match against the 22 icons already in `assets/icons/kick-inline/`.
+1. A byte match against the 22 icons already in `demo/src/kick/icons/`.
 2. The `aria-label` of the nearest button or link in the live DOM.
 3. Files still called `icon-N.svg` are real KICK icons that no page labelled. Rename one when
    you find a page that labels it.

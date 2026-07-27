@@ -733,18 +733,41 @@ card gap is 4px. A category grid is not a stream grid with narrower cards.
 
 ## 16. The home hero
 
+Re-read from the live kick.com home on 28 July 2026 at 2560, logged in. KICK has rebuilt the
+overlays as glass since the 27 July capture: the red Live badge is gone, the overlay surfaces
+share one glass recipe, and the chat header is a glass button under a scrim.
+
+**The glass recipe**, identical on the viewer pill, the bottom overlay and the chat header button:
+
+```
+isolate overflow-hidden bg-[rgba(11,11,12,0.64)] backdrop-blur-[8px]
+shadow-[inset_4px_4px_14px_-2px_rgba(255,255,255,0.12),
+        inset_-4px_-4px_14px_-2px_rgba(0,0,0,0.40),
+        0_12px_36px_-8px_rgba(0,0,0,0.55)]
+ring-1 ring-inset ring-white/5
+before:absolute before:inset-0 before:-z-10 before:rounded-[inherit]
+before:bg-[linear-gradient(135deg,rgba(255,255,255,0.18)_0%,rgba(255,255,255,0.03)_0%,rgba(255,255,255,0)_0%)]
+```
+
+The inset bevels do the work. Blur alone over dark video reads as a flat slab.
+
 | Thing | Value |
 |---|---|
 | Aspect box | `w-[calc((2*100%-12px)/3)]`, `3xl:w-[calc((3*100%-12px)/4)]`, 12px gap to the chat |
-| Chat aside | `w-[calc((100%-24px)/3)]`, `3xl:w-[calc((100%-36px)/4)]`, radius 8, 1px `outline-region`, `pb-4` |
-| Chat header | **Absolute over the body**, `top-0 w-full rounded-t-lg p-4`. It has no bottom border |
-| Chat body | `px-4 pt-20`. Each line is `h-[30px]` with `gap-2` |
-| Overlay | `absolute inset-x-4 bottom-4 flex gap-3 rounded-lg bg-dark-64 p-4 backdrop-blur-sm` |
+| Chat aside | `w-[calc((100%-24px)/3)]`, `3xl:w-[calc((100%-36px)/4)]`, radius 8, 1px `outline-decorative`, solid `bg-surface-lowest` |
+| Chat header | `z-absolute absolute top-0 w-full rounded-t-lg p-4`, scrim `linear-gradient(180deg,#0B0B0C_0%,rgba(11,11,12,0.80)_25%,rgba(11,11,12,0.00)_100%)`. Inside it one full-width glass **button**: `h-12 px-3 gap-2 justify-start rounded-lg text-lg font-semibold`, collapse icon at `size-[1em]` then `Chat` |
+| Chat body | `flex h-full flex-col pb-4` then `relative mt-0.5 shrink grow overflow-hidden`. `#chatroom-messages` is `h-full w-full contain-strict overflow-y-hidden`, pinned to the end, so the older lines run up behind the scrim and the reader cannot scroll |
+| Viewer pill | Replaces the Live badge, same corner: `left-4 top-4 h-7 rounded px-1 gap-x-1 text-base 3xl:text-lg font-semibold text-surface-onSurface` glass, a 10px `fill-primary-base` dot, then the count |
+| Overlay | `z-controls absolute bottom-4 left-4 right-4 rounded-lg` glass, inner `flex w-auto gap-3 p-4` |
 | Overlay layout | The avatar is a **sibling of the whole stack**, not a member of the top row. The carousel dots start under the title, not under the avatar |
-| Avatar | `size-9 lg:size-14` |
-| Watch now | **100 by 36**, radius 6 |
-| Live badge | **64 by 28**, radius 4, 16px in from the top left |
-| Dots | 8px, the active one 48 by 8, the first with `ml-1` |
+| Avatar | `size-9 lg:size-14`, a `size-5 lg:size-6` green Follow heart on its bottom right corner |
+| Channel name | 20px weight 700 white, line height 28 |
+| Session title | 14px weight **700** white, line height 20. Not the grey a stream card uses |
+| Watch now | `h-9 px-3 py-1.5 text-sm rounded`, width from the text, **radius 4 not 6** |
+| Dots | Each dot sits in a `px-1 py-3` hit-area button. The span transitions `[width,height,background-color,transform]` over 300ms ease-out. Active `h-2 w-12 scale-100 bg-white`, inactive `size-2 scale-[0.88] bg-white/35 group-hover:bg-white/55` |
+| Arrows | `size-9 rounded bg-transparent state-layer-surface text-surface-onSurface`, no plate |
+| Top right | `z-controls absolute right-4 top-4 flex flex-row gap-2`. Empty until the preview video mounts. Once mounted it holds the mute button, icon 16px |
+| Hero icons | The hero does not use the channel page chat icons. `Hide chat` is two bars and a separate right chevron, 18px in the header button. `Show chat` is its mirror, 16px. Mute is a filled speaker with a slash on a clip path, 16px. All three live in `demo/src/kick/icons.ts` as `hide-chat`, `expand-chat` and `hero-mute`, taken from the live markup on 28 July 2026. The unmuted state was not captured, because unmuting plays audio on the user's machine |
 
 The banner above the hero is Section 17.
 

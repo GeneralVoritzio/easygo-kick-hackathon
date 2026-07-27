@@ -319,6 +319,45 @@ function ChatMessages({ messages, surface }: { messages: Message[]; surface: str
   );
 }
 
+function useFlowingMessages() {
+  const [messages, setMessages] = useState<Message[]>(() => seedMessages(22));
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setMessages((prev) => [...prev.slice(-149), randomMessage()]);
+    }, 2200);
+    return () => clearInterval(interval);
+  }, []);
+
+  return [messages, setMessages] as const;
+}
+
+// The home hero feed: pinned to the end, overflow-y-hidden, so the reader cannot scroll it and
+// the older lines run up behind the header scrim. Read from the live kick.com hero.
+export function HeroChatFeed() {
+  const [messages] = useFlowingMessages();
+  const listRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const el = listRef.current;
+    if (el) el.scrollTop = el.scrollHeight;
+  }, [messages]);
+
+  return (
+    <div
+      ref={listRef}
+      style={{ "--chatroom-message-spacing": "4px" } as CSSProperties}
+      className="relative h-full w-full overflow-y-hidden"
+    >
+      <div className="flex min-h-full flex-col justify-end">
+        {messages.map((message) => (
+          <ChatMessage key={message.id} message={message} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
 const pickerTabs: { icon: KickIconName; label: string }[] = [
   { icon: "picker-recent", label: "Frequently used" },
   { icon: "collectibles", label: "Collectibles" },
@@ -639,15 +678,8 @@ function ChatFooter({
 // there. On the channel page one surface runs across the whole site, so it runs on surface-lowest.
 export function ChatFeed({ header, dashboard }: { header?: ReactNode; dashboard?: boolean }) {
   const surface = dashboard ? "bg-surface-base" : "bg-surface-lowest";
-  const [messages, setMessages] = useState<Message[]>(() => seedMessages(22));
+  const [messages, setMessages] = useFlowingMessages();
   const [draft, setDraft] = useState("");
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setMessages((prev) => [...prev.slice(-149), randomMessage()]);
-    }, 2200);
-    return () => clearInterval(interval);
-  }, []);
 
   function send(body: string) {
     if (!body) return;

@@ -10,6 +10,7 @@ import DashboardPage from './dashboard/DashboardPage'
 import AuthModal from './auth/AuthModal'
 import DiscoveryPage from './discovery/DiscoveryPage'
 import KickPlaysPage from './plays/KickPlaysPage'
+import PlaysNativePage from './plays/PlaysNativePage'
 
 export default function App() {
   useEffect(() => startEngineTick(), [])
@@ -26,6 +27,7 @@ export default function App() {
         <Route path="/browse" element={<BrowsePage />} />
         <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/kickplays" element={<KickPlaysPage />} />
+        <Route path="/plays" element={<PlaysNativePage />} />
       </Routes>
       {/* auth modal is global — any page can open it via useAuth */}
       <AuthModal />

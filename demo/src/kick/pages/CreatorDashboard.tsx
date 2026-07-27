@@ -1,11 +1,15 @@
 import { useState } from "react";
 import { Link, NavLink, useParams } from "react-router-dom";
 import { Icon, type KickIconName } from "../Icon";
+import { ProfileMenu } from "../components/ProfileMenu";
 import kickLogo from "../brand/kick-logo.svg";
 import { categories, currentUser } from "../mock/api";
+import { ChatFeed } from "../components/ChannelChat";
+
+const streamItem = "/dashboard/stream";
 
 const navItems: { label: string; to: string; icon: KickIconName; expandable?: boolean }[] = [
-  { label: "Stream", to: "/dashboard/stream", icon: "dash-stream" },
+  { label: "Stream", to: streamItem, icon: "dash-stream" },
   { label: "Stream URL & Key", to: "/dashboard/channel/stream", icon: "dash-stream-key" },
   { label: "Revenue", to: "/dashboard/revenue", icon: "dash-revenue" },
   { label: "Achievements", to: "/dashboard/achievements", icon: "dash-achievements" },
@@ -211,7 +215,7 @@ export function CreatorDashboard() {
   const [subsOnly, setSubsOnly] = useState(false);
   const [emotesOnly, setEmotesOnly] = useState(false);
   const [showViewCount, setShowViewCount] = useState(true);
-  const [draft, setDraft] = useState("");
+  const [menuOpen, setMenuOpen] = useState(false);
   const active = `/dashboard/${section ?? "stream"}`;
 
   return (
@@ -231,30 +235,55 @@ export function CreatorDashboard() {
             <Icon name="kick-mark" className="size-[1em]" />
             Go live
           </button>
-          <button type="button" aria-label={currentUser.username} className="shrink-0">
-            <img src={currentUser.avatar} alt="" className="size-8 rounded-full" />
+          <button
+            type="button"
+            aria-label={currentUser.username}
+            aria-haspopup="menu"
+            aria-expanded={menuOpen}
+            onClick={() => setMenuOpen((v) => !v)}
+            className="shrink-0 rounded"
+          >
+            <img
+              src={currentUser.avatar}
+              alt={currentUser.username}
+              className="size-8 rounded-full lg:box-content"
+            />
           </button>
+          {menuOpen && <ProfileMenu dashboard onClose={() => setMenuOpen(false)} />}
         </div>
       </nav>
 
       <div className="flex min-h-0 flex-1">
         <div className="hidden w-[var(--sidebar-expanded-width)] shrink-0 flex-col overflow-hidden bg-surface-lowest xl:flex">
           <ul className="flex w-full flex-col px-2">
-            {navItems.map((item) => (
-              <li key={item.to}>
-                <NavLink
-                  to={item.to}
-                  data-state={item.to === active ? "active" : "inactive"}
-                  className={`state-layer-surface flex h-12 w-full items-center justify-start gap-x-4 rounded px-4 py-1 text-base font-semibold text-white ${
-                    item.to === active ? "!bg-secondary-base" : "bg-transparent"
-                  }`}
-                >
+            {navItems.map((item) => {
+              const content = (
+                <>
                   <Icon name={item.icon} className="size-4 shrink-0" />
                   <span className="grow text-left">{item.label}</span>
                   {item.expandable && <Icon name="chevron-right" className="size-3 shrink-0 rotate-90" />}
-                </NavLink>
-              </li>
-            ))}
+                </>
+              );
+              const rowClass =
+                "flex h-12 w-full items-center justify-start gap-x-4 rounded px-4 py-1 text-base font-semibold text-white";
+              return (
+                <li key={item.to}>
+                  {item.to === streamItem ? (
+                    <NavLink
+                      to={item.to}
+                      data-state={item.to === active ? "active" : "inactive"}
+                      className={`state-layer-surface ${rowClass} ${
+                        item.to === active ? "!bg-secondary-base" : "bg-transparent"
+                      }`}
+                    >
+                      {content}
+                    </NavLink>
+                  ) : (
+                    <span className={`${rowClass} cursor-default bg-transparent`}>{content}</span>
+                  )}
+                </li>
+              );
+            })}
           </ul>
         </div>
 
@@ -317,41 +346,7 @@ export function CreatorDashboard() {
 
               <Pane style={{ width: "30%" }}>
                 <Panel title="Chat" icon="dash-chat">
-                  <div className="flex h-full w-full flex-col">
-                    <div className="no-scrollbar min-h-0 grow overflow-y-auto" />
-                    <div className="flex shrink-0 flex-col gap-2 px-5 py-3">
-                      <div className="flex w-full items-center rounded border-2 border-neutral-700 py-1 pl-2 pr-1 transition-colors duration-200 focus-within:border-transparent focus-within:bg-[#070809] focus-within:ring-1 focus-within:ring-[#F4F5F6] focus-within:ring-offset-1">
-                        <IconButton icon="verified" label="Chat identity" className="h-[30px] px-[5px] text-base leading-none" />
-                        <input
-                          value={draft}
-                          onChange={(e) => setDraft(e.target.value)}
-                          placeholder="Send a message"
-                          aria-label="Send a message"
-                          className="w-full bg-transparent px-1 text-sm font-medium leading-[1.15] text-white outline-none placeholder:text-[#768087]"
-                        />
-                        <IconButton icon="chat-emote" label="Emotes" className="size-9 text-base leading-none" />
-                      </div>
-                      <div className="flex w-full items-center gap-x-2">
-                        <button
-                          type="button"
-                          aria-label="Channel points"
-                          className="state-layer-surface flex items-center gap-1 rounded bg-transparent px-2 py-1.5 text-sm font-semibold text-white"
-                        >
-                          <Icon name="dash-tools" className="size-4" />
-                          <Icon name="chat-kicks" className="size-5" />
-                        </button>
-                        <div className="ml-auto flex items-center gap-x-2">
-                          <IconButton icon="settings" label="Chat settings" className="size-9 text-base leading-none" />
-                          <button
-                            type="button"
-                            className="state-layer-base rounded bg-primary-base px-3 py-1.5 text-sm font-semibold text-primary-onPrimary"
-                          >
-                            Chat
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+                  <ChatFeed dashboard />
                 </Panel>
               </Pane>
 

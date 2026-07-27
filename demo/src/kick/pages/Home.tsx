@@ -9,7 +9,7 @@ import { ClipGrid } from "../components/ClipCard";
 import { Pill, Section } from "../components/CardBits";
 import { livestreams, categories, formatViewers, streamPills } from "../mock/api";
 import { clips } from "../mock/clips";
-import { ChatFeed } from "../components/ChannelChat";
+import { HeroChatFeed } from "../components/ChannelChat";
 
 const heroStreams = livestreams.slice(0, 6);
 
@@ -199,7 +199,7 @@ function HeroCarousel() {
             </div>
             <div className="flex h-full flex-col pb-4">
               <div className="relative mt-0.5 shrink grow overflow-hidden">
-                <ChatFeed />
+                <HeroChatFeed />
               </div>
             </div>
           </aside>

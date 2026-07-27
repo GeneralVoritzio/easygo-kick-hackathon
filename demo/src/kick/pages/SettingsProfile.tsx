@@ -105,8 +105,8 @@ export function SettingsProfile() {
       <section className="flex flex-col gap-4 py-6">
         <h3 className="text-base font-bold leading-[1.2] text-white">Profile Preview</h3>
         <div className="overflow-hidden rounded-lg border border-outline-decorative">
-          {bannerImage("martibo-banner") ? (
-            <img src={bannerImage("martibo-banner")} alt="" className="h-[134px] w-full object-cover" />
+          {bannerImage("superdude1337-banner") ? (
+            <img src={bannerImage("superdude1337-banner")} alt="" className="h-[134px] w-full object-cover" />
           ) : (
             <div className="h-[134px] w-full bg-surface-base" />
           )}
@@ -132,20 +132,20 @@ export function SettingsProfile() {
 
       <BannerSection
         title="Channel Banner"
-        imageSrc={bannerImage("martibo-banner")}
+        imageSrc={bannerImage("superdude1337-banner")}
         helpText="Minimum image size: 1200x134px and less than 4MB"
       />
 
       <BannerSection
         title="Offline Stream Banner"
-        imageSrc={bannerImage("martibo-offline")}
+        imageSrc={bannerImage("superdude1337-offline")}
         helpText="This banner image will display for two minutes upon going offline."
       />
 
       <section className="flex flex-col gap-6 py-6">
         <h3 className="text-base font-bold leading-[1.2] text-white">Basic Details</h3>
         <BasicDetailsField label="Username" name="username" type="text" initialValue={currentUser.username} />
-        <BasicDetailsField label="Email" name="email" type="email" initialValue="martibo@kickstream.tv" />
+        <BasicDetailsField label="Email" name="email" type="email" initialValue="superdude1337@kickstream.tv" />
       </section>
     </SettingsLayout>
   );

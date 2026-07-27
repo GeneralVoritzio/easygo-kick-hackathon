@@ -16,7 +16,7 @@ export function CategoryCard({ category }: { category: Category }) {
         <div className="flex w-full min-w-0 flex-col items-start">
           <button
             type="button"
-            className="w-full truncate text-left text-base font-semibold leading-6 text-white betterhover:hover:text-surface-onSurfacePrimary"
+            className="w-full truncate text-left text-base font-semibold leading-6 text-white"
           >
             {category.name}
           </button>

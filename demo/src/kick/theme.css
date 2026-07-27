@@ -154,6 +154,8 @@
 
   --color-subtle: #929ea6;
 
+  --color-identity-cyan: var(--color-cyan-500);
+
   --color-primary-base: #53fc18;
   --color-primary-onPrimary: #0b0b0c;
   --color-secondary-base: #42474d;

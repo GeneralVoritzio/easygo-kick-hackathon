@@ -37,6 +37,7 @@ wordmark set in a font, gives the copy away faster than any layout error.
 | `--sidebar-expanded-width` | `256px` |
 | `--sidebar-collapsed-width` | `56px` |
 | `--chat-width` | `340px`, and it is a drag handle, not a constant |
+| `--channel-info-height` | `132px`, the space the channel bar keeps below the player |
 
 - **Every column is the same colour.** Separation comes from borders and spacing, never from a
   lighter panel.
@@ -118,6 +119,30 @@ An offline row dims the avatar with `mix-blend-luminosity grayscale` and sets th
 
 ---
 
+## 4b. The player box, read at 2560 by 1305 on 27 July 2026
+
+The player does not take the width and work out a height. KICK caps the height against the
+viewport, then fits a 16:9 box inside it and centres that box:
+
+```
+max-h-[calc(100vh-var(--navbar-height)-var(--channel-info-height))]
+supports-[height:100dvh]:max-h-[calc(100dvh-var(--navbar-height)-var(--channel-info-height))]
+```
+
+The inner `#injected-channel-player` is `relative m-auto aspect-video max-h-full`. The side margins
+you measure, 42.45px at 2560, are the output of `m-auto`. Never write them down.
+
+**Tabs are 48px, not 44.** Every tab bar, on browse, on following, on a channel and in settings,
+uses `h-12 px-2 rounded-t-sm border-b`. The active tab carries the green on both the label and the
+border, `border-surface-onSurfacePrimary text-surface-onSurfacePrimary`. An inactive tab keeps a
+1px transparent bottom border, so the label does not move when it becomes active.
+
+**`tv:` and `fhd:` do not fire at 2560.** A kick.com stream card computes `padding: 8px 6px` there,
+so both breakpoints sit above 2560. Our own values were 160rem and 140rem, which fired and put
+16px on every card.
+
+---
+
 ## 5. Buttons and states
 
 - The primary button is ink on `#53FC18`. The secondary is white on `#42474D`.
@@ -180,3 +205,29 @@ meet.
    tokens when you dump markup.
 8. **The Browser pane must be displayed to composite frames.** If it is not, screenshots time out
    and `getBoundingClientRect` is the only evidence available.
+9. **A capture taken at the top of the page holds the first screen only.** KICK loads each row as
+   you reach it. Run `scripts/in-page/scroll.js` first, and read the section list it returns.
+10. **A measurement pass alone passes a page that looks wrong.** A missing colour, a missing border
+    and a misplaced overlay all measure as valid. Look at both pages as well, and scroll while you
+    look. SKILL.md Phase 4 Pass 2 holds the five questions.
+11. **A token that does not resolve renders as transparent.** On a dark page that reads as a
+    deliberate choice, not as a fault, so it survives review. Compare the surface against kick.com,
+    do not judge it on its own.
+12. **A scrollbar we show and KICK hides gives the page away.** KICK hides them with `.no-scrollbar`
+    on every pane, row and menu, not on the main column only. An overflow we add needs the same
+    class.
+13. **A control that only looks right is a fault.** KICK opens a menu, switches a tab or moves a
+    switch on the click. Copy the response as well as the button.
+14. **Alignment measures as valid whichever way it goes.** A centred thing we left at the start
+    edge, or a baseline we did not share, passes Pass 1 every time. Only a screenshot finds it.
+15. **`javascript_tool` in Chrome truncates a reply at about 1000 characters.** Keep the result on
+    `window`, then read it in 850 character slices. The Browser pane returns the whole string, so
+    measure the clone there and kick.com in Chrome.
+16. **The browser hook blocks any `Bash` command that holds a `kick.com` URL**, including one that
+    only writes a file with the source URL in it. Save a baseline with the `Write` tool.
+17. **The default targets describe a grid page only.** A channel page needs `player`,
+    `channelContent` and `chat`. A settings page needs its tabs. A following list page has no grid
+    at all. Read `demo/kick-reference/measured/README.md` before you measure a new page.
+18. **Chrome does not always resize.** If `resize_window` reports success and `innerWidth` does not
+    change, the screen itself is the limit. Measure both sides at whatever Chrome gives, and put
+    that number in the file name.

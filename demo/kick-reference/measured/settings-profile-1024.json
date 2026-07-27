@@ -1,0 +1,16 @@
+{
+ "captured": "2026-07-27",
+ "source": "https://kick.com/settings/profile",
+ "loggedIn": false,
+ "note": "Read at 1024 because the Chrome screen dropped to 1024 by 768 during the capture. Below lg the sidebar is the 56px rail, so this does not compare against the 2560 files. Read it again at 2560 when the screen allows.",
+ "viewport": [1024, 577],
+ "url": "/settings/profile",
+ "body": { "rect": [1024, 577, 0, 0], "box": { "display": "block", "fontSize": "16px", "lineHeight": "24px", "fontWeight": "400", "color": "rgb(255, 255, 255)", "backgroundColor": "rgb(11, 11, 12)" } },
+ "navbar": { "rect": [1024, 60, 0, 0], "box": { "display": "flex", "padding": "0px 40px 0px 12px", "backgroundColor": "rgb(11, 11, 12)", "zIndex": "402", "boxShadow": "rgba(0, 0, 0, 0.2) 0px 2px 4px 0px" } },
+ "sidebar": { "rect": [56, 517, 0, 60], "box": { "display": "flex", "backgroundColor": "rgb(11, 11, 12)", "zIndex": "401" } },
+ "column": { "rect": [884, 2403.14, 96, 72], "box": { "display": "block" } },
+ "testid:tab-profile": { "rect": [66.22, 48, 96, 124], "box": { "display": "flex", "padding": "0px 8px", "fontWeight": "600", "color": "rgb(83, 252, 24)", "borderRadius": "2px 2px 0px 0px", "borderWidth": "0px 0px 1px", "borderColor": "rgb(83, 252, 24)", "borderStyle": "solid" } },
+ "testid:tab-security": { "rect": [81.03, 48, 162.22, 124], "box": { "display": "flex", "padding": "0px 8px", "fontWeight": "600", "borderRadius": "2px 2px 0px 0px", "borderWidth": "0px 0px 1px", "borderColor": "rgba(0, 0, 0, 0)", "borderStyle": "solid" } },
+ "testid:profile-inline-edit-input-instagram": { "rect": [812, 36, 132, 1979.14], "box": { "display": "flex", "padding": "0px 12px", "margin": "8px 0px 0px", "fontSize": "14px", "lineHeight": "20px", "backgroundColor": "rgb(11, 11, 12)", "borderRadius": "4px", "borderWidth": "1px", "borderColor": "rgba(240, 241, 242, 0.4)", "borderStyle": "solid" } },
+ "testid:channel-about-description": { "rect": [706.66, 20, 237.34, 382], "box": { "display": "block", "fontSize": "14px", "lineHeight": "20px", "color": "rgb(159, 166, 173)" } }
+}

@@ -40,7 +40,11 @@ export function ChannelPlayer({ stream }: { stream: Livestream }) {
   const displayVolume = muted ? 0 : volume;
 
   return (
-    <div className="group/player z-player relative aspect-video w-full shrink-0 overflow-hidden bg-black">
+    <div className="relative block w-full shrink-0 overflow-hidden bg-black max-h-[calc(100vh-var(--navbar-height)-var(--channel-info-height))] supports-[height:100dvh]:max-h-[calc(100dvh-var(--navbar-height)-var(--channel-info-height))]">
+      <div
+        id="injected-channel-player"
+        className="group/player z-player relative m-auto aspect-video max-h-full"
+      >
       <img
         src={stream.thumbnail}
         alt={stream.session_title}
@@ -146,6 +150,7 @@ export function ChannelPlayer({ stream }: { stream: Livestream }) {
             </button>
           </div>
         </div>
+      </div>
       </div>
     </div>
   );

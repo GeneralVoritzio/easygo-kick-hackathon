@@ -183,12 +183,17 @@
   --radius-lg: 8px;
 
   --breakpoint-3xl: 120rem;
-  --breakpoint-tv: 160rem;
-  --breakpoint-fhd: 140rem;
+  /* Measured on 27 July 2026: at 2560 a kick.com stream card computes padding
+     8px 6px, so neither tv:py-4 nor fhd:py-5 applies there. Both breakpoints are
+     above 2560. The exact values live in a CSS chunk we have not captured, so
+     these two are derived from real display widths, not read. */
+  --breakpoint-fhd: 180rem;
+  --breakpoint-tv: 240rem;
 }
 
 :root {
   --navbar-height: 60px;
+  --channel-info-height: 132px;
   --sidebar-expanded-width: 256px;
   --sidebar-collapsed-width: 56px;
   --chat-width: 340px;

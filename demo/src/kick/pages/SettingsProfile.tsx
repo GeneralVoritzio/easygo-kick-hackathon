@@ -19,11 +19,15 @@ function BannerSection({
   return (
     <section className="flex flex-col gap-4 py-6">
       <h3 className="text-base font-bold leading-[1.2] text-white">{title}</h3>
-      <img
-        src={imageSrc}
-        alt=""
-        className="h-[134px] w-full rounded border border-outline-decorative object-cover"
-      />
+      {imageSrc ? (
+        <img
+          src={imageSrc}
+          alt=""
+          className="h-[134px] w-full rounded border border-outline-decorative object-cover"
+        />
+      ) : (
+        <div className="h-[134px] w-full rounded border border-outline-decorative bg-surface-base" />
+      )}
       <div className="flex flex-col gap-2">
         <button type="button" className={`${ghostButtonClass} h-8 w-[170px]`}>
           Update Banner image
@@ -101,7 +105,11 @@ export function SettingsProfile() {
       <section className="flex flex-col gap-4 py-6">
         <h3 className="text-base font-bold leading-[1.2] text-white">Profile Preview</h3>
         <div className="overflow-hidden rounded-lg border border-outline-decorative">
-          <img src={bannerImage("martibo-banner")} alt="" className="h-[134px] w-full object-cover" />
+          {bannerImage("martibo-banner") ? (
+            <img src={bannerImage("martibo-banner")} alt="" className="h-[134px] w-full object-cover" />
+          ) : (
+            <div className="h-[134px] w-full bg-surface-base" />
+          )}
           <div className="-mt-10 flex items-end gap-4 px-4">
             <img
               src={currentUser.avatar}

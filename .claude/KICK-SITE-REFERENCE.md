@@ -446,7 +446,20 @@ width, so it must be named.
 
 When the chat is collapsed an expand button appears **over the player**, not in the page flow:
 `z-controls absolute right-7 top-7 hidden transition-opacity group-data-[chat=false]/main:block`.
-It holds the expand icon, which is the collapse icon mirrored.
+
+**The button is a labelled pill, not an icon on its own.** It holds the expand icon, which is the
+collapse icon mirrored, then the word `Chat`. Read from `kick.com/evscape` on 28 July 2026:
+
+| Thing | Live value |
+|---|---|
+| Size | 82 by 40 |
+| Position | `top: 28px`, `right: 28px` from the player column |
+| Background | `#171A1C` `bg-surface-base`, hover `bg-surface-highest` |
+| Text | `Chat`, white, 16px, weight 600 |
+| Icon | 16px through `[&_svg]:size-[1em]`, `fill-current` |
+| Box | `gap-1.5`, `px-3 py-2`, radius 4px |
+
+The button has no `aria-label`, because the word `Chat` is the label.
 
 A flex item with a width of 0 still measures at its content width unless it also carries
 `min-w-0`, because a flex item defaults to `min-width: auto`.
@@ -1400,10 +1413,47 @@ use. Both sit 16px from the panel's right edge, so their right edges line up wit
 - **The switch** is `h-5 w-[2.25rem] rounded-full`, `bg-secondary-base` off and `bg-primary-base`
   on. The knob is `h-[0.875rem] w-[0.875rem]`, `translate-x-[0.25rem]` off and
   `translate-x-[calc(2.25rem-0.25rem-0.875rem)]` on, which measures 4px to 18px.
-- **Chat.** The message list, then a footer: an input row (`rounded border-2 border-neutral-700
-  pl-2 pr-1`) holding the identity badge, the editor and an emote button, then a row with the
-  channel-points button on the left and the settings gear plus a green **Chat** button on the
-  right.
+- **Chat.** The same component the channel page runs, on a different surface and with a shorter
+  button row. Read live on 28 July 2026 at 2560 by 1305, logged in. See the table below.
+
+### The chat panel, against the channel page
+
+Section 6 holds the chat itself. Only these four things change on the dashboard. Everything else,
+the input row, the emote bar, the emote picker and the message rows, is the same markup.
+
+| Part | Channel page | Dashboard |
+|---|---|---|
+| Chat root | `bg-surface-lowest` (`#0b0b0c`) | `!w-full bg-surface-base` (`#171a1c`) |
+| Message list | `bg-surface-lowest` | `bg-surface-base` |
+| Header and gifter leaderboard | both present | **neither.** The panel header is the only title |
+| Left button group | channel points with a count, then Get KICKs with a count | **channel points only, and no count** |
+
+**The dashboard points button carries two glyphs and no number.** It is
+`state-layer-surface px-2 py-1.5 text-sm gap-1`, so it measures 56 by 32 where the channel page
+button is `h-9`. Inside it sit the 16px channel-points glyph, then KICK's own **KICKs mark at
+20px**. Both are white: the button is `text-white`, and each path takes `fill="current"`. The
+KICKs mark reads as an infinity sign, and it is the same file the channel page uses for Get KICKs
+(`demo/src/kick/icons/chat-kicks.svg`). There is no Get KICKs button on the dashboard.
+
+Two values measured on both pages, which an earlier build had wrong on both:
+
+- **The emote bar carries no gap.** It is
+  `flex h-7 max-h-7 w-full max-w-full flex-wrap items-center overflow-hidden empty:hidden
+  lg:justify-between`, so the row spreads itself. Each emote is a `h-full w-fit` div holding a
+  `relative h-full shrink-0 rounded-sm p-0.5 aspect-square` button and a `h-full w-full` image.
+  A wide emote takes `aspect-[2/1]` instead.
+- **The input row wears a focus ring, not a border colour.** `focus-within:border-transparent
+  focus-within:bg-[#070809] focus-within:outline-none focus-within:ring-1
+  focus-within:ring-[#F4F5F6] focus-within:ring-offset-1 focus-within:hover:border-transparent`.
+
+The button row is `flex shrink-0 grow-0 items-center gap-1 lg:w-full lg:gap-0`, holding
+`flex gap-x-1 lg:w-full lg:gap-x-2` on the left and `ml-auto flex items-center gap-x-2` on the
+right. The same on both pages.
+
+**The emote bar was collapsed on the account we read.** Its wrapper held an inline
+`height: 0px; opacity: 0; padding-bottom: 0px`, on the dashboard and on the channel page alike, so
+both footers measured 118. Focus on the field does not open it, so it is a chat setting we could
+not read. The bar itself is 28 tall, which is the 146 our footer measures with it open.
 
 ### The right rail
 
@@ -1411,3 +1461,86 @@ Ten `size-10` buttons in one 64px column: an info button, an edit button on
 `bg-secondary-base/20`, a `h-px w-6` rule, seven tool buttons that each wear
 `border border-primary-base` on a transparent fill, and a dots button. The icons are 16px. They
 carry no `aria-label` on the live site, and the label comes from a tooltip.
+
+---
+
+## 23. The clip modal, measured on kick.com 27 July 2026, logged in at 2560 by 1305
+
+**Source:** `kick.com/browse/clips`, click any clip thumbnail. The URL does not change, so the
+modal is local state, not a route. The same modal opens from a channel clips grid.
+
+It is a `role="dialog"` over a `z-dialog fixed inset-0 bg-black/75` scrim. The dialog measured
+1961 by 912, and it holds two columns: the player, then the 340px chat rail.
+
+### 23.1 The size is a formula, never a pixel
+
+The player box carries all four:
+
+```
+h-[calc(80vh-var(--channel-info-height))]
+max-h-[calc((70vw-48px)*9/16)]
+w-[70vw]
+max-w-[calc((80vh-var(--channel-info-height))*16/9)]
+```
+
+At 2560 by 1305 that gives 912 high, so the width caps at 1621, and the dialog is 1621 + 340. The
+video sits in `relative m-auto aspect-video h-full`, with `absolute inset-0 z-player cursor-pointer`
+over it to toggle play.
+
+### 23.2 The two overlays on the video
+
+Both are `absolute inset-x-0 z-controls flex flex-row flex-nowrap justify-between
+transition-opacity`, and both stay at `opacity-100`.
+
+| Overlay | Classes | Content |
+|---|---|---|
+| Top, 68px | `top-0 bg-gradient-to-b from-black/80 to-transparent px-5 py-3` | Two lines in `flex flex-col gap-1.5 font-bold` |
+| Bottom, 44px | `bottom-0 bg-gradient-to-b from-transparent to-black/80 px-5` | Play, mute, `00:00 / 00:30`, then fullscreen |
+
+Line 1 is 16px weight 700 on `leading-[1.2]`: the clip title, a `•`, then the category as a link.
+Line 2 is 14px weight 700: `Clipped by <user> • 20.5K Views • 5 days ago`.
+
+The seekbar is `group/seekbar absolute -top-7 left-0 h-5 w-full`, the track `h-1 bg-subtle/50`
+growing to `h-1.5` on hover, the fill `bg-green-500`, and a `size-4 rounded-full bg-primary-base`
+thumb that is `hidden` until the hover.
+
+The bottom bar holds **four** controls only: play, mute with a hover volume slider, the time, and
+fullscreen. There is no picture in picture, no `Clip`, no captions, no theatre mode and no quality.
+
+### 23.3 The chat rail, 340 by the player height
+
+`flex flex-col bg-surface-base`, and it is the live chat panel of Section 6 with the footer
+removed. Header is the same 50px `border-b-2 border-[#24272c]` row, holding the collapse button
+and a centred **Chat**. Body is `flex grow flex-col gap-4 px-3.5 py-4`.
+
+The body holds, top to bottom:
+
+1. The channel block, 70px: a 64px avatar, the name as `h1` with the verified tick, then the
+   **stream** title with a chevron. Not the clip title, which is already on the video.
+2. A `flex flex-row flex-wrap gap-2` button row: `Follow` at 168 wide, then three `size-10`
+   buttons, share, download and more actions.
+3. `hr` `w-full border-t-2 border-t-[#24272C]`.
+4. **Watch full video**, `w-full` on `bg-secondary-base/20 px-3 py-2 text-base`, with the external
+   link icon after the label.
+5. A second `hr`.
+6. The chat replay on `bg-neutral-950`.
+
+A replay row is `px-2` on 14px, leading 21px: a `pr-1 font-semibold` timestamp such as `00:01`, the
+username in its identity colour at weight 700, a `:`, then the body. **KICK loads the whole replay
+at once. It does not reveal a row as the clip plays.**
+
+### 23.4 Watch full video is a link with a time
+
+```
+kick /<slug>/videos/<video_id>?t=4630
+```
+
+`t` is whole seconds into the VOD, and it is where the clip starts. This is the only place the
+modal leaves the page.
+
+### 23.5 The close button moves with the rail
+
+`absolute size-10 right-[calc(var(--chat-clip-dialog-expanded)*340px)]`, plus
+`mr-[calc((1-var(--chat-clip-dialog-expanded))*105px)]` and the same form for `mt` at 13px. So it
+sits on the top right of the **video** while the rail is open, and moves inside the video, clear of
+the controls, when the rail collapses. A collapsed rail puts a `Chat` button at `right-5 top-3`.

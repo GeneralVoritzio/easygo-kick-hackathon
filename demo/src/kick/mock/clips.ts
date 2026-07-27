@@ -9,9 +9,30 @@ export type Clip = {
   channel: Channel;
   category: { name: string; slug: string };
   created_at: string;
+  clipper: string;
+  start_time: number;
 };
 
 export const CLIPS_NOW = new Date("2026-07-26T12:00:00Z");
+
+export function formatDuration(seconds: number): string {
+  const m = Math.floor(seconds / 60);
+  const s = seconds % 60;
+  return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+}
+
+export function formatClipAge(createdAt: string): string {
+  const diffMs = CLIPS_NOW.getTime() - new Date(createdAt).getTime();
+  const diffHours = Math.floor(diffMs / 3_600_000);
+  if (diffHours < 1) return "just now";
+  if (diffHours < 24) return `${diffHours} hours ago`;
+  const diffDays = Math.floor(diffHours / 24);
+  if (diffDays < 7) return `${diffDays} days ago`;
+  const diffWeeks = Math.floor(diffDays / 7);
+  if (diffWeeks < 5) return `${diffWeeks} ${diffWeeks === 1 ? "week" : "weeks"} ago`;
+  const diffMonths = Math.floor(diffDays / 30);
+  return `${diffMonths} ${diffMonths === 1 ? "month" : "months"} ago`;
+}
 
 const art = import.meta.glob("../art/*.svg", {
   eager: true,
@@ -34,6 +55,17 @@ const cat = (slug: string) => {
   return { name: c.name, slug: c.slug };
 };
 
+const clippers = [
+  "TickManipTanya",
+  "VodGoblin",
+  "ClipfarmClive",
+  "LurkerLoretta",
+  "SecondScreenSid",
+  "FrameGrabFreya",
+  "ChatHistorianHal",
+  "HighlightHelga",
+];
+
 const clip = (
   id: number,
   channelSlug: string,
@@ -51,6 +83,9 @@ const clip = (
   channel: chan(channelSlug),
   category: cat(categorySlug),
   created_at,
+  clipper: clippers[id % clippers.length],
+  // The clock time of the clip stands in for its offset in the stream, so no row carries a second date.
+  start_time: new Date(created_at).getUTCMinutes() * 60 + new Date(created_at).getUTCSeconds(),
 });
 
 export const clips: Clip[] = [

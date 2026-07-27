@@ -4,6 +4,7 @@ import { Icon, type KickIconName } from "../Icon";
 import { ProfileMenu } from "../components/ProfileMenu";
 import kickLogo from "../brand/kick-logo.svg";
 import { categories, currentUser } from "../mock/api";
+import { ChatFeed } from "../components/ChannelChat";
 
 const streamItem = "/dashboard/stream";
 
@@ -214,7 +215,6 @@ export function CreatorDashboard() {
   const [subsOnly, setSubsOnly] = useState(false);
   const [emotesOnly, setEmotesOnly] = useState(false);
   const [showViewCount, setShowViewCount] = useState(true);
-  const [draft, setDraft] = useState("");
   const [menuOpen, setMenuOpen] = useState(false);
   const active = `/dashboard/${section ?? "stream"}`;
 
@@ -346,41 +346,7 @@ export function CreatorDashboard() {
 
               <Pane style={{ width: "30%" }}>
                 <Panel title="Chat" icon="dash-chat">
-                  <div className="flex h-full w-full flex-col">
-                    <div className="no-scrollbar min-h-0 grow overflow-y-auto" />
-                    <div className="flex shrink-0 flex-col gap-2 px-5 py-3">
-                      <div className="flex w-full items-center rounded border-2 border-neutral-700 py-1 pl-2 pr-1 transition-colors duration-200 focus-within:border-transparent focus-within:bg-[#070809] focus-within:ring-1 focus-within:ring-[#F4F5F6] focus-within:ring-offset-1">
-                        <IconButton icon="verified" label="Chat identity" className="h-[30px] px-[5px] text-base leading-none" />
-                        <input
-                          value={draft}
-                          onChange={(e) => setDraft(e.target.value)}
-                          placeholder="Send a message"
-                          aria-label="Send a message"
-                          className="w-full bg-transparent px-1 text-sm font-medium leading-[1.15] text-white outline-none placeholder:text-[#768087]"
-                        />
-                        <IconButton icon="chat-emote" label="Emotes" className="size-9 text-base leading-none" />
-                      </div>
-                      <div className="flex w-full items-center gap-x-2">
-                        <button
-                          type="button"
-                          aria-label="Channel points"
-                          className="state-layer-surface flex items-center gap-1 rounded bg-transparent px-2 py-1.5 text-sm font-semibold text-white"
-                        >
-                          <Icon name="dash-tools" className="size-4" />
-                          <Icon name="chat-kicks" className="size-5" />
-                        </button>
-                        <div className="ml-auto flex items-center gap-x-2">
-                          <IconButton icon="settings" label="Chat settings" className="size-9 text-base leading-none" />
-                          <button
-                            type="button"
-                            className="state-layer-base rounded bg-primary-base px-3 py-1.5 text-sm font-semibold text-primary-onPrimary"
-                          >
-                            Chat
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+                  <ChatFeed dashboard />
                 </Panel>
               </Pane>
 

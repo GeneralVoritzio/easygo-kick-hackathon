@@ -300,7 +300,7 @@ function ChatMessage({ message }: { message: Message }) {
   );
 }
 
-function ChatMessages({ messages }: { messages: Message[] }) {
+function ChatMessages({ messages, surface }: { messages: Message[]; surface: string }) {
   const listRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -309,7 +309,7 @@ function ChatMessages({ messages }: { messages: Message[] }) {
   }, [messages]);
 
   return (
-    <div className="relative shrink grow overflow-hidden bg-surface-lowest">
+    <div className={`relative shrink grow overflow-hidden ${surface}`}>
       <div ref={listRef} id="chatroom-messages" className="relative h-full w-full overflow-y-auto">
         {messages.map((message) => (
           <ChatMessage key={message.id} message={message} />
@@ -456,25 +456,27 @@ function EmotePicker({
   );
 }
 
-// The bar clips to one row: h-7 with max-h-7, wrap on, overflow hidden.
+// The bar clips to one row: h-7 with max-h-7, wrap on, overflow hidden. It carries no gap.
+// KICK spreads the row with lg:justify-between, and each button is a square of the row height.
 function EmoteBar({ onSend }: { onSend: (body: string) => void }) {
   return (
     <div className="flex flex-col gap-1 pb-1 empty:hidden">
       <div className="overflow-hidden">
         <div
           aria-label="Emotes"
-          className="flex h-7 max-h-7 w-full max-w-full flex-wrap items-center gap-0.5 overflow-hidden empty:hidden"
+          className="flex h-7 max-h-7 w-full max-w-full flex-wrap items-center overflow-hidden empty:hidden lg:justify-between"
         >
           {emotes.map((emote) => (
-            <button
-              key={emote.id}
-              type="button"
-              title={emote.name}
-              onClick={() => onSend(emoteToken(emote.id, emote.name))}
-              className="state-layer-surface flex h-full w-fit items-center justify-center rounded px-0.5"
-            >
-              <img src={emote.url} alt={emote.name} className="size-6" />
-            </button>
+            <div key={emote.id} className="h-full w-fit">
+              <button
+                type="button"
+                title={emote.name}
+                onClick={() => onSend(emoteToken(emote.id, emote.name))}
+                className="betterhover:hover:bg-white/10 relative aspect-square h-full shrink-0 rounded-sm p-0.5"
+              >
+                <img src={emote.url} alt={emote.name} className="h-full w-full" />
+              </button>
+            </div>
           ))}
         </div>
       </div>
@@ -484,11 +486,13 @@ function EmoteBar({ onSend }: { onSend: (body: string) => void }) {
 
 function ChatFooter({
   draft,
+  dashboard,
   onChange,
   onSend,
   onSubmit,
 }: {
   draft: string;
+  dashboard?: boolean;
   onChange: (value: string) => void;
   onSend: (body: string) => void;
   onSubmit: () => void;
@@ -535,7 +539,10 @@ function ChatFooter({
         <EmoteBar onSend={onSend} />
 
         <div className="flex flex-col gap-2">
-          <div className="betterhover:hover:border-neutral-400 flex w-full items-center rounded border-2 border-neutral-700 pl-2 pr-1 transition-colors duration-200 ease-in-out focus-within:border-neutral-400">
+          <div
+            id="chat-input-wrapper"
+            className="betterhover:hover:border-neutral-400 flex w-full items-center rounded border-2 border-neutral-700 pl-2 pr-1 transition-colors duration-200 ease-in-out focus-within:border-transparent focus-within:bg-[#070809] focus-within:outline-none focus-within:ring-1 focus-within:ring-[#F4F5F6] focus-within:ring-offset-1 focus-within:hover:border-transparent"
+          >
             <button
               type="button"
               aria-label="Chat identity"
@@ -572,37 +579,55 @@ function ChatFooter({
             </button>
           </div>
 
-          <div className="flex shrink-0 grow-0 items-center gap-2">
-            <button
-              type="button"
-              aria-label="Channel points"
-              className="state-layer-surface flex h-9 shrink-0 items-center gap-1.5 rounded px-2 text-sm font-semibold text-white"
-            >
-              <Icon name="channel-points" className="size-4" />
-              40
-            </button>
-            <button
-              type="button"
-              aria-label="Get KICKs"
-              className="state-layer-surface flex h-9 shrink-0 items-center gap-1.5 rounded px-2 text-sm font-semibold text-white"
-            >
-              <Icon name="get-kicks" className="size-4" />0
-            </button>
-            <div className="flex-1" />
-            <button
-              type="button"
-              aria-label="Chat settings"
-              className="state-layer-surface flex size-9 shrink-0 items-center justify-center rounded text-white"
-            >
-              <Icon name="chat-settings" className="size-4" />
-            </button>
-            <button
-              type="submit"
-              onClick={closePicker}
-              className="bg-primary-base text-primary-onPrimary flex h-8 shrink-0 items-center justify-center rounded px-3 text-sm font-semibold"
-            >
-              Chat
-            </button>
+          <div className="flex shrink-0 grow-0 items-center gap-1 lg:w-full lg:gap-0">
+            <div className="flex gap-x-1 lg:w-full lg:gap-x-2">
+              {dashboard ? (
+                // The dashboard drops the count and the Get KICKs button. The points button
+                // holds the points glyph and KICK's own KICKs mark, both white.
+                <button
+                  type="button"
+                  aria-label="Channel points"
+                  className="state-layer-surface flex shrink-0 items-center gap-1 rounded px-2 py-1.5 text-sm font-semibold text-white"
+                >
+                  <Icon name="channel-points" className="size-4" />
+                  <Icon name="chat-kicks" className="size-5" />
+                </button>
+              ) : (
+                <>
+                  <button
+                    type="button"
+                    aria-label="Channel points"
+                    className="state-layer-surface flex h-9 shrink-0 items-center gap-1.5 rounded px-2 text-sm font-semibold text-white"
+                  >
+                    <Icon name="channel-points" className="size-4" />
+                    40
+                  </button>
+                  <button
+                    type="button"
+                    aria-label="Get KICKs"
+                    className="state-layer-surface flex h-9 shrink-0 items-center gap-1.5 rounded px-2 text-sm font-semibold text-white"
+                  >
+                    <Icon name="get-kicks" className="size-4" />0
+                  </button>
+                </>
+              )}
+            </div>
+            <div className="ml-auto flex items-center gap-x-2">
+              <button
+                type="button"
+                aria-label="Chat settings"
+                className="state-layer-surface flex size-9 shrink-0 items-center justify-center rounded text-white"
+              >
+                <Icon name="chat-settings" className="size-4" />
+              </button>
+              <button
+                type="submit"
+                onClick={closePicker}
+                className="bg-primary-base text-primary-onPrimary flex h-8 shrink-0 items-center justify-center rounded px-3 text-sm font-semibold"
+              >
+                Chat
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -610,7 +635,10 @@ function ChatFooter({
   );
 }
 
-export function ChannelChat({ onCollapse }: { onCollapse?: () => void }) {
+// The dashboard panels are lighter than the page under them, so the chat runs on surface-base
+// there. On the channel page one surface runs across the whole site, so it runs on surface-lowest.
+export function ChatFeed({ header, dashboard }: { header?: ReactNode; dashboard?: boolean }) {
+  const surface = dashboard ? "bg-surface-base" : "bg-surface-lowest";
   const [messages, setMessages] = useState<Message[]>(() => seedMessages(22));
   const [draft, setDraft] = useState("");
 
@@ -646,13 +674,13 @@ export function ChannelChat({ onCollapse }: { onCollapse?: () => void }) {
       onSubmit={sendDraft}
       // KICK exposes the spacing as a viewer setting. Their default is 4px, we run compact.
       style={{ "--chatroom-message-spacing": "2px" } as CSSProperties}
-      className="bg-surface-lowest flex h-full w-full flex-col overflow-hidden"
+      className={`${surface} flex h-full w-full flex-col overflow-hidden`}
     >
-      <ChatHeader onCollapse={onCollapse} />
-      <GifterLeaderboard />
-      <ChatMessages messages={messages} />
+      {header}
+      <ChatMessages messages={messages} surface={surface} />
       <ChatFooter
         draft={draft}
+        dashboard={dashboard}
         onChange={setDraft}
         onSend={send}
         onSubmit={() => {
@@ -661,5 +689,18 @@ export function ChannelChat({ onCollapse }: { onCollapse?: () => void }) {
         }}
       />
     </form>
+  );
+}
+
+export function ChannelChat({ onCollapse }: { onCollapse?: () => void }) {
+  return (
+    <ChatFeed
+      header={
+        <>
+          <ChatHeader onCollapse={onCollapse} />
+          <GifterLeaderboard />
+        </>
+      }
+    />
   );
 }

@@ -14,6 +14,21 @@ This folder records what KICK ships. It does not contain our code.
 | `trees/` | The DOM of each page as an indented tree, with repeated siblings collapsed |
 | `icons/` | 58 inline SVG icons, copied byte for byte from KICK's markup |
 
+## How to answer a question here
+
+Three steps, in order. Most questions stop at step 2.
+
+1. **Find the element in `html/`.** Search for a word the page shows, or for a class you know.
+   The banner came from a search for `Banner`. The grids came from a search for `grid-cols`.
+2. **Resolve its class names in `css/`.** KICK's custom names live there and nowhere else.
+   `grid-cols-auto-fill-category` is `repeat(auto-fill, minmax(139px, 1fr))`. The z-index scale is
+   `z-absolute` 101, `z-player` 201, `z-controls` 202, `z-navbar` 301, `z-popover` 401. No amount
+   of measuring by eye gives you either.
+3. **Open a live page only for what is not here:** card content, hover and focus states, and any
+   page behind a login.
+
+A number you found here is a fact. A number you remembered is a guess.
+
 ## The one thing to know about `html/`
 
 **KICK renders all page content on the client.** The server sends a shell with skeleton
@@ -24,6 +39,11 @@ So the saved HTML gives you:
 - ✅ The real navbar, sidebar, page grid and scroll containers, with real class names
 - ✅ The real card geometry, because the skeleton uses the same wrapper and size classes
 - ❌ No real card content, no titles, no viewer counts, no thumbnails
+
+**A skeleton is a dimensional drawing.** It looks empty, but KICK sizes each placeholder to the
+element it stands in for, so the numbers are real. `h-7 w-16` on the hero live badge,
+`size-9 lg:size-14` on the hero avatar and `h-9 w-[100px]` on `Watch now` all came from skeletons,
+and all held up against the live page. Do not skip a file because it has no text.
 
 Five of the nine URLs need a login. Logged out they answer `307` and return a login shell with
 no page markup at all. Their files are kept so the redirect behaviour is on record, but they

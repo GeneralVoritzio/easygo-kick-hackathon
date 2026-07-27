@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
-import { livestreams } from "../mock/api";
+import { livestreams, offlineChannels } from "../mock/api";
 import { ChannelPlayer } from "../components/ChannelPlayer";
 import { ChannelBar } from "../components/ChannelBar";
 import { ChannelChat } from "../components/ChannelChat";
+import { ChannelOffline } from "../components/ChannelOffline";
 
 const MIN_CHAT_WIDTH = 260;
 const MAX_CHAT_WIDTH = 480;
@@ -11,6 +12,7 @@ const DEFAULT_CHAT_WIDTH = 340;
 
 export function Channel() {
   const { slug } = useParams();
+  const offline = offlineChannels.find((o) => o.channel.slug === slug);
   const stream =
     livestreams.find((s) => s.channel.slug === slug) ??
     livestreams.find((s) => s.channel.slug === "evscape") ??
@@ -44,13 +46,19 @@ export function Channel() {
   return (
     <div
       ref={rowRef}
-      className={`-mt-3 -mb-6 flex h-[calc(100vh-var(--navbar-height))] w-full overflow-hidden bg-surface-lowest lg:-mt-6 ${
+      className={`-mb-6 flex h-[calc(100vh-var(--navbar-height))] w-full overflow-hidden bg-surface-lowest ${
         isDragging ? "select-none" : ""
       }`}
     >
       <div className="no-scrollbar flex h-full min-w-0 flex-1 flex-col overflow-y-auto overflow-x-hidden">
-        <ChannelPlayer stream={stream} />
-        <ChannelBar stream={stream} />
+        {offline ? (
+          <ChannelOffline data={offline} />
+        ) : (
+          <>
+            <ChannelPlayer stream={stream} />
+            <ChannelBar stream={stream} />
+          </>
+        )}
       </div>
 
       <div className="hidden h-full shrink-0 lg:flex">

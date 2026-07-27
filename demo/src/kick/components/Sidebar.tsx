@@ -4,9 +4,9 @@ import { Icon, type KickIconName } from "../Icon";
 import { followedChannels, livestreams, formatViewers } from "../mock/api";
 
 const navItems: { to: string; label: string; icon: KickIconName; activeIcon: KickIconName }[] = [
-  { to: "/", label: "Home", icon: "home", activeIcon: "home-active" },
-  { to: "/browse", label: "Browse", icon: "browse", activeIcon: "browse" },
-  { to: "/following", label: "Following", icon: "following-active", activeIcon: "following-active" },
+  { to: "/", label: "Home", icon: "nav-home", activeIcon: "nav-home-active" },
+  { to: "/browse", label: "Browse", icon: "nav-browse", activeIcon: "nav-browse-active" },
+  { to: "/following", label: "Following", icon: "nav-following", activeIcon: "nav-following-active" },
 ];
 
 const navLinkClass =
@@ -71,13 +71,89 @@ function ChannelRow({
 
 const STEP = 5;
 
-export function Sidebar({ open }: { open: boolean }) {
+const followedSlugs = new Set(followedChannels.map((c) => c.slug));
+const recommended = livestreams.filter((s) => !followedSlugs.has(s.channel.slug));
+
+function RailRow({ slug, username, avatar, live }: { slug: string; username: string; avatar: string; live: boolean }) {
+  return (
+    <Link
+      to={`/${slug}`}
+      title={username}
+      className="flex h-11 w-full shrink-0 items-center justify-center rounded state-layer-surface"
+    >
+      <img
+        src={avatar}
+        alt={username}
+        className={`size-7 shrink-0 rounded-full ${
+          live
+            ? "ring-2 ring-primary-base ring-offset-2 ring-offset-surface-lowest"
+            : "mix-blend-luminosity grayscale"
+        }`}
+      />
+    </Link>
+  );
+}
+
+export function Sidebar({ collapsed }: { collapsed: boolean }) {
   const [shown, setShown] = useState(10);
 
-  if (!open) return null;
+  if (collapsed) {
+    return (
+      <div className="absolute bottom-0 left-0 top-[var(--navbar-height)] z-[401] flex h-full max-h-[calc(100%-var(--navbar-height))] w-[var(--sidebar-collapsed-width)] shrink-0 select-none flex-col overflow-hidden bg-surface-lowest xl:relative xl:inset-0 xl:max-h-full">
+        <ul className="flex w-full flex-col px-2">
+          {navItems.map((item) => (
+            <li key={item.to}>
+              <NavLink
+                to={item.to}
+                end={item.to === "/"}
+                title={item.label}
+                className={({ isActive }) =>
+                  `group relative box-border flex h-10 w-full items-center justify-center rounded transition-all state-layer-surface ${
+                    isActive ? "!bg-secondary-base text-white" : "bg-transparent text-white"
+                  }`
+                }
+              >
+                {({ isActive }) => (
+                  <Icon
+                    name={isActive ? item.activeIcon : item.icon}
+                    className="size-4 shrink-0 fill-current"
+                  />
+                )}
+              </NavLink>
+            </li>
+          ))}
+        </ul>
+
+        <div className="w-full px-3 py-1">
+          <div className="h-px w-full bg-outline-decorative" />
+        </div>
+
+        <div className="no-scrollbar flex h-full max-h-full flex-col overflow-y-auto px-2">
+          <div className="flex h-9 w-full items-center justify-center text-subtle">
+            <Icon name="nav-following-active" className="size-4" />
+          </div>
+          {followedChannels.map((c) => (
+            <RailRow key={c.slug} slug={c.slug} username={c.username} avatar={c.avatar} live={c.live} />
+          ))}
+          <div className="flex h-9 w-full items-center justify-center text-subtle">
+            <Icon name="nav-browse-active" className="size-4" />
+          </div>
+          {recommended.map((s) => (
+            <RailRow
+              key={s.id}
+              slug={s.channel.slug}
+              username={s.channel.username}
+              avatar={s.channel.avatar}
+              live
+            />
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="absolute bottom-0 left-0 top-[var(--navbar-height)] z-[401] flex h-full max-h-[calc(100%-var(--navbar-height))] w-[var(--sidebar-expanded-width)] shrink-0 flex-col overflow-hidden bg-surface-lowest xl:relative xl:inset-0 xl:max-h-full">
+    <div className="absolute bottom-0 left-0 top-[var(--navbar-height)] z-[401] flex h-full max-h-[calc(100%-var(--navbar-height))] w-[var(--sidebar-expanded-width)] shrink-0 select-none flex-col overflow-hidden bg-surface-lowest xl:relative xl:inset-0 xl:max-h-full">
       <ul className="flex w-full flex-col px-2">
         {navItems.map((item) => (
           <li key={item.to}>
@@ -90,7 +166,10 @@ export function Sidebar({ open }: { open: boolean }) {
             >
               {({ isActive }) => (
                 <>
-                  <Icon name={isActive ? item.activeIcon : item.icon} />
+                  <Icon
+                    name={isActive ? item.activeIcon : item.icon}
+                    className="size-4 shrink-0 fill-current"
+                  />
                   {item.label}
                 </>
               )}
@@ -118,7 +197,7 @@ export function Sidebar({ open }: { open: boolean }) {
             <div className="flex h-9 w-full items-center px-1.5 text-sm font-semibold leading-[1.2]">
               Recommended
             </div>
-            {livestreams.slice(0, shown).map((s) => (
+            {recommended.slice(0, shown).map((s) => (
               <ChannelRow
                 key={s.id}
                 slug={s.channel.slug}
@@ -130,10 +209,10 @@ export function Sidebar({ open }: { open: boolean }) {
               />
             ))}
             <div className="flex h-9 w-full items-center justify-between px-1.5">
-              {shown < livestreams.length ? (
+              {shown < recommended.length ? (
                 <button
                   type="button"
-                  onClick={() => setShown((n) => Math.min(n + STEP, livestreams.length))}
+                  onClick={() => setShown((n) => Math.min(n + STEP, recommended.length))}
                   className="text-xs font-semibold text-subtle betterhover:hover:text-white"
                 >
                   Show More

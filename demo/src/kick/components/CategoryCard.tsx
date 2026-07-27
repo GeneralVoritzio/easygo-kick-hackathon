@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { oneRowGrid } from "./Layout";
 import { formatViewers } from "../mock/api";
 
 type Category = {
@@ -10,21 +10,21 @@ type Category = {
 
 export function CategoryCard({ category }: { category: Category }) {
   return (
-    <div className="group/card relative flex w-full shrink-0 grow-0 flex-col gap-2 will-change-transform">
-      <Link to={`/browse/${category.slug}`} className="block w-full">
+    <div className="group/card relative flex w-full shrink-0 grow-0 flex-col items-start gap-1 overflow-hidden will-change-transform">
+      <button type="button" className="block w-full">
         <img
           src={category.thumbnail}
           alt={category.name}
           className="aspect-[3/4] w-full rounded object-cover"
         />
-      </Link>
+      </button>
       <div className="flex w-full min-w-0 flex-col items-start gap-0.5">
-        <Link
-          to={`/browse/${category.slug}`}
-          className="w-full truncate text-sm font-semibold leading-[1.2] text-white"
+        <button
+          type="button"
+          className="w-full truncate text-left text-sm font-semibold leading-[1.2] text-white betterhover:hover:text-surface-onSurfacePrimary"
         >
           {category.name}
-        </Link>
+        </button>
         <span className="text-sm font-normal leading-[1.2] text-surface-onSurfaceSecondary">
           {formatViewers(category.viewers)} viewers
         </span>
@@ -33,9 +33,12 @@ export function CategoryCard({ category }: { category: Category }) {
   );
 }
 
-export function CategoryGrid({ categories }: { categories: Category[] }) {
+const categoryColumns =
+  "h-full grid-cols-2 gap-x-2 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-auto-fill-category";
+
+export function CategoryGrid({ categories, oneRow }: { categories: Category[]; oneRow?: boolean }) {
   return (
-    <section className="grid h-full grid-cols-2 gap-x-4 gap-y-5 sm:grid-cols-3 lg:grid-cols-5 xl:grid-cols-6 lg:gap-y-6 3xl:grid-cols-8">
+    <section className={`${categoryColumns} ${oneRow ? `${oneRowGrid} [&>div]:w-[108px]` : "grid gap-y-5 lg:gap-y-6"}`}>
       {categories.map((c) => (
         <CategoryCard key={c.slug} category={c} />
       ))}

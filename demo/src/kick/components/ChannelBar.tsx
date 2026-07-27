@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
 import { Icon } from "../Icon";
 import { formatViewers, type Livestream } from "../mock/api";
 
@@ -12,7 +11,13 @@ export function ChannelBar({ stream }: { stream: Livestream }) {
     <div className="flex flex-col gap-3 px-4 py-3 lg:flex-row lg:items-start lg:justify-between lg:gap-8 lg:px-7 lg:py-5">
       <div className="flex min-w-0 gap-3 lg:gap-4">
         <div className="relative shrink-0">
-          <img src={channel.avatar} alt={channel.username} className="size-14 rounded-full" />
+          <div className="size-14 overflow-hidden rounded-full ring-2 ring-primary-base ring-offset-2 ring-offset-surface-lowest">
+            <img
+              src={channel.avatar}
+              alt={channel.username}
+              className="aspect-square w-full select-none transition-transform duration-300 ease-in-out"
+            />
+          </div>
           <span className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-sm bg-primary-base px-1 py-0.5 text-[10px] font-bold leading-none text-primary-onPrimary">
             LIVE
           </span>
@@ -25,12 +30,12 @@ export function ChannelBar({ stream }: { stream: Livestream }) {
           </h1>
           <p className="truncate text-sm font-semibold leading-[1.2] text-white">{stream.session_title}</p>
           <div className="flex flex-wrap items-center gap-2 pt-1">
-            <Link
-              to={`/browse/${stream.category.slug}`}
+            <button
+              type="button"
               className="text-sm font-normal leading-[1.2] text-surface-onSurfacePrimary betterhover:hover:underline"
             >
               {stream.category.name}
-            </Link>
+            </button>
             {stream.tags.map((tag) => (
               <button
                 key={tag}
@@ -46,20 +51,42 @@ export function ChannelBar({ stream }: { stream: Livestream }) {
 
       <div className="flex shrink-0 flex-col items-end gap-2">
         <div className="flex items-center gap-2">
+          {following ? (
+            <button
+              type="button"
+              aria-label="Unfollow"
+              aria-pressed
+              onClick={() => setFollowing(false)}
+              className="flex size-10 shrink-0 items-center justify-center rounded bg-secondary-base transition-all select-none betterhover:active:scale-[0.98]"
+            >
+              <Icon name="heart-filled" className="size-4 text-primary-base" />
+            </button>
+          ) : (
+            <button
+              type="button"
+              aria-label="Follow"
+              onClick={() => setFollowing(true)}
+              className="flex h-10 w-24 shrink-0 items-center justify-center gap-1.5 whitespace-nowrap rounded bg-primary-base px-3 text-base font-semibold leading-none text-primary-onPrimary transition-all select-none betterhover:active:scale-[0.98]"
+            >
+              <Icon name="heart" className="size-4" />
+              Follow
+            </button>
+          )}
           <button
             type="button"
-            onClick={() => setFollowing((f) => !f)}
-            className={`flex h-10 items-center rounded px-3 text-base font-semibold leading-none transition-colors ${
-              following ? "bg-surface-highest text-white" : "bg-primary-base text-primary-onPrimary"
-            }`}
+            className="flex h-10 w-[116px] shrink-0 items-center justify-center gap-1.5 whitespace-nowrap rounded bg-secondary-base px-3 text-base font-semibold leading-none text-white transition-all select-none betterhover:active:scale-[0.98]"
           >
-            {following ? "Following" : "Follow"}
+            <Icon name="gift" className="size-4" />
+            Gift Subs
           </button>
           <button
             type="button"
-            onClick={() => setSubscribed((s) => !s)}
-            className="flex h-10 items-center rounded bg-secondary-base px-3 text-base font-semibold leading-none text-white"
+            onClick={() => setSubscribed((v) => !v)}
+            className={`flex h-10 w-[124px] shrink-0 items-center justify-center gap-1.5 whitespace-nowrap rounded px-3 text-base font-semibold leading-none transition-all select-none betterhover:active:scale-[0.98] ${
+              subscribed ? "bg-primary-base text-primary-onPrimary" : "bg-secondary-base text-white"
+            }`}
           >
+            <Icon name="subscriptions" className="size-4" />
             {subscribed ? "Subscribed" : "Subscribe"}
           </button>
           <button

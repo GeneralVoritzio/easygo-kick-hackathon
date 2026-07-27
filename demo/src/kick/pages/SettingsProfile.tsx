@@ -1,8 +1,8 @@
 import { useState, type FormEvent } from "react";
 import { SettingsLayout } from "../components/SettingsLayout";
-import { currentUser, formatFollowers } from "../mock/api";
+import { currentUser, formatFollowers, bannerFor } from "../mock/api";
 
-const bannerImage = (seed: string) => `https://picsum.photos/seed/${seed}/1200/134`;
+const bannerImage = (seed: string) => bannerFor(seed);
 
 const ghostButtonClass =
   "inline-flex shrink-0 items-center justify-center rounded border border-outline-region text-sm font-semibold text-white transition-colors betterhover:hover:border-white";

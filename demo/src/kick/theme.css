@@ -4,6 +4,10 @@
 
 @custom-variant betterhover (@media (hover: hover));
 
+@utility grid-cols-auto-fill-category {
+  grid-template-columns: repeat(auto-fill, minmax(139px, 1fr));
+}
+
 @font-face {
   font-family: "Inter";
   src: url("./fonts/inter-variable-latin.woff2") format("woff2");
@@ -203,9 +207,11 @@
 }
 
 @layer utilities {
-  .z-navbar { z-index: 400 }
-  .z-player { z-index: 300 }
-  .z-popover { z-index: 500 }
+  .z-absolute { z-index: 101 }
+  .z-player { z-index: 201 }
+  .z-controls { z-index: 202 }
+  .z-navbar { z-index: 301 }
+  .z-popover { z-index: 401 }
 
   .h-xvh { height: 100vh }
   .w-xvw { width: 100vw }
@@ -213,8 +219,10 @@
   .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none }
   .no-scrollbar::-webkit-scrollbar { display: none }
 
-  .state-layer-surface { position: relative }
-  .state-layer-surface::after {
+  .state-layer-surface,
+  .state-layer-base { position: relative }
+  .state-layer-surface::after,
+  .state-layer-base::after {
     content: "";
     position: absolute;
     inset: 0;
@@ -225,6 +233,23 @@
   }
   .state-layer-surface:hover::after { background: var(--color-stateLayer-surfaceHover) }
   .state-layer-surface:active::after { background: var(--color-stateLayer-surfacePress) }
+  .state-layer-base:hover::after { background: var(--color-stateLayer-defaultHover) }
+  .state-layer-base:active::after { background: var(--color-stateLayer-defaultPress) }
+}
+
+button:not(:disabled),
+[role="button"]:not([aria-disabled="true"]),
+[role="switch"],
+[role="tab"],
+a[href],
+summary,
+label[for] {
+  cursor: pointer;
+}
+
+button:disabled,
+[aria-disabled="true"] {
+  cursor: not-allowed;
 }
 
 html, body, #root { height: 100% }

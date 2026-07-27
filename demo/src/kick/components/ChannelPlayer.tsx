@@ -1,4 +1,4 @@
-import { useEffect, useState, type MouseEvent as ReactMouseEvent } from "react";
+import { useEffect, useState, type PointerEvent as ReactPointerEvent } from "react";
 import { Icon } from "../Icon";
 import type { Livestream } from "../mock/api";
 
@@ -10,19 +10,31 @@ function formatElapsed(totalSeconds: number) {
   return h > 0 ? `${h}:${pad(m)}:${pad(s)}` : `${m}:${pad(s)}`;
 }
 
-function trackPercent(e: ReactMouseEvent<HTMLDivElement>) {
+function trackPercent(e: ReactPointerEvent<HTMLDivElement>) {
   const rect = e.currentTarget.getBoundingClientRect();
   return Math.min(100, Math.max(0, ((e.clientX - rect.left) / rect.width) * 100));
 }
 
+function dragProps(apply: (percent: number) => void) {
+  return {
+    onPointerDown: (e: ReactPointerEvent<HTMLDivElement>) => {
+      e.currentTarget.setPointerCapture(e.pointerId);
+      apply(trackPercent(e));
+    },
+    onPointerMove: (e: ReactPointerEvent<HTMLDivElement>) => {
+      if (e.buttons === 1) apply(trackPercent(e));
+    },
+  };
+}
+
 const controlButtonClass =
-  "flex size-11 shrink-0 items-center justify-center rounded bg-transparent text-white state-layer-surface [&_svg]:size-4 [&_svg]:fill-current";
+  "tooltip-top flex size-11 shrink-0 items-center justify-center rounded bg-transparent text-white [&_svg]:size-5 [&_svg]:fill-current";
 
 export function ChannelPlayer({ stream }: { stream: Livestream }) {
   const [playing, setPlaying] = useState(true);
   const [muted, setMuted] = useState(false);
   const [volume, setVolume] = useState(80);
-  const [seek, setSeek] = useState(92);
+  const [seek, setSeek] = useState(100);
   const [elapsedSeconds, setElapsedSeconds] = useState(() =>
     Math.max(0, Math.floor((Date.now() - new Date(stream.started_at).getTime()) / 1000)),
   );
@@ -68,10 +80,10 @@ export function ChannelPlayer({ stream }: { stream: Livestream }) {
               aria-valuenow={Math.round(seek)}
               aria-valuemin={0}
               aria-valuemax={100}
-              onClick={(e) => setSeek(trackPercent(e))}
-              className="relative h-1 w-full cursor-pointer overflow-visible bg-white/30 transition-[height] duration-150 betterhover:group-hover/seekbar:h-1.5"
+              {...dragProps(setSeek)}
+              className="relative h-1 w-full touch-none cursor-pointer overflow-visible bg-white/30 transition-[height] duration-150 betterhover:group-hover/seekbar:h-1.5"
             >
-              <div className="pointer-events-none absolute inset-y-0 left-0 w-full bg-white/50" />
+              <div className="pointer-events-none absolute inset-y-0 left-0 w-full bg-subtle/50" />
               <div
                 className="pointer-events-none absolute inset-y-0 left-0 bg-primary-base"
                 style={{ width: `${seek}%` }}
@@ -83,77 +95,85 @@ export function ChannelPlayer({ stream }: { stream: Livestream }) {
             </div>
           </div>
 
-          <div className="flex min-w-0 items-center gap-1">
+          <div className="flex min-w-0 items-center">
             <button
               type="button"
-              aria-label={playing ? "Pause" : "Play"}
+              aria-label={playing ? "Pause (space)" : "Play (space)"}
               onClick={() => setPlaying((p) => !p)}
-              className={controlButtonClass}
+              className={`tooltip-start ${controlButtonClass}`}
             >
               <Icon name={playing ? "pause" : "play"} />
             </button>
 
-            <button
-              type="button"
-              aria-label={muted ? "Unmute" : "Mute"}
-              onClick={() => setMuted((m) => !m)}
-              className={controlButtonClass}
-            >
-              <Icon name={muted ? "mute" : "volume"} />
-            </button>
+            <div className="flex items-center gap-4">
+              <button
+                type="button"
+                aria-label={muted ? "Unmute (m)" : "Mute (m)"}
+                onClick={() => setMuted((m) => !m)}
+                className={controlButtonClass}
+              >
+                <Icon name={muted ? "mute" : "volume"} />
+              </button>
 
-            <div
-              role="slider"
-              aria-label="Volume"
-              aria-valuenow={displayVolume}
-              aria-valuemin={0}
-              aria-valuemax={100}
-              onClick={(e) => {
-                const v = Math.round(trackPercent(e));
-                setVolume(v);
-                setMuted(v === 0);
-              }}
-              className="relative h-1 w-20 shrink-0 cursor-pointer rounded-full bg-white/30"
-            >
               <div
-                className="pointer-events-none absolute inset-y-0 left-0 rounded-full bg-white"
-                style={{ width: `${displayVolume}%` }}
-              />
-              <div
-                className="pointer-events-none absolute top-1/2 size-4 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white"
-                style={{ left: `${displayVolume}%` }}
-              />
+                role="slider"
+                aria-label="Volume"
+                aria-valuenow={displayVolume}
+                aria-valuemin={0}
+                aria-valuemax={100}
+                {...dragProps((percent) => {
+                  const v = Math.round(percent);
+                  setVolume(v);
+                  setMuted(v === 0);
+                })}
+                className="relative h-1 w-20 shrink-0 cursor-pointer touch-none rounded-full bg-white/30"
+              >
+                <div
+                  className="pointer-events-none absolute inset-y-0 left-0 rounded-full bg-white"
+                  style={{ width: `${displayVolume}%` }}
+                />
+                <div
+                  className="pointer-events-none absolute top-1/2 size-4 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white"
+                  style={{ left: `${displayVolume}%` }}
+                />
+              </div>
             </div>
 
-            <span className="ml-1 shrink-0 text-sm font-semibold leading-none text-white">
+            <span className="shrink-0 px-2 text-sm font-bold leading-5 text-white">
               {formatElapsed(elapsedSeconds)}
             </span>
 
-            <div className="ml-2 flex shrink-0 items-center gap-1.5">
-              <span className="size-2 shrink-0 rounded-full bg-green-500" />
+            <div className="flex h-5 shrink-0 items-center gap-1.5 px-2">
+              {/* Behind the live edge the dot goes grey, KICK's neon-highlight-base. The text stays LIVE. */}
+              <span
+                className={`size-2 shrink-0 rounded-full ${playing ? "bg-green-500" : "bg-[#3f4448]"}`}
+              />
               <span className="text-sm font-semibold leading-none text-white">LIVE</span>
             </div>
           </div>
 
-          <div className="flex shrink-0 items-center gap-1">
-            <button type="button" aria-label="Picture in picture" className={controlButtonClass}>
+          <div className="flex shrink-0 items-center">
+            <button type="button" aria-label="Picture in Picture" className={controlButtonClass}>
               <Icon name="pip" />
             </button>
             <button
               type="button"
-              aria-label="Clip"
-              className="flex h-11 shrink-0 items-center gap-1.5 rounded px-3 text-sm font-semibold text-white state-layer-surface [&_svg]:size-4 [&_svg]:fill-current"
+              aria-label="Clip (c)"
+              className="tooltip-top mx-2 flex h-11 shrink-0 items-center gap-1 rounded text-sm font-semibold text-white [&_svg]:size-5 [&_svg]:fill-current"
             >
               <Icon name="clip" />
               Clip
             </button>
-            <button type="button" aria-label="Theatre mode" className={controlButtonClass}>
+            <button type="button" aria-label="Captions (p)" className={controlButtonClass}>
+              <Icon name="closed-captions" />
+            </button>
+            <button type="button" aria-label="Theatre Mode (t)" className={controlButtonClass}>
               <Icon name="theatre" />
             </button>
-            <button type="button" aria-label="Full screen" className={controlButtonClass}>
+            <button type="button" aria-label="Fullscreen (f)" className={controlButtonClass}>
               <Icon name="fullscreen" />
             </button>
-            <button type="button" aria-label="Settings" className={controlButtonClass}>
+            <button type="button" aria-label="Quality" className={`tooltip-end ${controlButtonClass}`}>
               <Icon name="settings" />
             </button>
           </div>

@@ -20,12 +20,13 @@ Nothing is fetched from the network, at build time or at run time.
 | The wordmark `kick-logo.svg` | `demo/src/kick/brand/`, `pitch/src/assets/brand/`, `prototypes/hypeprops/src/assets/` | Every surface |
 | Favicon and social logos | `pitch/src/assets/brand/` | The deck |
 | Border devices and patterns | `pitch/src/assets/brand/devices/`, `pitch/src/assets/brand/patterns/` | The deck |
-| The icon set, 67 files | `demo/src/kick/icons/` | The demo |
+| The icon set, 104 files | `demo/src/kick/icons/` | The demo |
 | Channel avatars, 16 files | `demo/src/kick/avatars/` | The demo |
 | KICK's 282 design tokens | `.claude/reference/kick-neon-tokens.css` | Read-only ground truth |
 | The page scrape | `demo/kick-reference/` | The demo |
 
-The icon set grew from 22 to 67 when we scraped kick.com on 26 July 2026. See
+The icon set grew from 22 to 67 when we scraped kick.com on 26 July 2026, and to 104 as the
+settings, footer, profile menu and dashboard pages each added their own. See
 `.claude/KICK-SITE-REFERENCE.md` Section 10 and `demo/kick-reference/README.md`.
 
 
@@ -76,9 +77,13 @@ Real KICK icons: `menu` `search` `close` `home` `browse` `following` `collapseCh
 `volume` `pip` `clip` `theatre` `fullscreen` `settings` `share` `chatters` `gift` `globe`
 `verified`.
 
-**Three are ours, not KICK's:** `pause` and `mute`, because a logged out page never shows them, and
-`timeline`, because KICK has no such icon. All three are drawn on the same grid from KICK's own
-`play` and `volume` geometry. Do not present them as KICK's.
+**Two are ours, not KICK's:** `pause`, because a logged out page never shows it, and `timeline`,
+because KICK has no such icon. Both are drawn on the same grid from KICK's own `play` and `volume`
+geometry. Do not present them as KICK's.
+
+`mute` was ours until 27 July 2026. It is now KICK's own, read from the live player at
+`kick.com/odablock` while logged in. Our drawing filled the whole 32 grid, so it rendered larger
+than every other icon.
 
 **These are KICK trademarks.** They are here so we can match the chrome, not so we can ship them.
 
@@ -88,7 +93,7 @@ Current copy: `prototypes/kick-timelines-2/js/icons.js`.
 
 Lifted verbatim from the markup the **dashboard host** serves on `/stream`, read **27 July 2026**
 in the user's own Chrome, logged in. The page needs a session, so these cannot be read logged out.
-Site Reference Section 20 says where each one sits.
+Site Reference Section 22 says where each one sits.
 
 | File | Where it is used |
 |---|---|

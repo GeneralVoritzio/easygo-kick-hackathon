@@ -1,44 +1,74 @@
-import { useState, type FormEvent } from "react";
+import { useState, type FormEvent, type ReactNode } from "react";
 import { SettingsLayout } from "../components/SettingsLayout";
-import { currentUser, formatFollowers, bannerFor } from "../mock/api";
+import { SettingsCard } from "../components/SettingsCard";
+import { currentUser, formatFollowers } from "../mock/api";
 
-const bannerImage = (seed: string) => bannerFor(seed);
+const buttonBase =
+  "group inline-flex gap-1.5 items-center justify-center rounded font-semibold box-border relative transition-all betterhover:active:scale-[0.98] disabled:pointer-events-none select-none whitespace-nowrap [&_svg]:size-[1em] outline-transparent outline outline-2 outline-offset-2 disabled:text-disabled-onSurface focus-visible:outline-focusLight px-3 py-1.5 text-sm";
 
-const ghostButtonClass =
-  "inline-flex shrink-0 items-center justify-center rounded border border-outline-region text-sm font-semibold text-white transition-colors betterhover:hover:border-white";
+const buttonClass = {
+  primary: `${buttonBase} state-layer-base bg-primary-base text-primary-onPrimary focus-visible:bg-green-500 disabled:bg-disabled-base`,
+  secondary: `${buttonBase} state-layer-surface bg-secondary-base text-secondary-onSecondary focus-visible:bg-secondary-base disabled:bg-disabled-base`,
+  ghost: `${buttonBase} state-layer-surface text-surface-onSurface bg-transparent disabled:bg-transparent`,
+};
 
-function BannerSection({
-  title,
-  imageSrc,
-  helpText,
+// The label stays inline, so its line box is 24px and the control carries the 8px gap.
+// This is what KICK's space-y-2 produces on Tailwind v3, which v4 no longer does.
+const fieldClass = "mt-2";
+
+const inputClass = `border-outline-region bg-surface-lowest placeholder:text-surface-onSurfaceSecondary betterhover:hover:border-neutral-300 flex w-full rounded border border-solid px-3 font-normal outline-none transition-colors duration-200 ease-in-out focus-visible:border-white disabled:bg-transparent h-9 text-sm ${fieldClass}`;
+
+const labelClass = "text-surface-onSurface text-sm font-semibold leading-none";
+
+function EditForm({
+  children,
+  dirty,
+  onReset,
+  onSave,
+  saveLabel = "Save changes",
+  actionsClass = "",
+  formClass = "flex flex-col gap-y-4",
 }: {
-  title: string;
-  imageSrc: string;
-  helpText: string;
+  children: ReactNode;
+  dirty: boolean;
+  onReset: () => void;
+  onSave: () => void;
+  saveLabel?: string;
+  actionsClass?: string;
+  formClass?: string;
 }) {
+  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    onSave();
+  }
+
   return (
-    <section className="flex flex-col gap-4 py-6">
-      <h3 className="text-base font-bold leading-[1.2] text-white">{title}</h3>
-      {imageSrc ? (
-        <img
-          src={imageSrc}
-          alt=""
-          className="h-[134px] w-full rounded border border-outline-decorative object-cover"
-        />
-      ) : (
-        <div className="h-[134px] w-full rounded border border-outline-decorative bg-surface-base" />
-      )}
-      <div className="flex flex-col gap-2">
-        <button type="button" className={`${ghostButtonClass} h-8 w-[170px]`}>
-          Update Banner image
+    <form onSubmit={handleSubmit} className={formClass}>
+      {children}
+      <div
+        className={`flex w-full flex-col gap-2.5 lg:flex-row lg:items-center lg:justify-end ${actionsClass}`}
+      >
+        <button
+          type="reset"
+          disabled={!dirty}
+          onClick={onReset}
+          className={`${buttonClass.ghost} order-last lg:order-first`}
+        >
+          Cancel
         </button>
-        <span className="text-xs text-surface-onSurfaceSecondary">{helpText}</span>
+        <button
+          type="submit"
+          disabled={!dirty}
+          className={`${buttonClass.primary} min-w-[10ch] order-first lg:order-last`}
+        >
+          {saveLabel}
+        </button>
       </div>
-    </section>
+    </form>
   );
 }
 
-function BasicDetailsField({
+function TextField({
   label,
   name,
   type,
@@ -51,102 +81,177 @@ function BasicDetailsField({
 }) {
   const [saved, setSaved] = useState(initialValue);
   const [value, setValue] = useState(initialValue);
-  const dirty = value !== saved;
-
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    setSaved(value);
-  }
-
-  function handleCancel() {
-    setValue(saved);
-  }
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-2 px-1.5">
-      <label htmlFor={name} className="text-sm font-semibold leading-[1.2] text-white">
-        {label}
-      </label>
-      <input
-        id={name}
-        name={name}
-        type={type}
-        value={value}
-        onChange={(event) => setValue(event.target.value)}
-        className="h-9 w-full rounded border border-outline-region bg-transparent px-3 text-sm text-white outline-none transition-colors betterhover:hover:border-neutral-300 focus:border-white"
-      />
-      <div className="flex items-center gap-2">
-        <button
-          type="reset"
-          disabled={!dirty}
-          onClick={(event) => {
-            event.preventDefault();
-            handleCancel();
-          }}
-          className={`${ghostButtonClass} h-8 w-[71px] disabled:pointer-events-none disabled:border-outline-decorative disabled:text-surface-onSurfaceSecondary`}
-        >
-          Cancel
-        </button>
-        <button
-          type="submit"
-          disabled={!dirty}
-          className="inline-flex h-8 w-[119px] shrink-0 items-center justify-center rounded bg-primary-base text-sm font-semibold text-primary-onPrimary transition-colors betterhover:hover:bg-green-600 disabled:pointer-events-none disabled:bg-secondary-base disabled:text-surface-onSurfaceSecondary"
-        >
-          Save changes
-        </button>
+    <EditForm dirty={value !== saved} onReset={() => setValue(saved)} onSave={() => setSaved(value)}>
+      <div>
+        <label className={labelClass} htmlFor={name}>
+          {label}
+        </label>
+        <input
+          id={name}
+          name={name}
+          type={type}
+          value={value}
+          onChange={(event) => setValue(event.target.value)}
+          className={inputClass}
+        />
       </div>
-    </form>
+    </EditForm>
+  );
+}
+
+function BioField({ initialValue }: { initialValue: string }) {
+  const [saved, setSaved] = useState(initialValue);
+  const [value, setValue] = useState(initialValue);
+
+  return (
+    <EditForm dirty={value !== saved} onReset={() => setValue(saved)} onSave={() => setSaved(value)}>
+      <div>
+        <label className={labelClass} htmlFor="bio">
+          Bio
+        </label>
+        <textarea
+          id="bio"
+          name="bio"
+          rows={3}
+          maxLength={500}
+          value={value}
+          onChange={(event) => setValue(event.target.value)}
+          className={`bg-surface-lowest betterhover:hover:border-neutral-300 flex w-full resize-none rounded border-2 border-solid border-neutral-700 p-2.5 text-sm font-medium leading-tight outline-none transition-colors duration-200 ease-in-out placeholder:text-neutral-300 focus-visible:border-white ${fieldClass}`}
+        />
+      </div>
+    </EditForm>
+  );
+}
+
+const socials = ["Club", "Instagram", "X", "Facebook", "YouTube", "Discord", "TikTok"];
+
+function SocialMediaForm() {
+  const [handles, setHandles] = useState<Record<string, string>>({});
+  const dirty = Object.values(handles).some(Boolean);
+
+  return (
+    <EditForm
+      dirty={dirty}
+      onReset={() => setHandles({})}
+      onSave={() => setHandles(handles)}
+      saveLabel="Save"
+      actionsClass="lg:pt-6"
+      formClass="flex grow flex-col gap-y-2"
+    >
+      {socials.map((name) => {
+        const key = name.toLowerCase();
+        return (
+          <div key={key}>
+            <label className={labelClass} htmlFor={`social-${key}`}>
+              {name}
+            </label>
+            <input
+              id={`social-${key}`}
+              data-testid={`profile-inline-edit-input-${key}`}
+              type="text"
+              placeholder="Enter social handle"
+              value={handles[key] ?? ""}
+              onChange={(event) =>
+                setHandles((current) => ({ ...current, [key]: event.target.value }))
+              }
+              className={inputClass}
+            />
+          </div>
+        );
+      })}
+    </EditForm>
+  );
+}
+
+function BannerCard({
+  title,
+  frameClass,
+  imageSrc,
+  helpText,
+}: {
+  title: string;
+  frameClass: string;
+  imageSrc: string;
+  helpText: string;
+}) {
+  return (
+    <SettingsCard title={title} bodyClass="p-4 flex flex-col items-center gap-y-5">
+      <div className={`${frameClass} w-full max-w-[580px] px-2.5 lg:w-3/4 lg:px-0`}>
+        <img src={imageSrc} alt="" className="h-full w-full object-cover object-center" />
+      </div>
+      <button type="button" className={`${buttonClass.secondary} w-full lg:w-auto`}>
+        Update Banner image
+      </button>
+      <span className="text-surface-onSurfaceSecondary text-center text-sm leading-[1.2]">
+        {helpText}
+      </span>
+    </SettingsCard>
   );
 }
 
 export function SettingsProfile() {
   return (
     <SettingsLayout title="Profile">
-      <section className="flex flex-col gap-4 py-6">
-        <h3 className="text-base font-bold leading-[1.2] text-white">Profile Preview</h3>
-        <div className="overflow-hidden rounded-lg border border-outline-decorative">
-          {bannerImage("martibo-banner") ? (
-            <img src={bannerImage("martibo-banner")} alt="" className="h-[134px] w-full object-cover" />
-          ) : (
-            <div className="h-[134px] w-full bg-surface-base" />
-          )}
-          <div className="-mt-10 flex items-end gap-4 px-4">
-            <img
-              src={currentUser.avatar}
-              alt={currentUser.username}
-              className="size-20 shrink-0 rounded-full border-4 border-surface-lowest bg-surface-lowest"
-            />
-            <button type="button" className={`${ghostButtonClass} mb-1 h-9 w-[89px]`}>
+      <SettingsCard title="Profile Preview">
+        <div className="flex min-w-0 flex-col gap-x-4 gap-y-4 lg:flex-row">
+          <div className="hidden flex-col items-center gap-y-3 lg:flex">
+            <img src={currentUser.avatar} alt="" className="size-16 rounded-full" />
+            <button type="button" className={`${buttonClass.secondary} h-9 px-2`}>
               Edit Avatar
             </button>
           </div>
-          <div className="flex flex-col gap-1 px-4 py-4">
-            <div className="text-base font-bold text-white">About {currentUser.username}</div>
-            <span className="text-sm font-semibold text-surface-onSurfaceSecondary">
-              {formatFollowers(currentUser.followers)} Followers
-            </span>
-            <p className="text-sm text-surface-onSurfaceSecondary">{currentUser.bio}</p>
+          <div className="flex w-full min-w-0 flex-col items-start gap-y-4 lg:gap-y-3 lg:py-4">
+            <div className="flex items-center gap-x-4">
+              <img src={currentUser.avatar} alt="" className="size-12 rounded-full lg:hidden" />
+              <div className="flex grow items-center justify-between gap-3">
+                <div className="flex shrink-0 grow flex-row items-center gap-x-3">
+                  <div className="text-surface-onSurface flex items-center gap-1 text-base font-bold">
+                    About {currentUser.username}
+                  </div>
+                  <span className="text-surface-onSurfaceSecondary text-sm font-semibold">
+                    <span className="text-surface-onSurfacePrimary">
+                      {formatFollowers(currentUser.followers)}
+                    </span>{" "}
+                    Followers
+                  </span>
+                </div>
+              </div>
+            </div>
+            <p
+              data-testid="channel-about-description"
+              className="text-surface-onSurfaceSecondary hyphens-auto break-words text-sm font-normal w-full min-w-0"
+            >
+              {currentUser.bio}
+            </p>
           </div>
         </div>
-      </section>
+      </SettingsCard>
 
-      <BannerSection
+      <BannerCard
         title="Channel Banner"
-        imageSrc={bannerImage("martibo-banner")}
+        frameClass="aspect-[580/64]"
+        imageSrc={currentUser.banner}
         helpText="Minimum image size: 1200x134px and less than 4MB"
       />
 
-      <BannerSection
+      <BannerCard
         title="Offline Stream Banner"
-        imageSrc={bannerImage("martibo-offline")}
-        helpText="This banner image will display for two minutes upon going offline."
+        frameClass="aspect-video"
+        imageSrc={currentUser.offlineBanner}
+        helpText="This banner image will display for two minutes upon ending your stream. Must be 1080p (16:9 aspect ratio), in JPEG or PNG format and less than 4MB."
       />
 
-      <section className="flex flex-col gap-6 py-6">
-        <h3 className="text-base font-bold leading-[1.2] text-white">Basic Details</h3>
-        <BasicDetailsField label="Username" name="username" type="text" initialValue={currentUser.username} />
-        <BasicDetailsField label="Email" name="email" type="email" initialValue="martibo@kickstream.tv" />
-      </section>
+      <SettingsCard title="Basic Details" bodyClass="p-4 flex flex-col gap-4">
+        <TextField label="Username" name="username" type="text" initialValue={currentUser.username} />
+        <TextField label="Email" name="email" type="email" initialValue="superdude1337@kickstream.tv" />
+        <BioField initialValue="" />
+      </SettingsCard>
+
+      <SettingsCard title="Social Media">
+        <SocialMediaForm />
+      </SettingsCard>
     </SettingsLayout>
   );
 }

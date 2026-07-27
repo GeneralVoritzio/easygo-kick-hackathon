@@ -1,0 +1,17 @@
+{
+ "captured": "2026-07-27",
+ "source": "https://kick.com/settings/preferences",
+ "loggedIn": true,
+ "note": "Read at 2560 in the user's Chrome. This replaces settings-preferences-1024.json. The shell is the same as settings-profile-2560.json, so only the panel is recorded here.",
+ "viewport": [2560, 1249],
+ "url": "/settings/preferences",
+ "panel": { "rect": [844, 335, 0, 0], "box": { "display": "flex", "maxWidth": "844px", "rowGap": "20px", "margin": "auto" } },
+ "section:Content Preferences": { "rect": [844, 247, 0, 0], "box": { "backgroundColor": "rgb(23, 26, 28)", "borderRadius": "4px" } },
+ "cardHeader": { "rect": [844, 79, 0, 0], "box": { "padding": "16px", "borderBottomWidth": "2px", "borderBottomColor": "rgba(240, 241, 242, 0.16)", "note": "The help text sits in the card header, under the h3, not in the body" } },
+ "cardHeaderSub": { "box": { "fontSize": "14px", "lineHeight": "21px", "fontWeight": "400", "color": "rgb(159, 166, 173)" } },
+ "row": { "rect": [844, 56, 0, 0], "box": { "display": "flex", "padding": "16px", "justifyContent": "space-between", "note": "Three rows, and no border between them" } },
+ "rowLabel": { "rect": [226, 24, 0, 0], "box": { "fontSize": "16px", "lineHeight": "24px" } },
+ "switch": { "rect": [36, 20, 0, 0], "box": { "backgroundColor": "rgb(66, 71, 77)", "borderRadius": "9999px", "checkedBackgroundColor": "rgb(83, 252, 24)" } },
+ "switchKnob": { "rect": [14, 14, 4, 3], "box": { "backgroundColor": "rgb(255, 255, 255)", "borderRadius": "9999px", "checkedBackgroundColor": "rgb(23, 26, 28)", "note": "Offset 4px from the left and 3px from the top, and it slides to 2.25rem minus 0.25rem minus 0.875rem when checked" } },
+ "rows": ["Hide Pools, Hot Tubs & Bikinis", "Hide Slots & Casino", "Hide VR Chat"]
+}

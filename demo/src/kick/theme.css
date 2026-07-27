@@ -170,6 +170,9 @@
   --color-accent2-base: #4c4014;
   --color-accent2-onAccent2: #e3cf89;
 
+  --color-disabled-base: #f0f1f214;
+  --color-disabled-onSurface: #f0f1f23d;
+
   --color-focusLight: #fff;
   --color-focusDark: #0b0b0c;
 

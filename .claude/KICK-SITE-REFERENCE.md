@@ -999,3 +999,104 @@ the inset separator, then `Display language` and `Settings`, then a separator, t
   menu icon is square.
 - **Display language** is a `px-0 py-1` wrapper holding a `h-10 px-4` button. The label is 16px, the
   value `English` is 14px `#9FA6AD`, and the chevron after it is **12px**, not 16.
+
+---
+
+## 21. The settings pages, measured on kick.com 27 July 2026, logged in at 2560
+
+Seven tabs exist. We build two of them, `/settings/profile` and `/settings/preferences`. The rest
+render and do nothing. Logged out, both pages return an empty shell, so the saved HTML in
+`demo/kick-reference/html/` holds nothing. Read these pages in the user's Chrome.
+
+### 20.1 The shell, shared by every tab
+
+```
+h1 {2220x52}   "Settings"   text-2xl, line-height 32px, py-2.5
+div            the tab rail, sticky, 48px tall, inset 2px shadow at the foot
+div            the panel, max-w-844, mx-auto, gap-y-5, lg:pt-6
+  div.p-2.5
+    h2 {824x24}   the panel title, text-xl bold
+  section        one card per group
+```
+
+**The tab rail sticks under the navbar.** KICK writes `sticky -top-3`, because their 12px top
+padding sits on the **scroll container**. Our `PageShell` puts that padding on a div inside the
+scroller, so we write `top-0` and the rail lands in the same place, 60px from the top.
+
+The active tab is green (`#53fc18`) on a 1px green bottom border, plus a separate absolutely
+positioned 2px underline at `bottom-[-2px]`.
+
+### 20.2 A settings card
+
+Every group is a `section`, and it is a card, not a divided list:
+
+| Part | Value |
+|---|---|
+| Card | `bg-surface-base` `#171a1c`, radius 4px |
+| Header | `p-4`, 2px bottom border `rgba(240,241,242,0.16)` |
+| Header title | `h3`, 18px, weight 700, line-height 20px, white |
+| Header help text | 14px, weight 400, line-height 21px, `#9fa6ad`, under the `h3` in a `gap-1` column |
+| Body | `p-4` |
+
+The help text sits **in the header**, under the title, not in the body.
+
+### 20.3 A field, and why it is 68px tall
+
+A field is a label then a control, and it measures **812 by 68** inside the 844 card:
+
+- The `label` is **inline**, so its line box is the 24px body line-height, not its own 17px.
+- The control carries an **8px top margin**, then its own 36px height.
+
+KICK gets that margin from `space-y-2` on Tailwind v3. **Tailwind v4 changed `space-y-*` to a
+bottom margin on every child but the last**, which an inline label ignores, so the same class
+gives 60px here. Put `mt-2` on the control instead.
+
+### 20.4 The buttons
+
+| Button | Size | Fill |
+|---|---|---|
+| Save changes | 119x32 | `bg-primary-base`, `min-w-[10ch]` |
+| Save, on the Social Media card | 92x32 | as above |
+| Cancel | 71x32 | transparent |
+| Update Banner image | 170x32 | `bg-secondary-base` |
+| Edit Avatar | 89x36 | `bg-secondary-base` |
+
+All are `px-3 py-1.5 text-sm`, weight 600, radius 4px. Disabled reads
+`rgba(240,241,242,0.08)` on `rgba(240,241,242,0.24)`.
+
+The Cancel and Save pair is **right aligned** at `lg`, in a
+`flex w-full flex-col gap-2.5 lg:flex-row lg:items-center lg:justify-end`. Cancel is `order-last`
+on mobile and `order-first` at `lg`, so Save sits on top on a phone and on the right on a desktop.
+
+### 20.5 `/settings/profile`, five cards
+
+| Card | Height | What is in it |
+|---|---|---|
+| Profile Preview | 198 | The avatar and Edit Avatar in a `hidden lg:flex` left column, then "About <name>", the follower count and the description. **No banner in this card.** |
+| Channel Banner | 239 | A frame at `aspect-[580/64]`, `max-w-[580px]`, `lg:w-3/4`, centred, then the button, then centred help text |
+| Offline Stream Banner | 518 | The same, at `aspect-video` |
+| Basic Details | 507 | Three forms: Username, Email, Bio |
+| Social Media | 674 | One form, seven inputs, one Cancel and Save pair |
+
+The panel totals **844 by 2303**.
+
+**Each field in Basic Details is its own `form`** with its own Cancel and Save pair. Both start
+disabled and enable when the field changes. Bio is a `textarea`, `rows=3`, `maxlength=500`, with a
+2px `border-neutral-700`, unlike the 1px `border-outline-region` on an input.
+
+**Social Media is one form for all seven.** The order is Club, Instagram, X, Facebook, YouTube,
+Discord, TikTok. Every input reads "Enter social handle" and carries
+`data-testid="profile-inline-edit-input-<name>"`. The button row adds `lg:pt-6`.
+
+### 20.6 `/settings/preferences`, one card
+
+One card, 844 by 247. The header is 79 tall and holds the title plus the help text. Then three
+rows of 56, with **no border between them**.
+
+The row label is 16px on a 24px line box. The three rows are "Hide Pools, Hot Tubs & Bikinis",
+"Hide Slots & Casino" and "Hide VR Chat".
+
+**The switch is 36 by 20**, `role="switch"`, and carries both `aria-checked` and `data-state`. The
+knob is a 14 by 14 span, offset 4px from the left and 3px from the top, and it reads `data-state`
+off itself, not off the parent. Unchecked the track is `#42474d` and the knob is white. Checked the
+track is `#53fc18` and the knob turns `#171a1c`. Drive the styling from `data-state`.

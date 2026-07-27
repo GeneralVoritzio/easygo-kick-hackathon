@@ -646,6 +646,8 @@ export const currentUser = {
   avatar: avatar("superdude1337"),
   followers: 1,
   bio: "SuperDude1337's Kick Channel",
+  banner: artUrl("banner-midnightden"),
+  offlineBanner: artUrl("thumb-just-chatting-1"),
 };
 
 export function streamPills(stream: Livestream): string[] {

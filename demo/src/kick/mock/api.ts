@@ -21,8 +21,20 @@ export type Livestream = {
   hide_viewer_count?: boolean;
 };
 
-const avatar = (seed: string) =>
-  `https://api.dicebear.com/9.x/thumbs/svg?seed=${seed}`;
+const avatarFiles = import.meta.glob("../avatars/*.svg", {
+  eager: true,
+  query: "?url",
+  import: "default",
+}) as Record<string, string>;
+
+const avatar = (slug: string) => {
+  const url = avatarFiles[`../avatars/${slug}.svg`];
+  if (!url) throw new Error(`No avatar for ${slug}. Add demo/src/kick/avatars/${slug}.svg`);
+  return url;
+};
+
+// ponytail: stream and category stills are still remote placeholders. Replace them
+// with real KICK frames and the official category art, captured with kick-page-clone.
 const still = (seed: string, w = 640, h = 360) =>
   `https://picsum.photos/seed/${seed}/${w}/${h}`;
 

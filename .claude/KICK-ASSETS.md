@@ -21,6 +21,7 @@ Nothing is fetched from the network, at build time or at run time.
 | Favicon and social logos | `pitch/src/assets/brand/` | The deck |
 | Border devices and patterns | `pitch/src/assets/brand/devices/`, `pitch/src/assets/brand/patterns/` | The deck |
 | The icon set, 67 files | `demo/src/kick/icons/` | The demo |
+| Channel avatars, 16 files | `demo/src/kick/avatars/` | The demo |
 | KICK's 282 design tokens | `.claude/reference/kick-neon-tokens.css` | Read-only ground truth |
 | The page scrape | `demo/kick-reference/` | The demo |
 
@@ -107,6 +108,31 @@ Brand Identity Section 5 holds the wordmark rule.
 
 They show KICK's still-life language (Brand Identity Section 5), but they are KICK photography and
 we cannot use them in the deck. Read them on the site. Do not commit them.
+
+## `demo/src/kick/avatars/`: channel avatars, 16 files
+
+**Not KICK's.** These stand in for the profile pictures the API returns, so the demo needs no
+account and no network. Read **27 July 2026**.
+
+| Property | Value |
+|---|---|
+| Source | `https://api.dicebear.com/9.x/pixel-art/svg?seed=<slug>&backgroundColor=264653,2a6f97,5f0f40,6a4c93,3d5a80,7f4f24` |
+| Style page | [dicebear.com/styles/pixel-art](https://www.dicebear.com/styles/pixel-art/) |
+| Licence | CC0 1.0, "Pixel Art" by DiceBear. Public domain, so no attribution is owed |
+| Licence file | None needed. Each SVG carries its own `<dc:rights>` block, so the licence travels with the file |
+| File name | The channel slug, so `mock/api.ts` finds it by slug |
+
+**Pixel Art is the only avatar style we use.** CLAUDE.md holds the rule. The `backgroundColor` list
+gives each seed a solid plate, because the style draws on a transparent background and a floating
+head does not read as an avatar on a dark page.
+
+To add a channel, download its avatar first:
+
+```bash
+BG="264653,2a6f97,5f0f40,6a4c93,3d5a80,7f4f24"
+curl -sS -o "demo/src/kick/avatars/<slug>.svg" \
+  "https://api.dicebear.com/9.x/pixel-art/svg?seed=<slug>&backgroundColor=$BG"
+```
 
 ## `fonts/`
 

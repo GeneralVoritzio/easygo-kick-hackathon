@@ -1,6 +1,6 @@
 ---
 name: kick-page-clone
-description: Fetch a kick.com page in Chrome, take its real HTML and CSS, and rebuild it exactly in demo/. Also checks a page we already built is still current, by measuring kick.com again and diffing. Use when asked to clone, copy, replicate, verify or fix the fidelity of any kick.com page, or to add a KICK page, component or icon.
+description: Fetch a kick.com page in Chrome, take its real HTML and CSS, and rebuild it exactly in demo/. Also checks a page we already built is still current, by measuring kick.com again and by comparing the two pages on screen. Use when asked to clone, copy, replicate, verify or fix the fidelity of any kick.com page, or to add a KICK page, component or icon.
 ---
 
 # Clone a kick.com page
@@ -9,8 +9,12 @@ Rebuild a kick.com surface so it reads as native. The rule that decides success:
 read is a fact, a number you remember is a guess.** Every fidelity fault we have shipped came
 from a guess.
 
-Work in four phases. Do not skip Phase 1, and do not report done before Phase 4. Phase 5 runs the
-same tools backwards, to check a page we already built is still current.
+Work in four phases. Do not skip Phase 1, and do not report done before Phase 4. Phase 4 proves
+the copy matches with two passes, a measured one and a visual one, and the same two passes check
+that a page we built earlier is still current.
+
+**If the user names a feature, that feature is the job.** Review it first, compare it on its own,
+and give it the detail. The rest of the page comes after.
 
 ---
 
@@ -39,15 +43,21 @@ The user's Chrome solves both at once. Their session is already open, so `/follo
 
 1. **Open the page** with `mcp__claude-in-chrome__navigate`. The Browser pane
    (`mcp__Claude_Browser__*`) works for a public page, but it is logged out, so prefer Chrome.
-2. **Find the part you want** with `scripts/in-page/tree.js` in `javascript_tool`. Set `ROOT`. It
+2. **Scroll the page to the bottom** with `scripts/in-page/scroll.js`, before you capture anything.
+   **A capture taken at the top holds the first screen only.** KICK loads each row as you reach it,
+   and `body` is `overflow: hidden`, so the page does not scroll as one document and nothing below
+   the fold exists yet. The script finds the real scroller, walks it down until the height stops
+   growing, returns to the top, and reports the section list with a count for each one. Read that
+   list. If it names sections you have not seen, you were about to copy a fraction of the page.
+3. **Find the part you want** with `scripts/in-page/tree.js` in `javascript_tool`. Set `ROOT`. It
    returns the structure with every class name, the `data-testid` of each component, the text of
    each leaf, the path count of each icon, and the stylesheet URLs. A whole page is 700 KB, so
    never read one raw.
-3. **Take its source** with `scripts/in-page/source.js`. Set `SELECTOR` to what the tree showed you.
+4. **Take its source** with `scripts/in-page/source.js`. Set `SELECTOR` to what the tree showed you.
    It returns the real `outerHTML` with the icons replaced by placeholders. The navbar comes to
    6 KB. **This is the markup you port.** It carries what a tree drops, such as the `box-shadow`
    the navbar wears instead of a bottom border.
-4. **Take its CSS** with `scripts/in-page/css.js`. Set `FROM` to the same selector and it collects
+5. **Take its CSS** with `scripts/in-page/css.js`. Set `FROM` to the same selector and it collects
    every class the subtree uses, then reports what each one does. `assets.kick.com` is open, so the
    chunks also download when you want them greppable:
 
@@ -141,42 +151,67 @@ Full detail, with the measured tables, is in `reference/kick-rules.md`. The shor
   grids read it with `group-data-[sidebar=false]/main:` to add a column when the sidebar collapses.
 - **Anything that is a control on kick.com stays a control here.** Keep the hover, the cursor and
   the press state even when the click does nothing. A dead link must not navigate to a blank route.
+- **Copy what a click does, not the button only.** If it opens a menu, switches a tab, slides a
+  drawer, moves a switch or shows a modal on kick.com, it does the same here. A button that looks
+  right and does nothing is the fault a screenshot cannot show.
+- **Show no scrollbar that kick.com does not show.** They hide them with `.no-scrollbar`, and a
+  scroll line down a pane, a row or a menu is the clearest sign that a page is not theirs.
+- **Keep their alignment.** Centred stays centred, and a shared baseline stays shared. Alignment
+  measures as valid whichever way it goes, so it survives Pass 1 and only Pass 2 finds it.
+- **Carry KICK's `data-testid` onto our component.** They name every component, the measure script
+  reads those names, and a component with no name cannot be compared with theirs at all.
 - **Never fetch an asset at build time or at run time.** Commit it, or draw it locally.
 - **Copy the structure, not the marketing artwork.** The wordmark, the icons and Inter are ours to
   commit. A campaign plate holds licensed third party work and is not.
 - **Layout fidelity and content fidelity are separate jobs.** Never rename a section to make its
   layout match. If our mock data cannot fill KICK's layout, say so and ask.
 
----
+### Fill the page, do not copy every card
 
-## Phase 4. Prove it matches
+**Copy every section. Do not copy every card in it.** A live kick.com page holds hundreds of
+streams and categories. We need the page to read as full, and nothing more.
 
-Build first. `npx tsc -b && npx vite build` from `demo/`.
+- **A row that KICK clips to one row needs one row, plus two cards.** The extra two prove the row
+  clips, and they cost nothing.
+- **A grid that wraps needs about two full rows** at the widest viewport we demo at.
+- **Every section KICK shows, we show.** Dropping a section changes the layout. Dropping a card
+  does not.
 
-Then start the dev server with `preview_start` and run **the same script on both pages**:
-`scripts/in-page/measure.js`, once on kick.com and once on the clone, at the same viewport. It
-returns the rect and the computed box of every element you name, so the two runs compare line by
-line. A 4px drift is a fault, not a rounding error.
-
-Measuring kick.com at 1440 gives the browse grid as 4 columns with `gap: 24px 16px`, and the page
-column as `gap: 12px`. The clone must give the same three numbers.
-
-Then run the finished page against `.claude/KICK-SITE-REFERENCE.md` Section 12.
-
-**Say what you did.** "Measured" means you read values off the running page. "Looked at" means you
-saw it render. If the Browser pane is not displayed, screenshots fail and only measurement is
-available. Say which one backs your claim.
+More mock data than that is work with no result on screen, and each card needs a committed avatar
+or still. A shorter grid is not a fault, and `compare.mjs` expects it.
 
 ---
 
-## Phase 5. Use the same tools to check a page is still current
+## Phase 4. Prove it matches, by measuring and by looking
 
-The skill runs in reverse as a drift check. Two questions, one method.
+**Two passes, and you need both.** Measurement catches a number. It does not catch a card that
+looks wrong. Neither pass replaces the other, and a report that gives one pass only is not done.
 
-**Has kick.com changed since we copied it?** Measure the live page again and diff it against the
-baseline we saved. A changed number means KICK shipped something, and our copy is now stale.
+The same two passes answer three questions, so they are written once here:
 
-**Does our copy still match?** Measure both and diff them.
+| Question | What to diff |
+|---|---|
+| Does the new page match kick.com? | the live page against the clone |
+| Does a page we built earlier still match? | the live page against the clone |
+| Has kick.com changed since we copied it? | the live page against the baseline in `demo/kick-reference/measured/` |
+
+Build first, `npx tsc -b && npx vite build` from `demo/`. Then start the dev server with
+`preview_start`, and open kick.com and the clone at the same viewport.
+
+### Pass 1. Measure
+
+Scroll both pages with `scripts/in-page/scroll.js`, then run `scripts/in-page/measure.js` on each
+one. It returns the rect and the computed box of every target you name, plus a spread of the
+components that carry a `data-testid`. The box holds the border, the shadow, the blend mode, the
+filter and the object fit, because those are the properties a fault hides in.
+
+**Measure kick.com in Chrome, and the clone in the Browser pane.** Chrome truncates a reply at
+about 1000 characters, so keep the result on `window` and read it in 850 character slices. The
+Browser pane returns the whole string in one call.
+
+**The default targets describe a grid page.** A channel page, a settings page and a following list
+page each need their own set. `demo/kick-reference/measured/README.md` lists the ones we use, and
+each baseline records what did not fit.
 
 ```bash
 # run scripts/in-page/measure.js on kick.com, save the JSON as kick-browse.json
@@ -186,9 +221,59 @@ node .claude/skills/kick-page-clone/scripts/compare.mjs kick-browse.json clone-b
 
 `compare.mjs` prints only what differs, and exits 1 when anything does. Keep each baseline under
 `demo/kick-reference/measured/<page>.json` with the date and the viewport in the file, so the next
-check has something to diff against.
+check has something to diff against. **Write the baseline on the first clone of a page.** A drift
+check with nothing to diff against reports nothing.
 
-Two things that are not faults:
+Measuring kick.com at 1440 gives the browse grid as 4 columns with `gap: 24px 16px`, and the page
+column as `gap: 12px`. The clone must give the same three numbers.
+
+Read the report before you read the numbers. `found in neither file` means the selector does not
+fit this page and **nothing was checked**, so fix the selector and run it again.
+
+### Pass 2. Look
+
+**Screenshot both pages at the same viewport, and compare them region by region.** Take the top of
+the page, then scroll and take the rest. A screenshot of the first screen proves the first screen.
+
+**If the user named a feature, review that feature first, and in detail.** They are telling you
+where to look. Compare it on its own, at each state it has, before you look at the rest of the
+page. A general sweep that mentions their feature in one line is not the review they asked for.
+
+Compare the navbar, then the sidebar, then each section down the page. For each one, ask the seven
+questions below. Every one of them describes a fault we have shipped, and no number catches any of
+them:
+
+1. **Is the colour there at all?** A token that resolves to nothing renders as transparent, and
+   transparent on a dark page looks deliberate. Check the surface, the border and the text.
+2. **Does an edge that KICK draws exist here, and the other way round?** A missing border reads as
+   the wrong spacing. A border we invented reads as a panel KICK does not have.
+3. **Does the overlay sit right?** KICK puts gradients, live badges, viewer counts and durations on
+   top of a thumbnail. Check the stack order, the padding from the corner, and that the gradient
+   fades the way theirs does.
+4. **Does the image fill its frame?** A still that letterboxes, stretches or crops differently gives
+   the copy away, and `objectFit` alone does not prove it.
+5. **Is a scrollbar visible that kick.com does not show?** KICK hides them with `.no-scrollbar`, so
+   any bar, track or scroll line we show is ours and is wrong. Check each pane, each row and each
+   menu, not the page only.
+6. **Is everything aligned the way theirs is?** Centred stays centred, and a baseline that KICK
+   shares stays shared. Check the text in a button, the icon against its label, the count against
+   the two lines beside it, and the edge each column starts on.
+7. **Does the page feel as full as theirs?** Fewer cards is by design. An empty row is not.
+
+Then **click the controls.** A screenshot proves the page at rest, and half a page is not at rest:
+
+- **Anything that responds to a click on kick.com responds here.** A menu opens, a tab switches, a
+  drawer slides, a switch moves, a modal appears. Read what it does on kick.com, then do the same.
+- **Hover and press states are part of the copy.** A control with no hover reads as an image of a
+  control.
+- A click we cannot support does nothing and says nothing. It never navigates to a blank route, and
+  it never throws in the console.
+
+Fix what you see, then run both passes again.
+
+Then run the finished page against `.claude/KICK-SITE-REFERENCE.md` Section 12.
+
+### Two things that are not faults
 
 - **A different row count.** Our mock data holds fewer cards, so a grid's height and its
   `gridTemplateRows` differ by design. Compare the column count, the gaps and the card size.
@@ -196,6 +281,10 @@ Two things that are not faults:
   both at the same size.
 
 Everything else is a fault. A 4px drift is a fault, not a rounding error.
+
+**Say what you did.** "Measured" means you read values off the running page. "Looked at" means you
+saw it render. If the Browser pane is not displayed, screenshots fail, Pass 2 cannot run, and you
+say so rather than reporting the page as done.
 
 ---
 

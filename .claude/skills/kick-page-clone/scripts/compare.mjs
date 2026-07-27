@@ -32,8 +32,12 @@ for (const name of names) {
   const y = b[name];
   const notes = [];
 
-  if (typeof x === "string" || typeof y === "string" || !x || !y) {
-    notes.push(`  present: ${left} ${x ? "yes" : "no"}, ${right} ${y ? "yes" : "no"}`);
+  const gone = (v) => !v || typeof v === "string";
+
+  if (gone(x) && gone(y)) {
+    notes.push("  found in neither file. The selector does not fit this page, so nothing was checked.");
+  } else if (gone(x) || gone(y)) {
+    notes.push(`  found in ${gone(x) ? right : left} only`);
   } else {
     const [aw, ah] = x.rect;
     const [bw, bh] = y.rect;

@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Icon } from "../Icon";
 import { PageShell } from "../components/Layout";
+import { Footer } from "../components/Footer";
 import { StreamGrid } from "../components/StreamCard";
 import { CategoryGrid } from "../components/CategoryCard";
 import { ClipGrid } from "../components/ClipCard";
@@ -192,6 +193,8 @@ export function Home() {
 
       <CategoryRow slug="irl" />
       <CategoryRow slug="old-school-runescape" />
+
+      <Footer />
     </PageShell>
   );
 }

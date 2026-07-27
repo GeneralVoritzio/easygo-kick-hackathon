@@ -57,7 +57,7 @@ export function PageShell({
   column?: string;
 }) {
   return (
-    <div className={`px-4 pb-20 lg:px-8 xl:px-10 ${scroller}`}>
+    <div className={`px-4 lg:px-8 xl:px-10 ${scroller}`}>
       <div className={`m-auto flex max-w-[125rem] flex-col ${column}`}>{children}</div>
     </div>
   );

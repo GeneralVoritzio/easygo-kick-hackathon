@@ -76,9 +76,13 @@ Real KICK icons: `menu` `search` `close` `home` `browse` `following` `collapseCh
 `volume` `pip` `clip` `theatre` `fullscreen` `settings` `share` `chatters` `gift` `globe`
 `verified`.
 
-**Three are ours, not KICK's:** `pause` and `mute`, because a logged out page never shows them, and
-`timeline`, because KICK has no such icon. All three are drawn on the same grid from KICK's own
-`play` and `volume` geometry. Do not present them as KICK's.
+**Two are ours, not KICK's:** `pause`, because a logged out page never shows it, and `timeline`,
+because KICK has no such icon. Both are drawn on the same grid from KICK's own `play` and `volume`
+geometry. Do not present them as KICK's.
+
+`mute` was ours until 27 July 2026. It is now KICK's own, read from the live player at
+`kick.com/odablock` while logged in. Our drawing filled the whole 32 grid, so it rendered larger
+than every other icon.
 
 **These are KICK trademarks.** They are here so we can match the chrome, not so we can ship them.
 

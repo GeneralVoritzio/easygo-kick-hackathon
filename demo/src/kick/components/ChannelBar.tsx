@@ -107,15 +107,15 @@ export function ChannelBar({
           </div>
           <button
             type="button"
-            aria-label="Share channel"
-            className="flex size-10 shrink-0 items-center justify-center rounded text-white state-layer-surface"
+            aria-label="Share"
+            className="tooltip-top flex size-10 shrink-0 items-center justify-center rounded text-white transition-colors duration-150 betterhover:hover:bg-stateLayer-surfaceHover active:bg-stateLayer-surfacePress"
           >
             <Icon name="share" className="size-4 fill-current" />
           </button>
           <button
             type="button"
-            aria-label="Report channel"
-            className="flex size-10 shrink-0 items-center justify-center rounded text-white state-layer-surface"
+            aria-label="Report"
+            className="tooltip-top flex size-10 shrink-0 items-center justify-center rounded text-white transition-colors duration-150 betterhover:hover:bg-stateLayer-surfaceHover active:bg-stateLayer-surfacePress"
           >
             <Icon name="report" className="size-4 fill-current" />
           </button>

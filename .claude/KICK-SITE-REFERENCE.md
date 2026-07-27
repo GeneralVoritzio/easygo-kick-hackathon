@@ -69,6 +69,9 @@ At 1600 wide the page is three columns under a full width bar:
   of KICK looks wrong.
 - The chat width is a **drag handle**, not a fixed number. A 4px vertical strip sits between the
   main column and the chat, `aria-label="Resize chatroom"`, and it turns `#53FC18` on hover.
+  **The strip takes no width.** It sits over the chat left edge, so the chat column measures 340px
+  in total. A strip that takes its own 4px makes the main column 4px narrow, and the player, which
+  is 16 by 9, then sits about 2px high.
 - The navbar has **no bottom border**.
 
 ---
@@ -171,8 +174,30 @@ It floats over the video. It has **no background plate**. It appears on hover.
 | Progress bar | Full bleed, edge to edge, **4px tall**, 56px above the video bottom. `aria-label="Loaded progress"` |
 | Control row | 44px tall, inset 20px from each edge |
 | Buttons | 44 by 44 hit area, transparent, icon only |
+| Icons | **20px** (`size-5`), not the 16px the rest of the site uses |
+| Cluster gap | **0.** Buttons touch. Only `Clip` carries `mx-2` |
 | Left cluster | Play, volume, the elapsed time, then the live chip |
-| Right cluster | In this order: picture in picture, `Clip`, theatre mode, full screen, settings |
+| Elapsed time | 14px weight **700**, `px-2`, line box 20px |
+| Live chip | `px-2`, 6px gap, line box 20px |
+| Volume | Button, then a 16px gap, then the slider. The slider stays collapsed until hover |
+| `Clip` | No padding. Icon, a 4px gap, then the label. 50.4px wide |
+| Right cluster | In this order: picture in picture, `Clip`, captions, theatre mode, full screen, settings |
+
+Read from the live player on 27 July 2026, logged in, at 2560.
+
+**A player button has no hover plate.** The state layer that every other button on kick.com carries
+is not here. The background stays transparent, and a tooltip appears instead.
+
+| Tooltip part | Spec |
+|---|---|
+| Plate | White, black text, 14px weight 500, 5px padding, 2px radius, no shadow, no border |
+| Arrow | A 10 by 5 white triangle under the plate. It points down and pokes 3px over the button |
+| Position | Above the button, a 2px gap, centred on the button, `z-index: 801` |
+| Collision | It stays 20px inside the player. The play plate aligns start, the settings plate aligns end. **The arrow stays centred on the button either way** |
+| Text | `Play (space)` `Pause (space)` `Mute (m)` `Unmute (m)` `Picture in Picture` `Clip (c)` `Captions (p)` `Theatre Mode (t)` `Fullscreen (f)` `Quality` |
+
+The settings button says **`Quality`**, not `Settings`. The share and report buttons in the
+channel bar carry the same tooltip, centred: `Share` and `Report`.
 
 **KICK's live player already carries a 4px progress bar.** A thin timeline rail is not a new idea
 bolted on. It is the bar KICK already draws.
@@ -185,6 +210,8 @@ This is the detail that gives a copy away. Read from the live markup.
 |---|---|
 | Track | `h-1`, so **4px**. It grows to `h-1.5`, so **6px**, on hover of the seekbar group |
 | Buffer | `bg-white/50`, white at 50% |
+| Rail under the fill | `#929EA6` at 50%, the `subtle` token. It is not white |
+| Fill on a live stream | The full width. A live stream sits at the live edge, so no rail shows |
 | Thumb | **16px** (`size-4`), `rounded-full`, filled `#53FC18` |
 | Thumb visibility | **Hidden until the group is hovered.** It is not a permanent dot |
 | Thumb hit area | A 32px invisible square (`before:size-8`) centred on the thumb |
@@ -199,6 +226,11 @@ an 8px round dot, bg-green-500     +     "LIVE" at 14px weight 600, white
 
 **It is a green dot and white text, not a red badge.** A red `LIVE` pill in the control bar is
 wrong. The red badge belongs on the avatar in the channel bar, and on thumbnails.
+
+**Paused, or behind the live edge, only the dot changes.** Measured on the live player, paused,
+27 July 2026. The text stays `LIVE` and stays white. The dot turns `#3F4448`, KICK's
+`neon-highlight-base`. There is no `Go back live` label, no tooltip, no hover state, and a click
+does nothing. The elapsed timer freezes while paused.
 
 ---
 

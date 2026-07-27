@@ -22,7 +22,8 @@ const pillClass =
 export function Pill({ children }: { children: React.ReactNode }) {
   return (
     <button type="button" className={pillClass}>
-      <span className="max-w-full truncate">{children}</span>
+      {/* leading-[22px] keeps the descender inside the clip box, so a g is not cut */}
+      <span className="max-w-full truncate leading-[22px]">{children}</span>
     </button>
   );
 }

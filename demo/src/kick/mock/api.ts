@@ -642,10 +642,10 @@ export function timeAgo(iso: string): string {
 }
 
 export const currentUser = {
-  username: "Martibo",
-  avatar: avatar("martibo"),
+  username: "SuperDude1337",
+  avatar: avatar("superdude1337"),
   followers: 1,
-  bio: "Martibo's Kick Channel",
+  bio: "SuperDude1337's Kick Channel",
 };
 
 export function streamPills(stream: Livestream): string[] {

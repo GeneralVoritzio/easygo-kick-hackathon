@@ -113,15 +113,32 @@ the `kick-page-clone` skill and commit them.
 
 ## Branches and worktrees
 
+**Every new piece of work gets a new worktree.** Never re-use an old worktree, and never start work
+in one that already holds a different change. An old folder carries an old branch, an old base
+commit and old uncommitted files, and the reader cannot tell which change the folder holds.
+
+- Make the worktree from the current `main`, then start.
+- Name the worktree for the work, not for the tool. `livestream-chat-layout` is a name.
+  `kick-page-clone-387220` is not, because it names a skill and a random number.
+- Delete a worktree when its branch is merged. `git worktree remove <path>`, then
+  `git branch -d claude/<name>`. A long `git worktree list` is what makes re-use tempting.
+
 **A branch has the same name as its worktree folder.** A worktree at
 `.claude/worktrees/<name>` runs on branch `claude/<name>`, and nothing else. Two different names
 for one piece of work make `git worktree list` unreadable, and they hide which folder holds which
 change.
 
-- The worktree folder decides the name. If a worktree already exists, rename the branch to match:
-  `git branch -m claude/<worktree-name>`.
-- Name the worktree for the work, not for the tool. `livestream-chat-layout` is a name.
-  `kick-page-clone-387220` is not, because it names a skill and a random number.
+**Read the branch name from git, at the start, before you touch a file.** Run
+`git branch --show-current` in the worktree. The session start summary can be stale, and it can show
+a branch name that the worktree does not run on.
+
+- The worktree folder decides the name. If the names differ, rename the branch immediately:
+  `git branch -m claude/<worktree-name>`. Do not ask first. Do not report it and wait. The rule has
+  already made the decision, so a question only delays the work.
+- If that branch name is taken, the folder was re-used, which the first rule forbids. Prove the old
+  branch is safe before you take its name: `git merge-base --is-ancestor <old-tip> main` must pass,
+  and `git branch -r --contains <old-tip>` must show it on a remote. Then `git branch -M`. If either
+  check fails, stop and ask.
 - Say the worktree name when you report work, so the reader knows which folder to open.
 
 ## Coding style

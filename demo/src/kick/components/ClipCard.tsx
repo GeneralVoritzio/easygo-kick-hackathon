@@ -1,34 +1,21 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import { CornerMarks, Pill, ThumbBadge } from "./CardBits";
+import { ClipModal } from "./ClipModal";
 import { streamColumns } from "./StreamCard";
 import { oneRowGrid } from "./Layout";
 import { formatViewers } from "../mock/api";
-import { CLIPS_NOW, type Clip } from "../mock/clips";
-
-function formatDuration(seconds: number): string {
-  const m = Math.floor(seconds / 60);
-  const s = seconds % 60;
-  return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
-}
-
-function formatClipAge(createdAt: string): string {
-  const diffMs = CLIPS_NOW.getTime() - new Date(createdAt).getTime();
-  const diffHours = Math.floor(diffMs / 3_600_000);
-  if (diffHours < 1) return "just now";
-  if (diffHours < 24) return `${diffHours} hours ago`;
-  const diffDays = Math.floor(diffHours / 24);
-  if (diffDays < 7) return `${diffDays} days ago`;
-  const diffWeeks = Math.floor(diffDays / 7);
-  if (diffWeeks < 5) return `${diffWeeks} ${diffWeeks === 1 ? "week" : "weeks"} ago`;
-  const diffMonths = Math.floor(diffDays / 30);
-  return `${diffMonths} ${diffMonths === 1 ? "month" : "months"} ago`;
-}
+import { formatClipAge, formatDuration, type Clip } from "../mock/clips";
 
 export function ClipCard({ clip }: { clip: Clip }) {
+  const [open, setOpen] = useState(false);
+
   return (
     <div className="group/card relative flex w-full shrink-0 grow-0 flex-col gap-2 will-change-transform lg:gap-0">
+      {open && <ClipModal clip={clip} onClose={() => setOpen(false)} />}
       <button
         type="button"
+        onClick={() => setOpen(true)}
         className="relative block aspect-video w-full cursor-pointer select-none overflow-hidden rounded"
       >
         <img
@@ -59,6 +46,7 @@ export function ClipCard({ clip }: { clip: Clip }) {
           </Link>
           <button
             type="button"
+            onClick={() => setOpen(true)}
             className="line-clamp-1 max-w-full cursor-pointer text-left text-base font-normal leading-6 text-surface-onSurfaceSecondary"
           >
             {clip.title}

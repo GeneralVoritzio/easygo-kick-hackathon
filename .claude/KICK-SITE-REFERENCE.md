@@ -1411,3 +1411,86 @@ Ten `size-10` buttons in one 64px column: an info button, an edit button on
 `bg-secondary-base/20`, a `h-px w-6` rule, seven tool buttons that each wear
 `border border-primary-base` on a transparent fill, and a dots button. The icons are 16px. They
 carry no `aria-label` on the live site, and the label comes from a tooltip.
+
+---
+
+## 23. The clip modal, measured on kick.com 27 July 2026, logged in at 2560 by 1305
+
+**Source:** `kick.com/browse/clips`, click any clip thumbnail. The URL does not change, so the
+modal is local state, not a route. The same modal opens from a channel clips grid.
+
+It is a `role="dialog"` over a `z-dialog fixed inset-0 bg-black/75` scrim. The dialog measured
+1961 by 912, and it holds two columns: the player, then the 340px chat rail.
+
+### 23.1 The size is a formula, never a pixel
+
+The player box carries all four:
+
+```
+h-[calc(80vh-var(--channel-info-height))]
+max-h-[calc((70vw-48px)*9/16)]
+w-[70vw]
+max-w-[calc((80vh-var(--channel-info-height))*16/9)]
+```
+
+At 2560 by 1305 that gives 912 high, so the width caps at 1621, and the dialog is 1621 + 340. The
+video sits in `relative m-auto aspect-video h-full`, with `absolute inset-0 z-player cursor-pointer`
+over it to toggle play.
+
+### 23.2 The two overlays on the video
+
+Both are `absolute inset-x-0 z-controls flex flex-row flex-nowrap justify-between
+transition-opacity`, and both stay at `opacity-100`.
+
+| Overlay | Classes | Content |
+|---|---|---|
+| Top, 68px | `top-0 bg-gradient-to-b from-black/80 to-transparent px-5 py-3` | Two lines in `flex flex-col gap-1.5 font-bold` |
+| Bottom, 44px | `bottom-0 bg-gradient-to-b from-transparent to-black/80 px-5` | Play, mute, `00:00 / 00:30`, then fullscreen |
+
+Line 1 is 16px weight 700 on `leading-[1.2]`: the clip title, a `•`, then the category as a link.
+Line 2 is 14px weight 700: `Clipped by <user> • 20.5K Views • 5 days ago`.
+
+The seekbar is `group/seekbar absolute -top-7 left-0 h-5 w-full`, the track `h-1 bg-subtle/50`
+growing to `h-1.5` on hover, the fill `bg-green-500`, and a `size-4 rounded-full bg-primary-base`
+thumb that is `hidden` until the hover.
+
+The bottom bar holds **four** controls only: play, mute with a hover volume slider, the time, and
+fullscreen. There is no picture in picture, no `Clip`, no captions, no theatre mode and no quality.
+
+### 23.3 The chat rail, 340 by the player height
+
+`flex flex-col bg-surface-base`, and it is the live chat panel of Section 6 with the footer
+removed. Header is the same 50px `border-b-2 border-[#24272c]` row, holding the collapse button
+and a centred **Chat**. Body is `flex grow flex-col gap-4 px-3.5 py-4`.
+
+The body holds, top to bottom:
+
+1. The channel block, 70px: a 64px avatar, the name as `h1` with the verified tick, then the
+   **stream** title with a chevron. Not the clip title, which is already on the video.
+2. A `flex flex-row flex-wrap gap-2` button row: `Follow` at 168 wide, then three `size-10`
+   buttons, share, download and more actions.
+3. `hr` `w-full border-t-2 border-t-[#24272C]`.
+4. **Watch full video**, `w-full` on `bg-secondary-base/20 px-3 py-2 text-base`, with the external
+   link icon after the label.
+5. A second `hr`.
+6. The chat replay on `bg-neutral-950`.
+
+A replay row is `px-2` on 14px, leading 21px: a `pr-1 font-semibold` timestamp such as `00:01`, the
+username in its identity colour at weight 700, a `:`, then the body. **KICK loads the whole replay
+at once. It does not reveal a row as the clip plays.**
+
+### 23.4 Watch full video is a link with a time
+
+```
+kick /<slug>/videos/<video_id>?t=4630
+```
+
+`t` is whole seconds into the VOD, and it is where the clip starts. This is the only place the
+modal leaves the page.
+
+### 23.5 The close button moves with the rail
+
+`absolute size-10 right-[calc(var(--chat-clip-dialog-expanded)*340px)]`, plus
+`mr-[calc((1-var(--chat-clip-dialog-expanded))*105px)]` and the same form for `mt` at 13px. So it
+sits on the top right of the **video** while the rail is open, and moves inside the video, clear of
+the controls, when the rail collapses. A collapsed rail puts a `Chat` button at `right-5 top-3`.

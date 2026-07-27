@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { DISCOVERY_CLUSTERS } from '../data/discoveryChannels'
-import { SUN_GROUP_SIZE, channelCountsByBody, clustersForBody, isLocationHidden } from './bodyView'
+import { SUN_GROUP_SIZE, channelCountsByBody, channelsForFocus, clustersForBody, isLocationHidden } from './bodyView'
 import { BODY_ORDER } from './bodies'
 
 const hypeKing = DISCOVERY_CLUSTERS.flatMap((c) => c.channels).find((c) => c.name === 'HypeKing')!
@@ -102,5 +102,24 @@ describe('channelCountsByBody', () => {
     const after = channelCountsByBody(DISCOVERY_CLUSTERS, { [hypeKing.id]: true })
     expect(after.earth).toBe(before.earth - 1)
     expect(after.sun).toBe(before.sun + 1)
+  })
+})
+
+describe('channelsForFocus', () => {
+  const cluster = clustersForBody(DISCOVERY_CLUSTERS, 'earth').find((c) => c.channels.length >= 3)!
+
+  it('a cluster dot stands for the whole city', () => {
+    expect(channelsForFocus(cluster, null)).toBe(cluster.channels)
+  })
+
+  it('an expanded child dot stands for exactly one stream', () => {
+    const target = cluster.channels[1]
+    const shown = channelsForFocus(cluster, target.id)
+    expect(shown).toHaveLength(1)
+    expect(shown[0].id).toBe(target.id)
+  })
+
+  it('falls back to the cluster if that channel has been filtered away', () => {
+    expect(channelsForFocus(cluster, 'ch-does-not-exist')).toBe(cluster.channels)
   })
 })

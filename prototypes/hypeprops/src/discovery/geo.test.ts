@@ -116,12 +116,19 @@ describe('citiesForView', () => {
   }))
 
   it('labels nothing until near zoom', () => {
-    expect(citiesForView(cities, 'far')).toEqual([])
-    expect(citiesForView(cities, 'mid')).toEqual([])
+    expect(citiesForView(cities, 'far', true)).toEqual([])
+    expect(citiesForView(cities, 'mid', true)).toEqual([])
+  })
+
+  it('labels nothing on a body without geography, however close you get', () => {
+    // the Moon, Mars and the Sun have no cities — Earth's must never leak there
+    for (const band of ['far', 'mid', 'near'] as const) {
+      expect(citiesForView(cities, band, false), band).toEqual([])
+    }
   })
 
   it('caps the candidate pool and takes the biggest cities first', () => {
-    const shown = citiesForView(cities, 'near', 25)
+    const shown = citiesForView(cities, 'near', true, 25)
     expect(shown).toHaveLength(25)
     expect(shown[0].name).toBe('City 0')
     // the dataset arrives pre-sorted, so a prefix is already the biggest N
@@ -129,7 +136,7 @@ describe('citiesForView', () => {
   })
 
   it('never returns more than it was given', () => {
-    expect(citiesForView(cities.slice(0, 5), 'near', 25)).toHaveLength(5)
+    expect(citiesForView(cities.slice(0, 5), 'near', true, 25)).toHaveLength(5)
   })
 })
 

@@ -5,7 +5,7 @@ import { Html, OrbitControls, Stars } from '@react-three/drei'
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib'
 import { DISCOVERY_CLUSTERS, DEFAULT_ORIGIN } from '../data/discoveryChannels'
 import { BODIES } from './bodies'
-import { clustersForBody } from './bodyView'
+import { channelsForFocus, clustersForBody } from './bodyView'
 import BodySurface, { Atmosphere } from './BodySurface'
 import BorderLayer from './BorderLayer'
 import CityLabelLayer from './CityLabelLayer'
@@ -195,11 +195,9 @@ function BodyScene({ bodyId }: { bodyId: BodyId }) {
   const body = BODIES[bodyId]
   const surfaceRef = useRef<THREE.Mesh>(null)
   const [band, setBand] = useState<ZoomBand>('far')
-  // where the burst popover is pinned: the actual hovered dot (a channel dot
-  // can sit ~1° off its cluster center at near zoom); null → cluster center,
-  // which covers the restore-on-return path where nothing was hovered
-  const [anchorOverride, setAnchorOverride] = useState<[number, number, number] | null>(null)
   const focusedClusterId = useDiscovery((s) => s.focusedClusterId)
+  const focusedAnchor = useDiscovery((s) => s.focusedAnchor)
+  const focusedChannelId = useDiscovery((s) => s.focusedChannelId)
   const filters = useDiscovery((s) => s.filters)
   const hiddenOverrides = useDiscovery((s) => s.hiddenOverrides)
   const setViewMode = useDiscovery((s) => s.setViewMode)
@@ -246,7 +244,10 @@ function BodyScene({ bodyId }: { bodyId: BodyId }) {
 
   // geography is Earth's alone; the city list is fetched only once it's wanted
   const cityPoints = useCityPoints(body.hasVectorBorders && band === 'near')
-  const cities = useMemo(() => citiesForView(cityPoints, band), [cityPoints, band])
+  const cities = useMemo(
+    () => citiesForView(cityPoints, band, body.hasVectorBorders),
+    [cityPoints, band, body.hasVectorBorders],
+  )
 
   // hotspot → popover hover contract: moving between the dot and the card
   // stack gets a 250ms grace window before the popover closes
@@ -271,8 +272,17 @@ function BodyScene({ bodyId }: { bodyId: BodyId }) {
   useEffect(() => cancelClose, [])
 
   const focusedCluster = focusedClusterId ? filteredClusters.find((c) => c.id === focusedClusterId) : undefined
+  // hovering an expanded child dot must show that one stream, not its siblings
+  const focusedChannels = useMemo(
+    () => (focusedCluster ? channelsForFocus(focusedCluster, focusedChannelId) : []),
+    [focusedCluster, focusedChannelId],
+  )
+  // the hovered dot when we have one, otherwise the cluster centre (the
+  // restore-on-return path, where nothing was hovered)
   const popoverAnchor = focusedCluster
-    ? (anchorOverride ?? latLngToVector3(focusedCluster.lat, focusedCluster.lng, 1.02))
+    ? focusedAnchor
+      ? latLngToVector3(focusedAnchor.lat, focusedAnchor.lng, 1.01)
+      : latLngToVector3(focusedCluster.lat, focusedCluster.lng, 1.02)
     : null
 
   return (
@@ -288,14 +298,17 @@ function BodyScene({ bodyId }: { bodyId: BodyId }) {
         style={body.hotspotStyle}
         onPointOver={(point) => {
           cancelClose()
-          setAnchorOverride(latLngToVector3(point.lat, point.lng, 1.01))
-          useDiscovery.getState().setFocusedCluster(point.clusterId)
+          // a near-zoom dot is one channel; a cluster dot is the whole city
+          useDiscovery
+            .getState()
+            .setFocusedCluster(point.clusterId, point.channelId ?? null, { lat: point.lat, lng: point.lng })
         }}
         onPointOut={scheduleClose}
         onPointClick={(point) => {
           cancelClose()
-          setAnchorOverride(latLngToVector3(point.lat, point.lng, 1.01))
-          useDiscovery.getState().setFocusedCluster(point.clusterId)
+          useDiscovery
+            .getState()
+            .setFocusedCluster(point.clusterId, point.channelId ?? null, { lat: point.lat, lng: point.lng })
         }}
       />
 
@@ -306,7 +319,12 @@ function BodyScene({ bodyId }: { bodyId: BodyId }) {
           zIndexRange={[30, 10]}
           style={{ pointerEvents: 'none' }}
         >
-          <StreamClusterPopover cluster={focusedCluster} onPointerStay={cancelClose} onPointerAway={scheduleClose} />
+          <StreamClusterPopover
+            cluster={focusedCluster}
+            channels={focusedChannels}
+            onPointerStay={cancelClose}
+            onPointerAway={scheduleClose}
+          />
         </Html>
       )}
 

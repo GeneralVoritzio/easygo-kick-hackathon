@@ -84,6 +84,18 @@ export function clustersForBody(
   return result
 }
 
+/**
+ * What a hovered hotspot actually stands for. A cluster dot represents the whole
+ * city; once clusters have expanded at near zoom, each dot is a single channel,
+ * so listing its siblings would misrepresent what you're pointing at.
+ * Falls back to the whole cluster if the channel has since been filtered away.
+ */
+export function channelsForFocus(cluster: DiscoveryCluster, focusedChannelId: string | null): DiscoveryChannel[] {
+  if (!focusedChannelId) return cluster.channels
+  const one = cluster.channels.find((ch) => ch.id === focusedChannelId)
+  return one ? [one] : cluster.channels
+}
+
 /** live channel count per body, for the switcher badges and system view */
 export function channelCountsByBody(
   clusters: DiscoveryCluster[],

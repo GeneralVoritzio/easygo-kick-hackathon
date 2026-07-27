@@ -55,6 +55,9 @@ verify them.
 - [ ] **Hit shield**: wandering through the gaps *between* cards never switches the popover to another cluster's dots beneath (regression), and clicking an empty gap dismisses the burst.
 - [ ] Scrolling the wheel over the burst folds it up (next wheel tick zooms the globe); starting a drag on the globe also folds it.
 - [ ] Hovering a different dot switches the burst to that cluster.
+- [ ] **A dot means exactly what it shows.** At the landing zoom a city dot's burst lists all its channels ("San Francisco · 4 live", 4 cards). Zoom in until that cluster splits into separate dots, then hover one: the burst must show **1 live and one card** — that dot's own stream, not its neighbours' (regression: child dots used to list their whole parent cluster).
+- [ ] Moving the pointer straight from one dot to an adjacent one keeps a burst open on the dot you arrived at — it must not close 250ms later (regression: the departing dot's pointer-out could land after the new dot's pointer-over and cancel it).
+- [ ] The burst is always pinned to the dot under the cursor, never to a different city or to the middle of the screen.
 
 ## 6 · Preview cards
 
@@ -113,7 +116,7 @@ verify them.
 - [ ] Near zoom: **city name labels** appear (e.g. over the US West: San Francisco, San Jose, Sacramento, Los Angeles, San Diego, Las Vegas, Phoenix, Denver). Labels fade out towards the limb and never appear on the far hemisphere.
 - [ ] Rotating the globe re-picks the labels for the new view — you should always see cities near the centre of the screen, not just a handful of the world's biggest.
 - [ ] Borders stay crisp at every zoom level (they're vector lines, not a texture) and are a muted slate colour — **not** green. The Kick green stays reserved for live hotspots.
-- [ ] Borders and labels appear on **Earth only** — never on the Moon, Mars or the Sun.
+- [ ] Borders and labels appear on **Earth only** — never on the Moon, Mars or the Sun. Check this *after* visiting Earth at near zoom, then travelling to the Moon and zooming in: Earth's cities must not follow you (regression: the loader returned its module cache regardless of which body was active).
 - [ ] Zooming in the first time briefly downloads the finer border set; the previous borders stay on screen while it loads (no blank flash).
 
 ## 9d · Relay channels (Moon & Mars)

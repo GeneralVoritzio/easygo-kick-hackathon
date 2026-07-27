@@ -67,8 +67,14 @@ export function bordersForBand(band: ZoomBand): ('countries-coarse' | 'countries
  */
 export const CITY_CANDIDATE_CAP = 400
 
-export function citiesForView(cities: CityPoint[], band: ZoomBand, cap = CITY_CANDIDATE_CAP): CityPoint[] {
-  if (band !== 'near') return []
+export function citiesForView(
+  cities: CityPoint[],
+  band: ZoomBand,
+  /** false on the Moon, Mars and the Sun — they have no cities to name */
+  hasGeography: boolean,
+  cap = CITY_CANDIDATE_CAP,
+): CityPoint[] {
+  if (!hasGeography || band !== 'near') return []
   // the dataset is pre-sorted biggest-population-first by build-geo.mjs
   return cities.slice(0, cap)
 }

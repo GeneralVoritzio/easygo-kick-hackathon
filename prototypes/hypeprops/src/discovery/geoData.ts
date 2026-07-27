@@ -85,22 +85,28 @@ function loadCities(): Promise<CityPoint[]> {
   return cityPending
 }
 
-/** the populated-places list, biggest first; empty until loaded or if disabled */
+const NO_CITIES: CityPoint[] = []
+
+/**
+ * The populated-places list, biggest first. Returns nothing while disabled —
+ * reading the module cache regardless would leak Earth's cities onto the Moon
+ * once they'd been fetched during an earlier Earth visit.
+ */
 export function useCityPoints(enabled: boolean): CityPoint[] {
-  const [cities, setCities] = useState<CityPoint[]>(() => cityCache ?? [])
+  const [loaded, setLoaded] = useState<CityPoint[] | null>(() => cityCache)
 
   useEffect(() => {
-    if (!enabled || cities.length > 0) return
+    if (!enabled || loaded) return
     let live = true
     loadCities()
       .then((data) => {
-        if (live) setCities(data)
+        if (live) setLoaded(data)
       })
       .catch((err) => console.warn('discovery: city labels unavailable —', err.message))
     return () => {
       live = false
     }
-  }, [enabled, cities.length])
+  }, [enabled, loaded])
 
-  return cities
+  return enabled ? (loaded ?? NO_CITIES) : NO_CITIES
 }

@@ -17,6 +17,19 @@ export type DiscoveryStore = {
   savedCameras: Partial<Record<BodyId, SavedCamera>>
   /** cluster whose card popover is expanded */
   focusedClusterId: string | null
+  /**
+   * When the hovered hotspot was a single channel (near zoom, where clusters
+   * have expanded), the popover shows only that channel — a child dot stands
+   * for exactly one stream, so listing its siblings would be a lie.
+   */
+  focusedChannelId: string | null
+  /**
+   * Where the popover is pinned: the coordinates of the dot actually hovered,
+   * which at near zoom sits ~1° off its cluster centre. Kept here rather than in
+   * component state so the anchor and the focus can never drift out of sync —
+   * two sources of truth is how a popover ends up pointing at the wrong place.
+   */
+  focusedAnchor: { lat: number; lng: number } | null
   /** channel shown in the half-screen confirm layer */
   selectedChannelId: string | null
   geoStatus: GeoStatus
@@ -35,7 +48,11 @@ export type DiscoveryStore = {
   setActiveBody: (body: BodyId) => void
   setViewMode: (mode: ViewMode) => void
   setSavedCamera: (body: BodyId, camera: SavedCamera | null) => void
-  setFocusedCluster: (id: string | null) => void
+  setFocusedCluster: (
+    clusterId: string | null,
+    channelId?: string | null,
+    anchor?: { lat: number; lng: number } | null,
+  ) => void
   setSelectedChannel: (id: string | null) => void
   setGeoStatus: (status: GeoStatus) => void
   setOrigin: (origin: DiscoveryOrigin) => void
@@ -50,6 +67,8 @@ export const useDiscovery = create<DiscoveryStore>((set) => ({
   viewMode: 'body',
   savedCameras: {},
   focusedClusterId: null,
+  focusedChannelId: null,
+  focusedAnchor: null,
   selectedChannelId: null,
   geoStatus: 'idle',
   origin: null,
@@ -59,11 +78,13 @@ export const useDiscovery = create<DiscoveryStore>((set) => ({
 
   // travelling to another body drops any open popover: it belonged to the
   // world you just left
-  setActiveBody: (activeBody) => set({ activeBody, viewMode: 'body', focusedClusterId: null }),
-  setViewMode: (viewMode) => set({ viewMode, focusedClusterId: null }),
+  setActiveBody: (activeBody) => set({ activeBody, viewMode: 'body', focusedClusterId: null, focusedChannelId: null, focusedAnchor: null }),
+  setViewMode: (viewMode) => set({ viewMode, focusedClusterId: null, focusedChannelId: null, focusedAnchor: null }),
   setSavedCamera: (body, camera) =>
     set((s) => ({ savedCameras: { ...s.savedCameras, [body]: camera ?? undefined } })),
-  setFocusedCluster: (focusedClusterId) => set({ focusedClusterId }),
+  // one atomic write: cluster, channel and anchor always describe the same dot
+  setFocusedCluster: (focusedClusterId, focusedChannelId = null, focusedAnchor = null) =>
+    set({ focusedClusterId, focusedChannelId, focusedAnchor }),
   setSelectedChannel: (selectedChannelId) => set({ selectedChannelId }),
   setGeoStatus: (geoStatus) => set({ geoStatus }),
   setOrigin: (origin) => set({ origin }),

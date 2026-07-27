@@ -133,7 +133,12 @@ export default function LivePointLayer({ points, style = 'solid', onPointOver, o
           document.body.style.cursor = 'pointer'
           onPointOver(data[i].point)
         }}
-        onPointerOut={() => {
+        onPointerOut={(e) => {
+          // moving straight from one dot to another fires this *after* the new
+          // dot's pointerover — closing then would drop a popover the pointer is
+          // sitting on, so only act if we're really leaving the one we tracked
+          const leaving = instanceOf(e)
+          if (leaving != null && hovered.current != null && leaving !== hovered.current) return
           hovered.current = null
           document.body.style.cursor = ''
           onPointOut()

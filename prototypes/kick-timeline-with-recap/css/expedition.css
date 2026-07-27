@@ -1,0 +1,145 @@
+/*
+  The Expedition panel. It covers the video frame the same way the Highlights
+  panel does (same inset, same glass, same control-bar-stays-clear rule), and
+  the two share a name for that state, `.player.is-panel-open` (css/player.css).
+
+  KICK has no expedition surface. This is invented: a viewer starts a group
+  that hops channel to channel together. Three shapes, one panel: a plain
+  Kick Expedition needs no configuration, a Private one only needs who gets
+  in, and a Custom one exposes every knob. The Private invite-and-passcode
+  block is shared markup (`[data-expedition-pane="invite"]`), shown for the
+  Private type on its own and again under Custom when Custom is set private,
+  rather than holding two copies of the same two fields.
+*/
+
+.expedition{
+  position:absolute; inset:14px 14px 70px; z-index:2; display:flex; flex-direction:column;
+  overflow:hidden;
+  animation:fade var(--overlay) var(--ease-overlay);
+}
+
+.expedition__head{
+  display:flex; align-items:flex-start; gap:16px;
+  padding:14px 16px 12px; border-bottom:1px solid var(--border);
+}
+.expedition__title{margin:0; font-size:20px; line-height:24px; color:var(--text-primary); font-weight:700}
+.expedition__sub{margin:2px 0 0; font-size:12px; line-height:16px; color:var(--text-muted)}
+.expedition__head .iconbtn{margin-left:auto}
+
+.expedition__types{display:flex; gap:8px; padding:12px 16px 0}
+.expeditiontype{
+  flex:1; display:flex; flex-direction:column; gap:2px; padding:10px 12px; text-align:left;
+  background:var(--kick-on-glass); border:1px solid transparent; border-radius:var(--r-lg);
+  color:inherit; font:inherit; cursor:pointer;
+  transition:background-color var(--fast) var(--ease), border-color var(--fast) var(--ease);
+}
+.expeditiontype:hover{background:var(--kick-on-glass-strong)}
+.expeditiontype.is-active{background:rgba(83,252,24,.14); border-color:var(--kick-green)}
+.expeditiontype__name{font-size:14px; line-height:20px; font-weight:700; color:var(--text-primary)}
+.expeditiontype__desc{font-size:12px; line-height:16px; color:var(--text-secondary)}
+
+.expedition__scroll{flex:1; overflow-y:auto; padding:16px}
+.expeditionpane{display:flex; flex-direction:column; gap:10px}
+.expeditionpane + .expeditionpane{margin-top:18px; padding-top:18px; border-top:1px solid var(--border)}
+
+.expedition__note{margin:0; font-size:14px; line-height:20px; color:var(--text-body)}
+
+.expedition__label{
+  font-size:12px; line-height:16px; font-weight:600; letter-spacing:.04em;
+  text-transform:uppercase; color:var(--text-muted);
+}
+.expedition__input{
+  height:36px; padding:0 12px; background:var(--kick-on-glass); border:none;
+  border-radius:var(--r-sm); color:var(--text-primary); font:inherit; font-size:14px;
+}
+.expedition__input::placeholder{color:var(--text-muted)}
+.expedition__input:focus{outline:2px solid var(--kick-green); outline-offset:-1px}
+select.expedition__input{cursor:pointer}
+input[type=number].expedition__input{width:100%}
+
+.expedition__row{display:grid; grid-template-columns:1fr 1fr; gap:12px}
+.expedition__field{display:flex; flex-direction:column; gap:6px}
+
+.expedition__segmented{display:inline-flex; gap:4px; padding:3px; background:var(--kick-on-glass); border-radius:var(--r-full); width:fit-content}
+.segbtn{
+  padding:5px 14px; background:none; border:none; border-radius:var(--r-full);
+  color:var(--text-secondary); font:inherit; font-size:14px; font-weight:600; cursor:pointer;
+  transition:background-color var(--fast) var(--ease), color var(--fast) var(--ease);
+}
+.segbtn:hover{color:var(--text-primary)}
+.segbtn.is-active{background:var(--kick-green); color:var(--bg-base)}
+
+.expedition__toggle{
+  display:flex; align-items:center; gap:8px; font-size:14px; line-height:20px; color:var(--text-body);
+  cursor:pointer;
+}
+.expedition__toggle input{width:16px; height:16px; accent-color:var(--kick-green); cursor:pointer}
+
+/* The streams checklist, one row per live channel, the sidebar's own metrics. */
+.expeditionstreams{display:flex; flex-direction:column; gap:2px; max-height:220px; overflow-y:auto}
+.expeditionstream{
+  display:grid; grid-template-columns:18px 28px 1fr auto; align-items:center; gap:10px;
+  padding:6px 8px; border-radius:var(--r-sm); cursor:pointer;
+}
+.expeditionstream:hover{background:var(--kick-on-glass)}
+.expeditionstream input{width:16px; height:16px; accent-color:var(--kick-green); cursor:pointer}
+.expeditionstream__pic{
+  display:flex; align-items:center; justify-content:center; width:28px; height:28px;
+  border-radius:50%; color:var(--id-on); font-size:12px; line-height:16px; font-weight:700;
+}
+.expeditionstream__text{min-width:0}
+.expeditionstream__name{font-size:14px; line-height:20px; font-weight:700; color:var(--text-primary)}
+.expeditionstream__cat{font-size:12px; line-height:16px; color:var(--text-muted)}
+.expeditionstream__count{font-size:12px; line-height:16px; color:var(--text-secondary); white-space:nowrap}
+
+/* The invite picker: chips of who is already invited, a search field, then the directory to pick from. */
+.expeditioninvite{
+  display:flex; flex-wrap:wrap; align-items:center; gap:6px; min-height:36px; padding:4px 8px;
+  background:var(--kick-on-glass); border-radius:var(--r-sm);
+}
+.expeditioninvite:focus-within{background:var(--kick-on-glass-strong)}
+.expeditioninvite input{
+  flex:1; min-width:120px; background:none; border:none; outline:none;
+  color:var(--text-primary); font:inherit; font-size:14px; padding:6px 4px;
+}
+.expeditioninvite input::placeholder{color:var(--text-muted)}
+
+.expeditionchip{
+  display:flex; align-items:center; gap:6px; padding:3px 8px 3px 3px;
+  background:var(--kick-on-glass-strong); border-radius:var(--r-full);
+}
+.expeditionchip__pic{
+  display:flex; align-items:center; justify-content:center; width:20px; height:20px;
+  border-radius:50%; color:var(--id-on); font-size:12px; font-weight:700; flex:none;
+}
+.expeditionchip__name{font-size:12px; line-height:16px; font-weight:600; color:var(--text-primary)}
+.expeditionchip__remove{
+  display:flex; background:none; border:none; padding:0; color:var(--text-secondary); cursor:pointer;
+}
+.expeditionchip__remove:hover{color:var(--text-primary)}
+
+.expeditioninvite__list{display:flex; flex-direction:column; gap:2px; max-height:160px; overflow-y:auto}
+.expeditioninvitee{
+  display:flex; align-items:center; gap:10px; width:100%; padding:6px 8px;
+  background:none; border:none; border-radius:var(--r-sm); color:inherit; font:inherit;
+  text-align:left; cursor:pointer;
+}
+.expeditioninvitee:hover{background:var(--kick-on-glass)}
+.expeditioninvitee.is-invited{opacity:.4; pointer-events:none}
+.expeditioninvitee__pic{
+  display:flex; align-items:center; justify-content:center; width:24px; height:24px;
+  border-radius:50%; color:var(--id-on); font-size:12px; font-weight:700; flex:none;
+}
+.expeditioninvitee__name{font-size:14px; line-height:18px; color:var(--text-primary)}
+
+.expedition__foot{
+  display:flex; justify-content:flex-end; padding:12px 16px; border-top:1px solid var(--border);
+}
+
+/* The departure/started confirmation, a plain toast over the frame, gone after a few seconds. */
+.expeditiontoast{
+  position:absolute; left:50%; bottom:70px; transform:translateX(-50%); z-index:5;
+  padding:10px 18px; background:var(--bg-overlay); border-radius:var(--r-full);
+  color:var(--text-primary); font-size:14px; font-weight:600; white-space:nowrap;
+  animation:fade var(--base) var(--ease);
+}

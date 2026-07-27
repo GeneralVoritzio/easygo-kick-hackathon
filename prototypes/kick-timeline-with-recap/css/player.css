@@ -1,0 +1,522 @@
+/*
+  The player, the rail and the timeline overlay. The control bar copies the
+  metrics in .claude/KICK-SITE-REFERENCE.md Section 4: a 4px full bleed
+  progress bar, a 44px control row, and no background plate.
+*/
+
+.player{position:relative; background:var(--bg-base); --controls-opacity:0; --controls-events:none}
+
+/*
+  The frame keeps 16:9 and never grows past the height left under the navbar,
+  so the channel bar cannot be pushed out of the column. Without the cap a wide
+  short window, an ultrawide monitor for example, makes the middle pane scroll.
+  ponytail: --chanbar-height is measured, not computed. Change it if the channel
+  bar gains a row, or move .player to a size container and read 100cqh.
+*/
+.frame{
+  --chanbar-height:108px;
+  position:relative; aspect-ratio:16/9; overflow:hidden; background:var(--bg-surface);
+  width:min(100%, calc((100vh - var(--navbar-height) - var(--chanbar-height)) * 16 / 9));
+  margin:0 auto;
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px;
+}
+/* Full screen has no navbar and no channel bar to leave room for. */
+.player:fullscreen{display:flex; align-items:center; justify-content:center}
+.player:fullscreen .frame{width:min(100%, calc(100vh * 16 / 9))}
+
+.frame__canvas{position:absolute; inset:0; width:100%; height:100%; display:block}
+
+.dot{width:7px; height:7px; border-radius:50%; background:currentColor; display:inline-block}
+
+/*
+  The control bar appears on hover, the way KICK's does (Site Reference
+  Section 4). It also stays up while the stream is paused, and while a full
+  panel (the Highlights panel, or the Expedition panel) is open, because
+  both leave this strip clear on purpose.
+*/
+.player:hover,.player:focus-within,
+.player.is-paused,.player.is-panel-open{--controls-opacity:1; --controls-events:auto}
+
+.controls{
+  position:absolute; inset:auto 0 0 0; z-index:3; padding-bottom:3px;
+  background:linear-gradient(transparent, rgba(11,11,12,.72) 42%);
+  opacity:var(--controls-opacity); pointer-events:var(--controls-events);
+  transition:opacity var(--base) var(--ease);
+}
+
+.seekbar{position:relative}
+
+.rail{
+  position:relative; height:14px; display:flex; align-items:flex-end;
+  padding-bottom:5px; cursor:pointer; touch-action:none;
+}
+.rail:focus{outline:none}
+.rail:focus-visible .rail__bar{outline:2px solid var(--kick-green); outline-offset:3px}
+
+.rail__bar{
+  position:relative; width:100%; height:4px;
+  background:rgba(255,255,255,.2); transition:height var(--fast) var(--ease);
+}
+.rail.is-open .rail__bar{height:6px}
+.rail__buffer{position:absolute; inset:0; background:rgba(255,255,255,.5)}
+.rail__played{position:absolute; inset:0 auto 0 0; width:0; background:var(--kick-green)}
+.rail__thumb{
+  position:absolute; top:50%; width:16px; height:16px; margin:-8px 0 0 -8px;
+  border-radius:50%; background:var(--kick-green);
+  transform:scale(0); transition:transform var(--fast) var(--ease);
+}
+.rail.is-open .rail__thumb{transform:scale(1)}
+
+/*
+  A notch is a round badge, not a tick: it pops in with an overshoot spring
+  when it first appears, and grows again on hover or while the rail is open.
+  The pop-in is a transition, not a keyframe animation, driven by the
+  `is-shown` class scrubber.js adds a frame after the badge is appended, so
+  there is a real scale(0) to scale(1) to transition from.
+*/
+.rail__notches{position:absolute; inset:0}
+.notch{
+  position:absolute; top:50%; width:11px; height:11px; margin:-5.5px 0 0 -5.5px;
+  border-radius:50%; border:2px solid var(--bg-base);
+  background:var(--text-primary); color:var(--bg-base);
+  display:flex; align-items:center; justify-content:center;
+  transform:scale(0); cursor:pointer;
+  transition:transform .4s cubic-bezier(.34,1.56,.64,1), width var(--fast) var(--ease),
+    height var(--fast) var(--ease), margin var(--fast) var(--ease);
+}
+.notch svg{width:7px; height:7px; display:block}
+.notch.is-shown{transform:scale(1)}
+.notch:hover{transform:scale(1.4)}
+
+/*
+  Every group gets its own colour, the same ones the overlay's curve pins
+  use, held as --glow too: every glow below (a search hit's, or a filtered
+  or hovered tile's) reads that one variable, so a notch always glows in
+  its own colour rather than a colour standing in for "you're looking at
+  this one".
+*/
+.notch--peak{background:var(--kick-green-bright); --glow:var(--kick-green-bright)}
+.notch--clip{background:var(--id-sky); --glow:var(--id-sky)}
+.notch--raid{background:var(--id-violet); --glow:var(--id-violet)}
+.notch--kicks{background:var(--id-sunshine); --glow:var(--id-sunshine)}
+.notch--poll{background:var(--id-mint); --glow:var(--id-mint)}
+.notch--category_change{background:var(--text-muted); --glow:var(--text-muted)}
+.notch--search_moment{background:var(--id-cyan); --glow:var(--id-cyan)}
+.notch--search_chat{background:var(--id-lavender); --glow:var(--id-lavender)}
+.notch--bookmark{background:var(--id-sand); --glow:var(--id-sand)}
+
+.rail.is-open .notch{width:15px; height:15px; margin:-7.5px 0 0 -7.5px}
+.rail.is-open .notch svg{width:9px; height:9px}
+
+@keyframes notchGlow{
+  0%,100%{box-shadow:0 0 4px 1px var(--glow)}
+  50%{box-shadow:0 0 12px 5px var(--glow)}
+}
+
+/*
+  A search hit needs to read as "new" at a glance, not just another dot on
+  the rail, so it rests a little larger always. The glow itself only runs
+  while the Search tab is the one showing (js/overlay.js's applyFilterGlow
+  toggles is-search-active): switch to Peaks, Clips, or any other tab and
+  the hit is still on the rail, marking where it was found, but it stops
+  pulsing, since the panel is no longer about search results.
+*/
+.notch--search_moment.is-shown,.notch--search_chat.is-shown{transform:scale(1.2)}
+.notch--search_moment:hover,.notch--search_chat:hover{transform:scale(1.5)}
+.notch--search_moment.is-search-active,.notch--search_chat.is-search-active{
+  animation:notchGlow 1.4s ease-in-out infinite;
+}
+
+/*
+  Hovering one tile while the Search tab is active needs its own way to
+  quiet every other hit's pulse, js/scrubber.js's highlight(id). Regular
+  notches never carry this combination, so it does nothing for them.
+*/
+.notch--search_moment.is-dimmed,.notch--search_chat.is-dimmed{animation:none; box-shadow:none}
+
+/*
+  The Highlights panel lights up notches here two ways: every notch of the
+  filtered group at once while a filter chip other than All is active
+  (js/scrubber.js's highlightGroup), narrowed to just one while the pointer
+  rests on a single tile (highlight(id)). Each notch's own --glow, set
+  above, so the glow always matches its own badge colour.
+*/
+.notch.is-linked{transform:scale(1.5); animation:notchGlow 1s ease-in-out infinite}
+
+.rail__spark{
+  position:absolute; left:0; right:0; bottom:9px; height:24px;
+  opacity:0; transform:translateY(4px); pointer-events:none;
+  transition:opacity var(--base) var(--ease), transform var(--base) var(--ease);
+}
+.rail.is-open .rail__spark{opacity:1; transform:translateY(0)}
+.rail__spark svg{width:100%; height:24px; display:block}
+.spark__line{fill:none; stroke:var(--kick-green); stroke-width:1.2; vector-effect:non-scaling-stroke}
+.spark__area{fill:var(--kick-green); fill-opacity:.14}
+
+.controls__row{display:flex; align-items:center; gap:2px; height:44px; padding:0 20px}
+.pspacer{flex:1}
+
+.pbtn{width:44px; height:44px; color:var(--text-primary)}
+.pbtn:hover{color:var(--kick-green)}
+.pbtn--wide{
+  width:auto; gap:7px; padding:0 12px;
+  font:inherit; font-size:14px; line-height:20px; font-weight:600;
+}
+
+/* Volume, Site Reference Section 4. A white 16px thumb, revealed on hover. */
+.volume{display:flex; align-items:center}
+.volume__slider{
+  position:relative; display:flex; align-items:center; flex:none;
+  width:0; opacity:0; overflow:hidden; cursor:pointer; touch-action:none;
+  transition:width var(--base) var(--ease), opacity var(--base) var(--ease);
+}
+.volume:hover .volume__slider,.volume__slider:focus-visible{width:74px; opacity:1; margin-right:8px}
+.volume__track{width:100%; height:4px; background:rgba(255,255,255,.3); border-radius:var(--r-full)}
+.volume__fill{height:100%; background:#fff; border-radius:var(--r-full)}
+.volume__thumb{
+  position:absolute; top:50%; width:16px; height:16px; margin:-8px 0 0 -8px;
+  border-radius:var(--r-full); background:#fff; pointer-events:none;
+}
+
+.ptime{margin:0 10px 0 6px; font-size:14px; line-height:20px; font-weight:600; color:#fff}
+
+/* The live chip is a green dot and white text, never a red badge. */
+.plive{
+  display:inline-flex; align-items:center; gap:4px; height:20px; padding:0 4px;
+  background:none; border:none;
+  color:#fff; font:inherit; font-size:14px; line-height:20px; font-weight:600; cursor:pointer;
+}
+.plive .dot{width:8px; height:8px; background:var(--kick-green)}
+.plive.is-behind{color:var(--text-muted)}
+.plive.is-behind .dot{background:var(--text-disabled)}
+.plive.is-behind:hover{color:#fff}
+
+/*
+  The hover card. The glass comes from the .glass class in kick.css. Every
+  point on the rail carries the picture-in-the-frame preview (js/stage.js
+  draws it from the playhead alone, at any second), so the card is always
+  sized around a thumbnail, 344 wide to put it at the 320 by 180
+  kick.com/browse/clips uses, and always opens the same viewer on a press,
+  not just when a recorded clip sits there. The bridge closes the 9px gap
+  to the rail, or the card would shut on the way up. It sits above the
+  control row, so it covers no button.
+*/
+.scrubcard{
+  position:absolute; left:0; bottom:70px; transform:translateX(-50%); z-index:4;
+  width:344px; padding:12px; cursor:pointer;
+  pointer-events:auto; display:grid; gap:2px;
+}
+.scrubcard::after{content:''; position:absolute; left:0; right:0; top:100%; height:10px}
+
+/*
+  The bookmark toggle on the hover card. It stays clickable even when the
+  card itself takes no pointer (the plain time and viewers case), because a
+  point does not need a moment on it to be worth saving.
+*/
+.scrubcard__bookmark{
+  position:absolute; top:8px; right:8px; z-index:1; pointer-events:auto;
+  display:inline-flex; align-items:center; justify-content:center; width:24px; height:24px;
+  background:var(--kick-on-glass-strong); border:none; border-radius:var(--r-sm);
+  color:var(--text-secondary); cursor:pointer;
+}
+.scrubcard__bookmark:hover{color:var(--text-primary)}
+.scrubcard__bookmark.is-on{color:var(--id-sand)}
+
+/*
+  The clip-and-share toggle, the mirror of the bookmark button on the other
+  corner. One click copies a link carrying the 20 seconds either side of the
+  point, no viewer to open first. is-copied is the "done" flash, cleared
+  after 2 seconds by scrubber.js.
+*/
+.scrubcard__clip{
+  position:absolute; top:8px; left:8px; z-index:1; pointer-events:auto;
+  display:inline-flex; align-items:center; justify-content:center; width:24px; height:24px;
+  background:var(--kick-on-glass-strong); border:none; border-radius:var(--r-sm);
+  color:var(--text-secondary); cursor:pointer;
+}
+.scrubcard__clip:hover{color:var(--text-primary)}
+.scrubcard__clip.is-copied{color:var(--kick-green)}
+
+/* Direct children only. A clip puts its own markup in here, and it sets its own type. */
+.scrubcard__text{display:grid; gap:2px}
+.scrubcard__text > strong{color:var(--text-primary); font-size:14px; line-height:20px; font-weight:600}
+.scrubcard__text > b{color:var(--text-body); font-size:14px; line-height:20px; font-weight:600}
+.scrubcard__text > span{color:var(--text-muted); font-size:12px; line-height:16px}
+
+/*
+  The overlay is a glass pane that floats over the video, so it is inset on every
+  side and it clears the control bar. The glass itself comes from kick.css.
+*/
+.overlay{
+  position:absolute; inset:14px 14px 70px; z-index:2; display:flex; flex-direction:column;
+  overflow:hidden;
+  animation:fade var(--overlay) var(--ease-overlay);
+}
+@keyframes fade{from{opacity:0}}
+
+.overlay__head{
+  display:flex; align-items:flex-start; gap:16px;
+  padding:14px 16px 12px; border-bottom:1px solid var(--border);
+}
+.overlay__title{margin:0; font-size:20px; line-height:24px; color:var(--text-primary); font-weight:700}
+.overlay__sub{margin:2px 0 0; font-size:12px; line-height:16px; color:var(--text-muted)}
+.overlay__filters{display:flex; gap:6px; flex-wrap:wrap; margin-left:auto}
+
+/*
+  Reuses the nav search look (kick.css .nav__search), but on glass: a
+  translucent plate rather than a border, matching the chips beside it.
+*/
+.overlay__search{
+  display:flex; align-items:center; gap:8px; margin:0 16px 12px; padding:0 12px; height:36px;
+  background:var(--kick-on-glass); border-radius:var(--r-sm); color:var(--text-secondary);
+  transition:background-color var(--base) var(--ease);
+}
+.overlay__search:focus-within{background:var(--kick-on-glass-strong)}
+.overlay__searchicon{display:flex; color:var(--text-secondary)}
+.overlay__search input{
+  flex:1; min-width:0; background:none; border:none; outline:none;
+  color:var(--text-primary); font:inherit; font-size:14px;
+}
+.overlay__search input::placeholder{color:var(--text-muted)}
+.overlay__searchclear{
+  display:flex; align-items:center; justify-content:center; flex:none;
+  background:none; border:none; padding:0; cursor:pointer; color:var(--text-secondary);
+}
+.overlay__searchclear:hover{color:var(--text-primary)}
+
+.iconbtn{
+  display:inline-flex; align-items:center; justify-content:center; width:32px; height:32px;
+  background:none; border:none; border-radius:var(--r-sm);
+  color:var(--text-secondary); cursor:pointer;
+}
+/* No fill on hover. A plate on glass reads as a solid patch. */
+.iconbtn:hover{color:var(--text-primary)}
+
+.chip{
+  padding:3px 11px; background:var(--kick-on-glass); border:none;
+  border-radius:var(--r-full); color:var(--text-secondary);
+  font:inherit; font-size:12px; line-height:16px; font-weight:600; cursor:pointer;
+  transition:color var(--fast) var(--ease), background-color var(--fast) var(--ease);
+}
+.chip:hover{background:var(--kick-on-glass-strong); color:var(--text-primary)}
+.chip.is-active{background:var(--kick-green); color:var(--bg-base)}
+
+
+.overlay__scroll{flex:1; overflow-y:auto; padding:14px 16px 0}
+.overlay__h3{
+  margin:0 0 8px; font-size:12px; line-height:16px; font-weight:600; letter-spacing:.06em;
+  text-transform:uppercase; color:var(--text-muted);
+}
+.missed{margin-bottom:18px}
+
+/*
+  A bento grid, not a card grid: size follows hype_score
+  (js/overlay.js's rankClasses), so the loudest moments read as bigger
+  tiles instead of every moment claiming the same footprint. Each tile's
+  background is a live picture-in-the-frame thumbnail, the same drawing
+  the rail's hover card and the clip viewer already use (js/stage.js), not
+  a flat category-coloured box standing in for a picture.
+
+  Every tile is a fixed 16:9, the same shape a clip card is. Size, not
+  shape, carries the ranking.
+
+  This is a real masonry, not CSS grid: grid packs same-size cells into
+  rows, so a compact tile next to a hero left the rest of that row's
+  height empty underneath it. js/overlay.js's layoutTiles computes a
+  shortest-column placement instead (left, top, width, height per tile, in
+  pixels) and writes it as inline styles, so tiles pack flush against
+  whichever neighbour is shortest with no leftover gap. `.hltiles` only
+  needs to be the positioning parent; its own height is likewise set
+  inline, since every child is out of flow.
+*/
+.hltiles{position:relative}
+
+.hltile{position:absolute; border-radius:var(--r-lg); overflow:hidden}
+
+.hltile__go{
+  position:absolute; inset:0; display:block; width:100%; height:100%;
+  background:none; border:none; padding:0; cursor:pointer;
+}
+.hltile__go:focus-visible{outline:2px solid var(--kick-green); outline-offset:-2px}
+
+/* stage.js's own thumbnail palette is already lightened; the filter is the last push toward reading as a real still. */
+.hltile__canvas{
+  position:absolute; inset:0; width:100%; height:100%; display:block;
+  filter:saturate(1.3) brightness(1.1) contrast(1.05);
+}
+
+/* Only the bottom quarter needs to hold text, the same rule the rail's own hover card follows. */
+.hltile__scrim{
+  position:absolute; inset:0;
+  background:linear-gradient(to top, rgba(11,11,12,.82) 0%, rgba(11,11,12,.18) 32%, rgba(11,11,12,0) 55%);
+}
+
+.hltile__badge{
+  position:absolute; top:8px; left:8px;
+  display:flex; align-items:center; justify-content:center;
+  width:26px; height:26px; border-radius:50%; color:var(--bg-base); background:var(--text-primary);
+}
+.hltile--hero .hltile__badge{width:32px; height:32px; top:10px; left:10px}
+.hltile__badge--peak{background:var(--kick-green-bright)}
+.hltile__badge--clip{background:var(--id-sky)}
+.hltile__badge--raid{background:var(--id-violet)}
+.hltile__badge--kicks{background:var(--id-sunshine)}
+.hltile__badge--poll{background:var(--id-mint)}
+.hltile__badge--category_change{background:var(--text-muted)}
+.hltile__badge--search_moment{background:var(--id-cyan)}
+.hltile__badge--search_chat{background:var(--id-lavender)}
+.hltile__badge--bookmark{background:var(--id-sand)}
+
+.hltile__meta{
+  position:absolute; top:10px; right:10px;
+  font-size:12px; line-height:16px; font-weight:600; color:var(--text-primary);
+  text-shadow:0 1px 4px rgba(0,0,0,.9);
+}
+
+.hltile__text{position:absolute; left:10px; right:10px; bottom:8px; display:flex; flex-direction:column; gap:1px}
+.hltile__title{
+  font-size:14px; line-height:18px; font-weight:700; color:var(--text-primary);
+  overflow:hidden; text-overflow:ellipsis; white-space:nowrap; text-shadow:0 1px 4px rgba(0,0,0,.9);
+}
+.hltile--hero .hltile__title{
+  font-size:16px; line-height:22px; white-space:normal;
+  display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;
+}
+.hltile__byline{
+  font-size:12px; line-height:16px; color:var(--text-secondary);
+  overflow:hidden; text-overflow:ellipsis; white-space:nowrap; text-shadow:0 1px 4px rgba(0,0,0,.9);
+}
+.hltile--compact .hltile__byline{display:none}
+
+.hltile__actions{
+  position:absolute; bottom:8px; right:8px; display:flex; align-items:center; gap:4px;
+  opacity:0; transform:translateY(4px);
+  transition:opacity var(--fast) var(--ease), transform var(--fast) var(--ease);
+}
+.hltile:hover .hltile__actions,.hltile:focus-within .hltile__actions{opacity:1; transform:translateY(0)}
+
+/*
+  Before you joined: one tile, not a list. A viewer catches up with a
+  single press instead of reading rows, the same way kick-recap's stories
+  catch-up worked. Opens js/clip.js's sequence mode (below).
+*/
+.recaptile{
+  display:flex; align-items:center; gap:14px; width:100%; padding:14px 16px;
+  background:linear-gradient(135deg, rgba(83,252,24,.18), var(--kick-on-glass));
+  border:none; border-radius:var(--r-lg); cursor:pointer; text-align:left; color:inherit; font:inherit;
+}
+.recaptile:hover{background:linear-gradient(135deg, rgba(83,252,24,.26), var(--kick-on-glass-strong))}
+.recaptile__icon{
+  display:flex; align-items:center; justify-content:center; flex:none;
+  width:48px; height:48px; border-radius:50%; background:var(--kick-green); color:var(--bg-base);
+}
+.recaptile__text{display:grid; gap:2px}
+.recaptile__title{font-size:16px; line-height:24px; font-weight:700; color:var(--text-primary)}
+.recaptile__sub{font-size:12px; line-height:16px; color:var(--text-secondary)}
+
+/* The eyebrow label the rail's hover card still uses for a plain (no thumbnail) point. */
+.scrubcard__label{
+  font-style:normal; font-size:12px; line-height:16px; font-weight:700;
+  letter-spacing:.06em; text-transform:uppercase;
+}
+.scrubcard__label--peak{color:var(--kick-green)}
+.scrubcard__label--clip{color:var(--id-sky)}
+.scrubcard__label--raid{color:var(--id-violet)}
+.scrubcard__label--kicks{color:var(--id-sunshine)}
+.scrubcard__label--poll{color:var(--id-mint)}
+.scrubcard__label--category_change{color:var(--text-muted)}
+.scrubcard__label--search_moment{color:var(--id-cyan)}
+.scrubcard__label--search_chat{color:var(--id-lavender)}
+.scrubcard__label--bookmark{color:var(--id-sand)}
+
+/*
+  These now sit over a live thumbnail, not glass, so the chip is a dark
+  translucent disc rather than --kick-on-glass — a value tuned for a
+  frosted panel reads as barely-there over a bright frame.
+*/
+.hltilebookmark,.hltileclip{
+  display:inline-flex; align-items:center; justify-content:center;
+  width:24px; height:24px; padding:0;
+  background:rgba(11,11,12,.55); border:none; border-radius:var(--r-full);
+  color:var(--text-secondary); cursor:pointer;
+}
+.hltilebookmark:hover,.hltileclip:hover{color:var(--text-primary)}
+.hltilebookmark.is-on{color:var(--id-sand)}
+.hltileclip.is-copied{color:var(--kick-green)}
+
+.hltilereact{
+  display:inline-flex; align-items:center; gap:4px; padding:2px 7px;
+  background:rgba(11,11,12,.55); border:none; border-radius:var(--r-full);
+  color:var(--text-secondary); font:inherit; font-size:12px; line-height:16px; cursor:pointer;
+}
+.hltilereact:hover{color:var(--text-primary)}
+.hltilereact.is-on{color:var(--id-rose)}
+
+/*
+  The floating widget: a small button that fans a stack of option bubbles
+  out above it, mirroring prototypes/kick-recap. It behaves like
+  AssistiveTouch or an Android FAB, not a fixed player control: it starts
+  translucent so it never competes with the stream, sharpens on hover, and
+  a press-and-drag on the button relocates it anywhere on the frame instead
+  of opening the menu (js/widget.js tells the two apart by how far the
+  pointer travelled before it lifted).
+
+  isolation:isolate plus a z-index well clear of the rail's hover card (4)
+  guarantees the button always wins a click, even where the hover card's
+  height genuinely reaches wherever the widget has been dragged to. The
+  Highlights and Expedition panels are a lower z-index (2) than that, so
+  neither alone would be enough to cover the widget — each hides it outright
+  instead (below), the same way it would make no sense to drag the widget
+  while the panel it opens is covering the whole frame.
+*/
+.widget{
+  position:absolute; right:14px; top:50%; z-index:50; isolation:isolate;
+  transform:translateY(-50%); opacity:.55;
+  transition:opacity var(--base) var(--ease);
+}
+.widget:hover,.widget:focus-within,.widget.is-open,.widget.is-dragging{opacity:1}
+
+/* Either panel covers the whole frame, so the widget underneath is hidden, not just outranked. */
+.player.is-panel-open .widget{display:none}
+
+.widget__button{
+  position:relative; z-index:1; width:44px; height:44px; padding:0;
+  display:flex; align-items:center; justify-content:center;
+  background:var(--kick-on-glass-strong); border:2px solid var(--kick-green); border-radius:50%;
+  color:var(--kick-green); cursor:grab; box-shadow:var(--glow); touch-action:none;
+  transition:color var(--fast) var(--ease), border-color var(--fast) var(--ease);
+}
+.widget.is-open .widget__button{color:var(--text-primary); border-color:var(--border); box-shadow:none}
+.widget.is-dragging .widget__button{cursor:grabbing}
+
+.widget__bubbles{
+  position:absolute; bottom:100%; right:0; margin-bottom:12px;
+  display:flex; flex-direction:column; align-items:flex-end; gap:10px;
+  pointer-events:none;
+}
+.widget__bubble{
+  display:flex; align-items:center; gap:8px; background:none; border:none; padding:0; cursor:pointer;
+  opacity:0; transform:scale(.4) translateY(8px);
+  transition:opacity .25s var(--ease), transform .4s cubic-bezier(.34,1.56,.64,1);
+}
+.widget.is-open .widget__bubbles{pointer-events:auto}
+.widget.is-open .widget__bubble{opacity:1; transform:scale(1) translateY(0)}
+.widget.is-open .widget__bubble:nth-child(1){transition-delay:0s}
+.widget.is-open .widget__bubble:nth-child(2){transition-delay:.04s}
+.widget.is-open .widget__bubble:nth-child(3){transition-delay:.08s}
+.widget.is-open .widget__bubble:nth-child(4){transition-delay:.12s}
+
+.widget__bubblelabel{
+  padding:4px 10px; border-radius:var(--r-full); white-space:nowrap;
+  background:var(--kick-on-glass-strong);
+  -webkit-backdrop-filter:blur(var(--kick-glass-frost)); backdrop-filter:blur(var(--kick-glass-frost));
+  color:var(--text-primary); font-size:12px; line-height:16px; font-weight:600;
+}
+.widget__bubbleicon{
+  display:flex; align-items:center; justify-content:center; width:36px; height:36px;
+  border-radius:50%; background:var(--kick-on-glass-strong);
+  -webkit-backdrop-filter:blur(var(--kick-glass-frost)); backdrop-filter:blur(var(--kick-glass-frost));
+  color:var(--text-primary); transition:color var(--fast) var(--ease);
+}
+.widget__bubble:hover .widget__bubbleicon{color:var(--kick-green)}
+

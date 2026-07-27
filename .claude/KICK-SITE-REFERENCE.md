@@ -1400,10 +1400,47 @@ use. Both sit 16px from the panel's right edge, so their right edges line up wit
 - **The switch** is `h-5 w-[2.25rem] rounded-full`, `bg-secondary-base` off and `bg-primary-base`
   on. The knob is `h-[0.875rem] w-[0.875rem]`, `translate-x-[0.25rem]` off and
   `translate-x-[calc(2.25rem-0.25rem-0.875rem)]` on, which measures 4px to 18px.
-- **Chat.** The message list, then a footer: an input row (`rounded border-2 border-neutral-700
-  pl-2 pr-1`) holding the identity badge, the editor and an emote button, then a row with the
-  channel-points button on the left and the settings gear plus a green **Chat** button on the
-  right.
+- **Chat.** The same component the channel page runs, on a different surface and with a shorter
+  button row. Read live on 28 July 2026 at 2560 by 1305, logged in. See the table below.
+
+### The chat panel, against the channel page
+
+Section 6 holds the chat itself. Only these four things change on the dashboard. Everything else,
+the input row, the emote bar, the emote picker and the message rows, is the same markup.
+
+| Part | Channel page | Dashboard |
+|---|---|---|
+| Chat root | `bg-surface-lowest` (`#0b0b0c`) | `!w-full bg-surface-base` (`#171a1c`) |
+| Message list | `bg-surface-lowest` | `bg-surface-base` |
+| Header and gifter leaderboard | both present | **neither.** The panel header is the only title |
+| Left button group | channel points with a count, then Get KICKs with a count | **channel points only, and no count** |
+
+**The dashboard points button carries two glyphs and no number.** It is
+`state-layer-surface px-2 py-1.5 text-sm gap-1`, so it measures 56 by 32 where the channel page
+button is `h-9`. Inside it sit the 16px channel-points glyph in white, then KICK's own **KICKs
+mark at 20px in `#606971`**. The KICKs mark reads as an infinity sign, and it is the same file the
+channel page uses for Get KICKs (`demo/src/kick/icons/chat-kicks.svg`). There is no Get KICKs
+button on the dashboard.
+
+Two values measured on both pages, which an earlier build had wrong on both:
+
+- **The emote bar carries no gap.** It is
+  `flex h-7 max-h-7 w-full max-w-full flex-wrap items-center overflow-hidden empty:hidden
+  lg:justify-between`, so the row spreads itself. Each emote is a `h-full w-fit` div holding a
+  `relative h-full shrink-0 rounded-sm p-0.5 aspect-square` button and a `h-full w-full` image.
+  A wide emote takes `aspect-[2/1]` instead.
+- **The input row wears a focus ring, not a border colour.** `focus-within:border-transparent
+  focus-within:bg-[#070809] focus-within:outline-none focus-within:ring-1
+  focus-within:ring-[#F4F5F6] focus-within:ring-offset-1 focus-within:hover:border-transparent`.
+
+The button row is `flex shrink-0 grow-0 items-center gap-1 lg:w-full lg:gap-0`, holding
+`flex gap-x-1 lg:w-full lg:gap-x-2` on the left and `ml-auto flex items-center gap-x-2` on the
+right. The same on both pages.
+
+**The emote bar was collapsed on the account we read.** Its wrapper held an inline
+`height: 0px; opacity: 0; padding-bottom: 0px`, on the dashboard and on the channel page alike, so
+both footers measured 118. Focus on the field does not open it, so it is a chat setting we could
+not read. The bar itself is 28 tall, which is the 146 our footer measures with it open.
 
 ### The right rail
 

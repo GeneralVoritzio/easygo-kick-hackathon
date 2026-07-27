@@ -220,3 +220,59 @@ use the KICK dark surfaces and one accent each, and they carry no real brand nam
 Every avatar in `demo/src/kick/avatars/` and every `banner-*.svg` in `demo/src/kick/art/` was
 renamed on 27 July 2026, when the mock channels moved to invented handles. The art is unchanged.
 `mock/api.ts` throws when an avatar file is missing, so the file name must match the channel slug.
+
+## Chat emotes, KICK's own
+
+`demo/src/kick/emotes/`, ten files. KICK's own global emoji set, read from the emote picker on
+`kick.com/odablock` on 27 July 2026 and downloaded from
+`https://files.kick.com/emotes/<id>/fullsize`.
+
+| File | Emote id |
+|---|---|
+| `emojiAngry.gif` | 1730753 |
+| `emojiAstonished.gif` | 1579033 |
+| `emojiAngel.gif` | 1730752 |
+| `emojiAwake.gif` | 1730754 |
+| `emojiBlowKiss.gif` | 1579036 |
+| `emojiBubbly.gif` | 1730755 |
+| `emojiCheerful.gif` | 1730756 |
+| `emojiClown.gif` | 1730758 |
+| `emojiCool.gif` | 1730759 |
+| `emojiCrave.gif` | 1730760 |
+
+They are animated GIFs, about 430 KB for the ten, so the motion is KICK's own and we add none.
+The picker shows them at 28px and a message shows them at 30px.
+
+**Licence:** KICK's. Used to copy their product surface, as with the wordmark and the icon set.
+
+## Chat icons and badges, read from the live chat
+
+Added to `demo/src/kick/icons/` on 27 July 2026 from `kick.com/odablock`, logged in.
+
+| File | Where it is on kick.com |
+|---|---|
+| `emotes.svg` | The emotes button inside the chat input box |
+| `chat-settings.svg` | The chat settings button. **A different gear from `settings.svg`** |
+| `channel-points.svg` | The channel points balance in the chat footer |
+| `badge-sub-gifter.svg` | The green sub gifter badge |
+| `badge-gifter-teal.svg` | The teal sub gifter badge, a higher tier |
+| `badge-sub-gifter-purple.svg` | The purple sub gifter badge, a higher tier again |
+| `badge-og.svg` | The OG badge, green bars and a purple centre |
+| `badge-moderator.svg` | The sword badge in a rounded tile, three stacked gradient fills |
+
+The two badges carry their own fills, not `currentColor`, because KICK's badges are multicoloured.
+
+**The gift rank medals are ours.** KICK serves `kick.com/img/gift-ranks/gift-rank-1..3.png` from
+`kick.com` itself, which answers 403 to anything that is not a browser, so the files cannot be
+downloaded. `gift-rank-1.svg`, `gift-rank-2.svg` and `gift-rank-3.svg` were drawn by us on
+27 July 2026 from a screenshot of the real medals: a hexagon with the rank number, gold, silver
+and bronze. Replace them with the real PNGs if we ever hold them.
+
+**`identity-badge.png` is KICK's.** The chat identity button renders a 16 by 16 SVG whose fill is
+a pattern holding one embedded PNG, and every visitor gets the same one, logged in or out. Saved
+from the live DOM on 27 July 2026 through the browser's own download, then the PNG was extracted:
+a white shield with concentric outlines, 540 by 546. The verbatim SVG is kept at
+`demo/kick-reference/icons/identity-badge.svg`.
+
+**Licence:** the medals are ours, no attribution needed. The identity badge is KICK's, used to
+copy their product surface, as with the wordmark and the icon set.

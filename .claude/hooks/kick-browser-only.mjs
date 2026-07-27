@@ -2,8 +2,10 @@
 // Wired to PreToolUse in .claude/settings.json. Exit 2 stops the call and shows
 // the message to Claude.
 //
-// assets.kick.com stays open, because it serves the CSS chunks and answers a
-// plain request. Only kick.com itself needs the browser.
+// assets.kick.com and files.kick.com stay open. Both are plain asset CDNs and
+// both answer a request that is not a browser: assets.kick.com serves the CSS
+// chunks, files.kick.com serves the emotes, the badges and the gift rank
+// medals. Only kick.com itself needs the browser.
 
 import { readFileSync } from "node:fs";
 
@@ -30,7 +32,8 @@ const hosts = urls
   .filter((h) => h === "kick.com" || h.endsWith(".kick.com"));
 
 if (hosts.length === 0) process.exit(0);
-if (hosts.every((h) => h === "assets.kick.com")) process.exit(0);
+const openHosts = new Set(["assets.kick.com", "files.kick.com"]);
+if (hosts.every((h) => openHosts.has(h))) process.exit(0);
 
 const target = [...new Set(hosts)].join(", ");
 
@@ -51,7 +54,8 @@ console.error(
     "  css.js     resolve every class it uses",
     "  measure.js geometry, for the drift check",
     "",
-    "assets.kick.com is open, so fetch-css.mjs may still download the CSS chunks.",
+    "assets.kick.com and files.kick.com are open, so fetch-css.mjs may still",
+    "download the CSS chunks, and the emotes and badges download by script.",
   ].join("\n"),
 );
 process.exit(2);

@@ -16,3 +16,14 @@ export function formatCountdown(ms: number): string {
   const s = total % 60
   return `${m}:${String(s).padStart(2, '0')}`
 }
+
+/** Esc closes a modal, matching StartPlayModal's own keydown handler */
+export function useEscapeToClose(onClose: () => void) {
+  useEffect(() => {
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key === 'Escape') onClose()
+    }
+    document.addEventListener('keydown', onKeyDown)
+    return () => document.removeEventListener('keydown', onKeyDown)
+  }, [onClose])
+}

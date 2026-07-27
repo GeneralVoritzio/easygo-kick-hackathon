@@ -1,9 +1,11 @@
 # Discovery 3D Globe — Manual Test Checklist
 
 Covers the Discovery feature on `feature/explore-map-view` as specified in
-[plans/DISCOVERY_PLAN.md](plans/DISCOVERY_PLAN.md), plus every behavior added or
-fixed during implementation. Work through the sections in order — later
-sections assume the earlier ones pass. Check items off as you verify them.
+[plans/DISCOVERY_PLAN.md](plans/DISCOVERY_PLAN.md) and
+[plans/DISCOVERY_CELESTIAL_PLAN.md](plans/DISCOVERY_CELESTIAL_PLAN.md), plus
+every behaviour added or fixed during implementation. Work through the sections
+in order — later sections assume the earlier ones pass. Check items off as you
+verify them.
 
 ## 0 · Setup
 
@@ -11,13 +13,15 @@ sections assume the earlier ones pass. Check items off as you verify them.
 - Test in a Chromium-based browser at a desktop viewport (~1440×900). The mobile drawer is explicitly out of scope for this version.
 - Geolocation prompts are needed twice (once allowed, once denied) — use two profiles/incognito windows, or reset the site permission in between.
 - Network note: card thumbnails come from `picsum.photos` and live previews from `player.kick.com`. Offline, thumbnails must fall back to gradient blocks (that's a pass, not a failure).
-- Only channels backed by the demo slug (`maxholloway`) can actually play video — e.g. HypeKing. Other channels showing a static poster during preview is **expected**.
+- Only channels backed by the demo slug (`maxholloway`) can actually play video — e.g. HypeKing. Other channels showing a static poster during preview is **expected**. Moon and Mars relay channels are *never* playable by design.
+- Vector geography and the Moon/Mars/Sun textures are committed under `public/geo/` and `public/textures/`, so no network is needed for them. To regenerate the geography: `node scripts/build-geo.mjs`.
+- Expected census on a clean load: **Earth 235 · Moon 14 · Mars 12 · Sun 37** (298 channels total).
 
 ## 1 · Navigation & entry
 
 - [ ] Sidebar (on `/stream`) shows **both** entries: `Browse` (compass icon → `/browse`) and `Discovery` (globe icon → `/discovery`).
 - [ ] `/browse` still renders the classic channel grid (9 tiles), independent of Discovery.
-- [ ] `/discovery` renders: header (Kick logo · "Discovery" · "who's live right now, around the globe" chip · "← back to stream"), the globe canvas, filter pills at top-left, hint pill at bottom-left.
+- [ ] `/discovery` renders: header (Kick logo · "Discovery" · "who's live right now, across the system" chip · "← back to stream"), the globe canvas, filter pills at top-left, the body switcher at top-right, hint pill at bottom-left.
 
 ## 2 · Globe rendering & camera
 
@@ -87,15 +91,67 @@ sections assume the earlier ones pass. Check items off as you verify them.
 - [ ] `Clear all` appears only while any filter is active and restores the full count (~280 live).
 - [ ] Filters survive a round-trip: filter → open a channel → Watch live → return to Discovery → same filters and count.
 
+## 9b · Celestial bodies & travel
+
+- [ ] Body switcher (top-right) lists **Earth · Moon · Mars · The Sun · System** with live counts matching the census above; the active body is highlighted with its own accent colour.
+- [ ] Clicking a body in the switcher travels there immediately; the hint and the bottom-right chip both update (Moon/Mars say "relay channels pointed at the …surface", the Sun says "streamers who keep their location private").
+- [ ] **Zoom-out gesture**: from Earth, keep scrolling out — once parked at the ceiling, two more zoom-out ticks hand off to the solar-system view. (A single overshoot must *not* trigger it.)
+- [ ] Solar-system view shows the Sun centred, Earth with the Moon beside it, Mars further out, two dashed orbit rings, and a live-count badge under each body. Nothing overlaps.
+- [ ] The caption reads "sizes and distances are compressed for browsing" — the view must **not** imply astronomical accuracy.
+- [ ] Hovering a body in the system view grows it slightly; clicking either the body or its label flies into that body.
+- [ ] `Escape` from the system view returns to the body view (after the confirm layer and popover have been peeled).
+- [ ] **Per-body cameras**: rotate Earth to a distinctive spot, switch to Mars, switch back — Earth is where you left it, and Mars keeps its own vantage point independently.
+- [ ] Moon/Mars/Sun open showing the *whole* body (not cropped at the edges).
+- [ ] Hotspots on the Moon, Mars and the Sun render with a dark backing disc so the green core stays readable against the pale surface (regression: a backing *sphere* used to poke out in front and swallow the dot).
+- [ ] The Sun's surface visibly churns (two texture layers scrolling at different rates), not a still image.
+
+## 9c · Earth geography (vector borders & cities)
+
+- [ ] Far zoom: coarse country outlines only.
+- [ ] Mid zoom (the landing zoom): finer country outlines.
+- [ ] Near zoom: fine country outlines **plus state/province borders** — US states, Mexican states, etc. are clearly drawn.
+- [ ] Near zoom: **city name labels** appear (e.g. over the US West: San Francisco, San Jose, Sacramento, Los Angeles, San Diego, Las Vegas, Phoenix, Denver). Labels fade out towards the limb and never appear on the far hemisphere.
+- [ ] Rotating the globe re-picks the labels for the new view — you should always see cities near the centre of the screen, not just a handful of the world's biggest.
+- [ ] Borders stay crisp at every zoom level (they're vector lines, not a texture) and are a muted slate colour — **not** green. The Kick green stays reserved for live hotspots.
+- [ ] Borders and labels appear on **Earth only** — never on the Moon, Mars or the Sun.
+- [ ] Zooming in the first time briefly downloads the finer border set; the previous borders stay on screen while it loads (no blank flash).
+
+## 9d · Relay channels (Moon & Mars)
+
+- [ ] Moon has 8 named sites (Mare Tranquillitatis, Shackleton Crater, Copernicus, Tycho, Oceanus Procellarum, Mare Imbrium, Aristarchus, Mare Serenitatis); Mars has 6 (Jezero, Gale, Olympus Mons, Valles Marineris, Utopia Planitia, Hellas Planitia).
+- [ ] A relay card's second line reads "*Agency* relay · replies 1 in N" (e.g. "ESA relay") instead of a game category.
+- [ ] The confirm panel for a relay shows a **Relay** badge, the agency, the instrument being restreamed, and the disclaimer "A viewer-run channel, not an official *Agency* broadcast." — this must never claim to be an official agency feed.
+- [ ] Relay channels always show the static poster with "live preview unavailable for this demo channel" — hovering never mounts an iframe.
+- [ ] Filtering by category **Science & Technology** surfaces the relays.
+
+## 9e · The Sun (location privacy)
+
+- [ ] The Sun is populated with ~37 channels grouped into privacy pockets, spread evenly over the surface (no clumping, no channels at the exact poles).
+- [ ] A Sun popover header reads **Private** + *location hidden* in italics — never a city or country.
+- [ ] A Sun channel's confirm panel shows "· location private" instead of a place, plus a **Location private** explainer box.
+- [ ] Every channel on the Sun is genuinely absent from Earth — pick a name from the Sun and confirm it appears nowhere on the Earth map.
+- [ ] **Privacy toggle** (the demo's centrepiece): open HypeKing's panel on Earth → tick **Hide my location** → HypeKing leaves San Francisco, the view travels to the Sun, the Earth count drops by one and the Sun count rises by one (235→234, 37→38), and the panel switches to "location private".
+- [ ] Un-ticking it puts HypeKing back in San Francisco with the original coordinates — the move is reversible in both directions.
+
+## 9f · Filters across bodies
+
+- [ ] Filters apply **within the active body**; the count chip reflects that body only.
+- [ ] Filtering a body down to zero shows a cross-body hint — e.g. on Mars with `Valorant` selected: "**Earth has 19 →**". Clicking it travels to Earth with the filter still applied.
+- [ ] When no body has a match, the hint is replaced by that body's own empty-state message (e.g. "no martian relays match — clear a filter").
+- [ ] Filters survive body switching and a round-trip to `/stream`.
+
 ## 10 · Fallbacks & accessibility
 
-- [ ] With WebGL disabled (e.g. `--disable-webgl` flags or a blocking extension): `/discovery` shows the region-grouped text list of all live channels with working `/stream?channel=` links instead of the canvas.
-- [ ] Screen reader / DOM check: a visually-hidden `nav` ("Live channels by region") exists alongside the canvas and reflects the active filters.
+- [ ] With WebGL disabled (e.g. `--disable-webgl` flags or a blocking extension): `/discovery` shows a text list of all live channels **grouped by body** with working `/stream?channel=` links instead of the canvas. Relay entries name their agency and instrument; Sun entries are headed "Location private".
+- [ ] Screen reader / DOM check: a visually-hidden `nav` ("Live channels by location") exists alongside the canvas, covering all four bodies.
 - [ ] No console errors during any of the flows above (Kick iframe 403s for fake slugs excepted).
 
 ## Known limitations (do not file)
 
 - Wheel-zoom requires the pointer over the canvas; over a burst it dismisses the burst first.
+- Reaching the zoom ceiling from the landing zoom takes ~20 wheel clicks (one trackpad flick). The two extra ticks to leave orbit are deliberate friction so you can't fall out of orbit by accident.
+- Solar-system sizes, distances and angles are compressed and fixed — no orbital mechanics, and the bodies never move.
+- City *boundary* polygons don't exist as usable global vector data; state/province borders plus city point labels are the closest real data allows.
 - The area covered by an open burst blocks globe dragging (that's the hit shield working as designed).
 - Non-embeddable channels can't play real video anywhere (only `maxholloway`-backed channels embed).
 - Full keyboard navigation (Tab through hotspots) and the mobile bottom-drawer are deferred by plan.

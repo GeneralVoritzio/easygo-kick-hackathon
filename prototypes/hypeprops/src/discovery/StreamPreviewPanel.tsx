@@ -7,6 +7,7 @@ import { SIM_CHANNEL_STATS } from '../engine/interactionStore'
 import { startMockEvents } from '../engine/mockEvents'
 import { useEngine } from '../engine/store'
 import { useDiscovery } from './discoveryStore'
+import { isLocationHidden } from './bodyView'
 import type { DiscoveryChannel, DiscoveryCluster } from './types'
 
 /** most recent chat lines shown in the panel's compact feed */
@@ -61,9 +62,16 @@ type Props = {
 export default function StreamPreviewPanel({ channel, cluster }: Props) {
   const navigate = useNavigate()
   const setSelectedChannel = useDiscovery((s) => s.setSelectedChannel)
+  const hiddenOverrides = useDiscovery((s) => s.hiddenOverrides)
+  const toggleLocationHidden = useDiscovery((s) => s.toggleLocationHidden)
+  const setActiveBody = useDiscovery((s) => s.setActiveBody)
   const [posterFailed, setPosterFailed] = useState(false)
   const sim = SIM_CHANNEL_STATS[channel.name]
   const oddsLabel = sim?.oddsLabel ?? `1 in ${channel.interaction.oddsDenominator}`
+  const hidden = isLocationHidden(channel, hiddenOverrides)
+  // the demo signs you in as HypeKing, so that's the one channel whose privacy
+  // setting you're allowed to change
+  const ownChannel = channel.name === 'HypeKing'
   const badges = channel.interaction.badges
   const close = () => setSelectedChannel(null)
 
@@ -123,10 +131,60 @@ export default function StreamPreviewPanel({ channel, cluster }: Props) {
               <div className="truncate text-[17px] font-bold text-kick-text">{channel.name}</div>
               <div className="truncate text-[13px] text-kick-muted">
                 {channel.category} · {channel.language} · {channel.viewers.toLocaleString()} viewers
-                {cluster ? ` · ${cluster.city}, ${cluster.country}` : ''}
+                {/* a private streamer has no place to name; a relay names its site */}
+                {hidden ? ' · location private' : cluster ? ` · ${cluster.city}, ${cluster.country}` : ''}
               </div>
             </div>
           </div>
+
+          {channel.relay && (
+            <div className="flex flex-col gap-1 rounded-xl border border-kick-border bg-kick-panel-2 p-3">
+              <div className="flex items-center gap-1.5">
+                <span className="rounded border border-kick-border bg-black/40 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-kick-muted">
+                  Relay
+                </span>
+                <span className="text-[12px] font-semibold text-kick-text">{channel.relay.agency}</span>
+              </div>
+              <p className="text-[11px] leading-relaxed text-kick-muted">
+                Restreaming published <span className="text-kick-text">{channel.relay.instrument}</span> imagery. A
+                viewer-run channel, not an official {channel.relay.agency} broadcast.
+              </p>
+            </div>
+          )}
+
+          {hidden && (
+            <div className="flex flex-col gap-1 rounded-xl border border-kick/30 bg-kick/[0.06] p-3">
+              <div className="text-[12px] font-semibold text-kick">Location private</div>
+              <p className="text-[11px] leading-relaxed text-kick-muted">
+                This streamer opted out of the map. No coordinates, no city, no country — you'll find them on the Sun
+                with everyone else who'd rather just be watched.
+              </p>
+            </div>
+          )}
+
+          {/* the streamer-side control, shown on your own channel: flipping it
+              moves you off the map and onto the Sun, live */}
+          {ownChannel && (
+            <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-kick-border bg-kick-panel-2 p-3">
+              <input
+                type="checkbox"
+                checked={hidden}
+                onChange={(e) => {
+                  const next = e.target.checked
+                  toggleLocationHidden(channel.id, next)
+                  // follow yourself to wherever you just went
+                  setActiveBody(next ? 'sun' : channel.body)
+                }}
+                className="mt-0.5 h-4 w-4 shrink-0 accent-[#53fc18]"
+              />
+              <span className="min-w-0">
+                <span className="block text-[12px] font-semibold text-kick-text">Hide my location</span>
+                <span className="block text-[11px] leading-relaxed text-kick-muted">
+                  Take {channel.name} off the map. Your stream stays exactly as discoverable — only the pin moves.
+                </span>
+              </span>
+            </label>
+          )}
 
           <div className="flex flex-col gap-1.5 rounded-xl border border-kick-border bg-kick-panel-2 p-3">
             <div className="text-[11px] leading-snug text-kick-muted">

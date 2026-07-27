@@ -8,7 +8,56 @@ export type ChannelInteraction = {
   badges: InteractionBadgeKey[]
 }
 
-/** A single live channel plotted on the globe. Coordinates are mock demo data —
+export type BodyId = 'earth' | 'moon' | 'mars' | 'sun'
+
+/**
+ * Where a channel actually is. The Sun is never a home: it is a *view* over
+ * everyone whose location is hidden, derived at render time — which is what
+ * makes the privacy toggle reversible in both directions.
+ */
+export type HomeBody = 'earth' | 'moon' | 'mars'
+
+/** `body` = one celestial body fills the viewport; `system` = the solar-system
+ * overview you reach by pulling the camera back past the zoom ceiling. */
+export type ViewMode = 'body' | 'system'
+
+export type SystemPlacement = {
+  orbitRadius: number
+  angleDeg: number
+  /** compressed, legibility-first size — not physical scale */
+  displayScale: number
+  satelliteOf?: BodyId
+  /** [along-orbit, vertical] nudge from the host body, when a satellite */
+  satelliteOffset?: [number, number]
+}
+
+export type CelestialBody = {
+  id: BodyId
+  name: string
+  tagline: string
+  texture: string
+  /** RGB multiplier on the texture; >1 brightens (values are legal on Color) */
+  surfaceTint: [number, number, number]
+  /** override tint for the solar-system view, where the body is small and needs
+   * more lift to read against black; defaults to `surfaceTint` */
+  systemTint?: [number, number, number]
+  accent: string
+  atmosphere: string | null
+  hasVectorBorders: boolean
+  /** `solid` on dark surfaces, `outlined` on pale ones (Moon/Mars/Sun) */
+  hotspotStyle: 'solid' | 'outlined'
+  emptyLabel: string
+}
+
+/** A Kick channel relaying published agency imagery. These are ordinary Kick
+ * channels run by space enthusiasts — **not** an official agency broadcast, and
+ * not a capability we claim the API provides. */
+export type RelaySource = {
+  agency: string
+  instrument: string
+}
+
+/** A single live channel plotted on a body. Coordinates are mock demo data —
  * they position the hotspot, they do not claim the streamer's physical location. */
 export type DiscoveryChannel = {
   id: string
@@ -19,6 +68,12 @@ export type DiscoveryChannel = {
   /** broadcast language, Kick-style native display name (e.g. "Español") */
   language: string
   viewers: number
+  /** the body this channel actually broadcasts from (never 'sun') */
+  body: HomeBody
+  /** true → the streamer keeps their location private, so they show on the Sun
+   * and no city/country is ever displayed for them */
+  location_hidden: boolean
+  relay?: RelaySource
   lat: number
   lng: number
   /** poster shown before (and behind) any live preview */
@@ -51,6 +106,8 @@ export type DiscoveryCluster = {
   id: string
   city: string
   country: string
+  /** 'sun' only on the derived privacy pockets, never in the seeded catalog */
+  body: BodyId
   lat: number
   lng: number
   channels: DiscoveryChannel[]
@@ -70,6 +127,20 @@ export type GlobePoint = {
   lng: number
   /** viewer count backing this point — scales dot size/glow */
   weight: number
+}
+
+/** packed polylines from `scripts/build-geo.mjs`: segment lengths alongside a
+ * flat [lat, lng, lat, lng, …] coordinate run */
+export type PackedLines = {
+  lengths: number[]
+  coords: number[]
+}
+
+export type CityPoint = {
+  name: string
+  lat: number
+  lng: number
+  pop: number
 }
 
 export type GeoStatus = 'idle' | 'locating' | 'granted' | 'denied'

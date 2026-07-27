@@ -111,7 +111,10 @@ const CITIES: City[] = [
 
 /** browse-grid alumni — pinned to specific cities, playable via the demo slug;
  * their odds/badges mirror SIM_CHANNEL_STATS so both surfaces tell one story */
-const LEGACY_CHANNELS: Record<string, Omit<DiscoveryChannel, 'id' | 'lat' | 'lng' | 'kickSlug' | 'embeddable'>> = {
+const LEGACY_CHANNELS: Record<
+  string,
+  Omit<DiscoveryChannel, 'id' | 'lat' | 'lng' | 'kickSlug' | 'embeddable' | 'body' | 'location_hidden'>
+> = {
   'San Francisco': { name: 'HypeKing', category: 'Just Chatting', language: 'English', viewers: 1804, thumbnail: { seed: 'hypeking', gradient: 'linear-gradient(135deg,#53fc18,#3fc411)', initials: 'HK' }, interaction: { oddsDenominator: 5, badges: ['responsive'] } },
   'Los Angeles': { name: 'NovaStrikes', category: 'Valorant', language: 'English', viewers: 3204, thumbnail: { seed: 'novastrikes', gradient: 'linear-gradient(135deg,#60a5fa,#a78bfa)', initials: 'NS' }, interaction: { oddsDenominator: 9, badges: ['responsive'] } },
   London: { name: 'LootGoblin', category: 'Old School RuneScape', language: 'English', viewers: 2113, thumbnail: { seed: 'lootgoblin', gradient: 'linear-gradient(135deg,#fb923c,#f87171)', initials: 'LG' }, interaction: { oddsDenominator: 4, badges: ['responsive', 'reads_everything'] } },
@@ -126,7 +129,10 @@ const NAME_PREFIXES = ['Neon', 'Turbo', 'Pixel', 'Shadow', 'Hyper', 'Glitch', 'C
 const NAME_SUFFIXES = ['Wolf', 'Viper', 'Queen', 'Baron', 'Gremlin', 'Pilot', 'Mage', 'Rogue', 'Falcon', 'Otter', 'Reaper', 'Samurai', 'Ninja', 'Golem', 'Racer', 'Wizard', 'Panda', 'Comet', 'Riot', 'Byte']
 
 /** every category channels are generated from — the filter bar's source of truth */
-export const DISCOVERY_CATEGORIES = ['Just Chatting', 'IRL', 'Slots', 'Grand Theft Auto V', 'Minecraft', 'Valorant', 'Fortnite', 'League of Legends', 'Old School RuneScape', 'Music', 'Chess', 'Retro Games']
+export const DISCOVERY_CATEGORIES = ['Just Chatting', 'IRL', 'Slots', 'Grand Theft Auto V', 'Minecraft', 'Valorant', 'Fortnite', 'League of Legends', 'Old School RuneScape', 'Music', 'Chess', 'Retro Games', 'Science & Technology']
+
+/** share of Earth streamers who keep their location private (they move to the Sun) */
+const HIDDEN_LOCATION_RATE = 0.12
 
 /** primary broadcast language per country — channels stream in it most of the
  * time, with English mixed in everywhere (matches how Kick's directory feels,
@@ -164,6 +170,88 @@ export const DISCOVERY_LANGUAGES = ['English', ...new Set(Object.values(COUNTRY_
 const LOCAL_LANGUAGE_RATE = 0.65
 
 const GRADIENT_STOPS = ['#60a5fa', '#a78bfa', '#f472b6', '#facc15', '#fb923c', '#f87171', '#34d399', '#22d3ee', '#3b82f6', '#e879f9', '#4ade80', '#fbbf24']
+
+/** keep longitudes in [-180, 180) — ring offsets near the antimeridian would
+ * otherwise push a dot past the wrap and out of range */
+const wrapLng = (lng: number) => ((((lng + 180) % 360) + 360) % 360) - 180
+
+/** keep latitudes on the sphere — a ring around a polar site (Shackleton sits
+ * at −89.9°) would otherwise step over the pole */
+const clampLat = (lat: number) => Math.max(-89.5, Math.min(89.5, lat))
+
+/**
+ * Off-world relay sites — real place names and real, published instruments.
+ * The channels are ordinary Kick channels run by space enthusiasts who relay
+ * imagery the agencies already publish; they are not agency broadcasts, and
+ * none of them is embeddable (there is no live feed to pretend to play).
+ */
+type RelaySite = {
+  place: string
+  region: string
+  lat: number
+  lng: number
+  channels: { name: string; agency: string; instrument: string; language?: string; viewers: number; oddsDenominator: number }[]
+}
+
+const MOON_SITES: RelaySite[] = [
+  { place: 'Mare Tranquillitatis', region: 'Moon · near side', lat: 8.5, lng: 31.4, channels: [
+    { name: 'TranquillityBase24', agency: 'NASA', instrument: 'LRO Narrow Angle Camera', viewers: 2840, oddsDenominator: 14 },
+    { name: 'ApolloArchiveCam', agency: 'NASA', instrument: 'Apollo 11 surface photography archive', viewers: 910, oddsDenominator: 28 },
+  ] },
+  { place: 'Shackleton Crater', region: 'Moon · south pole', lat: -89.9, lng: 0, channels: [
+    { name: 'PolarShadowWatch', agency: 'NASA', instrument: 'LRO Diviner thermal maps', viewers: 1460, oddsDenominator: 9 },
+    { name: 'IceProspector', agency: 'ISRO', instrument: 'Chandrayaan-2 OHRC', language: 'English', viewers: 620, oddsDenominator: 22 },
+  ] },
+  { place: 'Copernicus Crater', region: 'Moon · near side', lat: 9.6, lng: -20.1, channels: [
+    { name: 'CraterWallCam', agency: 'NASA', instrument: 'LROC Wide Angle Camera', viewers: 780, oddsDenominator: 31 },
+    { name: 'TerraceHunter', agency: 'ESA', instrument: 'SMART-1 AMIE archive', language: 'Deutsch', viewers: 340, oddsDenominator: 19 },
+  ] },
+  { place: 'Tycho Crater', region: 'Moon · southern highlands', lat: -43.3, lng: -11.4, channels: [
+    { name: 'RaySystemLive', agency: 'NASA', instrument: 'LRO Narrow Angle Camera', viewers: 1180, oddsDenominator: 7 },
+  ] },
+  { place: 'Oceanus Procellarum', region: 'Moon · western near side', lat: 18.4, lng: -57.4, channels: [
+    { name: 'RegolithCam', agency: 'CNSA', instrument: "Chang'e 5 panoramic camera archive", language: '中文', viewers: 2210, oddsDenominator: 16 },
+    { name: 'BasaltDrifter', agency: 'NASA', instrument: 'LROC Wide Angle Camera', viewers: 430, oddsDenominator: 35 },
+  ] },
+  { place: 'Mare Imbrium', region: 'Moon · near side', lat: 32.8, lng: -15.6, channels: [
+    { name: 'ImbriumRelay', agency: 'CNSA', instrument: "Chang'e 3 terrain camera archive", language: '中文', viewers: 1520, oddsDenominator: 12 },
+    { name: 'SeaOfRainsCast', agency: 'JAXA', instrument: 'Kaguya HDTV archive', language: '日本語', viewers: 690, oddsDenominator: 24 },
+  ] },
+  { place: 'Aristarchus Crater', region: 'Moon · near side', lat: 23.7, lng: -47.5, channels: [
+    { name: 'BrightestSpotCam', agency: 'NASA', instrument: 'LRO Narrow Angle Camera', viewers: 520, oddsDenominator: 8 },
+  ] },
+  { place: 'Mare Serenitatis', region: 'Moon · near side', lat: 28.0, lng: 17.5, channels: [
+    { name: 'SelenoStream', agency: 'JAXA', instrument: 'Kaguya terrain camera archive', language: '日本語', viewers: 1340, oddsDenominator: 18 },
+    { name: 'LunaLurker', agency: 'ESA', instrument: 'SMART-1 AMIE archive', language: 'Français', viewers: 260, oddsDenominator: 40 },
+  ] },
+]
+
+const MARS_SITES: RelaySite[] = [
+  { place: 'Jezero Crater', region: 'Mars · Syrtis Major', lat: 18.4, lng: 77.7, channels: [
+    { name: 'JezeroLive', agency: 'NASA', instrument: 'Perseverance Mastcam-Z', viewers: 4820, oddsDenominator: 6 },
+    { name: 'DeltaFrontWatch', agency: 'NASA', instrument: 'Perseverance Navcam', viewers: 1730, oddsDenominator: 15 },
+    { name: 'RotorcraftReplay', agency: 'NASA', instrument: 'Ingenuity return-to-Earth imagery', viewers: 2260, oddsDenominator: 11 },
+  ] },
+  { place: 'Gale Crater', region: 'Mars · Aeolis quadrangle', lat: -5.4, lng: 137.8, channels: [
+    { name: 'MountSharpCam', agency: 'NASA', instrument: 'Curiosity Mastcam', viewers: 3140, oddsDenominator: 9 },
+    { name: 'DustDevilPatrol', agency: 'NASA', instrument: 'Curiosity Navcam', viewers: 980, oddsDenominator: 27 },
+  ] },
+  { place: 'Olympus Mons', region: 'Mars · Tharsis', lat: 18.65, lng: -133.8, channels: [
+    { name: 'OlympusOverwatch', agency: 'ESA', instrument: 'Mars Express HRSC', language: 'Deutsch', viewers: 2680, oddsDenominator: 13 },
+    { name: 'CalderaCast', agency: 'NASA', instrument: 'MRO HiRISE', viewers: 1120, oddsDenominator: 21 },
+  ] },
+  { place: 'Valles Marineris', region: 'Mars · equatorial canyon', lat: -14, lng: -59, channels: [
+    { name: 'CanyonRimRelay', agency: 'ESA', instrument: 'ExoMars TGO CaSSIS', language: 'Italiano', viewers: 1940, oddsDenominator: 10 },
+    { name: 'MarinerValleyCam', agency: 'NASA', instrument: 'MRO HiRISE', viewers: 760, oddsDenominator: 33 },
+  ] },
+  { place: 'Utopia Planitia', region: 'Mars · northern lowlands', lat: 46.7, lng: 117.5, channels: [
+    { name: 'ZhurongTrackCam', agency: 'CNSA', instrument: 'Zhurong NaTeCam archive', language: '中文', viewers: 2050, oddsDenominator: 17 },
+    { name: 'PlainsDriftWatch', agency: 'Roscosmos', instrument: 'Mars Express HRSC co-observation', language: 'Українська', viewers: 410, oddsDenominator: 38 },
+  ] },
+  { place: 'Hellas Planitia', region: 'Mars · southern basin', lat: -42.4, lng: 70.5, channels: [
+    { name: 'BasinFloorRelay', agency: 'ESA', instrument: 'Mars Express HRSC', language: 'Français', viewers: 890, oddsDenominator: 20 },
+  ] },
+]
 
 export type DiscoveryCatalog = {
   clusters: DiscoveryCluster[]
@@ -211,7 +299,7 @@ export function buildDiscoveryCatalog(seed = SEED): DiscoveryCatalog {
     return { oddsDenominator, badges }
   }
 
-  const clusters: DiscoveryCluster[] = CITIES.map((cityDef, ci) => {
+  const earthClusters: DiscoveryCluster[] = CITIES.map((cityDef, ci) => {
     const clusterId = `loc-${ci}-${cityDef.city.toLowerCase().replace(/[^a-z]+/g, '-')}`
     const channels: DiscoveryChannel[] = []
 
@@ -222,6 +310,10 @@ export function buildDiscoveryCatalog(seed = SEED): DiscoveryCatalog {
         id: `ch-${clusterId}-legacy`,
         kickSlug: DEMO_KICK_SLUG,
         embeddable: true,
+        body: 'earth',
+        // the browse-grid alumni stay pinned to Earth; HypeKing's visibility is
+        // instead toggled live from the UI, which is the demo moment
+        location_hidden: false,
         lat: 0, // ring position assigned below, once the cluster size is known
         lng: 0,
       })
@@ -240,6 +332,8 @@ export function buildDiscoveryCatalog(seed = SEED): DiscoveryCatalog {
         language: localLanguage && rng() < LOCAL_LANGUAGE_RATE ? localLanguage : 'English',
         viewers: viewersFor(),
         interaction: interactionFor(),
+        body: 'earth',
+        location_hidden: rng() < HIDDEN_LOCATION_RATE,
         lat: 0,
         lng: 0,
         thumbnail: {
@@ -261,20 +355,73 @@ export function buildDiscoveryCatalog(seed = SEED): DiscoveryCatalog {
     channels.forEach((channel, i) => {
       const angle = ringPhase + (i / channels.length) * Math.PI * 2
       const radius = 0.85 + rng() * 0.25 // degrees
-      channel.lat = cityDef.lat + radius * Math.cos(angle)
-      channel.lng = cityDef.lng + radius * Math.sin(angle) * lngStretch
+      channel.lat = clampLat(cityDef.lat + radius * Math.cos(angle))
+      channel.lng = wrapLng(cityDef.lng + radius * Math.sin(angle) * lngStretch)
     })
 
     return {
       id: clusterId,
       city: cityDef.city,
       country: cityDef.country,
+      body: 'earth' as const,
       lat: cityDef.lat,
       lng: cityDef.lng,
       channels,
       totalViewers: channels.reduce((sum, ch) => sum + ch.viewers, 0),
     }
   })
+
+  const totals = (channels: DiscoveryChannel[]) => channels.reduce((sum, ch) => sum + ch.viewers, 0)
+
+  // Hidden streamers stay in their home cluster here, flagged but not moved:
+  // the Sun is derived at render time by `clustersForBody` (see bodyView.ts),
+  // which is what lets the privacy toggle work in both directions.
+
+  // ---- Moon and Mars: enthusiast relay channels --------------------------
+  const relayClusters = (sites: RelaySite[], body: 'moon' | 'mars'): DiscoveryCluster[] =>
+    sites.map((site, si) => {
+      const slug = site.place.toLowerCase().replace(/[^a-z0-9]+/g, '-')
+      const channels: DiscoveryChannel[] = site.channels.map((def, i) => {
+        const angle = (i / site.channels.length) * Math.PI * 2
+        const lngStretch = 1 / Math.max(0.3, Math.cos((site.lat * Math.PI) / 180))
+        return {
+          id: `ch-${body}-${si}-${i}`,
+          name: def.name,
+          kickSlug: def.name.toLowerCase(),
+          category: 'Science & Technology',
+          language: def.language ?? 'English',
+          viewers: def.viewers,
+          body,
+          location_hidden: false,
+          relay: { agency: def.agency, instrument: def.instrument },
+          lat: clampLat(site.lat + 2.4 * Math.cos(angle)),
+          lng: wrapLng(site.lng + 2.4 * Math.sin(angle) * lngStretch),
+          thumbnail: {
+            seed: def.name.toLowerCase(),
+            gradient: gradientFor(),
+            initials: def.name.replace(/[^A-Z]/g, '').slice(0, 2) || def.name.slice(0, 2).toUpperCase(),
+          },
+          // no real live feed exists for these — always the static poster
+          embeddable: false,
+          interaction: {
+            oddsDenominator: def.oddsDenominator,
+            badges: def.oddsDenominator <= 10 ? (['responsive'] as InteractionBadgeKey[]) : [],
+          },
+        }
+      })
+      return {
+        id: `${body}-${si}-${slug}`,
+        city: site.place,
+        country: site.region,
+        body,
+        lat: site.lat,
+        lng: site.lng,
+        channels,
+        totalViewers: totals(channels),
+      }
+    })
+
+  const clusters = [...earthClusters, ...relayClusters(MOON_SITES, 'moon'), ...relayClusters(MARS_SITES, 'mars')]
 
   return { clusters, channels: clusters.flatMap((c) => c.channels) }
 }

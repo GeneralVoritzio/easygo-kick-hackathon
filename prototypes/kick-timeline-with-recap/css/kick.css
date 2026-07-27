@@ -1,0 +1,299 @@
+/*
+  The kick.com watch page chrome. Every number here is measured from the live
+  site and recorded in .claude/KICK-SITE-REFERENCE.md.
+*/
+
+/* Inter, copied from assets/fonts/inter with its OFL. kick.com loads Inter only. */
+@font-face{
+  font-family:'Inter';
+  src:url('../assets/fonts/inter-variable-latin.woff2') format('woff2');
+  font-weight:100 900; font-style:normal; font-display:swap;
+}
+
+[hidden]{display:none !important}
+
+:root{
+  --navbar-height:60px;
+  --sidebar-expanded-width:256px;
+  --chatroom-width:340px;
+  --chatroom-font-size:14px;
+  --chatroom-message-spacing:4px;
+
+  /* Site Reference Section 8. The live secondary button and input border. */
+  --kick-neutral-700:#42474D;
+  --kick-neutral-400:#929EA6;
+  --kick-chat-rule:#24272C;
+
+  /*
+    Glass, for a pane that sits over the video. Read from
+    assets/reference/kick-neon-tokens.css, which is KICK's own CSS. Design
+    System Section 9 carries no glass token, so these two are not in tokens.css.
+    KICK keeps glass and surfaceOverlay apart: glass is ink at 64% with an 8px
+    frost, surfaceOverlay is ink at 80% with no frost.
+  */
+  --kick-glass:rgba(11,11,12,.64);   /* glass-base, color-dark-64 */
+  --kick-glass-frost:8px;            /* effect-glass-frost */
+
+  /* A plate on an opaque surface. KICK's color-light-4, read from the clip viewer. */
+  --kick-light-4:rgba(240,241,242,.04);
+
+  /*
+    A raised layer on glass. Ours, not KICK's: KICK publishes no token for it.
+    It follows their idiom, which builds a surface from light at a low alpha
+    rather than from grey (Design System Section 1).
+  */
+  --kick-on-glass:rgba(240,241,242,.08);
+  --kick-on-glass-strong:rgba(240,241,242,.14);
+}
+
+/*
+  Scrollbars, copied from KICK's stylesheet. A 4px bar with no track. The thumb
+  has no background: the visible part is a 5px translucent border, clipped to
+  the padding box. Site Reference Section 9.
+*/
+::-webkit-scrollbar{width:4px; height:4px}
+::-webkit-scrollbar-track{background:0 0}
+::-webkit-scrollbar-thumb{
+  background-clip:padding-box; border:5px solid rgba(255,255,255,.25); border-radius:15px;
+}
+.no-scrollbar{-ms-overflow-style:none; scrollbar-width:none}
+.no-scrollbar::-webkit-scrollbar{display:none}
+
+/* The page never scrolls. Each column scrolls on its own. */
+body{overflow:hidden}
+
+/*
+  Glass. A pane that floats over the video, the way KICK's own do. It stands off
+  the surface with a rim, a flare and a shadow, and it never runs to the edge:
+  a glass pane is inset, and its content is inset again from the glass.
+  The flare follows KICK's own glass effect tokens, angle -45 and intensity 40.
+*/
+.glass{
+  position:relative;
+  background:var(--kick-glass);
+  -webkit-backdrop-filter:blur(var(--kick-glass-frost)) saturate(140%);
+  backdrop-filter:blur(var(--kick-glass-frost)) saturate(140%);
+  border:1px solid var(--border);
+  border-radius:var(--r-xl);
+  box-shadow:var(--shadow-lg), inset 0 1px 0 rgba(255,255,255,.14);
+}
+.glass::before{
+  content:''; position:absolute; inset:0; border-radius:inherit; pointer-events:none;
+  background:linear-gradient(-45deg, rgba(255,255,255,.10), rgba(255,255,255,0) 42%);
+}
+
+/* navbar */
+.nav{
+  display:flex; align-items:center; gap:16px; height:var(--navbar-height);
+  padding:0 16px; background:var(--bg-base);
+}
+.nav__logo{display:flex; align-items:center; text-decoration:none}
+.nav__logo img{display:block}
+
+/* Transparent with a border, never a filled box. Site Reference Section 2. */
+.nav__search{
+  display:flex; align-items:center; gap:8px; width:450px; margin:0 auto;
+  padding:0 12px; height:32px; border-radius:var(--r-sm);
+  background:none; border:1px solid var(--border-strong); color:var(--text-secondary);
+  transition:border-color var(--base) var(--ease);
+}
+.nav__search:hover,.nav__search:focus-within{border-color:var(--kick-neutral-400)}
+.nav__searchicon{display:flex; color:var(--text-secondary)}
+.nav__search input{
+  flex:1; min-width:0; background:none; border:none; outline:none;
+  color:#fff; font:inherit; font-size:16px;
+}
+.nav__search input::placeholder{color:var(--text-secondary)}
+.nav__clear{
+  display:flex; align-items:center; justify-content:center; flex:none;
+  background:none; border:none; padding:0; cursor:pointer; color:var(--text-secondary);
+}
+.nav__clear:hover{color:#fff}
+.nav__right{display:flex; align-items:center; gap:8px; margin-left:auto}
+
+/*
+  The signed in viewer. kick.com shows a profile picture here, and it serves
+  that picture from its CDN. We never fetch an asset at run time, so this is
+  initials on the viewer's identity colour.
+*/
+.navavatar{
+  display:flex; align-items:center; justify-content:center; width:32px; height:32px;
+  border:none; border-radius:var(--r-full); padding:0; cursor:pointer;
+  color:var(--id-on); font:inherit; font-size:12px; line-height:16px; font-weight:700;
+}
+
+.navicon,.chaticon,.pbtn{
+  display:inline-flex; align-items:center; justify-content:center;
+  background:none; border:none; color:var(--text-secondary); cursor:pointer;
+  border-radius:var(--r-sm); transition:color var(--fast) var(--ease);
+}
+.navicon{width:36px; height:36px}
+/* 26px here puts the chat header at the 50px Site Reference Section 6 measured. */
+.chaticon{width:26px; height:26px}
+.navicon:hover,.chaticon:hover{color:var(--text-primary)}
+
+/* buttons, Site Reference Section 5 */
+.btn{
+  display:inline-flex; align-items:center; gap:6px;
+  border:none; border-radius:var(--r-sm); padding:8px 12px;
+  font:inherit; font-size:16px; font-weight:600; cursor:pointer;
+  transition:background-color var(--fast) var(--ease);
+}
+/* 14 on 20 makes this 32px tall, the height Site Reference Section 6 measured. */
+.btn--sm{font-size:14px; line-height:20px; padding:6px 12px}
+.btn--primary{background:var(--kick-green); color:var(--bg-base)}
+.btn--primary:hover{background:var(--kick-green-hover)}
+.btn--secondary{background:var(--kick-neutral-700); color:var(--text-primary)}
+.btn--secondary:hover{background:#4E545B}
+
+/* the three column shell */
+.shell{
+  display:grid; grid-template-columns:var(--sidebar-expanded-width) minmax(0,1fr) 4px var(--chatroom-width);
+  height:calc(100vh - var(--navbar-height));
+}
+
+/* sidebar */
+.side{display:flex; flex-direction:column; padding:8px 8px 0; overflow:hidden}
+.side__nav{display:grid; gap:2px; padding-bottom:8px}
+.side__link{
+  display:flex; align-items:center; gap:12px; padding:8px 10px; border-radius:var(--r-sm);
+  color:var(--text-body); text-decoration:none; font-size:14px; line-height:20px;
+}
+.side__link:hover{background:var(--bg-surface)}
+.side__link.is-active{color:var(--text-primary); font-weight:600}
+.side__link svg{color:var(--text-muted)}
+.side__link.is-active svg{color:var(--kick-green)}
+
+.side__head{
+  margin:8px 0 6px; padding:0 10px; font-size:12px; line-height:16px; font-weight:600;
+  letter-spacing:.04em; text-transform:uppercase; color:var(--text-muted);
+}
+/* Following and Recommended scroll together, as one region. */
+.side__scroll{flex:1; min-height:0; overflow-y:auto}
+.side__list{display:grid; gap:2px; align-content:start}
+.sidechan{
+  display:grid; grid-template-columns:28px 1fr auto; align-items:center; gap:8px;
+  padding:6px 10px; border-radius:var(--r-sm); text-decoration:none; color:inherit;
+}
+.sidechan:hover{background:var(--bg-surface)}
+.sidechan__pic{
+  display:flex; align-items:center; justify-content:center; width:28px; height:28px;
+  border-radius:50%; color:var(--id-on); font-size:12px; line-height:16px; font-weight:700;
+}
+.sidechan__name{font-size:14px; line-height:20px; font-weight:700; color:var(--text-primary)}
+.sidechan__cat{font-size:12px; line-height:16px; font-weight:700; color:var(--kick-neutral-400)}
+.sidechan__text{min-width:0}
+.sidechan__text div{overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.sidechan__count{
+  display:flex; align-items:center; gap:5px;
+  font-size:12px; line-height:16px; color:var(--text-secondary);
+}
+.sidechan__count .dot{width:6px; height:6px; background:var(--live)}
+
+/* main column */
+/* The main column scrolls with no visible bar, the way KICK does it. */
+.main{display:flex; flex-direction:column; min-width:0; overflow-y:auto; overflow-x:hidden}
+
+/* Nothing at rest. It turns green under the pointer. Site Reference Section 1. */
+.resize{background:none; cursor:col-resize; touch-action:none}
+.resize:hover,.resize:focus-visible{background:var(--kick-green); outline:none}
+
+/* the channel bar, Site Reference Section 5 */
+.chanbar{display:flex; align-items:flex-start; gap:16px; padding:16px}
+.chanbar__avatar{position:relative; flex:none}
+.avatar{
+  display:flex; align-items:center; justify-content:center; width:56px; height:56px;
+  border-radius:50%; background:var(--bg-raised); color:var(--text-secondary);
+  font-size:18px; font-weight:600;
+}
+.avatar__live{
+  position:absolute; left:50%; bottom:-6px; transform:translateX(-50%);
+  padding:1px 6px; border-radius:var(--r-sm);
+  background:var(--live); color:#fff; font-size:10px; font-weight:700; letter-spacing:.04em;
+}
+.chanbar__meta{min-width:0; flex:1; display:grid; gap:4px}
+.chanbar__name{
+  display:flex; align-items:center; gap:6px; margin:0;
+  font-size:20px; line-height:24px; font-weight:700; color:var(--text-primary);
+}
+.verified{color:var(--kick-green)}
+.chanbar__title{
+  margin:0; font-size:14px; line-height:20px; font-weight:600; color:var(--text-primary);
+  overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+}
+.chanbar__tags{display:flex; align-items:center; gap:8px; flex-wrap:wrap}
+.chanbar__cat{font-size:14px; line-height:20px; color:var(--kick-green); text-decoration:none}
+.chanbar__cat:hover{text-decoration:underline}
+.tag{
+  padding:2px 10px; background:var(--bg-raised); border:none; border-radius:var(--r-full);
+  color:var(--text-body); font:inherit; font-size:14px; line-height:20px; cursor:pointer;
+}
+.chanbar__actions{display:flex; align-items:center; gap:8px; flex:none}
+/* Share is 40 by 40 here, not the player's 44. Site Reference Section 5. */
+.chanbar__actions .pbtn{width:40px; height:40px}
+.viewers{
+  display:flex; align-items:center; gap:6px; margin-right:8px;
+  font-size:14px; line-height:20px; color:var(--text-secondary);
+}
+.viewers b{color:var(--kick-green); font-weight:700}
+.viewers .dot{width:8px; height:8px; background:var(--live)}
+
+/*
+  chat, Site Reference Section 6. The Highlights panel shares this column
+  now (css/player.css's .overlay): .chat__panel wraps the chat markup so
+  the two can swap places without either fighting the other for the same
+  flex slot, .chat.is-highlights-open (js/overlay.js) hides whichever one
+  is not showing.
+*/
+.chat{display:flex; flex-direction:column; min-height:0; background:var(--bg-base)}
+.chat__panel{display:flex; flex-direction:column; flex:1; min-height:0}
+.chat.is-highlights-open .chat__panel{display:none}
+.chat__head{
+  display:flex; align-items:center; justify-content:space-between; flex:none;
+  min-height:38px; padding:12px 6px; border-bottom:2px solid var(--kick-chat-rule);
+}
+.chat__title{font-size:16px; line-height:24px; font-weight:600; color:var(--text-primary)}
+.chat__board{
+  display:flex; align-items:center; gap:14px; flex:none; height:34px; padding:0 20px;
+  border-top:1px solid var(--border); border-bottom:1px solid var(--border);
+  font-size:12px; line-height:16px; color:var(--text-secondary); overflow:hidden;
+}
+.chat__board b{color:var(--text-primary); font-weight:600}
+.chat__board span{display:flex; align-items:center; gap:5px; white-space:nowrap}
+.chat__board em{font-style:normal; color:var(--kick-green); font-weight:700}
+
+.chat__body{
+  flex:1; min-height:0; overflow-y:auto; padding:8px 0;
+  font-size:var(--chatroom-font-size);
+}
+.msg{padding:0 12px}
+.msg__inner{
+  padding:var(--chatroom-message-spacing) 8px; border-radius:var(--r-lg); word-break:break-word;
+}
+.msg:hover .msg__inner{background:var(--bg-raised)}
+.msg__badge{
+  display:inline-block; width:calc(1em * 18 / 13); height:calc(1em * 18 / 13);
+  margin-right:4px; border-radius:2px; vertical-align:-3px;
+}
+.msg__badge--broadcaster{background:var(--live)}
+.msg__badge--moderator{background:var(--kick-green)}
+.msg__badge--subscriber{background:var(--info)}
+.msg__badge--og{background:var(--warn)}
+.msg__name{font-weight:700}
+.msg__sep{font-weight:700; color:var(--text-body)}
+.msg__body{font-weight:400; line-height:1.55; color:var(--text-body)}
+.msg--system .msg__inner{background:rgba(83,252,24,.08); color:var(--text-body)}
+.msg--system b{color:var(--kick-green)}
+
+.chat__foot{flex:none; padding:12px 20px}
+.chat__field{
+  display:flex; align-items:center; gap:4px; padding:0 4px 0 8px; height:45px;
+  border:2px solid var(--kick-neutral-700); border-radius:var(--r-sm);
+  transition:border-color var(--base) var(--ease);
+}
+.chat__field:hover,.chat__field:focus-within{border-color:var(--kick-neutral-400)}
+.chat__field input{
+  flex:1; min-width:0; background:none; border:none; outline:none;
+  color:var(--text-body); font:inherit; font-size:14px; line-height:20px;
+}
+.chat__send{display:flex; align-items:center; justify-content:flex-end; margin-top:8px}

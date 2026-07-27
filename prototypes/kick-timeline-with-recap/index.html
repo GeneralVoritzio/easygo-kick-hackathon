@@ -1,0 +1,396 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>kick-timelines 2, the viewer scrubber</title>
+<link rel="stylesheet" href="css/tokens.css">
+<link rel="stylesheet" href="css/kick.css">
+<link rel="stylesheet" href="css/player.css">
+<link rel="stylesheet" href="css/clip.css">
+<link rel="stylesheet" href="css/expedition.css">
+</head>
+<body>
+
+<header class="nav">
+  <button class="navicon" data-icon="menu" aria-label="Collapse sidebar"></button>
+  <a class="nav__logo" href="#" aria-label="Kick home">
+    <img src="assets/kick-logo.svg" width="97" height="26" alt="Kick">
+  </a>
+  <div class="nav__search">
+    <span class="nav__searchicon" data-icon="search" aria-hidden="true"></span>
+    <input type="text" placeholder="Search" aria-label="Search">
+    <button class="nav__clear" data-icon="close" data-icon-size="13" aria-label="Clear search" hidden></button>
+  </div>
+  <div class="nav__right">
+    <button class="navicon" data-icon="globe" data-icon-size="20" aria-label="Language"></button>
+    <button class="navavatar" id="navAvatar"></button>
+  </div>
+</header>
+
+<div class="shell">
+
+  <aside class="side">
+    <nav class="side__nav">
+      <a class="side__link is-active" href="#"><span data-icon="home" data-icon-size="16"></span>Home</a>
+      <a class="side__link" href="#"><span data-icon="browse" data-icon-size="16"></span>Browse</a>
+      <a class="side__link" href="#"><span data-icon="following" data-icon-size="16"></span>Following</a>
+    </nav>
+    <div class="side__scroll">
+      <h2 class="side__head">Following</h2>
+      <div class="side__list" id="followList"></div>
+      <h2 class="side__head">Recommended</h2>
+      <div class="side__list" id="sideList"></div>
+    </div>
+  </aside>
+
+  <main class="main no-scrollbar">
+
+    <div class="player" id="player">
+      <div class="frame" id="frame">
+        <canvas class="frame__canvas" id="frameCanvas"></canvas>
+
+        <div class="widget" id="widget">
+          <div class="widget__bubbles" id="widgetBubbles">
+            <button class="widget__bubble" data-widget-action="expedition">
+              <span class="widget__bubblelabel">Expedition</span>
+              <span class="widget__bubbleicon" data-icon="expedition" data-icon-size="18"></span>
+            </button>
+          </div>
+
+          <button class="widget__button" id="widgetButton" aria-label="Open quick actions" aria-expanded="false"></button>
+        </div>
+
+        <div class="expedition glass" id="expedition" hidden>
+          <div class="expedition__head">
+            <div>
+              <h2 class="expedition__title">Start an expedition</h2>
+              <p class="expedition__sub" id="expeditionSub">Travel channel to channel with everyone who joins</p>
+            </div>
+            <button class="iconbtn" id="expeditionClose" data-icon="close" aria-label="Close expedition"></button>
+          </div>
+
+          <div class="expedition__types" role="group" aria-label="Expedition type">
+            <button class="expeditiontype is-active" data-expedition-type="standard">
+              <span class="expeditiontype__name">Kick Expedition</span>
+              <span class="expeditiontype__desc">Open to everyone watching, departs now</span>
+            </button>
+            <button class="expeditiontype" data-expedition-type="private">
+              <span class="expeditiontype__name">Kick Private Expedition</span>
+              <span class="expeditiontype__desc">Invite only, lock it with a passcode</span>
+            </button>
+            <button class="expeditiontype" data-expedition-type="custom">
+              <span class="expeditiontype__name">Kick Custom Expedition</span>
+              <span class="expeditiontype__desc">Configure every stop yourself</span>
+            </button>
+          </div>
+
+          <div class="expedition__scroll">
+            <section class="expeditionpane" data-expedition-pane="standard">
+              <p class="expedition__note">Anyone watching this stream can hop on. It departs the
+                moment you press start, and every expeditor travels the same route, channel to
+                channel, together.</p>
+            </section>
+
+            <section class="expeditionpane" data-expedition-pane="custom" hidden>
+              <label class="expedition__label" for="expeditionTitle">Title</label>
+              <input class="expedition__input" type="text" id="expeditionTitle" maxlength="60"
+                     placeholder="Name this expedition">
+
+              <label class="expedition__label">Who can join</label>
+              <div class="expedition__segmented" role="group" aria-label="Visibility">
+                <button class="segbtn is-active" data-expedition-visibility="public">Public</button>
+                <button class="segbtn" data-expedition-visibility="private">Private</button>
+              </div>
+
+              <div class="expedition__row">
+                <div class="expedition__field">
+                  <label class="expedition__label" for="expeditionDuration">Time on each stream</label>
+                  <select class="expedition__input" id="expeditionDuration">
+                    <option value="300">5 minutes</option>
+                    <option value="600" selected>10 minutes</option>
+                    <option value="900">15 minutes</option>
+                    <option value="1800">30 minutes</option>
+                  </select>
+                </div>
+                <div class="expedition__field">
+                  <label class="expedition__label" for="expeditionMax">Max expeditors</label>
+                  <input class="expedition__input" type="number" id="expeditionMax" min="2" max="500" value="50">
+                </div>
+              </div>
+
+              <label class="expedition__label">Streams on the route</label>
+              <div class="expeditionstreams" id="expeditionStreams"></div>
+
+              <label class="expedition__label">Departs</label>
+              <div class="expedition__segmented" role="group" aria-label="Departure">
+                <button class="segbtn is-active" data-expedition-departure="now">Now</button>
+                <button class="segbtn" data-expedition-departure="schedule">Schedule</button>
+              </div>
+              <input class="expedition__input" type="datetime-local" id="expeditionScheduleAt" hidden>
+
+              <label class="expedition__toggle">
+                <input type="checkbox" id="expeditionKicking" checked>
+                <span>Allow expeditors to be kicked from the expedition</span>
+              </label>
+            </section>
+
+            <section class="expeditionpane" data-expedition-pane="invite" hidden>
+              <label class="expedition__label" for="expeditionInviteInput">Invite expeditors</label>
+              <div class="expeditioninvite">
+                <div class="expeditioninvite__chips" id="expeditionInviteChips"></div>
+                <input type="text" id="expeditionInviteInput" placeholder="Search viewers to invite"
+                       aria-label="Search viewers to invite">
+              </div>
+              <div class="expeditioninvite__list" id="expeditionInviteList"></div>
+
+              <label class="expedition__label" for="expeditionPasscode">Passcode (optional)</label>
+              <input class="expedition__input" type="text" id="expeditionPasscode" maxlength="20"
+                     placeholder="Set a passcode to lock this expedition">
+            </section>
+          </div>
+
+          <div class="expedition__foot">
+            <button class="btn btn--primary" id="expeditionStart">Start expedition</button>
+          </div>
+        </div>
+
+        <div class="expeditiontoast" id="expeditionToast" hidden></div>
+
+        <div class="controls" id="controls">
+          <div class="seekbar" id="seekbar">
+            <div class="rail" id="rail" tabindex="0" role="slider" aria-label="Stream timeline"
+                 aria-valuemin="0" aria-valuemax="13620" aria-valuenow="0">
+              <div class="rail__spark" aria-hidden="true">
+                <svg viewBox="0 0 1000 24" preserveAspectRatio="none">
+                  <path class="spark__area" id="sparkArea" d=""/>
+                  <path class="spark__line" id="sparkLine" d=""/>
+                </svg>
+              </div>
+              <div class="rail__bar">
+                <div class="rail__buffer"></div>
+                <div class="rail__played" id="railPlayed"></div>
+                <div class="rail__notches" id="railNotches"></div>
+                <div class="rail__thumb" id="railThumb"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="controls__row">
+            <button class="pbtn" id="btnPlay" aria-label="Pause"></button>
+            <div class="volume" id="volume">
+              <button class="pbtn" id="btnMute" aria-label="Mute"></button>
+              <div class="volume__slider" id="volumeSlider" role="slider" tabindex="0"
+                   aria-label="Volume" aria-valuemin="0" aria-valuemax="100" aria-valuenow="50">
+                <div class="volume__track"><div class="volume__fill" id="volumeFill"></div></div>
+                <div class="volume__thumb" id="volumeThumb"></div>
+              </div>
+            </div>
+            <span class="ptime tabular" id="clockNow">00:00:00</span>
+            <button class="plive" id="btnLive"><i class="dot"></i>LIVE</button>
+            <span class="pspacer"></span>
+            <button class="pbtn" data-icon="clip" data-icon-size="20" aria-label="Clip"></button>
+            <button class="pbtn" id="btnHighlights" data-icon="highlights" data-icon-size="20"
+                    aria-label="Highlights"></button>
+            <button class="pbtn" id="btnMultiview" data-icon="multiview" data-icon-size="20"
+                    aria-label="Multiview (coming soon)" title="Multiview (coming soon)"></button>
+            <button class="pbtn" data-icon="pip" data-icon-size="20" aria-label="Picture in picture"></button>
+            <button class="pbtn" data-icon="theatre" data-icon-size="20" aria-label="Theatre mode"></button>
+            <button class="pbtn" id="btnFull" data-icon="fullscreen" data-icon-size="20" aria-label="Full screen"></button>
+            <button class="pbtn" data-icon="settings" data-icon-size="20" aria-label="Settings"></button>
+          </div>
+        </div>
+
+        <div class="scrubcard glass" id="scrubcard" hidden>
+          <button class="scrubcard__bookmark" id="scrubBookmark" data-icon="bookmark" data-icon-size="14"
+                  aria-label="Bookmark this point" aria-pressed="false"></button>
+          <div class="clipthumb" id="scrubStage" hidden>
+            <canvas class="clipthumb__canvas" id="scrubPreview"></canvas>
+            <em class="clipthumb__badge tabular" id="scrubDuration"></em>
+            <em class="clipthumb__views" id="scrubViews"></em>
+          </div>
+          <div class="scrubcard__text" id="scrubText"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="chanbar">
+      <div class="chanbar__avatar">
+        <span class="avatar" id="channelAvatar" aria-hidden="true"></span>
+        <span class="avatar__live">LIVE</span>
+      </div>
+      <div class="chanbar__meta">
+        <h1 class="chanbar__name">ClutchGoblin
+          <span class="verified" data-icon="verified" data-icon-size="20" role="img" aria-label="Verified"></span>
+        </h1>
+        <p class="chanbar__title" id="channelTitle"></p>
+        <div class="chanbar__tags">
+          <a class="chanbar__cat" href="#" id="channelCategory"></a>
+          <button class="tag">English</button>
+          <button class="tag">Aussie</button>
+          <button class="tag">Ranked</button>
+        </div>
+      </div>
+      <div class="chanbar__actions">
+        <span class="viewers"><i class="dot"></i><b class="tabular" id="statViewers">0</b> watching</span>
+        <button class="btn btn--primary">Follow</button>
+        <button class="btn btn--secondary"><span data-icon="gift" data-icon-size="16"></span>Subscribe</button>
+        <button class="pbtn" data-icon="share" data-icon-size="20" aria-label="Share via"></button>
+      </div>
+    </div>
+  </main>
+
+  <div class="resize" id="chatResize" role="separator" tabindex="0"
+       aria-label="Resize chatroom" aria-orientation="vertical"
+       aria-valuemin="280" aria-valuemax="460" aria-valuenow="340"></div>
+
+  <aside class="chat" id="chatAside">
+    <div class="chat__panel" id="chatPanel">
+      <div class="chat__head">
+        <button class="chaticon" data-icon="collapseChat" aria-label="Expand chat"></button>
+        <span class="chat__title">Chat</span>
+        <button class="chaticon" data-icon="chatters" aria-label="Show active chatters"></button>
+      </div>
+
+      <div class="chat__board" id="chatBoard"></div>
+      <div class="chat__body" id="chatBody"></div>
+
+      <div class="chat__foot">
+        <div class="chat__field">
+          <input id="chatInput" maxlength="500" placeholder="Send a message" aria-label="Send a message">
+          <button class="chaticon" data-icon="gift" data-icon-size="18" aria-label="Send a gift"></button>
+        </div>
+        <div class="chat__send">
+          <button class="btn btn--primary btn--sm" id="chatSend">Chat</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="overlay" id="overlay" hidden>
+      <div class="overlay__head">
+        <span class="overlay__title">Highlights</span>
+        <button class="iconbtn" id="overlayClose" data-icon="close" aria-label="Close highlights"></button>
+      </div>
+      <p class="overlay__sub" id="overlaySub"></p>
+
+      <div class="overlay__filters" role="group" aria-label="Filter moments">
+        <button class="chip is-active" data-filter="all">All</button>
+        <button class="chip" data-filter="peak">Peaks</button>
+        <button class="chip" data-filter="clip">Clips</button>
+        <button class="chip" data-filter="raid">Raids</button>
+        <button class="chip" data-filter="kicks">Gifts</button>
+        <button class="chip" data-filter="poll">Polls</button>
+        <button class="chip" data-filter="bookmarks">Bookmarks</button>
+        <button class="chip" data-filter="search">Search</button>
+      </div>
+
+      <div class="overlay__search">
+        <span class="overlay__searchicon" data-icon="search" aria-hidden="true"></span>
+        <input type="text" id="overlaySearchInput" maxlength="80"
+               placeholder="Search moments, or @chat to search chat" aria-label="Search the timeline">
+        <button class="overlay__searchclear" id="overlaySearchClear" data-icon="close"
+                data-icon-size="13" aria-label="Clear search" hidden></button>
+      </div>
+
+      <div class="overlay__scroll">
+        <section class="missed" id="missed" hidden>
+          <h3 class="overlay__h3">Before you joined</h3>
+          <div id="missedCards"></div>
+        </section>
+        <section>
+          <h3 class="overlay__h3" id="momentsHead">Every moment</h3>
+          <div class="hltiles" id="momentCards"></div>
+        </section>
+      </div>
+    </div>
+  </aside>
+</div>
+
+<div class="clipviewer" id="clipViewer" hidden>
+  <div class="clipviewer__scrim" id="clipScrim"></div>
+  <div class="clipviewer__panel" role="dialog" aria-modal="true" aria-label="Clip">
+    <div class="clipviewer__video" id="clipVideo">
+      <canvas class="clipviewer__canvas" id="clipCanvas"></canvas>
+
+      <div class="clipviewer__segments" id="clipSegments" hidden></div>
+
+      <button class="clipviewer__tap clipviewer__tap--prev" id="clipTapPrev"
+              aria-label="Previous highlight" hidden></button>
+      <button class="clipviewer__tap clipviewer__tap--next" id="clipTapNext"
+              aria-label="Next highlight" hidden></button>
+
+      <div class="clipviewer__head">
+        <p class="clipviewer__headline" id="clipHeadline"></p>
+        <p class="clipviewer__byline" id="clipByline"></p>
+      </div>
+      <button class="clipviewer__close" id="clipClose" data-icon="close" data-icon-size="16"
+              aria-label="Close the clip"></button>
+
+      <div class="clipviewer__controls">
+        <div class="clipviewer__seek" id="clipSeek" role="slider" tabindex="0"
+             aria-label="Clip position" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+          <div class="clipviewer__track">
+            <div class="clipviewer__hover" id="clipHover"></div>
+            <div class="clipviewer__played" id="clipPlayed"></div>
+            <div class="clipviewer__thumb" id="clipThumb"></div>
+            <span class="clipviewer__remain tabular" id="clipRemain" hidden></span>
+          </div>
+        </div>
+        <div class="clipviewer__row">
+          <button class="pbtn" id="clipPlay" aria-label="Pause"></button>
+          <button class="pbtn" id="clipMute" aria-label="Mute"></button>
+          <span class="ptime tabular" id="clipTime">00:00 / 00:00</span>
+          <span class="pspacer"></span>
+          <button class="pbtn" id="clipFull" data-icon="fullscreen" data-icon-size="20"
+                  aria-label="Full screen"></button>
+        </div>
+      </div>
+    </div>
+
+    <aside class="clipviewer__side">
+      <div class="chat__head">
+        <button class="chaticon" data-icon="collapseChat" aria-label="Expand chat"></button>
+        <span class="chat__title">Chat</span>
+        <span class="chaticon" aria-hidden="true"></span>
+      </div>
+
+      <div class="clipviewer__about">
+        <span class="avatar avatar--md" id="clipAvatar" aria-hidden="true"></span>
+        <div class="clipviewer__names">
+          <p class="clipviewer__channel">ClutchGoblin
+            <span class="verified" data-icon="verified" data-icon-size="16" role="img"
+                  aria-label="Verified"></span>
+          </p>
+          <p class="clipviewer__streamtitle" id="clipStreamTitle"></p>
+        </div>
+      </div>
+
+      <div class="clipviewer__actions">
+        <button class="pbtn" id="clipShare" data-icon="share" data-icon-size="18" aria-label="Copy a shareable link"></button>
+        <button class="pbtn" id="clipLike" data-icon="heart" data-icon-size="18"
+                aria-label="Like this clip" aria-pressed="false"></button>
+      </div>
+
+      <div class="clipviewer__replay">
+        <div class="chat__body chat__body--replay" id="clipChat"></div>
+      </div>
+    </aside>
+  </div>
+</div>
+
+<script src="js/mock-api.js"></script>
+<script src="js/icons.js"></script>
+<script src="js/player.js"></script>
+<script src="js/moments.js"></script>
+<script src="js/search.js"></script>
+<script src="js/bookmarks.js"></script>
+<script src="js/stage.js"></script>
+<script src="js/clip.js"></script>
+<script src="js/scrubber.js"></script>
+<script src="js/overlay.js"></script>
+<script src="js/expedition.js"></script>
+<script src="js/widget.js"></script>
+<script src="js/chat.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

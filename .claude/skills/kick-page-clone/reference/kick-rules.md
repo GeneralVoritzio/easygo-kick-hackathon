@@ -37,6 +37,7 @@ wordmark set in a font, gives the copy away faster than any layout error.
 | `--sidebar-expanded-width` | `256px` |
 | `--sidebar-collapsed-width` | `56px` |
 | `--chat-width` | `340px`, and it is a drag handle, not a constant |
+| `--channel-info-height` | `132px`, the space the channel bar keeps below the player |
 
 - **Every column is the same colour.** Separation comes from borders and spacing, never from a
   lighter panel.
@@ -115,6 +116,30 @@ Two details decide whether this reads as KICK:
 
 An offline row dims the avatar with `mix-blend-luminosity grayscale` and sets the username to
 `text-neutral-700`.
+
+---
+
+## 4b. The player box, read at 2560 by 1305 on 27 July 2026
+
+The player does not take the width and work out a height. KICK caps the height against the
+viewport, then fits a 16:9 box inside it and centres that box:
+
+```
+max-h-[calc(100vh-var(--navbar-height)-var(--channel-info-height))]
+supports-[height:100dvh]:max-h-[calc(100dvh-var(--navbar-height)-var(--channel-info-height))]
+```
+
+The inner `#injected-channel-player` is `relative m-auto aspect-video max-h-full`. The side margins
+you measure, 42.45px at 2560, are the output of `m-auto`. Never write them down.
+
+**Tabs are 48px, not 44.** Every tab bar, on browse, on following, on a channel and in settings,
+uses `h-12 px-2 rounded-t-sm border-b`. The active tab carries the green on both the label and the
+border, `border-surface-onSurfacePrimary text-surface-onSurfacePrimary`. An inactive tab keeps a
+1px transparent bottom border, so the label does not move when it becomes active.
+
+**`tv:` and `fhd:` do not fire at 2560.** A kick.com stream card computes `padding: 8px 6px` there,
+so both breakpoints sit above 2560. Our own values were 160rem and 140rem, which fired and put
+16px on every card.
 
 ---
 

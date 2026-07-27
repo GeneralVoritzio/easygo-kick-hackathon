@@ -19,6 +19,7 @@ function ChannelRow({
   category,
   viewers,
   live,
+  testId,
 }: {
   slug: string;
   username: string;
@@ -26,10 +27,12 @@ function ChannelRow({
   category?: string;
   viewers?: number;
   live: boolean;
+  testId?: string;
 }) {
   return (
     <Link
       to={`/${slug}`}
+      data-testid={testId}
       className="flex h-11 w-full flex-row items-center gap-x-2 rounded px-1.5 py-1 state-layer-surface"
     >
       <div className="relative size-7 shrink-0">
@@ -99,7 +102,10 @@ export function Sidebar({ collapsed }: { collapsed: boolean }) {
 
   if (collapsed) {
     return (
-      <div className="absolute bottom-0 left-0 top-[var(--navbar-height)] z-[401] flex h-full max-h-[calc(100%-var(--navbar-height))] w-[var(--sidebar-collapsed-width)] shrink-0 select-none flex-col overflow-hidden bg-surface-lowest xl:relative xl:inset-0 xl:max-h-full">
+      <div
+        id="sidebar-wrapper"
+        className="absolute bottom-0 left-0 top-[var(--navbar-height)] z-[401] flex h-full max-h-[calc(100%-var(--navbar-height))] w-[var(--sidebar-collapsed-width)] shrink-0 select-none flex-col overflow-hidden bg-surface-lowest xl:relative xl:inset-0 xl:max-h-full"
+      >
         <ul className="flex w-full flex-col px-2">
           {navItems.map((item) => (
             <li key={item.to}>
@@ -153,13 +159,17 @@ export function Sidebar({ collapsed }: { collapsed: boolean }) {
   }
 
   return (
-    <div className="absolute bottom-0 left-0 top-[var(--navbar-height)] z-[401] flex h-full max-h-[calc(100%-var(--navbar-height))] w-[var(--sidebar-expanded-width)] shrink-0 select-none flex-col overflow-hidden bg-surface-lowest xl:relative xl:inset-0 xl:max-h-full">
+    <div
+      id="sidebar-wrapper"
+      className="absolute bottom-0 left-0 top-[var(--navbar-height)] z-[401] flex h-full max-h-[calc(100%-var(--navbar-height))] w-[var(--sidebar-expanded-width)] shrink-0 select-none flex-col overflow-hidden bg-surface-lowest xl:relative xl:inset-0 xl:max-h-full"
+    >
       <ul className="flex w-full flex-col px-2">
         {navItems.map((item) => (
           <li key={item.to}>
             <NavLink
               to={item.to}
               end={item.to === "/"}
+              data-testid={`sidebar-${item.label.toLowerCase()}`}
               className={({ isActive }) =>
                 `${navLinkClass} ${isActive ? "!bg-secondary-base" : "bg-transparent"}`
               }
@@ -188,8 +198,13 @@ export function Sidebar({ collapsed }: { collapsed: boolean }) {
             <div className="flex h-9 w-full items-center px-1.5 text-sm font-semibold leading-[1.2]">
               Following
             </div>
-            {followedChannels.map((c) => (
-              <ChannelRow key={c.slug} {...c} live={c.live} />
+            {followedChannels.map((c, i) => (
+              <ChannelRow
+                key={c.slug}
+                {...c}
+                live={c.live}
+                testId={`sidebar-following-channel-${i + 1}`}
+              />
             ))}
           </section>
 
@@ -197,7 +212,7 @@ export function Sidebar({ collapsed }: { collapsed: boolean }) {
             <div className="flex h-9 w-full items-center px-1.5 text-sm font-semibold leading-[1.2]">
               Recommended
             </div>
-            {recommended.slice(0, shown).map((s) => (
+            {recommended.slice(0, shown).map((s, i) => (
               <ChannelRow
                 key={s.id}
                 slug={s.channel.slug}
@@ -206,6 +221,7 @@ export function Sidebar({ collapsed }: { collapsed: boolean }) {
                 category={s.category.name}
                 viewers={s.hide_viewer_count ? undefined : s.viewer_count}
                 live
+                testId={`sidebar-recommended-channel-${i + 1}`}
               />
             ))}
             <div className="flex h-9 w-full items-center justify-between px-1.5">
@@ -223,6 +239,7 @@ export function Sidebar({ collapsed }: { collapsed: boolean }) {
               {shown > STEP ? (
                 <button
                   type="button"
+                  data-testid="sidebar-show-less-recommended"
                   onClick={() => setShown((n) => Math.max(n - STEP, STEP))}
                   className="text-xs font-semibold text-subtle betterhover:hover:text-white"
                 >

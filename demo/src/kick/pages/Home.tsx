@@ -5,7 +5,9 @@ import { PageShell } from "../components/Layout";
 import { StreamGrid } from "../components/StreamCard";
 import { CategoryGrid } from "../components/CategoryCard";
 import { HomeBanner } from "../components/HomeBanner";
+import { ClipGrid } from "../components/ClipCard";
 import { livestreams, categories, currentUser, followedChannels } from "../mock/api";
+import { clips } from "../mock/clips";
 
 const heroStreams = livestreams.slice(0, 6);
 
@@ -187,9 +189,10 @@ function HeroCarousel() {
 
 export function Home() {
   const casinoStreams = livestreams.filter((s) => s.category.slug === "slots-casino");
+  const popularClips = [...clips].sort((a, b) => b.view_count - a.view_count).slice(0, 6);
 
   return (
-    <PageShell column="gap-y-5 pt-3 lg:gap-y-7 lg:pt-0">
+    <PageShell scroller="" column="gap-y-5 pt-3 lg:gap-y-7 lg:pt-0">
       <HomeBanner />
 
       <div className="flex w-full flex-col gap-3">
@@ -204,6 +207,11 @@ export function Home() {
       <section className="relative flex flex-col gap-y-3 lg:gap-y-4">
         <SectionHeading green="Streams" white="For You" viewAllHref="/browse" />
         <StreamGrid streams={livestreams} oneRow />
+      </section>
+
+      <section className="relative flex flex-col gap-y-3 lg:gap-y-4">
+        <SectionHeading white="Popular Clips This Week" viewAllHref="/browse/clips" />
+        <ClipGrid clips={popularClips} />
       </section>
 
       <section className="relative flex flex-col gap-y-3 lg:gap-y-4">

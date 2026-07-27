@@ -136,6 +136,33 @@ they mostly work. Add a missing token to `theme.css` rather than inlining a hex 
 A custom utility needs `@utility` in Tailwind v4. A plain class inside `@layer utilities` gets no
 variants, so `lg:my-utility` compiles to nothing and fails in silence.
 
+### Copy the mechanism, not the pixel it produced
+
+**A measured pixel is an output. Copy the rule that produced it.** This is the difference between a
+page that holds at one size and a page that holds at every size.
+
+KICK uses a fixed pixel only where the value is a constant, and they keep those in tokens:
+`--navbar-height: 60px`, `--sidebar-expanded-width: 256px`, `--chat-width: 340px`,
+`--channel-info-height: 132px`. Copy those as they are, through the token, never as a literal.
+
+Everywhere else KICK is relative, and so are we:
+
+- **The viewport, minus the chrome.** Their player is
+  `max-h-[calc(100vh-var(--navbar-height)-var(--channel-info-height))]`, with a
+  `supports-[height:100dvh]` twin for mobile. They do not set a height.
+- **A ratio.** `aspect-video` with `m-auto`, so the box centres itself and the side margins fall
+  out of the arithmetic. Never write the margin you measured.
+- **A fraction.** `w-[calc((100%-24px)/3)]`, `1fr`, `repeat(auto-fill, minmax(139px, 1fr))`.
+- **Their viewport utilities.** `h-xvh` and `w-xvw`, not `h-screen` and `w-screen`.
+
+**If you write a pixel the page could work out for itself, you have frozen one viewport.** Our
+player was 1960 by 1103 against their 1879 by 1057 for exactly this reason: we said
+`aspect-video w-full` and let the width win, where KICK caps the height first and fits the ratio
+inside it.
+
+**A breakpoint is a measured value too.** Read it, do not assume the name. Ours fired `tv:` at 2560
+where KICK's did not, which put 16px of padding on every stream card instead of 8px.
+
 ### The rules that decide whether it reads as KICK
 
 Full detail, with the measured tables, is in `reference/kick-rules.md`. The short list:

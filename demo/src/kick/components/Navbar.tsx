@@ -14,11 +14,15 @@ export function Navbar({ onToggleSidebar }: NavbarProps) {
   const [menuOpen, setMenuOpen] = useState(false);
 
   return (
-    <nav className="relative top-0 z-[402] flex h-[var(--navbar-height)] items-center justify-between gap-0 bg-surface-lowest pl-3 pr-10">
+    <nav
+      data-testid="navbar"
+      className="relative top-0 z-[402] flex h-[var(--navbar-height)] items-center justify-between gap-0 bg-surface-lowest pl-3 pr-10 shadow-[0px_2px_4px_0px_rgba(0,0,0,0.2)]"
+    >
       <div className="flex grow-0 items-center gap-2.5">
         <button
           type="button"
           aria-label="Collapse sidebar"
+          data-testid="sidebar-collapse"
           onClick={onToggleSidebar}
           className="group flex size-10 shrink-0 items-center justify-center rounded state-layer-surface"
         >
@@ -31,7 +35,11 @@ export function Navbar({ onToggleSidebar }: NavbarProps) {
 
       <div className="flex grow items-center justify-center lg:absolute lg:inset-x-96 lg:inset-y-0">
         <div className="w-[450px] shrink-0">
-          <form className="flex items-center gap-2" onSubmit={(e) => e.preventDefault()}>
+          <form
+            data-testid="search"
+            className="flex items-center gap-2"
+            onSubmit={(e) => e.preventDefault()}
+          >
             <div className="min-w-0 flex-1">
               <div className="flex h-8 items-center gap-2 rounded border border-outline-region px-3 transition-colors duration-200 ease-in-out betterhover:hover:border-neutral-300 focus-within:border-white">
                 <Icon name="search" className="size-4 shrink-0 fill-current" />
@@ -72,6 +80,7 @@ export function Navbar({ onToggleSidebar }: NavbarProps) {
         </button>
         <button
           type="button"
+          data-testid="kicks-top-nav"
           className="group inline-flex h-9 items-center justify-center gap-1.5 whitespace-nowrap rounded bg-secondary-base px-2 text-sm font-semibold text-white transition-all select-none betterhover:active:scale-[0.98]"
         >
           <Icon name="get-kicks" className="size-4" />

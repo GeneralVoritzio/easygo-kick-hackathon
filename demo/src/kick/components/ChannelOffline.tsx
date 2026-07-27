@@ -1,115 +1,30 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
 import { Icon } from "../Icon";
-import {
-  formatDuration,
-  formatFollowers,
-  timeAgo,
-  type ChannelVideo,
-  type OfflineChannel,
-} from "../mock/api";
+import { formatFollowers, timeAgo, type ChannelProfile } from "../mock/api";
 
-function VideoCard({ video, channelName, avatar }: { video: ChannelVideo; channelName: string; avatar: string }) {
-  return (
-    <div className="group/card flex w-full min-w-0 flex-col">
-      <div className="relative w-full">
-        <img
-          src={video.thumbnail}
-          alt={video.title}
-          className="aspect-video w-full rounded object-cover"
-        />
-        <span className="absolute left-2 top-2 rounded-sm bg-surfaceOverlay-base px-1 py-0.5 text-xs font-semibold leading-none text-white">
-          {formatDuration(video.duration_seconds)}
-        </span>
-        <span className="absolute bottom-2 left-2 rounded-sm bg-surfaceOverlay-base px-1 py-0.5 text-xs font-semibold leading-none text-white">
-          {formatFollowers(video.view_count)} views
-        </span>
-      </div>
-      <div className="flex w-full flex-row gap-2 px-1.5 py-2">
-        <img src={avatar} alt={channelName} className="size-11 shrink-0 rounded-full" />
-        <div className="flex w-full min-w-0 flex-col gap-0.5">
-          <span className="truncate text-sm font-semibold leading-[1.2] text-subtle">
-            {channelName}
-          </span>
-          <span className="truncate text-sm font-semibold leading-[1.2] text-white">
-            {video.title}
-          </span>
-          <div className="flex min-w-0 flex-row items-center gap-1">
-            <Link
-              to={`/browse/${video.category.slug}`}
-              className="flex h-[22px] shrink-0 items-center rounded-full bg-surface-highest px-2 text-xs font-semibold leading-none text-subtle"
-            >
-              {video.category.name}
-            </Link>
-            <span className="truncate text-xs font-semibold leading-none text-subtle">
-              {"·"} {timeAgo(video.created_at)}
-            </span>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function Row({
-  title,
-  videos,
-  channelName,
-  avatar,
-}: {
-  title: string;
-  videos: ChannelVideo[];
-  channelName: string;
-  avatar: string;
-}) {
-  if (!videos.length) return null;
-  return (
-    <section className="flex w-full flex-col gap-3">
-      <div className="flex w-full items-center justify-between">
-        <h2 className="text-2xl font-bold leading-[1.2] text-white">{title}</h2>
-        <button type="button" className="text-sm font-semibold text-subtle betterhover:hover:text-white">
-          View all
-        </button>
-      </div>
-      <div className="grid grid-cols-1 gap-x-4 gap-y-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 3xl:grid-cols-5">
-        {videos.map((v) => (
-          <VideoCard key={v.id} video={v} channelName={channelName} avatar={avatar} />
-        ))}
-      </div>
-    </section>
-  );
-}
-
-const tabs = [
-  { label: "Home", path: "" },
-  { label: "About", path: "/about" },
-  { label: "Videos", path: "/videos" },
-  { label: "Clips", path: "/clips" },
-];
-
-export function ChannelOffline({ data }: { data: OfflineChannel }) {
-  const { channel, banner, last_live_at, videos, clips, recent_categories } = data;
+export function ChannelOffline({ profile }: { profile: ChannelProfile }) {
+  const { channel, banner, last_live_at } = profile;
   const [following, setFollowing] = useState(false);
 
   return (
     <div className="flex w-full flex-col">
       <div className="relative block h-[var(--channel-desktop-banner-height)] w-full shrink-0 overflow-hidden bg-black">
-        <img
-          src={banner}
-          alt={`${channel.username} banner`}
-          className="absolute inset-x-0 top-0 h-full w-full object-cover"
-        />
+        {banner && (
+          <img
+            src={banner}
+            alt={`${channel.username} banner`}
+            className="absolute inset-x-0 top-0 h-full w-full object-cover"
+          />
+        )}
         <div className="z-player absolute left-7 top-7 flex h-fit w-fit items-center gap-4 rounded bg-surface-base p-5 font-bold leading-[1.2]">
           <span className="rounded-[2px] bg-white p-1 text-sm font-bold uppercase leading-5 text-surface-lowest">
             Offline
           </span>
-          <h2 className="text-2xl font-bold leading-8 text-white">
-            {channel.username} is offline
-          </h2>
+          <h2 className="text-2xl font-bold leading-8 text-white">{channel.username} is offline</h2>
         </div>
       </div>
 
-      <div className="flex w-full flex-row items-start justify-between gap-4 px-4 pt-4">
+      <div className="flex w-full flex-row items-start justify-between gap-4 px-4 py-4">
         <div className="flex min-w-0 flex-row items-center gap-3">
           <img
             src={channel.avatar}
@@ -170,50 +85,6 @@ export function ChannelOffline({ data }: { data: OfflineChannel }) {
             <Icon name="share" className="size-5 text-white" />
           </button>
         </div>
-      </div>
-
-      <div className="flex w-full flex-nowrap overflow-x-auto px-4 shadow-[inset_0px_-2px_0] shadow-outline-decorative md:no-scrollbar">
-        {tabs.map((tab, i) => (
-          <Link
-            key={tab.label}
-            to={`/${channel.slug}${tab.path}`}
-            className={`state-layer-surface relative flex h-12 shrink-0 cursor-pointer items-center whitespace-nowrap rounded-t-sm px-4 text-base font-semibold ${
-              i === 0 ? "text-surface-onSurfacePrimary" : "text-white"
-            }`}
-          >
-            {i === 0 && (
-              <div className="absolute inset-x-0 bottom-[-2px] h-0.5 rounded-full bg-surface-onSurfacePrimary" />
-            )}
-            {tab.label}
-          </Link>
-        ))}
-      </div>
-
-      <div className="flex w-full flex-col gap-8 px-4 py-6">
-        <Row title="Stream Videos" videos={videos} channelName={channel.username} avatar={channel.avatar} />
-        <Row title="Popular Clips" videos={clips} channelName={channel.username} avatar={channel.avatar} />
-
-        {recent_categories.length > 0 && (
-          <section className="flex w-full flex-col gap-3">
-            <h2 className="text-2xl font-bold leading-[1.2] text-white">
-              Recently Streamed Categories
-            </h2>
-            <div className="flex flex-row flex-wrap gap-4">
-              {recent_categories.map((c) => (
-                <Link key={c.slug} to={`/browse/${c.slug}`} className="flex w-[132px] flex-col gap-2">
-                  <img
-                    src={c.thumbnail}
-                    alt={c.name}
-                    className="aspect-[3/4] w-full rounded object-cover"
-                  />
-                  <span className="truncate text-sm font-semibold leading-[1.2] text-white">
-                    {c.name}
-                  </span>
-                </Link>
-              ))}
-            </div>
-          </section>
-        )}
       </div>
     </div>
   );

@@ -49,7 +49,7 @@ const chatUsernames = [
   "OSRS_Oracle",
   "SkillerSage",
   "PkerPaz",
-  "EvScapeSimp42",
+  "IronVowSimp42",
   "ChinFlickChad",
   "RunecraftRon",
   "BossMageBea",

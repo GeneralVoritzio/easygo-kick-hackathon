@@ -192,7 +192,7 @@ Raised on 26 July 2026 and not yet done.
 | 5 | Collapsing the rail shifts things oddly, and expanding shows selection borders | **Open** |
 | 6 | Live channel page `Follow`, `Gift Subs`, `Subscribe` are wrong. Check the followed state too, then unfollow | **Done**, 26 July 2026 |
 | 7 | The live ring around the channel avatar is wrong. The collapsed rail avatars need the green ring | **Done**, 26 July 2026 |
-| 8 | Following and settings pages have never been checked against the live site | **Open** |
+| 8 | Settings pages have never been checked against the live site. Following was checked on 27 July 2026, see Site Reference Section 19 | **Open** |
 | 9 | No bell icon. KICK has one next to the heart on a channel page | **Open** |
 | 10 | Video cards have no `⋮` overflow control | **Open** |
 

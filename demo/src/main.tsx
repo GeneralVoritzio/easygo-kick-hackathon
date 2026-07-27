@@ -9,7 +9,6 @@ import { Following } from './kick/pages/Following'
 import { FollowingCategories } from './kick/pages/FollowingCategories'
 import { FollowingChannels } from './kick/pages/FollowingChannels'
 import { Channel } from './kick/pages/Channel'
-import { ChannelClips } from './kick/pages/ChannelClips'
 import { SettingsProfile } from './kick/pages/SettingsProfile'
 import { SettingsPreferences } from './kick/pages/SettingsPreferences'
 import { CreatorDashboard } from './kick/pages/CreatorDashboard'
@@ -31,8 +30,11 @@ createRoot(document.getElementById('root')!).render(
           <Route path="/following/channels" element={<FollowingChannels />} />
           <Route path="/settings/profile" element={<SettingsProfile />} />
           <Route path="/settings/preferences" element={<SettingsPreferences />} />
-          <Route path="/:slug" element={<Channel />} />
-          <Route path="/:slug/clips" element={<ChannelClips />} />
+          <Route path="/:slug" element={<Channel tab="home" watch />} />
+          <Route path="/:slug/home" element={<Channel tab="home" />} />
+          <Route path="/:slug/about" element={<Channel tab="about" />} />
+          <Route path="/:slug/videos" element={<Channel tab="videos" />} />
+          <Route path="/:slug/clips" element={<Channel tab="clips" />} />
         </Route>
       </Routes>
     </BrowserRouter>

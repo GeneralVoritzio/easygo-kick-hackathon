@@ -1,10 +1,9 @@
-export type BrowseTab = "livestreams" | "categories" | "clips" | "leaderboard";
+export type BrowseTab = "livestreams" | "categories" | "clips";
 
 const tabs: { id: BrowseTab; label: string }[] = [
   { id: "livestreams", label: "Livestreams" },
   { id: "categories", label: "Categories" },
   { id: "clips", label: "Clips" },
-  { id: "leaderboard", label: "Leaderboard" },
 ];
 
 export function BrowseTabs({

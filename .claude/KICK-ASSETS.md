@@ -201,3 +201,22 @@ three files are not here. `kick-logo.svg` above is the same wordmark, from KICK 
 
 **If a team member can sign in to the Easygo Brandfolder, get the logo rules and the three share
 assets.** Brand Identity Section 0 lists what to correct.
+
+## Channel panel graphics, ours
+
+`demo/src/kick/art/panel-*.svg`, six tiles: `energy`, `gear`, `merch`, `community`, `schedule`,
+`sponsor`. Drawn by us on 27 July 2026, **340 by 420**. KICK sizes a panel by width, 340px, and
+lets the uploaded image set the height, measured at 340 by 414 and 340 by 340 on one channel. Ours
+use one height, so a row of panels stays even.
+
+They stand in for the sponsor and community panels a streamer uploads under the About card. KICK
+does not publish these, because each one belongs to a streamer, so there is nothing to copy. They
+use the KICK dark surfaces and one accent each, and they carry no real brand name.
+
+**Licence:** ours. No attribution needed.
+
+## Channel and banner art file names
+
+Every avatar in `demo/src/kick/avatars/` and every `banner-*.svg` in `demo/src/kick/art/` was
+renamed on 27 July 2026, when the mock channels moved to invented handles. The art is unchanged.
+`mock/api.ts` throws when an avatar file is missing, so the file name must match the channel slug.

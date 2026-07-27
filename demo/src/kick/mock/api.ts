@@ -229,18 +229,6 @@ export const livestreams: Livestream[] = [
   },
 ];
 
-export const followedChannels = [
-  {
-    ...ironvow,
-    live: true,
-    category: "Old School RuneScape",
-    viewers: undefined as number | undefined,
-  },
-  { ...channel("charcoalchef", "CharcoalChef", 30211), live: false },
-  { ...channel("midnightden", "MidnightDen", 51902), live: false },
-  { ...channel("couchsenate", "CouchSenate", 283204, true), live: false },
-];
-
 export type ChannelVideo = {
   id: number;
   title: string;
@@ -551,6 +539,21 @@ export const profileFor = (slug: string) =>
 
 export const liveStreamFor = (slug: string) =>
   livestreams.find((s) => s.channel.slug === slug);
+
+export const followedChannels = ["ironvow", "charcoalchef", "midnightden", "couchsenate"].map(
+  (slug) => {
+    const profile = profileFor(slug);
+    if (!profile) throw new Error(`No channel profile for followed channel ${slug}`);
+    const live = liveStreamFor(slug);
+    return {
+      ...profile.channel,
+      banner: profile.banner,
+      live: Boolean(live),
+      category: live ? live.category.name : profile.recent_categories[0].name,
+      viewers: live && !live.hide_viewer_count ? live.viewer_count : undefined,
+    };
+  },
+);
 
 export function formatDuration(seconds: number): string {
   const h = Math.floor(seconds / 3600);

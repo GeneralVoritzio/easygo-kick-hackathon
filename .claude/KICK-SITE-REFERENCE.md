@@ -696,6 +696,7 @@ lift. A card that grows a border on hover is wrong.
 | `/browse/categories` | the same three | **none** |
 | `/browse/clips` | the same three | left `Sort by:` + `Views`, right `Filter by:` + `Last Week` |
 | `/following` | **Live Channels**, Categories, Channels | **none** |
+| `/following/channels` | the same three | **none**. It holds a card grid, Section 19.7a |
 
 **There is no Leaderboard tab.** The only leaderboard on kick.com is the gifter strip in chat,
 Section 6. **There is no search box on any browse tab**; the page search is the one in the navbar.
@@ -731,6 +732,60 @@ is the same one the home page uses for `Streams For You`.
 `/following/categories` follows it: a `Categories` heading and a category grid, no filters. When a
 list is empty KICK shows the empty state, so there is nothing to preview and no toggle to preview
 it with.
+
+### 19.7a The Channels tab is a banner card grid, not a list
+
+Measured on `kick.com/following/channels` on 27 July 2026, at 2560 by 1249, **logged in**. Logged
+out this page holds the empty state, so the saved scrape shows no cards. Read it in the user's
+Chrome, or you measure the empty state and call it the page.
+
+The heading is **`Followed Channels`**. The page shape below the tabs is the one Section 19.7 gives.
+
+```
+section  relative flex flex-col gap-y-3 lg:gap-y-4
+  div  flex items-center justify-between  ->  h2 "Followed Channels"
+  div  grid grid-cols-[repeat(auto-fill,minmax(335px,1fr))] gap-5
+    div  group relative flex w-full flex-col rounded
+      a
+        div  relative flex aspect-[1/0.53] min-h-[179px] w-full cursor-pointer flex-col rounded
+             bg-cover bg-center        <- the channel banner, under a flat scrim
+          div  flex grow flex-col items-center justify-center gap-2
+            div  relative box-content rounded-full border-4 transition-all
+                 betterhover:lg:group-hover:scale-110
+              img  size-12 rounded-full lg:size-20
+              div  absolute -bottom-1.5 right-1/2 flex w-10 translate-x-1/2 rounded-[2px]
+                   bg-green-500 px-2 py-1 text-[10px] font-bold uppercase leading-3 text-[#070809]
+            span  text-sm font-bold betterhover:hover:underline
+      button  size-8 absolute bottom-2 left-2 hidden betterhover:group-hover:flex
+              rounded bg-secondary-base text-secondary-onSecondary state-layer-surface
+```
+
+| Thing | Live value |
+|---|---|
+| Grid | `repeat(auto-fill, minmax(335px, 1fr))`, `gap: 20px`. At 2560 that gives 5 columns of 384px |
+| Card | 384 by 204, radius 4. The banner **is** the card, and it holds the whole layout |
+| Card ratio | `aspect-[1/0.53]`, floored by `min-h-[179px]` |
+| Banner scrim | `linear-gradient(0deg, rgba(49,49,49,0.5), rgba(49,49,49,0.5))` over the image, `bg-cover bg-center` |
+| Avatar | 80px at `lg` (`size-12 lg:size-20`), on a `box-content border-4` ring, so the ring box is 88px |
+| Ring, live | `border-green-500` |
+| Ring, offline | **`border-transparent`.** The ring box stays, so the card does not move |
+| Live chip | 40 by 20, `bg-green-500` on `#070809`, 10px weight 700 uppercase, radius 2, `-bottom-1.5` |
+| Name | 14px weight 700, **white on a live and on an offline card**, underlines on hover |
+| Unfollow | 32px, `bg-secondary-base`, a **filled heart**, `aria-label="Unfollow"`, bottom left, 8px in |
+
+Four details decide whether this reads as KICK:
+
+- **An offline card is not dimmed.** No greyscale on the avatar, and the name stays white. Only the
+  ring goes transparent and the chip goes away. This is the opposite of the sidebar row, Section 13.
+- **The card carries no category and no viewer count.** The banner, the avatar, the chip and the
+  name are all of it. There is no `Offline` label.
+- **The unfollow button is hidden until the card is hovered**, `hidden betterhover:group-hover:flex`.
+- **The avatar grows on hover**, `betterhover:lg:group-hover:scale-110`, and it is the only motion.
+
+**The sidebar disagrees with this page on purpose.** On `/following/channels` an offline row in the
+sidebar shows the username only: no category, no viewer count, the avatar dimmed and the name
+`text-neutral-700`. The card for the same channel shows a full colour avatar and a white name. Do
+not make one match the other.
 
 ### 19.8 A channel page is two different pages, and a live home page has no tabs
 

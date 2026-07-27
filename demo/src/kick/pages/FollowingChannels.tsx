@@ -1,71 +1,61 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { PageShell } from "../components/Layout";
+import { SectionHeading } from "../components/CardBits";
 import { FollowingTabs } from "../components/FollowingTabs";
 import { FollowingEmptyState } from "../components/FollowingEmptyState";
 import { Icon } from "../Icon";
-import { followedChannels, livestreams, categories, type Channel } from "../mock/api";
+import { followedChannels } from "../mock/api";
 
-type FollowedChannel = Channel & { live: boolean };
+type FollowedChannel = (typeof followedChannels)[number];
 
-function categoryForChannel(channel: FollowedChannel, index: number): string {
-  const live = livestreams.find((s) => s.channel.slug === channel.slug);
-  if (live) return live.category.name;
-  return categories[index % categories.length].name;
-}
+const scrim = "linear-gradient(0deg, rgba(49, 49, 49, 0.5), rgba(49, 49, 49, 0.5))";
 
-function FollowingChannelRow({
+function FollowedChannelCard({
   channel,
-  category,
   onUnfollow,
 }: {
   channel: FollowedChannel;
-  category: string;
   onUnfollow: () => void;
 }) {
-  const isLive = channel.live;
   return (
-    <div className="state-layer-surface flex w-full items-center gap-3 rounded px-2 py-3">
-      <Link to={`/${channel.slug}`} className="shrink-0">
-        <img
-          src={channel.avatar}
-          alt={channel.username}
-          className={`size-11 rounded-full ${isLive ? "" : "mix-blend-luminosity grayscale"}`}
-        />
+    <div className="group relative flex w-full flex-col rounded">
+      <Link to={`/${channel.slug}`}>
+        <div
+          className="relative flex aspect-[1/0.53] min-h-[179px] w-full cursor-pointer flex-col rounded bg-cover bg-center"
+          style={{ backgroundImage: `${scrim}, url(${channel.banner})` }}
+        >
+          <div className="flex grow flex-col items-center justify-center gap-2">
+            <div
+              className={`relative box-content rounded-full border-4 transition-all betterhover:lg:group-hover:scale-110 ${
+                channel.live ? "border-green-500" : "border-transparent"
+              }`}
+            >
+              <img
+                src={channel.avatar}
+                alt={channel.username}
+                className="size-12 rounded-full lg:size-20"
+              />
+              {channel.live && (
+                <div className="absolute -bottom-1.5 right-1/2 flex w-10 translate-x-1/2 rounded-[2px] bg-green-500 px-2 py-1 text-[10px] font-bold uppercase leading-3 text-[#070809]">
+                  Live
+                </div>
+              )}
+            </div>
+            <span className="text-sm font-bold betterhover:hover:underline">
+              {channel.username}
+            </span>
+          </div>
+        </div>
       </Link>
-      <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-        <Link
-          to={`/${channel.slug}`}
-          className={`flex items-center gap-1 truncate text-sm font-bold leading-[1.2] ${
-            isLive ? "text-white" : "text-neutral-700"
-          }`}
-        >
-          {channel.username}
-          {channel.verified && (
-            <Icon name="verified" className="size-3.5 shrink-0 text-surface-onSurfacePrimary" />
-          )}
-        </Link>
-        <span className="truncate text-sm font-normal leading-[1.2] text-surface-onSurfaceSecondary">
-          {category}
-        </span>
-      </div>
-      <div className="flex shrink-0 items-center gap-3">
-        {isLive ? (
-          <span className="flex items-center gap-1 text-sm font-semibold leading-[1.2] text-white">
-            <Icon name="live-dot" className="size-2 text-primary-base" />
-            Live
-          </span>
-        ) : (
-          <span className="text-sm font-semibold leading-[1.2] text-neutral-700">Offline</span>
-        )}
-        <button
-          type="button"
-          onClick={onUnfollow}
-          className="h-8 shrink-0 rounded bg-secondary-base px-3 text-sm font-semibold text-white transition-all select-none betterhover:active:scale-[0.98] betterhover:hover:bg-negative-base"
-        >
-          Unfollow
-        </button>
-      </div>
+      <button
+        type="button"
+        aria-label="Unfollow"
+        onClick={onUnfollow}
+        className="state-layer-surface !absolute bottom-2 left-2 hidden size-8 shrink-0 grow-0 select-none items-center justify-center rounded bg-secondary-base text-sm leading-none text-secondary-onSecondary transition-all active:scale-[0.95] betterhover:group-hover:flex [&_svg]:size-4"
+      >
+        <Icon name="heart-filled" />
+      </button>
     </div>
   );
 }
@@ -75,23 +65,27 @@ export function FollowingChannels() {
 
   return (
     <PageShell>
-      <h2 className="text-white text-base font-bold leading-[1.2] lg:text-2xl">Following</h2>
+      <h2 className="text-base font-bold leading-8 text-white lg:text-2xl">Following</h2>
       <div className="flex flex-col gap-y-3 lg:gap-y-6">
         <FollowingTabs />
-        {channels.length === 0 ? (
-          <FollowingEmptyState icon="empty-livestreams" message="You follow no channels yet." />
-        ) : (
-          <div className="flex w-full flex-col">
-            {channels.map((c, i) => (
-              <FollowingChannelRow
-                key={c.slug}
-                channel={c}
-                category={categoryForChannel(c, i)}
-                onUnfollow={() => setChannels((cs) => cs.filter((x) => x.slug !== c.slug))}
-              />
-            ))}
-          </div>
-        )}
+        <div className="flex flex-col gap-6 pb-20 lg:gap-8">
+          <section className="relative flex flex-col gap-y-3 lg:gap-y-4">
+            <SectionHeading white="Followed Channels" />
+            {channels.length === 0 ? (
+              <FollowingEmptyState icon="empty-livestreams" message="You follow no channels yet." />
+            ) : (
+              <div className="grid grid-cols-[repeat(auto-fill,minmax(335px,1fr))] gap-5">
+                {channels.map((c) => (
+                  <FollowedChannelCard
+                    key={c.slug}
+                    channel={c}
+                    onUnfollow={() => setChannels((cs) => cs.filter((x) => x.slug !== c.slug))}
+                  />
+                ))}
+              </div>
+            )}
+          </section>
+        </div>
       </div>
     </PageShell>
   );

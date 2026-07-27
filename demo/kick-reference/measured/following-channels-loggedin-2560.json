@@ -1,0 +1,18 @@
+{
+ "captured": "2026-07-27",
+ "source": "https://kick.com/following/channels",
+ "loggedIn": true,
+ "note": "Logged in, this page holds a card grid, not a list. The logged out twin holds an empty state, so following-channels-2560.json can measure the chrome only. Targets are the grid and the first card, because KICK carries no data-testid on either.",
+ "viewport": [2560, 1249],
+ "url": "/following/channels",
+ "column": { "rect": [2000, 427, 408, 248] },
+ "grid": { "rect": [2000, 427, 408, 248], "box": { "gridTemplateColumns": "384px 384px 384px 384px 384px", "gap": "20px" } },
+ "card": { "rect": [384, 204, 408, 248], "box": { "borderRadius": "4px" } },
+ "cardBanner": { "rect": [384, 204, 408, 248], "box": { "backgroundSize": "cover, cover", "backgroundPosition": "50% 50%, 50% 50%", "borderRadius": "4px", "backgroundImage": "linear-gradient(0deg, rgba(49, 49, 49, 0.5), rgba(49, 49, 49, 0.5)), url(the channel banner)" } },
+ "cardAvatarRing": { "rect": [88, 88, 556, 292], "box": { "borderWidth": "4px", "borderColor": "rgb(83, 252, 24)" } },
+ "cardAvatarRingOffline": { "box": { "borderWidth": "4px", "borderColor": "rgba(0, 0, 0, 0)" } },
+ "cardAvatar": { "rect": [80, 80, 560, 296] },
+ "cardLiveChip": { "rect": [40, 20, 580, 362], "box": { "backgroundColor": "rgb(83, 252, 24)", "color": "rgb(7, 8, 9)", "fontSize": "10px", "lineHeight": "12px", "borderRadius": "2px", "padding": "4px 8px" } },
+ "cardName": { "rect": [65, 20, 567, 388], "box": { "fontSize": "14px", "fontWeight": "700", "color": "rgb(255, 255, 255)" } },
+ "cardUnfollow": { "box": { "position": "absolute", "display": "none", "width": "32px", "height": "32px", "backgroundColor": "rgb(66, 71, 77)", "color": "rgb(255, 255, 255)", "borderRadius": "4px" }, "note": "hidden until the card is hovered, so the rect reads 0 at rest" }
+}

@@ -20,6 +20,11 @@ const accountRows: Row[] = [
   { label: "Collectibles", icon: "collectibles", iconClass: "size-5 shrink-0" },
 ];
 
+const dashboardRows: Row[] = [
+  { label: "Back to KICK", icon: "chevron-left", to: "/" },
+  { label: "Settings", icon: "settings-menu", to: "/settings/profile" },
+];
+
 const itemClass =
   "state-layer-surface flex min-h-12 w-full items-center justify-start gap-4 rounded bg-transparent px-4 py-1 text-base font-normal text-white";
 
@@ -27,7 +32,10 @@ const iconClass = "size-4 shrink-0";
 
 const separatorClass = "h-px w-full bg-outline-decorative";
 
-export function ProfileMenu({ onClose }: { onClose: () => void }) {
+const menuClass =
+  "absolute right-10 top-[var(--navbar-height)] z-popover flex h-fit w-[316px] flex-col gap-1 rounded-lg bg-surface-highest text-sm";
+
+export function ProfileMenu({ onClose, dashboard }: { onClose: () => void; dashboard?: boolean }) {
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -47,12 +55,10 @@ export function ProfileMenu({ onClose }: { onClose: () => void }) {
     };
   }, [onClose]);
 
+  const rows = dashboard ? dashboardRows : accountRows;
+
   return (
-    <div
-      ref={ref}
-      role="menu"
-      className="absolute right-10 top-[var(--navbar-height)] z-popover flex h-fit w-[316px] flex-col gap-1 rounded-lg bg-surface-highest text-sm"
-    >
+    <div ref={ref} role="menu" className={menuClass}>
       <div className="flex flex-col gap-4 px-6 py-4">
         <div className="flex max-w-[262px] flex-col items-center justify-center gap-2">
           {/* ponytail: KICK serves a per-level badge PNG we cannot commit, so we draw the level 11 tier */}
@@ -94,7 +100,7 @@ export function ProfileMenu({ onClose }: { onClose: () => void }) {
       <div className={separatorClass} />
 
       <div className="flex flex-col gap-1 px-2">
-        {accountRows.map((row) =>
+        {rows.map((row) =>
           row.to ? (
             <Link key={row.label} to={row.to} onClick={onClose} className={itemClass}>
               <Icon name={row.icon} className={row.iconClass ?? iconClass} />
@@ -109,25 +115,29 @@ export function ProfileMenu({ onClose }: { onClose: () => void }) {
         )}
       </div>
 
-      <div className="mx-4 h-px w-[calc(100%-32px)] bg-outline-decorative" />
+      {dashboard ? null : (
+        <>
+          <div className="mx-4 h-px w-[calc(100%-32px)] bg-outline-decorative" />
 
-      <div className="flex flex-col gap-1 px-2">
-        <div className="py-1">
-          <button
-            type="button"
-            className="state-layer-surface flex h-10 w-full items-center justify-start gap-4 rounded px-4 font-normal text-white"
-          >
-            <Icon name="language-globe" className={iconClass} />
-            <span className="flex-1 text-left text-base">Display language</span>
-            <span className="text-sm text-surface-onSurfaceSecondary">English</span>
-            <Icon name="chevron-right" className="size-3 shrink-0" />
-          </button>
-        </div>
-        <Link to="/settings/profile" onClick={onClose} className={itemClass}>
-          <Icon name="settings-menu" className={iconClass} />
-          Settings
-        </Link>
-      </div>
+          <div className="flex flex-col gap-1 px-2">
+            <div className="py-1">
+              <button
+                type="button"
+                className="state-layer-surface flex h-10 w-full items-center justify-start gap-4 rounded px-4 font-normal text-white"
+              >
+                <Icon name="language-globe" className={iconClass} />
+                <span className="flex-1 text-left text-base">Display language</span>
+                <span className="text-sm text-surface-onSurfaceSecondary">English</span>
+                <Icon name="chevron-right" className="size-3 shrink-0" />
+              </button>
+            </div>
+            <Link to="/settings/profile" onClick={onClose} className={itemClass}>
+              <Icon name="settings-menu" className={iconClass} />
+              Settings
+            </Link>
+          </div>
+        </>
+      )}
 
       <div className={separatorClass} />
 

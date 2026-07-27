@@ -1417,10 +1417,10 @@ the input row, the emote bar, the emote picker and the message rows, is the same
 
 **The dashboard points button carries two glyphs and no number.** It is
 `state-layer-surface px-2 py-1.5 text-sm gap-1`, so it measures 56 by 32 where the channel page
-button is `h-9`. Inside it sit the 16px channel-points glyph in white, then KICK's own **KICKs
-mark at 20px in `#606971`**. The KICKs mark reads as an infinity sign, and it is the same file the
-channel page uses for Get KICKs (`demo/src/kick/icons/chat-kicks.svg`). There is no Get KICKs
-button on the dashboard.
+button is `h-9`. Inside it sit the 16px channel-points glyph, then KICK's own **KICKs mark at
+20px**. Both are white: the button is `text-white`, and each path takes `fill="current"`. The
+KICKs mark reads as an infinity sign, and it is the same file the channel page uses for Get KICKs
+(`demo/src/kick/icons/chat-kicks.svg`). There is no Get KICKs button on the dashboard.
 
 Two values measured on both pages, which an earlier build had wrong on both:
 

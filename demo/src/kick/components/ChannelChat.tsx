@@ -583,14 +583,14 @@ function ChatFooter({
             <div className="flex gap-x-1 lg:w-full lg:gap-x-2">
               {dashboard ? (
                 // The dashboard drops the count and the Get KICKs button. The points button
-                // holds the points glyph and KICK's own KICKs mark, greyed.
+                // holds the points glyph and KICK's own KICKs mark, both white.
                 <button
                   type="button"
                   aria-label="Channel points"
                   className="state-layer-surface flex shrink-0 items-center gap-1 rounded px-2 py-1.5 text-sm font-semibold text-white"
                 >
                   <Icon name="channel-points" className="size-4" />
-                  <Icon name="chat-kicks" className="size-5 text-[#606971]" />
+                  <Icon name="chat-kicks" className="size-5" />
                 </button>
               ) : (
                 <>

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Link } from "react-router-dom";
+import { Icon } from "../Icon";
 import type { ChannelProfile, Livestream } from "../mock/api";
 import { ChannelPlayer } from "./ChannelPlayer";
 import { ChannelLivePreview } from "./ChannelLivePreview";
@@ -67,6 +68,7 @@ export function ChannelShell({
   children?: ReactNode;
 }) {
   const [chatWidth, setChatWidth] = useState(DEFAULT_CHAT_WIDTH);
+  const [chatOpen, setChatOpen] = useState(true);
   const [isDragging, setIsDragging] = useState(false);
   const rowRef = useRef<HTMLDivElement>(null);
 
@@ -94,14 +96,28 @@ export function ChannelShell({
   return (
     <div
       ref={rowRef}
-      className={`-mb-6 flex h-[calc(100vh-var(--navbar-height))] w-full overflow-hidden bg-surface-lowest ${
+      data-chat={chatOpen}
+      className={`group/main -mb-6 flex h-[calc(100vh-var(--navbar-height))] w-full overflow-hidden bg-surface-lowest ${
         isDragging ? "select-none" : ""
       }`}
     >
       <div
         id="channel-content"
-        className="no-scrollbar flex h-full min-w-0 flex-1 flex-col overflow-y-auto overflow-x-hidden"
+        className="no-scrollbar relative flex h-full min-w-0 flex-1 flex-col overflow-y-auto overflow-x-hidden"
       >
+        {/* KICK puts the expand button over the player, not in the page flow. */}
+        {!chatOpen && (
+          <div className="z-controls absolute right-7 top-7 transition-opacity">
+            <button
+              type="button"
+              aria-label="Expand chat"
+              onClick={() => setChatOpen(true)}
+              className="state-layer-base flex size-9 items-center justify-center rounded bg-surfaceOverlay-base text-white"
+            >
+              <Icon name="expand-chat" className="size-4" />
+            </button>
+          </div>
+        )}
         {stream ? (
           <>
             {watch ? <ChannelPlayer stream={stream} /> : <ChannelLivePreview stream={stream} />}
@@ -127,15 +143,17 @@ export function ChannelShell({
           aria-orientation="vertical"
           onMouseDown={() => setIsDragging(true)}
           className={`absolute inset-y-0 left-0 z-10 w-1 cursor-col-resize transition-colors ${
+            chatOpen ? "" : "hidden"
+          } ${
             isDragging ? "bg-primary-base" : "bg-transparent betterhover:hover:bg-primary-base"
           }`}
         />
         <div
           id="channel-chatroom"
-          style={{ width: chatWidth }}
-          className="h-full shrink-0 overflow-hidden"
+          style={{ width: chatOpen ? chatWidth : 0, opacity: chatOpen ? 1 : 0 }}
+          className="h-full max-h-full min-w-0 shrink-0 grow-0 overflow-hidden transition-[width,opacity] duration-300 ease-out"
         >
-          <ChannelChat />
+          <ChannelChat onCollapse={() => setChatOpen(false)} />
         </div>
       </div>
     </div>

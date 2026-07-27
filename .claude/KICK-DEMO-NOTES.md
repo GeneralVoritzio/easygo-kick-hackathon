@@ -218,3 +218,9 @@ Raised on 26 July 2026 and not yet done.
 
 Routes match kick.com, so the clone and the real page can be compared side by side. The old Vite
 starter sits at `/demo`. The creator dashboard is at `/dashboard/stream`.
+
+## The chat runs compact message spacing
+
+KICK's default `--chatroom-message-spacing` is 4px, and it is a viewer setting. Our chat sets the
+variable to 2px inline, the same way kick.com applies a viewer's choice, because the demo reads
+better dense. The token in `theme.css` keeps KICK's default. Decided 27 July 2026.

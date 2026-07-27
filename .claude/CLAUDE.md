@@ -111,6 +111,19 @@ the `kick-page-clone` skill and commit them.
 - **Cite the source file when you derive from it** — quote the section (e.g. "Design System Section 3") so claims are traceable back to a locked source rather than invented.
 - Confidence tags in the Design System and the Brand Identity (✅ verified / 🟡 high confidence / 🔧 derived) carry meaning. Don't promote a 🔧 value to a fact.
 
+## Branches and worktrees
+
+**A branch has the same name as its worktree folder.** A worktree at
+`.claude/worktrees/<name>` runs on branch `claude/<name>`, and nothing else. Two different names
+for one piece of work make `git worktree list` unreadable, and they hide which folder holds which
+change.
+
+- The worktree folder decides the name. If a worktree already exists, rename the branch to match:
+  `git branch -m claude/<worktree-name>`.
+- Name the worktree for the work, not for the tool. `livestream-chat-layout` is a name.
+  `kick-page-clone-387220` is not, because it names a skill and a random number.
+- Say the worktree name when you report work, so the reader knows which folder to open.
+
 ## Coding style
 
 - **Keep it simple.** Write the most obvious version that works. No speculative abstraction, no clever one-liners, no layers that exist only in case we need them later.

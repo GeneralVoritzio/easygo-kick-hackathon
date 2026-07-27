@@ -266,42 +266,190 @@ them. The values below are the logged out defaults.
 | `--chatroom-timestamps-display` | `none` | Timestamps are off |
 | `--chatroom-mod-actions-display` | `none` | Mod actions are off |
 
+Everything below this line was read on **27 July 2026** from `kick.com/odablock`, live, **logged
+in**, at 2560 by 1305. A logged out capture gives a skeleton here, so it can prove none of it.
+
 ### Structure, top to bottom
 
-1. **Header.** Minimum height 38px, 50px in practice. Padding `12px 6px`. A **2px** bottom border
-   in `#24272C`. The word `Chat` centred, with an icon button on each side.
-2. **Gifter leaderboard.** A 34px strip, a border top and bottom. It lists the top gifters with an
-   amount each.
-3. **The message list**, which grows.
-4. **The input**, at the bottom.
+The panel is `#channel-chatroom`. Its rows are 50, 33, the list, and 118.
+
+1. **Header.** `relative flex min-h-[38px] shrink-0 items-center justify-between border-b-2
+   border-[#24272c] px-3 py-1.5`. 50px in practice. A 36px icon button at each end, each holding a
+   16px icon. The word `Chat` is **absolutely centred**, not a flex item:
+   `absolute left-1/2 -translate-x-1/2 text-sm font-bold lg:text-base`.
+2. **Gifter leaderboard**, 33px. It scrolls. See below.
+3. **The message list**, `#chatroom-messages`, which grows. It carries **no padding**, and it shows
+   the 4px global scrollbar. Each row carries its own `px-2 lg:px-3`.
+4. **The footer**, `#chatroom-footer`, 146px. Three rows. See below.
+
+**There is an emote bar above the input.** It is empty until KICK loads the emote set, so a capture
+taken too early shows a 118px footer and no bar. Wait for it before you measure.
+
+### The gifter leaderboard
+
+A marquee, not a static strip. Two identical tracks scroll left as one.
+
+```
+wrapper   overflow-hidden, shrink-0
+inner     relative flex flex-col justify-end px-5 text-sm font-medium
+button    flex w-full overflow-hidden border-y border-outline-decorative     34px
+track     animate-leaderboards-marquee flex min-w-full shrink-0 flex-row     32px
+entries   flex w-max min-w-full flex-row flex-nowrap items-center justify-center gap-4
+          padding 6px 16px
+entry     flex shrink-0 flex-row flex-nowrap items-center justify-center gap-1
+```
+
+`@keyframes leaderboards-marquee` is `0% translate(0)`, `55.556% translate(-100%)`,
+`to translate(-100%)`, run as `9s ease-in-out 2s infinite`.
+
+An entry is a 20px rank medal, then the name, then the amount. **The name colour is set by rank,
+not by the user**, and the amount is always grey:
+
+| Part | Rank 1 | Rank 2 | Rank 3 |
+|---|---|---|---|
+| Medal | `/img/gift-ranks/gift-rank-1.png` | `-2.png` | `-3.png` |
+| Name, 14px weight 600 | `text-orange-300` `#FDC872` | `text-neutral` `#FFF` | `text-orange-500` `#FBA418` |
+| Amount, 14px weight 400 | `text-neutral-500` `#808A93` | same | same |
+
+The medals are served from `kick.com` itself, not from a CDN, so they cannot be downloaded.
 
 ### A message row
 
 ```
-outer   padding: 0 12px          (8px under the lg breakpoint)
-inner   padding: 4px 8px         border-radius: 8px
-hover   background: #232629
+outer   group relative px-2 lg:px-3
+inner   w-full min-w-0 shrink-0 break-words rounded-lg px-2
+        padding 4px 8px   border-radius 8px   font-size 14px   height 30px
+hover   betterhover:group-hover:bg-surface-highest, driven by the outer group
 ```
 
 | Part | Spec |
 |---|---|
-| Timestamp | 12px, weight 600, muted. Hidden by default |
-| Badges | Images, sized `1em * 18/13`, so about 19px at 14px text. 4px gap |
-| Username | Weight 700, colour set inline, one of the identity colours |
-| Separator | A bold `: ` between the username and the body |
-| Body | Weight 400, **`line-height: 1.55`** |
-| Emotes | 30px tall, inline, aligned to the middle |
+| Timestamp | `text-neutral pr-1 font-semibold`, 12px. Hidden by default |
+| Identity group | `inline-flex min-w-0 flex-nowrap items-baseline rounded transition-colors`, hover `#474F54`. It wraps the badges **and** the name, and it opens the user card |
+| Badge row | `flex items-center gap-1 self-center pr-1` |
+| One badge | `size-[calc(1em*(18/13))]`, so 19px at 14px text |
+| Username | A `button`, `inline font-bold`, colour set inline from the identity set |
+| Separator | `inline-flex font-bold`, a bold `: ` |
+| Body | `font-normal leading-[1.55]` |
+| Emotes | 30px, inline, aligned to the middle |
 
 **There is no divider between rows.** Density comes from the 4px padding.
 
-### The input
+Badges are a mix. The global ones are inline SVG on a 32 grid, drawn in their own colours, not in
+`currentColor`. The channel ones are images: `12-Month Subscriber`, `Level 35`, and the channel's
+own art. `KICK Founder 22` is an image too.
+
+### The footer
+
+146px, inside `px-2 py-3 lg:px-5`, so **20px sides at desktop** and every row inside is 300 wide
+in a 340 chat. It holds two blocks: the emote bar, then a `flex flex-col gap-2` stack with the
+input and the bottom row.
+
+```
+footer    flex w-full shrink-0 flex-col px-2 py-3 lg:px-5    146
+  slot    flex flex-col gap-1 pb-1 empty:hidden               32
+    bar   overflow-hidden                                     28
+  stack   flex flex-col gap-2
+    input                                                     46
+    row   flex shrink-0 grow-0 items-center gap-1             36
+```
+
+| Row | Spec |
+|---|---|
+| Emote bar, 28px | `flex h-7 max-h-7 w-full max-w-full flex-wrap items-center overflow-hidden empty:hidden`. Buttons are `h-full w-fit`, so 28 by 28, each holding a **24px** emote. The row clips to one line |
+| Input, 46px | `flex w-full items-center rounded border-2 border-neutral-700 pl-2 pr-1 transition-colors duration-200 ease-in-out`, hover `border-neutral-400` |
+| Bottom, 36px | Channel points and Kicks on the left, chat settings and `Chat` on the right |
+
+Inside the input box, left to right:
 
 | Part | Spec |
 |---|---|
-| Wrapper | Transparent background, **2px** border in neutral 700, radius 4px, 45px tall |
-| Hover | The border lightens to neutral 400, 200ms |
-| Field | 14px, transparent, no border of its own |
-| Send | Labelled `Chat`. bg `#53FC18`, text `#0B0B0C`, 14px weight 600, padding 6px 12px, 32px tall, radius 4px |
+| Chat identity | A 26 by 30 button holding a 16px badge, `data-testid="identity-badge-chat_identity"` |
+| Field | A contenteditable, `.editor-input`. **It grows with the text.** `min-height 42px`, `max-height 150px`, `overflow-y auto`, `white-space pre-wrap`, `word-break break-word`, padding `9px 10px`, line height 20px. Past 150px it scrolls, so the wrapper tops out at 154 and the footer at 254 |
+| Placeholder | **Not the field's own placeholder.** A separate element, `pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 select-none pl-[1px] font-medium`, 14px weight 500 in `#768087`. It centres against the whole 46px wrapper, and measures y 15, x 46, height 16 inside it. A native `placeholder` centres against the field's line box instead, and sits high |
+| Emotes | A 36px button holding a 16px icon. It opens the picker |
+
+In the bottom row, left to right:
+
+| Part | Spec |
+|---|---|
+| Channel points | 54 by 36, a 16px icon and the balance |
+| Kicks | 49 by 36, the 16px gradient coin and the balance |
+| Chat settings | 36 by 36, a 16px gear. Not the same gear as the settings page |
+| Send | Labelled `Chat`. bg `#53FC18`, text `#0B0B0C`, 14px weight 600, padding 6px 12px, 32 by 56, radius 4px |
+
+KICK's own emoji set is named `emojiAngry`, `emojiAstonished`, `emojiAngel` and so on, served as
+**animated GIFs** from `files.kick.com/emotes/<id>/fullsize`.
+
+### The emote picker
+
+It opens above the input, 348px tall in a 340 chat. It is a search box, a tab row and a scrolling
+list of labelled sections, **not a bare grid**.
+
+```
+#chat-emotes-picker-panel  z-popover absolute inset-x-0 bottom-full h-fit
+  bg-surface-base relative rounded-t flex h-auto w-full flex-col overflow-hidden min-h-[50px]
+    overflow-y-auto pt-1
+      grid gap-1
+        grid gap-4 pt-2.5 lg:pl-5 lg:pr-2 lg:pt-2          header
+          flex items-center gap-2                           36   search, then a close button
+          relative w-full max-w-full overflow-y-auto pr-3   40   the tab row
+        pl-5 pr-2.5                                         body
+          h-60 overflow-y-auto py-2 pr-2.5                 240
+            grid gap-2                                            one child per section
+```
+
+| Part | Spec |
+|---|---|
+| Search field | 36px tall, `bg-surface-lowest` `#0B0B0C`, **1px** `border-outline-region`, radius 4px, 14px, `pl-8`. Placeholder `Search emotes` |
+| Tab row | Five 40px buttons, `size-11 lg:size-10`. The first three are SVG (frequently used, collectibles, global), the last two are images (the channel avatar, and emotes) |
+| Section label | `text-xs font-medium text-neutral-400`, so 12px weight 500 in `#9FA6AD` |
+| Section grid | `grid grid-cols-8 justify-between gap-2` |
+| One emote | A 36px button holding a **28px** emote, hover `bg-white/10` |
+
+The section labels on a channel page read `Frequently Used`, `Collectibles`, `Global`, the channel
+name, then `Emotes`.
+
+**Clicking an emote in the picker writes it into the input.** It does not send. Only the quick
+emote bar sends on click.
+
+#### How it opens
+
+The panel is a **sibling of the padded footer box**, not a child of it. The box carries
+`overflow-hidden`, so a panel inside it would be clipped at the footer edge.
+
+| Part | Spec |
+|---|---|
+| Position | `absolute inset-x-0 bottom-0 h-fit -translate-y-[103px]`, so its bottom edge sits 103px above the footer bottom, level with the top of the input box. **It covers the quick emote bar** |
+| Slide | The inner panel animates `max-height` from its `min-h-[50px]` to `50vh`, over **350ms ease-out**. At 1305 tall that resolves to 652.5px, and the panel settles at 348 |
+| Fade | The contents fade in over **300ms** on `cubic-bezier(0.14, 0.98, 0.49, 1)` |
+| The footer behind it | The padded box takes `bg-surface-base` `#171A1C` while the panel is open, over `transition-all duration-300 ease-in-out`. The input row and the bottom row sit on the panel colour, not on the page colour |
+
+Drive the slide with a CSS keyframe, not a mount effect. A `requestAnimationFrame` never fires in
+a tab that is not compositing, which leaves the panel stuck at 50px.
+
+### Collapsing the chat
+
+The page root is `div.group/main` and it carries `data-chat`, `data-sidebar` and `data-theatre`.
+The chat reads `data-chat`:
+
+```
+group-data-[chat=false]/main:opacity-0
+group-data-[chat=false]/main:lg:w-0
+group-data-[chat=true]/main:lg:w-[var(--chat-width)]
+```
+
+The computed transition is exactly
+`width 0.3s cubic-bezier(0, 0, 0.2, 1), opacity 0.3s cubic-bezier(0, 0, 0.2, 1)`, so width and
+opacity animate together over 300ms on ease out. Tailwind's plain `transition` does **not** cover
+width, so it must be named.
+
+When the chat is collapsed an expand button appears **over the player**, not in the page flow:
+`z-controls absolute right-7 top-7 hidden transition-opacity group-data-[chat=false]/main:block`.
+It holds the expand icon, which is the collapse icon mirrored.
+
+A flex item with a width of 0 still measures at its content width unless it also carries
+`min-w-0`, because a flex item defaults to `min-width: auto`.
 
 ---
 

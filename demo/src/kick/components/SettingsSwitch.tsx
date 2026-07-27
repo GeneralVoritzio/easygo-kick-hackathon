@@ -16,11 +16,11 @@ export function SettingsSwitch({ checked, onCheckedChange, ...aria }: SettingsSw
       data-state={state}
       onClick={() => onCheckedChange(!checked)}
       {...aria}
-      className="relative inline-flex h-5 w-9 shrink-0 items-center rounded-full p-0.5 transition-colors betterhover:hover:brightness-110 data-[state=checked]:bg-primary-base data-[state=unchecked]:bg-secondary-base"
+      className="shrink-0 relative flex items-center cursor-pointer rounded-full transition-all disabled:pointer-events-none disabled:opacity-50 h-5 w-[2.25rem] bg-secondary-base data-[state=checked]:bg-primary-base"
     >
       <span
         data-state={state}
-        className="pointer-events-none block size-4 rounded-full bg-white transition-transform data-[state=checked]:translate-x-4 data-[state=unchecked]:translate-x-0"
+        className="block rounded-full bg-white transition-all will-change-transform h-[0.875rem] w-[0.875rem] translate-x-[0.25rem] data-[state=checked]:translate-x-[calc(2.25rem-0.25rem-0.875rem)] data-[state=checked]:bg-surface-base"
       />
     </button>
   );

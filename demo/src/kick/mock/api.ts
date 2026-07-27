@@ -646,6 +646,8 @@ export const currentUser = {
   avatar: avatar("martibo"),
   followers: 1,
   bio: "Martibo's Kick Channel",
+  banner: artUrl("banner-midnightden"),
+  offlineBanner: artUrl("thumb-just-chatting-1"),
 };
 
 export function streamPills(stream: Livestream): string[] {

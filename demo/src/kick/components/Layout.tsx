@@ -51,14 +51,16 @@ export function PageShell({
   children,
   scroller = "pt-3 lg:pt-6",
   column = "gap-y-3",
+  width = "max-w-[125rem]",
 }: {
   children: React.ReactNode;
   scroller?: string;
   column?: string;
+  width?: string;
 }) {
   return (
     <div className={`px-4 pb-20 lg:px-8 xl:px-10 ${scroller}`}>
-      <div className={`m-auto flex max-w-[125rem] flex-col ${column}`}>{children}</div>
+      <div className={`m-auto flex ${width} flex-col ${column}`}>{children}</div>
     </div>
   );
 }

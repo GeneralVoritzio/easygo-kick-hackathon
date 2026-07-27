@@ -1,11 +1,14 @@
 import { useState } from "react";
 import { Link, NavLink, useParams } from "react-router-dom";
 import { Icon, type KickIconName } from "../Icon";
+import { ProfileMenu } from "../components/ProfileMenu";
 import kickLogo from "../brand/kick-logo.svg";
 import { categories, currentUser } from "../mock/api";
 
+const streamItem = "/dashboard/stream";
+
 const navItems: { label: string; to: string; icon: KickIconName; expandable?: boolean }[] = [
-  { label: "Stream", to: "/dashboard/stream", icon: "dash-stream" },
+  { label: "Stream", to: streamItem, icon: "dash-stream" },
   { label: "Stream URL & Key", to: "/dashboard/channel/stream", icon: "dash-stream-key" },
   { label: "Revenue", to: "/dashboard/revenue", icon: "dash-revenue" },
   { label: "Achievements", to: "/dashboard/achievements", icon: "dash-achievements" },
@@ -212,6 +215,7 @@ export function CreatorDashboard() {
   const [emotesOnly, setEmotesOnly] = useState(false);
   const [showViewCount, setShowViewCount] = useState(true);
   const [draft, setDraft] = useState("");
+  const [menuOpen, setMenuOpen] = useState(false);
   const active = `/dashboard/${section ?? "stream"}`;
 
   return (
@@ -231,30 +235,55 @@ export function CreatorDashboard() {
             <Icon name="kick-mark" className="size-[1em]" />
             Go live
           </button>
-          <button type="button" aria-label={currentUser.username} className="shrink-0">
-            <img src={currentUser.avatar} alt="" className="size-8 rounded-full" />
+          <button
+            type="button"
+            aria-label={currentUser.username}
+            aria-haspopup="menu"
+            aria-expanded={menuOpen}
+            onClick={() => setMenuOpen((v) => !v)}
+            className="shrink-0 rounded"
+          >
+            <img
+              src={currentUser.avatar}
+              alt={currentUser.username}
+              className="size-8 rounded-full lg:box-content"
+            />
           </button>
+          {menuOpen && <ProfileMenu dashboard onClose={() => setMenuOpen(false)} />}
         </div>
       </nav>
 
       <div className="flex min-h-0 flex-1">
         <div className="hidden w-[var(--sidebar-expanded-width)] shrink-0 flex-col overflow-hidden bg-surface-lowest xl:flex">
           <ul className="flex w-full flex-col px-2">
-            {navItems.map((item) => (
-              <li key={item.to}>
-                <NavLink
-                  to={item.to}
-                  data-state={item.to === active ? "active" : "inactive"}
-                  className={`state-layer-surface flex h-12 w-full items-center justify-start gap-x-4 rounded px-4 py-1 text-base font-semibold text-white ${
-                    item.to === active ? "!bg-secondary-base" : "bg-transparent"
-                  }`}
-                >
+            {navItems.map((item) => {
+              const content = (
+                <>
                   <Icon name={item.icon} className="size-4 shrink-0" />
                   <span className="grow text-left">{item.label}</span>
                   {item.expandable && <Icon name="chevron-right" className="size-3 shrink-0 rotate-90" />}
-                </NavLink>
-              </li>
-            ))}
+                </>
+              );
+              const rowClass =
+                "flex h-12 w-full items-center justify-start gap-x-4 rounded px-4 py-1 text-base font-semibold text-white";
+              return (
+                <li key={item.to}>
+                  {item.to === streamItem ? (
+                    <NavLink
+                      to={item.to}
+                      data-state={item.to === active ? "active" : "inactive"}
+                      className={`state-layer-surface ${rowClass} ${
+                        item.to === active ? "!bg-secondary-base" : "bg-transparent"
+                      }`}
+                    >
+                      {content}
+                    </NavLink>
+                  ) : (
+                    <span className={`${rowClass} cursor-default bg-transparent`}>{content}</span>
+                  )}
+                </li>
+              );
+            })}
           </ul>
         </div>
 

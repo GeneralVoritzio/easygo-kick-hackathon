@@ -31,7 +31,7 @@ const identityColors = [
   "#d8a0fe", // violet
 ];
 
-function colorFor(username: string) {
+export function colorFor(username: string) {
   let hash = 0;
   for (let i = 0; i < username.length; i++) hash = (hash * 31 + username.charCodeAt(i)) >>> 0;
   return identityColors[hash % identityColors.length];
@@ -98,7 +98,7 @@ function renderBody(body: string): ReactNode[] {
   });
 }
 
-const chatters: { username: string; badges: BadgeName[] }[] = [
+export const chatters: { username: string; badges: BadgeName[] }[] = [
   { username: "GielinorGremlin", badges: ["og", "sub_gifter_purple"] },
   { username: "IronmanIsobel", badges: ["sub_gifter_teal"] },
   { username: "HardcoreHubert", badges: [] },
@@ -125,7 +125,7 @@ const chatters: { username: string; badges: BadgeName[] }[] = [
   { username: "BossMageBea", badges: ["sub_gifter_purple"] },
 ];
 
-const chatLines = [
+export const chatLines = [
   "one death and it's over lol",
   "GET THE FIRE CAPE",
   "chat this is actually insane",

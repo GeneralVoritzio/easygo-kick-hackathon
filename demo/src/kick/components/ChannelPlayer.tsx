@@ -1,4 +1,5 @@
 import { useEffect, useState, type PointerEvent as ReactPointerEvent } from "react";
+import { useSearchParams } from "react-router-dom";
 import { Icon } from "../Icon";
 import type { Livestream } from "../mock/api";
 
@@ -30,18 +31,26 @@ function dragProps(apply: (percent: number) => void) {
 const controlButtonClass =
   "tooltip-top flex size-11 shrink-0 items-center justify-center rounded bg-transparent text-white [&_svg]:size-5 [&_svg]:fill-current";
 
+function liveSeconds(startedAt: string) {
+  return Math.max(0, Math.floor((Date.now() - new Date(startedAt).getTime()) / 1000));
+}
+
 export function ChannelPlayer({ stream }: { stream: Livestream }) {
+  const [params] = useSearchParams();
+  const startAt = Number(params.get("t"));
   const [playing, setPlaying] = useState(true);
   const [muted, setMuted] = useState(false);
   const [volume, setVolume] = useState(80);
-  const [seek, setSeek] = useState(100);
   const [elapsedSeconds, setElapsedSeconds] = useState(() =>
-    Math.max(0, Math.floor((Date.now() - new Date(stream.started_at).getTime()) / 1000)),
+    startAt > 0 ? startAt : liveSeconds(stream.started_at),
+  );
+  const [seek, setSeek] = useState(() =>
+    startAt > 0 ? Math.min(100, (startAt / liveSeconds(stream.started_at)) * 100) : 100,
   );
 
   useEffect(() => {
-    setElapsedSeconds(Math.max(0, Math.floor((Date.now() - new Date(stream.started_at).getTime()) / 1000)));
-  }, [stream.started_at]);
+    setElapsedSeconds(startAt > 0 ? startAt : liveSeconds(stream.started_at));
+  }, [stream.started_at, startAt]);
 
   useEffect(() => {
     if (!playing) return;
@@ -146,7 +155,7 @@ export function ChannelPlayer({ stream }: { stream: Livestream }) {
             <div className="flex h-5 shrink-0 items-center gap-1.5 px-2">
               {/* Behind the live edge the dot goes grey, KICK's neon-highlight-base. The text stays LIVE. */}
               <span
-                className={`size-2 shrink-0 rounded-full ${playing ? "bg-green-500" : "bg-[#3f4448]"}`}
+                className={`size-2 shrink-0 rounded-full ${playing && seek >= 100 ? "bg-green-500" : "bg-[#3f4448]"}`}
               />
               <span className="text-sm font-semibold leading-none text-white">LIVE</span>
             </div>

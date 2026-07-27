@@ -446,7 +446,20 @@ width, so it must be named.
 
 When the chat is collapsed an expand button appears **over the player**, not in the page flow:
 `z-controls absolute right-7 top-7 hidden transition-opacity group-data-[chat=false]/main:block`.
-It holds the expand icon, which is the collapse icon mirrored.
+
+**The button is a labelled pill, not an icon on its own.** It holds the expand icon, which is the
+collapse icon mirrored, then the word `Chat`. Read from `kick.com/evscape` on 28 July 2026:
+
+| Thing | Live value |
+|---|---|
+| Size | 82 by 40 |
+| Position | `top: 28px`, `right: 28px` from the player column |
+| Background | `#171A1C` `bg-surface-base`, hover `bg-surface-highest` |
+| Text | `Chat`, white, 16px, weight 600 |
+| Icon | 16px through `[&_svg]:size-[1em]`, `fill-current` |
+| Box | `gap-1.5`, `px-3 py-2`, radius 4px |
+
+The button has no `aria-label`, because the word `Chat` is the label.
 
 A flex item with a width of 0 still measures at its content width unless it also carries
 `min-w-0`, because a flex item defaults to `min-width: auto`.

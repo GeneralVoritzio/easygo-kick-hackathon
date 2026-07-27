@@ -110,11 +110,11 @@ export function ChannelShell({
           <div className="z-controls absolute right-7 top-7 transition-opacity">
             <button
               type="button"
-              aria-label="Expand chat"
               onClick={() => setChatOpen(true)}
-              className="state-layer-base flex size-9 items-center justify-center rounded bg-surfaceOverlay-base text-white"
+              className="inline-flex select-none items-center justify-center gap-1.5 whitespace-nowrap rounded bg-surface-base px-3 py-2 text-base font-semibold text-white transition-all betterhover:hover:bg-surface-highest betterhover:active:scale-[0.98]"
             >
-              <Icon name="expand-chat" className="size-4" />
+              <Icon name="expand-chat" className="size-4 fill-current" />
+              Chat
             </button>
           </div>
         )}

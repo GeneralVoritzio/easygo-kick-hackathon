@@ -43,12 +43,12 @@ export function ChannelPlayer({ stream }: { stream: Livestream }) {
     <div className="relative block w-full shrink-0 overflow-hidden bg-black max-h-[calc(100vh-var(--navbar-height)-var(--channel-info-height))] supports-[height:100dvh]:max-h-[calc(100dvh-var(--navbar-height)-var(--channel-info-height))]">
       <div
         id="injected-channel-player"
-        className="group/player z-player relative m-auto aspect-video max-h-full"
+        className="group/player z-player relative m-auto aspect-video max-h-full max-w-full bg-black"
       >
       <img
         src={stream.thumbnail}
         alt={stream.session_title}
-        className="h-full w-full object-cover brightness-125"
+        className="h-full w-full object-contain brightness-125"
       />
 
       <div className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-150 betterhover:group-hover/player:pointer-events-auto betterhover:group-hover/player:opacity-100 focus-within:pointer-events-auto focus-within:opacity-100">

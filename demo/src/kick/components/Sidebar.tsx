@@ -114,8 +114,8 @@ export function Sidebar({ collapsed }: { collapsed: boolean }) {
                 end={item.to === "/"}
                 title={item.label}
                 className={({ isActive }) =>
-                  `group relative box-border flex h-10 w-full items-center justify-center rounded transition-all state-layer-surface ${
-                    isActive ? "!bg-secondary-base text-white" : "bg-transparent text-white"
+                  `group relative box-border flex h-12 w-full items-center justify-center rounded py-1 transition-all state-layer-surface ${
+                    isActive ? "bg-surface-highest text-white" : "bg-transparent text-white"
                   }`
                 }
               >
@@ -130,7 +130,7 @@ export function Sidebar({ collapsed }: { collapsed: boolean }) {
           ))}
         </ul>
 
-        <div className="w-full px-3 py-1">
+        <div className="w-full">
           <div className="h-px w-full bg-outline-decorative" />
         </div>
 

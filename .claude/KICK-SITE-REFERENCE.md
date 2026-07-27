@@ -110,11 +110,57 @@ get wrong.
    category under it at 12px weight 700 in `#929EA6`, and a viewer count on the right.
 4. `About Kick` and `Start Live` at the bottom.
 
+### 3.1 The collapse, measured on kick.com 27 July 2026
+
+The hamburger in the navbar changes the rail between 256px and 56px. **The width changes in one
+frame. There is no animation.** This is easy to get wrong, because a nav link carries
+`transition-all` at 150ms, so a link that survives the toggle animates its own width down and the
+labels smear inside the 56px rail.
+
+KICK avoids that by **replacing the link elements**. Sampled every frame across a toggle, the
+`#sidebar-wrapper` element is the same node, but each `a` inside it is a new node. A new element
+has no previous value, so its transition never runs. In React, give the sidebar a `key` that
+changes with the state.
+
+| Part | Open, 256px | Closed, 56px |
+|---|---|---|
+| Nav link | `h-12 py-1 w-full justify-start gap-x-4 px-4`, 240 by 48 | `h-12 py-1 w-full justify-center`, 40 by 48 |
+| Nav link, active | `data-[state=active]:!bg-secondary-base` | `data-[state=active]:bg-surface-highest` |
+| Divider | `w-full px-3` holding `h-px w-full bg-outline-decorative` | the same, **without** `px-3` |
+| Section | `flex w-full flex-col p-3` | the same |
+| Section heading | `flex h-9 w-full items-center` | the same, plus `justify-center px-0` |
+| Channel row | 44px tall | 44px tall |
+
+The closed rail is the open rail with the labels dropped and the rows centred. The section
+padding, the heading height and the row height do not change.
+
 ---
 
 ## 4. The player
 
 The video fills the main column at 16:9. At a 1600 viewport that is 1004 by 565.
+
+### 4.1 The 16:9 stage, measured on `kick.com/odablock` 27 July 2026
+
+The player is two boxes, and the **inner one is what holds 16:9**:
+
+```
+div  relative block w-full shrink-0 overflow-hidden bg-black
+     max-h-[calc(100vh-var(--navbar-height)-var(--channel-info-height))]
+  div#injected-channel-player  relative m-auto aspect-video max-h-full max-w-full bg-black
+    video  h-full w-full, object-fit: contain
+```
+
+The outer box takes the full column width. The inner box keeps 16:9 whatever that width is: the
+`max-h-full` transfers through the aspect ratio into a maximum width, and `m-auto` centres what is
+left. Black fills the rest.
+
+**This is why the video does not change shape when the sidebar collapses.** A full bleed
+`absolute inset-0` image with `object-cover` looks the same at one width and wrong at the next,
+because it re-crops every time a panel opens or closes.
+
+The same two boxes serve the 320px strip on a sub-page, Section 19. There the outer box is
+`h-[320px]`, so the stage measures 569 by 320 at every column width.
 
 ### The control bar
 
@@ -703,7 +749,7 @@ its tabs only on the three sub-pages.
 
 ```
 div  relative block h-[320px] w-full shrink-0 overflow-hidden bg-black
-  div  the video layer, absolute inset-0 z-player cursor-pointer
+  div  the video layer, the 16:9 stage of Section 4.1, 569 by 320, centred
   div  [370x264] bg-surface-base flex flex-col items-start justify-center gap-4 rounded p-5
     div   [47x28] rounded bg-[#070809] px-2 py-0.5 text-green-400  -> LIVE, text-sm font-bold uppercase
     div   flex justify-between gap-4  -> title, line-clamp-2 font-bold, and a 32px mute button

@@ -8,11 +8,13 @@ export function ChannelLivePreview({ stream }: { stream: Livestream }) {
 
   return (
     <div className="relative block h-[320px] w-full shrink-0 overflow-hidden bg-black">
-      <img
-        src={stream.thumbnail}
-        alt={stream.session_title}
-        className="absolute inset-0 h-full w-full object-cover opacity-60"
-      />
+      <div className="relative m-auto aspect-video max-h-full max-w-full bg-black">
+        <img
+          src={stream.thumbnail}
+          alt={stream.session_title}
+          className="h-full w-full object-contain opacity-60"
+        />
+      </div>
       <div className="absolute left-4 top-7 flex h-[264px] w-[370px] flex-col items-start justify-center gap-4 overflow-hidden rounded bg-surface-base p-5">
         <div className="rounded bg-[#070809] px-2 py-0.5 text-green-400">
           <span className="text-sm font-bold uppercase leading-[1.2]">Live</span>

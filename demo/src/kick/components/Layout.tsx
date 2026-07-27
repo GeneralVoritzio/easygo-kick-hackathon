@@ -38,7 +38,7 @@ export function Layout() {
 }
 
 export const oneRowGrid =
-  "no-scrollbar -mx-4 flex snap-x snap-mandatory scroll-ps-4 auto-rows-[0] grid-rows-1 gap-y-0 overflow-y-hidden px-4 lg:mx-0 lg:grid lg:px-0 [&>div]:snap-start [&>div]:lg:w-full [&>div]:lg:snap-align-none";
+  "no-scrollbar -mx-4 flex snap-x snap-mandatory scroll-ps-4 auto-rows-[0] grid-rows-1 gap-y-0 overflow-y-hidden px-4 lg:mx-0 lg:grid lg:px-0 [&>div]:snap-start [&>div]:lg:w-full [&>div]:lg:snap-align-none group-data-[showingmore=true]/section:lg:grid-rows-2! group-data-[showingmore=true]/section:lg:gap-y-6!";
 
 // KICK puts the top padding on the scroll container and the gap on the column.
 // Browse is pt-3 lg:pt-6 with gap-y-3, home has no top padding at lg and gap-y-7.
@@ -52,7 +52,7 @@ export function PageShell({
   column?: string;
 }) {
   return (
-    <div className={`px-4 lg:px-8 xl:px-10 ${scroller}`}>
+    <div className={`px-4 pb-20 lg:px-8 xl:px-10 ${scroller}`}>
       <div className={`m-auto flex max-w-[125rem] flex-col ${column}`}>{children}</div>
     </div>
   );

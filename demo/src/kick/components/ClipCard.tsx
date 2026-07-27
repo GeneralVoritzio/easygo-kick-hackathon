@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { CornerMarks, Pill, ThumbBadge } from "./CardBits";
 import { streamColumns } from "./StreamCard";
+import { oneRowGrid } from "./Layout";
 import { formatViewers } from "../mock/api";
 import { CLIPS_NOW, type Clip } from "../mock/clips";
 
@@ -26,7 +27,10 @@ function formatClipAge(createdAt: string): string {
 export function ClipCard({ clip }: { clip: Clip }) {
   return (
     <div className="group/card relative flex w-full shrink-0 grow-0 flex-col gap-2 will-change-transform lg:gap-0">
-      <div className="relative aspect-video w-full select-none overflow-hidden rounded">
+      <button
+        type="button"
+        className="relative block aspect-video w-full cursor-pointer select-none overflow-hidden rounded"
+      >
         <img
           src={clip.thumbnail}
           alt={clip.title}
@@ -36,7 +40,7 @@ export function ClipCard({ clip }: { clip: Clip }) {
         <ThumbBadge corner="bottom-left">
           <span>{formatViewers(clip.view_count)}</span> views
         </ThumbBadge>
-      </div>
+      </button>
 
       <div className="flex w-full flex-row flex-nowrap gap-2 lg:px-1.5 lg:py-2 tv:py-4 fhd:py-5">
         <Link to={`/${clip.channel.slug}`} className="shrink-0">
@@ -53,9 +57,12 @@ export function ClipCard({ clip }: { clip: Clip }) {
           >
             {clip.channel.username}
           </Link>
-          <span className="line-clamp-1 max-w-full text-base font-normal leading-6 text-surface-onSurfaceSecondary">
+          <button
+            type="button"
+            className="line-clamp-1 max-w-full cursor-pointer text-left text-base font-normal leading-6 text-surface-onSurfaceSecondary"
+          >
             {clip.title}
-          </span>
+          </button>
           <div className="mt-2 flex max-h-[22px] w-full min-w-0 flex-row items-center gap-1 overflow-hidden">
             <Pill>{clip.category.name}</Pill>
             <span className="shrink-0 text-sm font-normal leading-5 text-surface-onSurfaceSecondary">
@@ -69,9 +76,11 @@ export function ClipCard({ clip }: { clip: Clip }) {
   );
 }
 
-export function ClipGrid({ clips }: { clips: Clip[] }) {
+export function ClipGrid({ clips, oneRow }: { clips: Clip[]; oneRow?: boolean }) {
   return (
-    <section className={`${streamColumns} grid gap-y-5 lg:gap-y-6`}>
+    <section
+      className={`${streamColumns} ${oneRow ? `${oneRowGrid} [&>div]:w-[268px]` : "grid gap-y-5 lg:gap-y-6"}`}
+    >
       {clips.map((clip) => (
         <ClipCard key={clip.id} clip={clip} />
       ))}

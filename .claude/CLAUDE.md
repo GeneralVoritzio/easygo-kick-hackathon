@@ -67,6 +67,35 @@ It is read-only ground truth, and Brand Identity Section 3 lists what it correct
 
 Never fetch an asset from the network at build time or at run time.
 
+### Imagery: kick.com is a site for adults, so the placeholders must look like one
+
+KICK is not advertised to children. Every image in a demo must read as a frame from a real
+streaming site. Three rules, one per kind of image.
+
+**Avatars are DiceBear Pixel Art, and no other style.**
+`https://api.dicebear.com/9.x/pixel-art/svg?seed=<slug>` (see
+[dicebear.com/styles/pixel-art](https://www.dicebear.com/styles/pixel-art/)). One file per channel
+slug, committed under `demo/src/kick/avatars/`, so nothing loads from the network at run time. Add
+the slug to that folder before you add the channel, because `mock/api.ts` throws on a missing file.
+Pixel Art is CC0 1.0, so it costs us no attribution. Do not reach for `thumbs`, `bottts`,
+`fun-emoji` or any other set, and do not draw an avatar by hand.
+
+**Category tiles are the official kick.com artwork.** Capture them with the `kick-page-clone`
+skill: open `/browse` in the user's Chrome, scroll the category rows until every tile has loaded,
+read the real image URLs out of the DOM, and commit the files. A category is a real game or a real
+KICK category, so it already has cover art. Never invent art for one.
+
+**Stream and clip stills look like gameplay or like a webcam.** A still is a frame the stream
+could really have produced. These are all wrong, and each one gives the demo away:
+
+- Flat vector illustration, a cartoon, or anything hand-drawn.
+- A painting, a photograph of a painting, or any gallery artwork.
+- Generic stock photography: a landscape, a flower, a desk, a person in an office.
+- A solid colour or a gradient plate standing in for a frame.
+
+The source that is always right is KICK itself. Take real thumbnails off a live kick.com page with
+the `kick-page-clone` skill and commit them.
+
 ## How to work
 
 - **Every idea gets run against the Spec Test** (`.claude/KICK-HACKATHON-BRIEF.md` Section 7) before it gets build time. Any ❌ in Part A (published requirements) or Part B (rules compliance) kills the idea. Then score it: ship above 75, keep prototyping 60–75, kill below 60.

@@ -58,20 +58,21 @@ export function StreamCard({ stream }: { stream: Livestream }) {
               <Icon name="verified" className="size-3.5 shrink-0 text-surface-onSurfacePrimary" />
             )}
           </Link>
-          <Link
-            to={`/browse/${stream.category.slug}`}
-            className="truncate text-sm font-normal leading-[1.2] text-surface-onSurfacePrimary"
+          <button
+            type="button"
+            className="max-w-full truncate text-left text-sm font-normal leading-[1.2] text-surface-onSurfacePrimary betterhover:hover:underline"
           >
             {stream.category.name}
-          </Link>
+          </button>
           <div className="mt-1 flex max-h-[22px] w-full flex-row flex-wrap gap-x-1 overflow-hidden">
             {stream.tags.map((t) => (
-              <span
+              <button
                 key={t}
-                className="flex h-[22px] items-center rounded-full bg-surface-highest px-2 text-xs font-semibold leading-none text-surface-onSurfaceSecondary"
+                type="button"
+                className="flex h-[22px] items-center rounded-full bg-surface-highest px-2 text-xs font-semibold leading-none text-surface-onSurfaceSecondary transition-colors betterhover:hover:bg-neutral-700 betterhover:hover:text-white"
               >
                 {t}
-              </span>
+              </button>
             ))}
           </div>
         </div>
@@ -81,9 +82,14 @@ export function StreamCard({ stream }: { stream: Livestream }) {
   );
 }
 
-export function StreamGrid({ streams }: { streams: Livestream[] }) {
+import { oneRowGrid } from "./Layout";
+
+const streamColumns =
+  "h-full grid-cols-1 gap-x-4 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4 2xl:grid-cols-5 3xl:grid-cols-6 group-data-[sidebar=false]/main:xl:grid-cols-5 group-data-[sidebar=false]/main:2xl:grid-cols-6 group-data-[sidebar=false]/main:3xl:grid-cols-7";
+
+export function StreamGrid({ streams, oneRow }: { streams: Livestream[]; oneRow?: boolean }) {
   return (
-    <section className="grid h-full grid-cols-1 gap-x-4 gap-y-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 lg:gap-y-6 3xl:grid-cols-6">
+    <section className={`${streamColumns} ${oneRow ? `${oneRowGrid} [&>div]:w-[268px]` : "grid gap-y-5 lg:gap-y-6"}`}>
       {streams.map((s) => (
         <StreamCard key={s.id} stream={s} />
       ))}

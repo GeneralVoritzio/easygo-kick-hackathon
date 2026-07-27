@@ -13,6 +13,9 @@ has to open kick.com and measure it again.
 **Source:** `https://kick.com/xqc`, a live channel page, read on 26 July 2026 at a 1600 by 900
 viewport, logged out. Values come from the DOM and from computed styles, not from a screenshot.
 
+Sections 15 to 18 come from `demo/kick-reference/`, the saved markup and CSS of the live site, read
+on 27 July 2026. Section 14 says how to query it.
+
 **Start at Section 8.** The wordmark, the icon set and the font are committed files. Copying them
 buys more fidelity than any amount of careful CSS.
 
@@ -361,6 +364,13 @@ Run a finished page against this list.
 - [ ] Chat is 14px, 4px row padding, no dividers, body line height 1.55.
 - [ ] The chat send button says `Chat`, not `Send`.
 
+**Grids and spacing**
+- [ ] The column spacing came from this page's markup, not from another page (Section 15).
+- [ ] Stream grids carry the collapsed-sidebar column variants (Section 15).
+- [ ] Category grids are auto-fill at 139px from `lg`, with an 8px column gap (Section 15).
+- [ ] Home sections hold one row. Browse sections wrap.
+- [ ] Every z-index comes from Section 18.
+
 **Last**
 - [ ] Green stays under 10% of visible pixels (Design System Section 1).
 
@@ -418,3 +428,111 @@ An offline row dims the avatar with `mix-blend-luminosity grayscale` and sets th
 **KICK renders all page content on the client.** The server sends skeleton placeholders where every
 card will appear. The saved HTML gives correct chrome and correct card geometry, but no card
 content. Read a live page when you need the filled markup.
+
+**A skeleton is a dimensional drawing.** It looks like nothing, but KICK sizes each placeholder to
+the element it stands in for, so it carries the real numbers. `h-7 w-16` on the hero live badge,
+`size-9 lg:size-14` on the hero avatar and `h-9 w-[100px]` on `Watch now` all came from skeletons
+and all proved correct against the live page. Do not skip a skeleton file because it has no text.
+
+**How to answer a question with this folder.** Three steps, in order:
+
+1. Find the element in `html/`. Search for a word the page shows, or for a class you already know.
+2. Resolve its class names in `css/`. KICK's custom names live there. `grid-cols-auto-fill-category`
+   is `repeat(auto-fill, minmax(139px, 1fr))`, which no amount of measuring by eye would give you.
+3. Open a live page only for what the scrape cannot hold: card content, hover and focus states, and
+   any page behind a login.
+
+Sections 15 to 17 were written this way, in minutes, after the same values had already been guessed
+wrong once.
+
+---
+
+## 15. The page column, and the grids
+
+Read from `demo/kick-reference/html/` on 27 July 2026, and confirmed against the running clone.
+
+**Two pages, two sets of spacing.** This is the trap. A shared page shell with one set of values is
+wrong on one of them.
+
+| Thing | Home | Browse |
+|---|---|---|
+| Scroll container | no top padding | `pt-3 lg:pt-6` |
+| Column | `gap-y-5 pt-3 lg:gap-y-7 lg:pt-0` | `gap-y-3` |
+
+Both share `px-4 lg:px-8 xl:px-10` on the outer div, then `m-auto flex max-w-[125rem] flex-col`.
+
+**Home sections hold one row. Browse sections wrap.** KICK holds a section to one row with
+`grid-rows-1` and `auto-rows-[0]`, so every card after the first row collapses to zero height, and
+`overflow-y-hidden` clips it. Below `lg` the same section becomes a horizontal snap scroller:
+`-mx-4 px-4 snap-x snap-mandatory scroll-ps-4`, with a fixed child width of 268px for a stream and
+108px for a category.
+
+**Stream grid columns**, the same on both pages:
+
+```
+grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4 2xl:grid-cols-5 3xl:grid-cols-6
+group-data-[sidebar=false]/main:xl:grid-cols-5
+group-data-[sidebar=false]/main:2xl:grid-cols-6
+group-data-[sidebar=false]/main:3xl:grid-cols-7
+```
+
+Gaps are `gap-x-4 gap-y-5 lg:gap-y-6`.
+
+**The collapsed sidebar adds a column.** KICK puts `data-sidebar` on the page root and reads it with
+`group-data-[sidebar=false]/main:`. The state of the chrome changes the content grid. Copy the
+attribute, not just the widths.
+
+**Category grid columns:** `grid-cols-2 sm:grid-cols-4 md:grid-cols-5`, then
+**`repeat(auto-fill, minmax(139px, 1fr))`** from `lg`. The column gap is **8px**, not 16px, and the
+card gap is 4px. A category grid is not a stream grid with narrower cards.
+
+---
+
+## 16. The home hero
+
+| Thing | Value |
+|---|---|
+| Aspect box | `w-[calc((2*100%-12px)/3)]`, `3xl:w-[calc((3*100%-12px)/4)]`, 12px gap to the chat |
+| Chat aside | `w-[calc((100%-24px)/3)]`, `3xl:w-[calc((100%-36px)/4)]`, radius 8, 1px `outline-region`, `pb-4` |
+| Chat header | **Absolute over the body**, `top-0 w-full rounded-t-lg p-4`. It has no bottom border |
+| Chat body | `px-4 pt-20`. Each line is `h-[30px]` with `gap-2` |
+| Overlay | `absolute inset-x-4 bottom-4 flex gap-3 rounded-lg bg-dark-64 p-4 backdrop-blur-sm` |
+| Overlay layout | The avatar is a **sibling of the whole stack**, not a member of the top row. The carousel dots start under the title, not under the avatar |
+| Avatar | `size-9 lg:size-14` |
+| Watch now | **100 by 36**, radius 6 |
+| Live badge | **64 by 28**, radius 4, 16px in from the top left |
+| Dots | 8px, the active one 48 by 8, the first with `ml-1` |
+
+The banner above the hero is Section 17.
+
+---
+
+## 17. The home banner
+
+| Thing | Value |
+|---|---|
+| Wrapper | `bg-surface-lowest lg:pt-4` |
+| Frame | `grid grid-cols-[1fr_auto_1fr] grid-rows-1 items-center gap-4 rounded-lg bg-surface-base bg-cover bg-center bg-no-repeat p-4` |
+| Height | **Not fixed. 112px follows from the content**: 16 padding, 28 title, 16 gap, 36 button, 16 padding |
+| Columns | Three. The left and right are empty and carry `empty:hidden`. The content sits in column 2 |
+| Title | 24px weight 700, line height 28, uppercase, `text-shadow: rgb(0 0 0 / 65%) 0 1px 8px` |
+| Button | `h-9 w-fit`, padding `0 8px`, 14px weight 600, `bg-primary-base`, `state-layer-base` |
+| Below `lg` | KICK ships a second copy: the whole banner is a link, the title drops to 20px, and the button is not shown |
+
+The plate is a CMS image and changes every week. Copy the frame, not the artwork.
+
+---
+
+## 18. The z-index scale
+
+Read from `css/`. Use these names and these numbers.
+
+| Class | Value |
+|---|---|
+| `z-absolute` | 101 |
+| `z-player` | 201 |
+| `z-controls` | 202 |
+| `z-navbar` | 301 |
+| `z-popover` | 401 |
+
+A scale of 300, 400 and 500 is invented. It works until two invented layers meet.

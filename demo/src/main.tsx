@@ -12,6 +12,7 @@ import { Channel } from './kick/pages/Channel'
 import { ChannelClips } from './kick/pages/ChannelClips'
 import { SettingsProfile } from './kick/pages/SettingsProfile'
 import { SettingsPreferences } from './kick/pages/SettingsPreferences'
+import { CreatorDashboard } from './kick/pages/CreatorDashboard'
 import Demo from './App.tsx'
 
 createRoot(document.getElementById('root')!).render(
@@ -19,6 +20,9 @@ createRoot(document.getElementById('root')!).render(
     <BrowserRouter>
       <Routes>
         <Route path="/demo" element={<Demo />} />
+        <Route path="/dashboard" element={<CreatorDashboard />} />
+        <Route path="/dashboard/:section" element={<CreatorDashboard />} />
+        <Route path="/dashboard/channel/:section" element={<CreatorDashboard />} />
         <Route element={<Layout />}>
           <Route path="/" element={<Home />} />
           <Route path="/browse" element={<Browse />} />

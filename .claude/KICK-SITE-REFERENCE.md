@@ -928,7 +928,81 @@ images a streamer uploads. Not every channel has them, so the row hides when the
 are portrait or square, never a 16:9 landscape box. Each panel sits in its own `flex flex-col
 gap-3`, and the row gap is 12px. Not every channel has panels, and the count varies.
 
-## 20. The settings pages, measured on kick.com 27 July 2026, logged in at 2560
+---
+
+## 20. The profile menu
+
+**Source:** `kick.com`, read on 27 July 2026 at a 2560 by 1305 viewport, **logged in**. The saved
+scrape cannot answer this section, because a logged out navbar has no avatar and no menu.
+
+The menu opens under the navbar avatar. Its box is `316 by 655`, `bg-surface-highest` (#232629),
+`rounded-lg`, and it sits at `right: 40px` under `--navbar-height`.
+
+**Seven direct children, in this order, with `gap-1` between them.** Three of them are separators,
+and the middle one is inset.
+
+| # | Child | Class | Box, from the menu corner |
+|---|---|---|---|
+| 0 | Header | `flex flex-col gap-3 px-2` > `flex flex-col gap-4 px-4 py-4` | x0 y0 316 by 268 |
+| 1 | Separator | `bg-outline-decorative h-px w-full` | x0 y272 316 by 1 |
+| 2 | Account rows, 4 | `flex flex-col gap-1 px-2` | x0 y277 316 by 204 |
+| 3 | Separator, **inset** | `bg-outline-decorative h-px mx-4 w-[calc(100%-32px)]` | x16 y485 284 by 1 |
+| 4 | Settings rows, 2 | `flex flex-col gap-1 px-2` | x0 y490 316 by 100 |
+| 5 | Separator | `bg-outline-decorative h-px w-full` | x0 y594 316 by 1 |
+| 6 | Log out | `min-h-12 py-1 px-2 w-full gap-4 font-normal` | x0 y599 316 by 56 |
+
+The menu has no bottom padding. The log out row is a wrapper, not a group, so it is 56 tall where
+every other row is 48.
+
+**The header**, inside `px-6 py-4`, is a centred column of `gap-4`. The first child is a
+`max-w-[262px]` column of `gap-2`:
+
+```
+div  size-[50px] relative overflow-hidden          the level badge, a PNG from ext.cdn.kick.com
+span text-lg font-bold leading-7                   the username, x24 y74
+span text-xs leading-4 #9FA6AD, centred            the level blurb, 3 lines, x24 y110 262 by 48
+div  flex w-full flex-col gap-1.5                  x24 y166 262 by 38
+  div role=progressbar  mt-2 flex h-2 w-full items-center
+    div  bg-outline-region relative h-2 min-w-px flex-1 rounded-lg
+      div  bg-surface-onSurface absolute inset-y-0 left-0 rounded-lg
+  span text-xs #9FA6AD  ->  "<span class='text-primary-base font-semibold'>41%</span> towards Level 12"
+a  h-8 w-full bg-secondary-base rounded px-3 py-1.5 text-sm font-semibold   "View your channel"
+```
+
+| Thing | Value |
+|---|---|
+| Level badge | A per-level PNG, `50 by 50`, a rounded square. It is not a green circle and it is not the user avatar. See the badge note under this table |
+| Progress track | `bg-outline-region` (#f0f1f266), **8px tall**, `rounded-lg` |
+| Progress fill | `bg-surface-onSurface`, so **white, not green** |
+| Progress label | Only the percentage is green and semibold. `towards Level 12` is `#9FA6AD` and regular |
+| Button | 268 wide, so it is **wider than the 262 text column** |
+
+**The level badge is not a flat colour.** Read at 7 times size from `ext.cdn.kick.com`, level 11:
+
+| Part | Value, for a 50px badge |
+|---|---|
+| Ring | A 2px edge of the flat tier colour, `#FFD400`, on a `11px` radius |
+| Face | Inside the ring, a vertical gradient, `#FFF6A8` at the top, `#FFE96B` at 45%, `#FFDA2E` at the bottom |
+| Digits | Black, `22px`, weight 800, centred |
+
+The gradient is what gives the badge its embossed look. A flat yellow square reads as wrong.
+
+**A menu row** is `min-h-12 gap-4 px-4 py-1 text-base font-normal`, with `state-layer-surface` for
+hover. Icons are **16px**, and the label starts at x56 from the menu corner.
+
+The rows, in order: `Creator dashboard`, `Subscriptions`, `Drops & rewards`, `Collectibles`, then
+the inset separator, then `Display language` and `Settings`, then a separator, then `Log out`.
+
+**Two rows break the pattern:**
+
+- **Collectibles** draws its icon at **20px**, not 16. Its viewBox is `0 0 21 16`, where every other
+  menu icon is square.
+- **Display language** is a `px-0 py-1` wrapper holding a `h-10 px-4` button. The label is 16px, the
+  value `English` is 14px `#9FA6AD`, and the chevron after it is **12px**, not 16.
+
+---
+
+## 21. The settings pages, measured on kick.com 27 July 2026, logged in at 2560
 
 Seven tabs exist. We build two of them, `/settings/profile` and `/settings/preferences`. The rest
 render and do nothing. Logged out, both pages return an empty shell, so the saved HTML in

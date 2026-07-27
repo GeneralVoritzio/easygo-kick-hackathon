@@ -245,7 +245,7 @@ export function SettingsProfile() {
 
       <SettingsCard title="Basic Details" bodyClass="p-4 flex flex-col gap-4">
         <TextField label="Username" name="username" type="text" initialValue={currentUser.username} />
-        <TextField label="Email" name="email" type="email" initialValue="martibo@kickstream.tv" />
+        <TextField label="Email" name="email" type="email" initialValue="superdude1337@kickstream.tv" />
         <BioField initialValue="" />
       </SettingsCard>
 

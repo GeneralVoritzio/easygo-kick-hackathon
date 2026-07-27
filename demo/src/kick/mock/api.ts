@@ -227,18 +227,66 @@ export const livestreams: Livestream[] = [
     started_at: "2026-07-26T11:05:00Z",
     is_mature: false,
   },
-];
-
-export const followedChannels = [
   {
-    ...ironvow,
-    live: true,
-    category: "Old School RuneScape",
-    viewers: undefined as number | undefined,
+    id: 13,
+    channel: channel("couchsermon", "CouchSermon", 57330),
+    session_title: "hot takes only, you are all wrong and i will prove it",
+    category: cat("just-chatting"),
+    viewer_count: 2210,
+    is_live: true,
+    language: "English",
+    thumbnail: artUrl("thumb-just-chatting-2"),
+    started_at: "2026-07-26T10:40:00Z",
+    is_mature: false,
   },
-  { ...channel("charcoalchef", "CharcoalChef", 30211), live: false },
-  { ...channel("midnightden", "MidnightDen", 51902), live: false },
-  { ...channel("couchsenate", "CouchSenate", 283204, true), live: false },
+  {
+    id: 14,
+    channel: channel("yapmerchant", "YapMerchant", 24885),
+    session_title: "six hours of talking, zero points made",
+    category: cat("just-chatting"),
+    viewer_count: 764,
+    is_live: true,
+    language: "English",
+    thumbnail: artUrl("thumb-just-chatting-3"),
+    started_at: "2026-07-26T13:25:00Z",
+    is_mature: false,
+  },
+  {
+    id: 15,
+    channel: channel("spinvicar", "SpinVicar", 103470, true),
+    session_title: "blessing every spin, the machine is listening",
+    category: cat("slots-casino"),
+    viewer_count: 5108,
+    is_live: true,
+    language: "English",
+    thumbnail: artUrl("thumb-slots-casino-3"),
+    started_at: "2026-07-26T09:50:00Z",
+    is_mature: true,
+  },
+  {
+    id: 16,
+    channel: channel("cluecrawler", "ClueCrawler", 38914),
+    session_title: "master clues until a third age drops or i do",
+    category: cat("old-school-runescape"),
+    viewer_count: 1339,
+    is_live: true,
+    language: "English",
+    thumbnail: artUrl("thumb-old-school-runescape-3"),
+    started_at: "2026-07-26T08:05:00Z",
+    is_mature: false,
+  },
+  {
+    id: 17,
+    channel: channel("vanlifevoid", "VanlifeVoid", 61228),
+    session_title: "the van broke down again, chat picks the tow truck",
+    category: cat("irl"),
+    viewer_count: 1874,
+    is_live: true,
+    language: "English",
+    thumbnail: artUrl("thumb-irl-3"),
+    started_at: "2026-07-26T12:30:00Z",
+    is_mature: false,
+  },
 ];
 
 export type ChannelVideo = {
@@ -552,6 +600,21 @@ export const profileFor = (slug: string) =>
 export const liveStreamFor = (slug: string) =>
   livestreams.find((s) => s.channel.slug === slug);
 
+export const followedChannels = ["ironvow", "charcoalchef", "midnightden", "couchsenate"].map(
+  (slug) => {
+    const profile = profileFor(slug);
+    if (!profile) throw new Error(`No channel profile for followed channel ${slug}`);
+    const live = liveStreamFor(slug);
+    return {
+      ...profile.channel,
+      banner: profile.banner,
+      live: Boolean(live),
+      category: live ? live.category.name : profile.recent_categories[0].name,
+      viewers: live && !live.hide_viewer_count ? live.viewer_count : undefined,
+    };
+  },
+);
+
 export function formatDuration(seconds: number): string {
   const h = Math.floor(seconds / 3600);
   const m = Math.floor((seconds % 3600) / 60);
@@ -579,10 +642,12 @@ export function timeAgo(iso: string): string {
 }
 
 export const currentUser = {
-  username: "Martibo",
-  avatar: avatar("martibo"),
+  username: "SuperDude1337",
+  avatar: avatar("superdude1337"),
   followers: 1,
-  bio: "Martibo's Kick Channel",
+  bio: "SuperDude1337's Kick Channel",
+  banner: artUrl("banner-midnightden"),
+  offlineBanner: artUrl("thumb-just-chatting-1"),
 };
 
 export function streamPills(stream: Livestream): string[] {

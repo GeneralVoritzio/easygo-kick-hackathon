@@ -34,8 +34,7 @@ const clipRangeOptions = [
   { value: "all", label: "All Time" },
 ];
 
-export function Browse() {
-  const [tab, setTab] = useState<BrowseTab>("livestreams");
+export function Browse({ tab }: { tab: BrowseTab }) {
   const [language, setLanguage] = useState("all");
   const [streamSort, setStreamSort] = useState("recommended");
   const [clipSort, setClipSort] = useState("views");
@@ -67,26 +66,24 @@ export function Browse() {
     <PageShell>
       <h2 className="text-base font-bold leading-8 text-white lg:text-2xl">Browse</h2>
       <div className="flex flex-col gap-y-3 lg:gap-y-6">
-        <BrowseTabs active={tab} onChange={setTab} />
+        <BrowseTabs active={tab} />
 
         {tab === "livestreams" && (
           <section className="flex w-full flex-col gap-y-5 lg:gap-y-4">
             <BrowseFilters
               left={{
-                id: "browse_language",
+                id: "livestream_filter_by",
                 label: "Filter by:",
                 value: language,
                 onChange: setLanguage,
                 options: languageOptions,
-                widthClass: "lg:w-[118px]",
               }}
               right={{
-                id: "browse_sort_by",
+                id: "livestream_sort_by",
                 label: "Sort by:",
                 value: streamSort,
                 onChange: setStreamSort,
                 options: streamSortOptions,
-                widthClass: "lg:w-[146px]",
               }}
             />
             <StreamGrid streams={shownStreams} />
@@ -104,15 +101,13 @@ export function Browse() {
                 value: clipSort,
                 onChange: setClipSort,
                 options: clipSortOptions,
-                widthClass: "lg:w-[124px]",
               }}
               right={{
-                id: "clips_range",
+                id: "clips_filter_by",
                 label: "Filter by:",
                 value: clipRange,
                 onChange: setClipRange,
                 options: clipRangeOptions,
-                widthClass: "lg:w-[132px]",
               }}
             />
             <ClipGrid clips={shownClips} />

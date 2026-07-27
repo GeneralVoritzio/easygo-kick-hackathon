@@ -2,10 +2,11 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Icon } from "../Icon";
 import { PageShell } from "../components/Layout";
+import { Footer } from "../components/Footer";
 import { StreamGrid } from "../components/StreamCard";
 import { CategoryGrid } from "../components/CategoryCard";
 import { ClipGrid } from "../components/ClipCard";
-import { Pill, SectionHeading } from "../components/CardBits";
+import { Pill, Section } from "../components/CardBits";
 import { livestreams, categories, currentUser, followedChannels, streamPills } from "../mock/api";
 import { clips } from "../mock/clips";
 
@@ -155,9 +156,19 @@ function HeroCarousel() {
   );
 }
 
+function CategoryRow({ slug }: { slug: string }) {
+  const category = categories.find((c) => c.slug === slug)!;
+  const streams = livestreams.filter((s) => s.category.slug === slug);
+
+  return (
+    <Section white={category.name} viewAll showMore>
+      <StreamGrid streams={streams} oneRow />
+    </Section>
+  );
+}
+
 export function Home() {
-  const casinoStreams = livestreams.filter((s) => s.category.slug === "slots-casino");
-  const popularClips = [...clips].sort((a, b) => b.view_count - a.view_count).slice(0, 6);
+  const popularClips = [...clips].sort((a, b) => b.view_count - a.view_count);
 
   return (
     <PageShell scroller="" column="gap-y-5 pt-3 lg:gap-y-7 lg:pt-0">
@@ -165,25 +176,25 @@ export function Home() {
         <HeroCarousel />
       </div>
 
-      <section className="relative flex flex-col gap-y-3 lg:gap-y-4">
-        <SectionHeading white="Top Live Categories" viewAll />
-        <CategoryGrid categories={categories} oneRow />
-      </section>
-
-      <section className="relative flex flex-col gap-y-3 lg:gap-y-4">
-        <SectionHeading green="Streams" white="For You" viewAllHref="/browse" />
+      <Section cyan="Streams" white="For You" showMore>
         <StreamGrid streams={livestreams} oneRow />
-      </section>
+      </Section>
 
-      <section className="relative flex flex-col gap-y-3 lg:gap-y-4">
-        <SectionHeading white="Popular Clips This Week" viewAll />
-        <ClipGrid clips={popularClips} />
-      </section>
+      <Section cyan="Categories" white="For You" viewAllHref="/browse/categories">
+        <CategoryGrid categories={categories} oneRow />
+      </Section>
 
-      <section className="relative flex flex-col gap-y-3 lg:gap-y-4">
-        <SectionHeading white="Slots & Casino" viewAll />
-        <StreamGrid streams={casinoStreams} oneRow />
-      </section>
+      <CategoryRow slug="slots-casino" />
+      <CategoryRow slug="just-chatting" />
+
+      <Section white="Popular Clips This Week" viewAll showMore>
+        <ClipGrid clips={popularClips} oneRow />
+      </Section>
+
+      <CategoryRow slug="irl" />
+      <CategoryRow slug="old-school-runescape" />
+
+      <Footer />
     </PageShell>
   );
 }

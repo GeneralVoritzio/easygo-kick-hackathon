@@ -156,6 +156,11 @@ rather than a flat cartoon. Category names and stream titles stay real.
 
 A stream's thumbnail matches its own category.
 
+**A banner is drawn at 1964 by 134, which fits the channel page strip only.** The
+`/following/channels` card is 384 by 204 and uses `bg-cover`, so a strip crops to about 13 percent
+of its width and shows one enlarged detail. Two of our four cards read as empty. Draw each banner
+at the card ratio as well, or redraw it wide enough to survive the crop. See Section 6 item 11.
+
 ---
 
 ## 5. Mistakes already made, do not repeat
@@ -195,6 +200,7 @@ Raised on 26 July 2026 and not yet done.
 | 8 | Settings pages have never been checked against the live site. Following was checked on 27 July 2026, see Site Reference Section 19 | **Open** |
 | 9 | No bell icon. KICK has one next to the heart on a channel page | **Open** |
 | 10 | Video cards have no `⋮` overflow control | **Open** |
+| 11 | Banner art is 1964 by 134, so it crops to nothing on a `/following/channels` card. See Section 4 | **Open** |
 
 ---
 

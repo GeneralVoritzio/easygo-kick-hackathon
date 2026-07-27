@@ -136,13 +136,15 @@ export function ChannelShell({
         {children}
       </div>
 
-      <div className="hidden h-full lg:flex">
+      <div className="relative hidden h-full shrink-0 lg:flex">
         <div
           role="separator"
           aria-label="Resize chatroom"
           aria-orientation="vertical"
           onMouseDown={() => setIsDragging(true)}
-          className={`w-1 shrink-0 cursor-col-resize transition-colors ${chatOpen ? "" : "hidden"} ${
+          className={`absolute inset-y-0 left-0 z-10 w-1 cursor-col-resize transition-colors ${
+            chatOpen ? "" : "hidden"
+          } ${
             isDragging ? "bg-primary-base" : "bg-transparent betterhover:hover:bg-primary-base"
           }`}
         />

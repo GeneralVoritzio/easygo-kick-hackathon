@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
 
 export function CornerMarks() {
@@ -21,7 +22,8 @@ const pillClass =
 export function Pill({ children }: { children: React.ReactNode }) {
   return (
     <button type="button" className={pillClass}>
-      <span className="max-w-full truncate">{children}</span>
+      {/* leading-[22px] keeps the descender inside the clip box, so a g is not cut */}
+      <span className="max-w-full truncate leading-[22px]">{children}</span>
     </button>
   );
 }
@@ -57,12 +59,12 @@ export function ThumbBadge({
 
 // A section with no page behind it still shows View all. It just does not navigate.
 export function SectionHeading({
-  green,
+  cyan,
   white,
   viewAllHref,
   viewAll,
 }: {
-  green?: string;
+  cyan?: string;
   white: string;
   viewAllHref?: string;
   viewAll?: boolean;
@@ -72,7 +74,7 @@ export function SectionHeading({
     "shrink-0 text-xs font-semibold text-surface-onSurface focus-visible:underline lg:text-sm betterhover:hover:text-white";
   const title = (
     <>
-      {green && <span className="text-surface-onSurfacePrimary">{green} </span>}
+      {cyan && <span className="text-identity-cyan">{cyan} </span>}
       {white}
     </>
   );
@@ -102,5 +104,51 @@ export function SectionHeading({
           </button>
         ))}
     </div>
+  );
+}
+
+// Show more opens the second row, then removes itself. kick.com has no Show less.
+export function Section({
+  cyan,
+  white,
+  viewAllHref,
+  viewAll,
+  showMore,
+  children,
+}: {
+  cyan?: string;
+  white: string;
+  viewAllHref?: string;
+  viewAll?: boolean;
+  showMore?: boolean;
+  children: React.ReactNode;
+}) {
+  const [showingMore, setShowingMore] = useState(false);
+
+  return (
+    <section className="relative flex flex-col gap-y-3 lg:gap-y-4">
+      <SectionHeading cyan={cyan} white={white} viewAllHref={viewAllHref} viewAll={viewAll} />
+      <div
+        className="group/section relative flex h-full flex-col gap-4"
+        data-showingmore={showingMore}
+      >
+        {children}
+        {showMore && !showingMore && (
+          <div className="hidden items-center lg:flex">
+            <div className="h-px w-full bg-outline-decorative" />
+            <div className="px-3">
+              <button
+                type="button"
+                onClick={() => setShowingMore(true)}
+                className="inline-flex h-9 select-none items-center justify-center gap-1.5 whitespace-nowrap rounded px-2 text-sm font-semibold text-surface-onSurfaceSecondary transition-all state-layer-surface betterhover:active:scale-[0.98]"
+              >
+                Show more
+              </button>
+            </div>
+            <div className="h-px w-full bg-outline-decorative" />
+          </div>
+        )}
+      </div>
+    </section>
   );
 }

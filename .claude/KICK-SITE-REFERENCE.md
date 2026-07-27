@@ -69,6 +69,9 @@ At 1600 wide the page is three columns under a full width bar:
   of KICK looks wrong.
 - The chat width is a **drag handle**, not a fixed number. A 4px vertical strip sits between the
   main column and the chat, `aria-label="Resize chatroom"`, and it turns `#53FC18` on hover.
+  **The strip takes no width.** It sits over the chat left edge, so the chat column measures 340px
+  in total. A strip that takes its own 4px makes the main column 4px narrow, and the player, which
+  is 16 by 9, then sits about 2px high.
 - The navbar has **no bottom border**.
 
 ---
@@ -110,11 +113,57 @@ get wrong.
    category under it at 12px weight 700 in `#929EA6`, and a viewer count on the right.
 4. `About Kick` and `Start Live` at the bottom.
 
+### 3.1 The collapse, measured on kick.com 27 July 2026
+
+The hamburger in the navbar changes the rail between 256px and 56px. **The width changes in one
+frame. There is no animation.** This is easy to get wrong, because a nav link carries
+`transition-all` at 150ms, so a link that survives the toggle animates its own width down and the
+labels smear inside the 56px rail.
+
+KICK avoids that by **replacing the link elements**. Sampled every frame across a toggle, the
+`#sidebar-wrapper` element is the same node, but each `a` inside it is a new node. A new element
+has no previous value, so its transition never runs. In React, give the sidebar a `key` that
+changes with the state.
+
+| Part | Open, 256px | Closed, 56px |
+|---|---|---|
+| Nav link | `h-12 py-1 w-full justify-start gap-x-4 px-4`, 240 by 48 | `h-12 py-1 w-full justify-center`, 40 by 48 |
+| Nav link, active | `data-[state=active]:!bg-secondary-base` | `data-[state=active]:bg-surface-highest` |
+| Divider | `w-full px-3` holding `h-px w-full bg-outline-decorative` | the same, **without** `px-3` |
+| Section | `flex w-full flex-col p-3` | the same |
+| Section heading | `flex h-9 w-full items-center` | the same, plus `justify-center px-0` |
+| Channel row | 44px tall | 44px tall |
+
+The closed rail is the open rail with the labels dropped and the rows centred. The section
+padding, the heading height and the row height do not change.
+
 ---
 
 ## 4. The player
 
 The video fills the main column at 16:9. At a 1600 viewport that is 1004 by 565.
+
+### 4.1 The 16:9 stage, measured on `kick.com/odablock` 27 July 2026
+
+The player is two boxes, and the **inner one is what holds 16:9**:
+
+```
+div  relative block w-full shrink-0 overflow-hidden bg-black
+     max-h-[calc(100vh-var(--navbar-height)-var(--channel-info-height))]
+  div#injected-channel-player  relative m-auto aspect-video max-h-full max-w-full bg-black
+    video  h-full w-full, object-fit: contain
+```
+
+The outer box takes the full column width. The inner box keeps 16:9 whatever that width is: the
+`max-h-full` transfers through the aspect ratio into a maximum width, and `m-auto` centres what is
+left. Black fills the rest.
+
+**This is why the video does not change shape when the sidebar collapses.** A full bleed
+`absolute inset-0` image with `object-cover` looks the same at one width and wrong at the next,
+because it re-crops every time a panel opens or closes.
+
+The same two boxes serve the 320px strip on a sub-page, Section 19. There the outer box is
+`h-[320px]`, so the stage measures 569 by 320 at every column width.
 
 ### The control bar
 
@@ -125,8 +174,30 @@ It floats over the video. It has **no background plate**. It appears on hover.
 | Progress bar | Full bleed, edge to edge, **4px tall**, 56px above the video bottom. `aria-label="Loaded progress"` |
 | Control row | 44px tall, inset 20px from each edge |
 | Buttons | 44 by 44 hit area, transparent, icon only |
+| Icons | **20px** (`size-5`), not the 16px the rest of the site uses |
+| Cluster gap | **0.** Buttons touch. Only `Clip` carries `mx-2` |
 | Left cluster | Play, volume, the elapsed time, then the live chip |
-| Right cluster | In this order: picture in picture, `Clip`, theatre mode, full screen, settings |
+| Elapsed time | 14px weight **700**, `px-2`, line box 20px |
+| Live chip | `px-2`, 6px gap, line box 20px |
+| Volume | Button, then a 16px gap, then the slider. The slider stays collapsed until hover |
+| `Clip` | No padding. Icon, a 4px gap, then the label. 50.4px wide |
+| Right cluster | In this order: picture in picture, `Clip`, captions, theatre mode, full screen, settings |
+
+Read from the live player on 27 July 2026, logged in, at 2560.
+
+**A player button has no hover plate.** The state layer that every other button on kick.com carries
+is not here. The background stays transparent, and a tooltip appears instead.
+
+| Tooltip part | Spec |
+|---|---|
+| Plate | White, black text, 14px weight 500, 5px padding, 2px radius, no shadow, no border |
+| Arrow | A 10 by 5 white triangle under the plate. It points down and pokes 3px over the button |
+| Position | Above the button, a 2px gap, centred on the button, `z-index: 801` |
+| Collision | It stays 20px inside the player. The play plate aligns start, the settings plate aligns end. **The arrow stays centred on the button either way** |
+| Text | `Play (space)` `Pause (space)` `Mute (m)` `Unmute (m)` `Picture in Picture` `Clip (c)` `Captions (p)` `Theatre Mode (t)` `Fullscreen (f)` `Quality` |
+
+The settings button says **`Quality`**, not `Settings`. The share and report buttons in the
+channel bar carry the same tooltip, centred: `Share` and `Report`.
 
 **KICK's live player already carries a 4px progress bar.** A thin timeline rail is not a new idea
 bolted on. It is the bar KICK already draws.
@@ -139,6 +210,8 @@ This is the detail that gives a copy away. Read from the live markup.
 |---|---|
 | Track | `h-1`, so **4px**. It grows to `h-1.5`, so **6px**, on hover of the seekbar group |
 | Buffer | `bg-white/50`, white at 50% |
+| Rail under the fill | `#929EA6` at 50%, the `subtle` token. It is not white |
+| Fill on a live stream | The full width. A live stream sits at the live edge, so no rail shows |
 | Thumb | **16px** (`size-4`), `rounded-full`, filled `#53FC18` |
 | Thumb visibility | **Hidden until the group is hovered.** It is not a permanent dot |
 | Thumb hit area | A 32px invisible square (`before:size-8`) centred on the thumb |
@@ -153,6 +226,11 @@ an 8px round dot, bg-green-500     +     "LIVE" at 14px weight 600, white
 
 **It is a green dot and white text, not a red badge.** A red `LIVE` pill in the control bar is
 wrong. The red badge belongs on the avatar in the channel bar, and on thumbnails.
+
+**Paused, or behind the live edge, only the dot changes.** Measured on the live player, paused,
+27 July 2026. The text stays `LIVE` and stays white. The dot turns `#3F4448`, KICK's
+`neon-highlight-base`. There is no `Go back live` label, no tooltip, no hover state, and a click
+does nothing. The elapsed timer freezes while paused.
 
 ---
 
@@ -798,6 +876,7 @@ lift. A card that grows a border on hover is wrong.
 | `/browse/categories` | the same three | **none** |
 | `/browse/clips` | the same three | left `Sort by:` + `Views`, right `Filter by:` + `Last Week` |
 | `/following` | **Live Channels**, Categories, Channels | **none** |
+| `/following/channels` | the same three | **none**. It holds a card grid, Section 19.7a |
 
 **There is no Leaderboard tab.** The only leaderboard on kick.com is the gifter strip in chat,
 Section 6. **There is no search box on any browse tab**; the page search is the one in the navbar.
@@ -807,8 +886,15 @@ Options, read from the open menus:
 - Livestreams, sort: `Featured`, `Recommended`, `Viewers (High to Low)`. Default `Recommended`.
 - Clips, sort: `Views`, `Most Recent`. Filter: `Last Day`, `Last Week`, `Last Month`, `All Time`.
 
+The filter control is a **`button[role=combobox]`**, not a `select`. It is
+`inline-flex items-center justify-center gap-1.5`, it holds a `span` and the chevron `icon-10`,
+and it takes its **width from its text**, so it has no fixed width. The chevron carries
+`opacity-75 group-data-[state=open]:rotate-180`. The ids are `livestream_filter_by` and
+`livestream_sort_by`.
+
 The filter control is **32px** tall, `bg-secondary-base/20`, radius 4, `px-3 py-1.5`, 14px weight
-600 white. Its label is 14px weight 600 white, `gap-2` from the control. The row is
+600 white. `Languages` measures 118.63 by 32. Its label is 14px weight 600 white, `gap-2` from the
+control. The row is
 `flex w-full flex-row flex-wrap items-center justify-between gap-x-8 gap-y-4`, so one control sits
 left and one sits right.
 
@@ -834,6 +920,60 @@ is the same one the home page uses for `Streams For You`.
 list is empty KICK shows the empty state, so there is nothing to preview and no toggle to preview
 it with.
 
+### 19.7a The Channels tab is a banner card grid, not a list
+
+Measured on `kick.com/following/channels` on 27 July 2026, at 2560 by 1249, **logged in**. Logged
+out this page holds the empty state, so the saved scrape shows no cards. Read it in the user's
+Chrome, or you measure the empty state and call it the page.
+
+The heading is **`Followed Channels`**. The page shape below the tabs is the one Section 19.7 gives.
+
+```
+section  relative flex flex-col gap-y-3 lg:gap-y-4
+  div  flex items-center justify-between  ->  h2 "Followed Channels"
+  div  grid grid-cols-[repeat(auto-fill,minmax(335px,1fr))] gap-5
+    div  group relative flex w-full flex-col rounded
+      a
+        div  relative flex aspect-[1/0.53] min-h-[179px] w-full cursor-pointer flex-col rounded
+             bg-cover bg-center        <- the channel banner, under a flat scrim
+          div  flex grow flex-col items-center justify-center gap-2
+            div  relative box-content rounded-full border-4 transition-all
+                 betterhover:lg:group-hover:scale-110
+              img  size-12 rounded-full lg:size-20
+              div  absolute -bottom-1.5 right-1/2 flex w-10 translate-x-1/2 rounded-[2px]
+                   bg-green-500 px-2 py-1 text-[10px] font-bold uppercase leading-3 text-[#070809]
+            span  text-sm font-bold betterhover:hover:underline
+      button  size-8 absolute bottom-2 left-2 hidden betterhover:group-hover:flex
+              rounded bg-secondary-base text-secondary-onSecondary state-layer-surface
+```
+
+| Thing | Live value |
+|---|---|
+| Grid | `repeat(auto-fill, minmax(335px, 1fr))`, `gap: 20px`. At 2560 that gives 5 columns of 384px |
+| Card | 384 by 204, radius 4. The banner **is** the card, and it holds the whole layout |
+| Card ratio | `aspect-[1/0.53]`, floored by `min-h-[179px]` |
+| Banner scrim | `linear-gradient(0deg, rgba(49,49,49,0.5), rgba(49,49,49,0.5))` over the image, `bg-cover bg-center` |
+| Avatar | 80px at `lg` (`size-12 lg:size-20`), on a `box-content border-4` ring, so the ring box is 88px |
+| Ring, live | `border-green-500` |
+| Ring, offline | **`border-transparent`.** The ring box stays, so the card does not move |
+| Live chip | 40 by 20, `bg-green-500` on `#070809`, 10px weight 700 uppercase, radius 2, `-bottom-1.5` |
+| Name | 14px weight 700, **white on a live and on an offline card**, underlines on hover |
+| Unfollow | 32px, `bg-secondary-base`, a **filled heart**, `aria-label="Unfollow"`, bottom left, 8px in |
+
+Four details decide whether this reads as KICK:
+
+- **An offline card is not dimmed.** No greyscale on the avatar, and the name stays white. Only the
+  ring goes transparent and the chip goes away. This is the opposite of the sidebar row, Section 13.
+- **The card carries no category and no viewer count.** The banner, the avatar, the chip and the
+  name are all of it. There is no `Offline` label.
+- **The unfollow button is hidden until the card is hovered**, `hidden betterhover:group-hover:flex`.
+- **The avatar grows on hover**, `betterhover:lg:group-hover:scale-110`, and it is the only motion.
+
+**The sidebar disagrees with this page on purpose.** On `/following/channels` an offline row in the
+sidebar shows the username only: no category, no viewer count, the avatar dimmed and the name
+`text-neutral-700`. The card for the same channel shows a full colour avatar and a white name. Do
+not make one match the other.
+
 ### 19.8 A channel page is two different pages, and a live home page has no tabs
 
 Measured on `kick.com/trainwreckstv` (live), `kick.com/trainwreckstv/videos` (live) and
@@ -851,7 +991,7 @@ its tabs only on the three sub-pages.
 
 ```
 div  relative block h-[320px] w-full shrink-0 overflow-hidden bg-black
-  div  the video layer, absolute inset-0 z-player cursor-pointer
+  div  the video layer, the 16:9 stage of Section 4.1, 569 by 320, centred
   div  [370x264] bg-surface-base flex flex-col items-start justify-center gap-4 rounded p-5
     div   [47x28] rounded bg-[#070809] px-2 py-0.5 text-green-400  -> LIVE, text-sm font-bold uppercase
     div   flex justify-between gap-4  -> title, line-clamp-2 font-bold, and a 32px mute button
@@ -967,3 +1107,307 @@ images a streamer uploads. Not every channel has them, so the row hides when the
 340 by 414 and 340 by 340 on one channel. `object-fit: fill`, no radius, `max-width: 100%`. Panels
 are portrait or square, never a 16:9 landscape box. Each panel sits in its own `flex flex-col
 gap-3`, and the row gap is 12px. Not every channel has panels, and the count varies.
+
+---
+
+## 20. The profile menu
+
+**Source:** `kick.com`, read on 27 July 2026 at a 2560 by 1305 viewport, **logged in**. The saved
+scrape cannot answer this section, because a logged out navbar has no avatar and no menu.
+
+The menu opens under the navbar avatar. Its box is `316 by 655`, `bg-surface-highest` (#232629),
+`rounded-lg`, and it sits at `right: 40px` under `--navbar-height`.
+
+**Seven direct children, in this order, with `gap-1` between them.** Three of them are separators,
+and the middle one is inset.
+
+| # | Child | Class | Box, from the menu corner |
+|---|---|---|---|
+| 0 | Header | `flex flex-col gap-3 px-2` > `flex flex-col gap-4 px-4 py-4` | x0 y0 316 by 268 |
+| 1 | Separator | `bg-outline-decorative h-px w-full` | x0 y272 316 by 1 |
+| 2 | Account rows, 4 | `flex flex-col gap-1 px-2` | x0 y277 316 by 204 |
+| 3 | Separator, **inset** | `bg-outline-decorative h-px mx-4 w-[calc(100%-32px)]` | x16 y485 284 by 1 |
+| 4 | Settings rows, 2 | `flex flex-col gap-1 px-2` | x0 y490 316 by 100 |
+| 5 | Separator | `bg-outline-decorative h-px w-full` | x0 y594 316 by 1 |
+| 6 | Log out | `min-h-12 py-1 px-2 w-full gap-4 font-normal` | x0 y599 316 by 56 |
+
+The menu has no bottom padding. The log out row is a wrapper, not a group, so it is 56 tall where
+every other row is 48.
+
+**The header**, inside `px-6 py-4`, is a centred column of `gap-4`. The first child is a
+`max-w-[262px]` column of `gap-2`:
+
+```
+div  size-[50px] relative overflow-hidden          the level badge, a PNG from ext.cdn.kick.com
+span text-lg font-bold leading-7                   the username, x24 y74
+span text-xs leading-4 #9FA6AD, centred            the level blurb, 3 lines, x24 y110 262 by 48
+div  flex w-full flex-col gap-1.5                  x24 y166 262 by 38
+  div role=progressbar  mt-2 flex h-2 w-full items-center
+    div  bg-outline-region relative h-2 min-w-px flex-1 rounded-lg
+      div  bg-surface-onSurface absolute inset-y-0 left-0 rounded-lg
+  span text-xs #9FA6AD  ->  "<span class='text-primary-base font-semibold'>41%</span> towards Level 12"
+a  h-8 w-full bg-secondary-base rounded px-3 py-1.5 text-sm font-semibold   "View your channel"
+```
+
+| Thing | Value |
+|---|---|
+| Level badge | A per-level PNG, `50 by 50`, a rounded square. It is not a green circle and it is not the user avatar. See the badge note under this table |
+| Progress track | `bg-outline-region` (#f0f1f266), **8px tall**, `rounded-lg` |
+| Progress fill | `bg-surface-onSurface`, so **white, not green** |
+| Progress label | Only the percentage is green and semibold. `towards Level 12` is `#9FA6AD` and regular |
+| Button | 268 wide, so it is **wider than the 262 text column** |
+
+**The level badge is not a flat colour.** Read at 7 times size from `ext.cdn.kick.com`, level 11:
+
+| Part | Value, for a 50px badge |
+|---|---|
+| Ring | A 2px edge of the flat tier colour, `#FFD400`, on a `11px` radius |
+| Face | Inside the ring, a vertical gradient, `#FFF6A8` at the top, `#FFE96B` at 45%, `#FFDA2E` at the bottom |
+| Digits | Black, `22px`, weight 800, centred |
+
+The gradient is what gives the badge its embossed look. A flat yellow square reads as wrong.
+
+**A menu row** is `min-h-12 gap-4 px-4 py-1 text-base font-normal`, with `state-layer-surface` for
+hover. Icons are **16px**, and the label starts at x56 from the menu corner.
+
+The rows, in order: `Creator dashboard`, `Subscriptions`, `Drops & rewards`, `Collectibles`, then
+the inset separator, then `Display language` and `Settings`, then a separator, then `Log out`.
+
+**Two rows break the pattern:**
+
+- **Collectibles** draws its icon at **20px**, not 16. Its viewBox is `0 0 21 16`, where every other
+  menu icon is square.
+- **Display language** is a `px-0 py-1` wrapper holding a `h-10 px-4` button. The label is 16px, the
+  value `English` is 14px `#9FA6AD`, and the chevron after it is **12px**, not 16.
+
+---
+
+## 21. The settings pages, measured on kick.com 27 July 2026, logged in at 2560
+
+Seven tabs exist. We build two of them, `/settings/profile` and `/settings/preferences`. The rest
+render and do nothing. Logged out, both pages return an empty shell, so the saved HTML in
+`demo/kick-reference/html/` holds nothing. Read these pages in the user's Chrome.
+
+### 20.1 The shell, shared by every tab
+
+```
+h1 {2220x52}   "Settings"   text-2xl, line-height 32px, py-2.5
+div            the tab rail, sticky, 48px tall, inset 2px shadow at the foot
+div            the panel, max-w-844, mx-auto, gap-y-5, lg:pt-6
+  div.p-2.5
+    h2 {824x24}   the panel title, text-xl bold
+  section        one card per group
+```
+
+**The tab rail sticks under the navbar.** KICK writes `sticky -top-3`, because their 12px top
+padding sits on the **scroll container**. Our `PageShell` puts that padding on a div inside the
+scroller, so we write `top-0` and the rail lands in the same place, 60px from the top.
+
+The active tab is green (`#53fc18`) on a 1px green bottom border, plus a separate absolutely
+positioned 2px underline at `bottom-[-2px]`.
+
+### 20.2 A settings card
+
+Every group is a `section`, and it is a card, not a divided list:
+
+| Part | Value |
+|---|---|
+| Card | `bg-surface-base` `#171a1c`, radius 4px |
+| Header | `p-4`, 2px bottom border `rgba(240,241,242,0.16)` |
+| Header title | `h3`, 18px, weight 700, line-height 20px, white |
+| Header help text | 14px, weight 400, line-height 21px, `#9fa6ad`, under the `h3` in a `gap-1` column |
+| Body | `p-4` |
+
+The help text sits **in the header**, under the title, not in the body.
+
+### 20.3 A field, and why it is 68px tall
+
+A field is a label then a control, and it measures **812 by 68** inside the 844 card:
+
+- The `label` is **inline**, so its line box is the 24px body line-height, not its own 17px.
+- The control carries an **8px top margin**, then its own 36px height.
+
+KICK gets that margin from `space-y-2` on Tailwind v3. **Tailwind v4 changed `space-y-*` to a
+bottom margin on every child but the last**, which an inline label ignores, so the same class
+gives 60px here. Put `mt-2` on the control instead.
+
+### 20.4 The buttons
+
+| Button | Size | Fill |
+|---|---|---|
+| Save changes | 119x32 | `bg-primary-base`, `min-w-[10ch]` |
+| Save, on the Social Media card | 92x32 | as above |
+| Cancel | 71x32 | transparent |
+| Update Banner image | 170x32 | `bg-secondary-base` |
+| Edit Avatar | 89x36 | `bg-secondary-base` |
+
+All are `px-3 py-1.5 text-sm`, weight 600, radius 4px. Disabled reads
+`rgba(240,241,242,0.08)` on `rgba(240,241,242,0.24)`.
+
+The Cancel and Save pair is **right aligned** at `lg`, in a
+`flex w-full flex-col gap-2.5 lg:flex-row lg:items-center lg:justify-end`. Cancel is `order-last`
+on mobile and `order-first` at `lg`, so Save sits on top on a phone and on the right on a desktop.
+
+### 20.5 `/settings/profile`, five cards
+
+| Card | Height | What is in it |
+|---|---|---|
+| Profile Preview | 198 | The avatar and Edit Avatar in a `hidden lg:flex` left column, then "About <name>", the follower count and the description. **No banner in this card.** |
+| Channel Banner | 239 | A frame at `aspect-[580/64]`, `max-w-[580px]`, `lg:w-3/4`, centred, then the button, then centred help text |
+| Offline Stream Banner | 518 | The same, at `aspect-video` |
+| Basic Details | 507 | Three forms: Username, Email, Bio |
+| Social Media | 674 | One form, seven inputs, one Cancel and Save pair |
+
+The panel totals **844 by 2303**.
+
+**Each field in Basic Details is its own `form`** with its own Cancel and Save pair. Both start
+disabled and enable when the field changes. Bio is a `textarea`, `rows=3`, `maxlength=500`, with a
+2px `border-neutral-700`, unlike the 1px `border-outline-region` on an input.
+
+**Social Media is one form for all seven.** The order is Club, Instagram, X, Facebook, YouTube,
+Discord, TikTok. Every input reads "Enter social handle" and carries
+`data-testid="profile-inline-edit-input-<name>"`. The button row adds `lg:pt-6`.
+
+### 20.6 `/settings/preferences`, one card
+
+One card, 844 by 247. The header is 79 tall and holds the title plus the help text. Then three
+rows of 56, with **no border between them**.
+
+The row label is 16px on a 24px line box. The three rows are "Hide Pools, Hot Tubs & Bikinis",
+"Hide Slots & Casino" and "Hide VR Chat".
+
+**The switch is 36 by 20**, `role="switch"`, and carries both `aria-checked` and `data-state`. The
+knob is a 14 by 14 span, offset 4px from the left and 3px from the top, and it reads `data-state`
+off itself, not off the parent. Unchecked the track is `#42474d` and the knob is white. Checked the
+track is `#53fc18` and the knob turns `#171a1c`. Drive the styling from `data-state`.
+
+---
+
+## 22. The creator dashboard, a separate site
+
+**Source:** the `/stream` page of the dashboard host, read on 27 July 2026 at 2560 by 1305 in the
+user's own Chrome, **logged in**. The page needs a session, so it cannot be read logged out.
+Baseline: `demo/kick-reference/measured/dashboard-stream-2560.json`.
+
+The dashboard host is not the main site. It loads its own CSS chunks (`38u2r_w4u4dju.css`,
+`2m7oyef7xpt18.css`), it shares the token layer, and it lays the page out a different way. Do not
+reuse the main shell for it.
+
+### The navbar
+
+Same 60px height and same `#0b0b0c`, but the contents differ from the main site:
+
+| Part | Main site | Dashboard |
+|---|---|---|
+| Padding | `pl-3 pr-10` | `pl-3 pr-10`, the same |
+| Left | menu button, wordmark, search | menu button, wordmark. **No search** |
+| Left gap | 8px | **10px** (`gap-2.5`) |
+| Right | Get KICKs, chat, avatar | **Go live**, avatar |
+| Right gap | 8px | **20px** (`gap-5`) |
+| Menu icon | `collapse-sidebar` | the same three bars, `aria-label="Collapse sidebar"` |
+| Wordmark | `kick-logo.svg`, 97 by 26 | the same file, byte for byte |
+
+**Go live** is `h-9 px-2 gap-1.5 text-sm font-semibold`, `bg-primary-base` on
+`text-primary-onPrimary`, and it carries **the KICK K glyph**, not a live dot
+(`demo/src/kick/icons/kick-mark.svg`). The avatar is `size-8 rounded-full`. Measured at 2560, the
+button lands at 2386,12 and the avatar at 2488,14.
+
+### The frame
+
+```
+nav                              60px
+sidebar   256px  --sidebar-expanded-width, bg-surface-lowest, ul.px-2
+gutter    fills  bg-black, p-0.5              <- the page under the panels is pure black
+rail      64px   bg-surface-base, rounded-l, px-3 py-2.5, gap-y-4
+```
+
+A sidebar item is `h-12 px-4 py-1 gap-x-4 rounded text-base font-semibold`, and the active one is
+`!bg-secondary-base` (`#42474d`), not the green the main site uses. Each item carries a
+`data-testid` of `dashboard-tab-<name>`, and Studio and Community are buttons that expand.
+
+### The panel grid is percentages, never pixels
+
+Every pane is a percentage of its parent, each pane has a 2px pad, and black shows through the
+gaps. **Copy the percentage.** A pixel freezes one viewport.
+
+| Column | Width | Rows |
+|---|---|---|
+| 1 | 50% | Session Info 22%, Stream Preview 50%, then a row at 28% holding Activity Feed and Mod Actions at 50% each |
+| 2 | 30% | Chat, full height |
+| 3 | 20% | Stream info 30%, Channel Actions 70% |
+
+### A panel
+
+```
+div  flex h-full w-full flex-col
+  div  h-[52px] items-center justify-between rounded-t border-b border-outline-decorative
+       bg-surface-base py-2 pl-6 pr-4
+    div  flex items-center gap-4 text-lg leading-none   ->  icon 16 + title 18px/700
+    div  flex items-center gap-1                        ->  size-8 buttons, pop-out last
+  div  flex flex-1 grow overflow-hidden rounded-b bg-surface-base
+```
+
+**The panel surface is `bg-surface-base` (`#171a1c`), not `surface-lowest`.** This is the opposite
+of the main site, where one surface runs across the whole page. Here the panels are lighter and the
+page under them is black. Getting this backwards is the fastest way to make the dashboard look
+wrong.
+
+Every panel header ends with the pop-out button. Activity Feed and Mod Actions add a filter button
+before it, Stream info adds a pencil, and Stream Preview has none.
+
+**An icon inside a button is sized by the button's font, not by a size class.** Every button
+carries `[&_svg]:size-[1em]`, so the icon follows `text-sm` or `text-base` and a `size-4` on the
+`svg` loses to it. Write the mechanism, never the pixel:
+
+| Button | Font | Icon |
+|---|---|---|
+| Panel header action, `size-8` | `text-sm` | **14px** |
+| Navbar menu, `size-10` | `text-base` | 16px |
+| Go live, `h-9` | `text-sm` | 14px |
+| Rail tool, `size-10` | `text-base` | 16px |
+| Chat identity, `h-[30px] px-[5px]` | 16px through an inner `size-4` wrapper | 16px |
+| Chat emote, `size-9` | `text-base` | 16px |
+
+The leading icon beside a panel title is 16px, because it sits outside a button.
+
+**Channel Actions is the one exception.** Its pop-out renders at **16px** where every other panel
+renders 14px, on an identical 32px button at the same 14px font. Measured, not guessed. Copy the
+exception.
+
+A Channel Actions row ends in a **12px chevron**, or nothing at all when the row is disabled
+(Raid Channel has no chevron). A row that opens another site ends in a **16px** external-link glyph
+(`dash-external`), which is a plain box and arrow, **not** the dotted `dash-popout` the headers
+use. Both sit 16px from the panel's right edge, so their right edges line up with the chevrons.
+
+### Inside the panels
+
+- **Session Info.** `flex w-full gap-1` holding five `w-full flex-col items-start gap-3 px-3 py-4`
+  blocks, separated by `w-px h-full shrink-0 bg-outline-decorative`. **The divider needs
+  `shrink-0`**, or it is crushed to zero by the `w-full` blocks beside it. Session shows a badge
+  (`rounded-sm p-1 text-xs font-semibold uppercase bg-surfaceInverse-base`), the rest show a value.
+  A border-top closes the row.
+- **Stream Preview.** No `aspect-video`. The image fills the panel with `object-cover
+  object-center`, and the offline card centres over it: `h-fit w-fit gap-4 rounded bg-surface-base
+  p-5`, a `bg-[#F4F5F6] text-[#070809] px-1.5 py-1 text-[10px] uppercase` badge, then
+  `text-base lg:text-2xl` "<name> is offline". The artwork is the default offline banner the
+  dashboard host serves, 1764 by 993, 194 KB. It is stock artwork, so it is not ours to commit.
+- **Stream info.** `p-4`, the title as `line-clamp-2 font-semibold`, then a category tile at
+  `aspect-[164/219] h-[46px] rounded object-cover`, the category name, and a language pill
+  (`rounded-full px-2 py-1 text-sm bg-secondary-base`).
+- **Channel Actions.** `py-2` then `px-4 pt-2 gap-4`. Each group is a `pb-2 text-base font-bold`
+  heading, its rows, and a `h-px w-full bg-outline-decorative` rule. A row is `min-h-11 py-2
+  text-sm font-normal justify-between gap-4`, ending in a value plus a 12px chevron, or a switch.
+- **The switch** is `h-5 w-[2.25rem] rounded-full`, `bg-secondary-base` off and `bg-primary-base`
+  on. The knob is `h-[0.875rem] w-[0.875rem]`, `translate-x-[0.25rem]` off and
+  `translate-x-[calc(2.25rem-0.25rem-0.875rem)]` on, which measures 4px to 18px.
+- **Chat.** The message list, then a footer: an input row (`rounded border-2 border-neutral-700
+  pl-2 pr-1`) holding the identity badge, the editor and an emote button, then a row with the
+  channel-points button on the left and the settings gear plus a green **Chat** button on the
+  right.
+
+### The right rail
+
+Ten `size-10` buttons in one 64px column: an info button, an edit button on
+`bg-secondary-base/20`, a `h-px w-6` rule, seven tool buttons that each wear
+`border border-primary-base` on a transparent fill, and a dots button. The icons are 16px. They
+carry no `aria-label` on the live site, and the label comes from a tooltip.

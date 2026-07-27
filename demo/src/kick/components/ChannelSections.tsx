@@ -89,7 +89,7 @@ export function ChannelHome({ profile }: { profile: ChannelProfile }) {
   const channelClips = clips.filter((c) => c.channel.slug === profile.channel.slug);
 
   return (
-    <div className="flex w-full flex-col gap-8 px-4 py-6">
+    <div className="flex w-full flex-col gap-8 px-4 pb-20 pt-6">
       {profile.videos.length > 0 && (
         <section className="flex w-full flex-col gap-3">
           <Heading>Stream Videos</Heading>
@@ -129,7 +129,7 @@ export function ChannelHome({ profile }: { profile: ChannelProfile }) {
 
 export function ChannelVideos({ profile }: { profile: ChannelProfile }) {
   return (
-    <div className="flex w-full flex-col gap-3 px-4 py-6">
+    <div className="flex w-full flex-col gap-3 px-4 pb-20 pt-6">
       <Heading>Stream Videos</Heading>
       {profile.videos.length === 0 ? (
         <Empty message={`${profile.channel.username} has no past broadcasts yet.`} />
@@ -146,7 +146,7 @@ export function ChannelClips({ profile }: { profile: ChannelProfile }) {
     .sort((a, b) => b.view_count - a.view_count);
 
   return (
-    <div className="flex w-full flex-col gap-3 px-4 py-6">
+    <div className="flex w-full flex-col gap-3 px-4 pb-20 pt-6">
       <Heading>Clips</Heading>
       {channelClips.length === 0 ? (
         <Empty message={`Nobody has clipped ${profile.channel.username} yet.`} />
@@ -233,7 +233,7 @@ export function ChannelAbout({ profile }: { profile: ChannelProfile }) {
   const { channel, bio, recent_categories } = profile;
 
   return (
-    <div className="flex w-full max-w-[824px] flex-col gap-6 px-4 py-6">
+    <div className="flex w-full max-w-[824px] flex-col gap-6 px-4 pb-20 pt-6">
       <section className="flex flex-col gap-3">
         <Heading>About {channel.username}</Heading>
         <p className="text-base font-normal leading-6 text-surface-onSurfaceSecondary">{bio}</p>

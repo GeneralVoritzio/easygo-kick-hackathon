@@ -72,20 +72,18 @@ export function Browse({ tab }: { tab: BrowseTab }) {
           <section className="flex w-full flex-col gap-y-5 lg:gap-y-4">
             <BrowseFilters
               left={{
-                id: "browse_language",
+                id: "livestream_filter_by",
                 label: "Filter by:",
                 value: language,
                 onChange: setLanguage,
                 options: languageOptions,
-                widthClass: "lg:w-[118px]",
               }}
               right={{
-                id: "browse_sort_by",
+                id: "livestream_sort_by",
                 label: "Sort by:",
                 value: streamSort,
                 onChange: setStreamSort,
                 options: streamSortOptions,
-                widthClass: "lg:w-[146px]",
               }}
             />
             <StreamGrid streams={shownStreams} />
@@ -103,15 +101,13 @@ export function Browse({ tab }: { tab: BrowseTab }) {
                 value: clipSort,
                 onChange: setClipSort,
                 options: clipSortOptions,
-                widthClass: "lg:w-[124px]",
               }}
               right={{
-                id: "clips_range",
+                id: "clips_filter_by",
                 label: "Filter by:",
                 value: clipRange,
                 onChange: setClipRange,
                 options: clipRangeOptions,
-                widthClass: "lg:w-[132px]",
               }}
             />
             <ClipGrid clips={shownClips} />

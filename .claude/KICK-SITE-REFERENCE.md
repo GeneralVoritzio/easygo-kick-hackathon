@@ -705,8 +705,15 @@ Options, read from the open menus:
 - Livestreams, sort: `Featured`, `Recommended`, `Viewers (High to Low)`. Default `Recommended`.
 - Clips, sort: `Views`, `Most Recent`. Filter: `Last Day`, `Last Week`, `Last Month`, `All Time`.
 
+The filter control is a **`button[role=combobox]`**, not a `select`. It is
+`inline-flex items-center justify-center gap-1.5`, it holds a `span` and the chevron `icon-10`,
+and it takes its **width from its text**, so it has no fixed width. The chevron carries
+`opacity-75 group-data-[state=open]:rotate-180`. The ids are `livestream_filter_by` and
+`livestream_sort_by`.
+
 The filter control is **32px** tall, `bg-secondary-base/20`, radius 4, `px-3 py-1.5`, 14px weight
-600 white. Its label is 14px weight 600 white, `gap-2` from the control. The row is
+600 white. `Languages` measures 118.63 by 32. Its label is 14px weight 600 white, `gap-2` from the
+control. The row is
 `flex w-full flex-row flex-wrap items-center justify-between gap-x-8 gap-y-4`, so one control sits
 left and one sits right.
 

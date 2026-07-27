@@ -238,8 +238,16 @@ body{overflow:hidden}
 .viewers b{color:var(--kick-green); font-weight:700}
 .viewers .dot{width:8px; height:8px; background:var(--live)}
 
-/* chat, Site Reference Section 6 */
+/*
+  chat, Site Reference Section 6. The Highlights panel shares this column
+  now (css/player.css's .overlay): .chat__panel wraps the chat markup so
+  the two can swap places without either fighting the other for the same
+  flex slot, .chat.is-highlights-open (js/overlay.js) hides whichever one
+  is not showing.
+*/
 .chat{display:flex; flex-direction:column; min-height:0; background:var(--bg-base)}
+.chat__panel{display:flex; flex-direction:column; flex:1; min-height:0}
+.chat.is-highlights-open .chat__panel{display:none}
 .chat__head{
   display:flex; align-items:center; justify-content:space-between; flex:none;
   min-height:38px; padding:12px 6px; border-bottom:2px solid var(--kick-chat-rule);

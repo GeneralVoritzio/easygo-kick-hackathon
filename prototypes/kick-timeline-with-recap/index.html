@@ -52,10 +52,6 @@
 
         <div class="widget" id="widget">
           <div class="widget__bubbles" id="widgetBubbles">
-            <button class="widget__bubble" data-widget-action="highlights">
-              <span class="widget__bubblelabel">Highlights</span>
-              <span class="widget__bubbleicon" data-icon="highlights" data-icon-size="18"></span>
-            </button>
             <button class="widget__bubble" data-widget-action="expedition">
               <span class="widget__bubblelabel">Expedition</span>
               <span class="widget__bubbleicon" data-icon="expedition" data-icon-size="18"></span>
@@ -63,45 +59,6 @@
           </div>
 
           <button class="widget__button" id="widgetButton" aria-label="Open quick actions" aria-expanded="false"></button>
-        </div>
-
-        <div class="overlay glass" id="overlay" hidden>
-          <div class="overlay__head">
-            <div>
-              <h2 class="overlay__title">Highlights</h2>
-              <p class="overlay__sub" id="overlaySub"></p>
-            </div>
-            <div class="overlay__filters" role="group" aria-label="Filter moments">
-              <button class="chip is-active" data-filter="all">All</button>
-              <button class="chip" data-filter="peak">Peaks</button>
-              <button class="chip" data-filter="clip">Clips</button>
-              <button class="chip" data-filter="raid">Raids</button>
-              <button class="chip" data-filter="kicks">Gifts</button>
-              <button class="chip" data-filter="poll">Polls</button>
-              <button class="chip" data-filter="bookmarks">Bookmarks</button>
-              <button class="chip" data-filter="search">Search</button>
-            </div>
-            <button class="iconbtn" id="overlayClose" data-icon="close" aria-label="Close highlights"></button>
-          </div>
-
-          <div class="overlay__search">
-            <span class="overlay__searchicon" data-icon="search" aria-hidden="true"></span>
-            <input type="text" id="overlaySearchInput" maxlength="80"
-                   placeholder="Search moments, or @chat to search chat" aria-label="Search the timeline">
-            <button class="overlay__searchclear" id="overlaySearchClear" data-icon="close"
-                    data-icon-size="13" aria-label="Clear search" hidden></button>
-          </div>
-
-          <div class="overlay__scroll">
-            <section class="missed" id="missed" hidden>
-              <h3 class="overlay__h3">Before you joined</h3>
-              <div id="missedCards"></div>
-            </section>
-            <section>
-              <h3 class="overlay__h3" id="momentsHead">Every moment</h3>
-              <div class="hltiles" id="momentCards"></div>
-            </section>
-          </div>
         </div>
 
         <div class="expedition glass" id="expedition" hidden>
@@ -233,6 +190,8 @@
             <button class="plive" id="btnLive"><i class="dot"></i>LIVE</button>
             <span class="pspacer"></span>
             <button class="pbtn" data-icon="clip" data-icon-size="20" aria-label="Clip"></button>
+            <button class="pbtn" id="btnHighlights" data-icon="highlights" data-icon-size="20"
+                    aria-label="Highlights"></button>
             <button class="pbtn" id="btnMultiview" data-icon="multiview" data-icon-size="20"
                     aria-label="Multiview (coming soon)" title="Multiview (coming soon)"></button>
             <button class="pbtn" data-icon="pip" data-icon-size="20" aria-label="Picture in picture"></button>
@@ -243,8 +202,6 @@
         </div>
 
         <div class="scrubcard glass" id="scrubcard" hidden>
-          <button class="scrubcard__clip" id="scrubClip" data-icon="clip" data-icon-size="14"
-                  aria-label="Copy a shareable clip link, 20 seconds before and after"></button>
           <button class="scrubcard__bookmark" id="scrubBookmark" data-icon="bookmark" data-icon-size="14"
                   aria-label="Bookmark this point" aria-pressed="false"></button>
           <div class="clipthumb" id="scrubStage" hidden>
@@ -287,23 +244,63 @@
        aria-label="Resize chatroom" aria-orientation="vertical"
        aria-valuemin="280" aria-valuemax="460" aria-valuenow="340"></div>
 
-  <aside class="chat">
-    <div class="chat__head">
-      <button class="chaticon" data-icon="collapseChat" aria-label="Expand chat"></button>
-      <span class="chat__title">Chat</span>
-      <button class="chaticon" data-icon="chatters" aria-label="Show active chatters"></button>
+  <aside class="chat" id="chatAside">
+    <div class="chat__panel" id="chatPanel">
+      <div class="chat__head">
+        <button class="chaticon" data-icon="collapseChat" aria-label="Expand chat"></button>
+        <span class="chat__title">Chat</span>
+        <button class="chaticon" data-icon="chatters" aria-label="Show active chatters"></button>
+      </div>
+
+      <div class="chat__board" id="chatBoard"></div>
+      <div class="chat__body" id="chatBody"></div>
+
+      <div class="chat__foot">
+        <div class="chat__field">
+          <input id="chatInput" maxlength="500" placeholder="Send a message" aria-label="Send a message">
+          <button class="chaticon" data-icon="gift" data-icon-size="18" aria-label="Send a gift"></button>
+        </div>
+        <div class="chat__send">
+          <button class="btn btn--primary btn--sm" id="chatSend">Chat</button>
+        </div>
+      </div>
     </div>
 
-    <div class="chat__board" id="chatBoard"></div>
-    <div class="chat__body" id="chatBody"></div>
-
-    <div class="chat__foot">
-      <div class="chat__field">
-        <input id="chatInput" maxlength="500" placeholder="Send a message" aria-label="Send a message">
-        <button class="chaticon" data-icon="gift" data-icon-size="18" aria-label="Send a gift"></button>
+    <div class="overlay" id="overlay" hidden>
+      <div class="overlay__head">
+        <span class="overlay__title">Highlights</span>
+        <button class="iconbtn" id="overlayClose" data-icon="close" aria-label="Close highlights"></button>
       </div>
-      <div class="chat__send">
-        <button class="btn btn--primary btn--sm" id="chatSend">Chat</button>
+      <p class="overlay__sub" id="overlaySub"></p>
+
+      <div class="overlay__filters" role="group" aria-label="Filter moments">
+        <button class="chip is-active" data-filter="all">All</button>
+        <button class="chip" data-filter="peak">Peaks</button>
+        <button class="chip" data-filter="clip">Clips</button>
+        <button class="chip" data-filter="raid">Raids</button>
+        <button class="chip" data-filter="kicks">Gifts</button>
+        <button class="chip" data-filter="poll">Polls</button>
+        <button class="chip" data-filter="bookmarks">Bookmarks</button>
+        <button class="chip" data-filter="search">Search</button>
+      </div>
+
+      <div class="overlay__search">
+        <span class="overlay__searchicon" data-icon="search" aria-hidden="true"></span>
+        <input type="text" id="overlaySearchInput" maxlength="80"
+               placeholder="Search moments, or @chat to search chat" aria-label="Search the timeline">
+        <button class="overlay__searchclear" id="overlaySearchClear" data-icon="close"
+                data-icon-size="13" aria-label="Clear search" hidden></button>
+      </div>
+
+      <div class="overlay__scroll">
+        <section class="missed" id="missed" hidden>
+          <h3 class="overlay__h3">Before you joined</h3>
+          <div id="missedCards"></div>
+        </section>
+        <section>
+          <h3 class="overlay__h3" id="momentsHead">Every moment</h3>
+          <div class="hltiles" id="momentCards"></div>
+        </section>
       </div>
     </div>
   </aside>
@@ -370,8 +367,8 @@
 
       <div class="clipviewer__actions">
         <button class="pbtn" id="clipShare" data-icon="share" data-icon-size="18" aria-label="Copy a shareable link"></button>
-        <button class="pbtn" id="clipBookmark" data-icon="bookmark" data-icon-size="18"
-                aria-label="Bookmark this point" aria-pressed="false"></button>
+        <button class="pbtn" id="clipLike" data-icon="heart" data-icon-size="18"
+                aria-label="Like this clip" aria-pressed="false"></button>
       </div>
 
       <div class="clipviewer__replay">

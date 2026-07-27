@@ -5,10 +5,11 @@ A fork of `prototypes/kick-timelines-2`, the viewer view of the timeline.
 The timeline lives in the player's own scrubber, so the viewer never leaves
 the stream to use it.
 
-This fork adds three things on top of `kick-timelines-2`: **text search over
-the stream** (plain query, or `@chat <query>` to search chat instead),
-**viewer bookmarks**, and **a floating widget** that carries both, along with
-what used to be a bottom-bar Timeline button, renamed Highlights. Each is
+This fork adds several things on top of `kick-timelines-2`: **text search
+over the stream** (plain query, or `@chat <query>` to search chat instead),
+**viewer bookmarks**, a **Highlights** button in the control row (what used
+to be a bottom-bar Timeline button), and **a floating widget** that opens
+**Expedition**, a start-a-group-watch-party panel of its own. Each is
 described in its own section below. Every other line in this file describes
 what `kick-timelines-2` already does.
 
@@ -112,12 +113,24 @@ between them is square.
   the bar. All of it appears on hover, the way the page player's does, and it is
   up when the viewer opens because focus lands inside.
 - **The chat rail** on the right, at the chat width. A 64px channel avatar, the
-  channel name and the **stream** title, then two actions, share and bookmark,
+  channel name and the **stream** title, then two actions, share and like,
   then a rule, then the chat as it was, each row stamped from the start of the
   clip. No `Follow` and no `Watch full video`: the close button is the only way
   out, and closing never moves you anywhere else. Every row sits 14px in from
   each edge, the rule is 2px in `#24272C`, and the chat replay drops back to
   the page colour inside the rail.
+
+  **Like, not bookmark.** The heart is the same one-reaction-per-viewer model
+  every other like button on the page already follows (`js/moments.js`'s
+  `react`, the Highlights grid's own react button): press it once, it turns
+  rose, pressing again does nothing. A recorded clip, a search hit or a
+  bookmark reacts through its own store, so the count shows up wherever else
+  that moment is listed; a point built on the spot (`fromPoint`) has no store
+  to react through, so it reacts on the throwaway object itself instead, real
+  for as long as the viewer stays open and gone once it closes — the same way
+  a point like that was never a stored thing to begin with. Bookmarking a
+  clip still works, just from the rail's hover card or `B` before opening it,
+  the same as any other point on the stream.
 
 The bar runs edge to edge, 4px at rest and 6px under the pointer, with a 16px
 green thumb, the same metrics the page player uses (Site Reference Section 4).
@@ -138,10 +151,10 @@ own mute button and icon say so), and the viewer's own audio starts enabled.
 Closing the viewer hands audio back to whatever the main player's mute state
 was before it opened — muted stays muted, unmuted goes back to unmuted.
 
-The Highlights panel's own list is unchanged: a recorded clip still opens this
-same viewer there, and every other moment there still seeks instead, because
-that list has no picture-in-the-frame preview of its own to press. The rail's
-hover card is the one surface where every point behaves the same way.
+The Highlights panel's own list opens this same viewer too, on a press,
+whether the row is a recorded clip or not (below): the rail's hover card
+was the first surface where every point behaved the same way, not the
+only one any more.
 
 The frame is the same scene `js/stage.js` draws in the player. It is not video.
 The API gives no frames, and this is our own drawing.
@@ -150,16 +163,30 @@ The rail shows at most 8 notches, and it keeps 5 minutes between them, so a
 busy hour cannot crowd the bar. A category change never takes a slot, because
 it is a streamer decision and not a moment to rewatch.
 
-**The Highlights panel.** Press Highlights in the floating widget (below), or
-`T`. A panel covers the video frame, not the page, and hides the widget while
-it is open. It holds a filter row, a search field, and a grid of tiles, one
-per moment, each a colour-and-icon badge, title and byline, time and watching
-count, then bookmark, clip-and-share and react. No hype curve or graph here:
-the rail's own hover already draws one (above), and a second copy of the same
-line taught nothing new. Searching, or pressing a tile to watch or seek,
-never closes the panel: the viewer is still browsing it. Only `Esc` or the
-panel's own close button does. The controls stay live under the panel, so
-playback never stops.
+**The Highlights panel.** Press Highlights in the control row, or `T`. It
+lives in the chat column now, swapping places with chat itself
+(`js/kick.css`'s `.chat__panel`, `.chat.is-highlights-open`) — the fourth
+shape this went through: a pane over the video, then a docked column
+beside it, then a drawer below it, and now this. The video's own box never
+changes size or position through any of it, and this shape is the first
+that never asks a viewer to scroll away from the video to read it either.
+Chat comes back exactly as it was the moment the panel closes. It holds a
+filter row (one row, scrolling sideways rather than wrapping into three or
+four at this width), a search field, and a single column of compact rows,
+one per moment, each a live picture-in-the-frame thumbnail (below), a
+colour-and-icon badge, title, byline, time and watching count, then react.
+Rows sort loudest first, not chronologically, since there is no room left
+for a tile's size to say that any more (a fifth shape this panel has been
+in — a bento grid sized by hype — only worked at a width this column
+never has). No bookmark or clip-and-share on the row any more: bookmarking
+still works from the rail's hover card or `B`, and sharing from the clip
+viewer a press already opens. No hype curve or graph either: the rail's
+own hover already draws one (above), and a second copy of the same line
+taught nothing new. Searching, or pressing a row to watch or seek, never
+closes the panel: the viewer is still browsing it. Only `Esc` or the
+panel's own close button does. The head, the filters and the search field
+stay in view while only the row list scrolls beneath them, filling
+whatever height chat itself already had.
 
 **Before you joined.** The viewer joined this stream at 03:10:00. Instead of
 listing the loudest moments from before that as more tiles, the panel offers
@@ -186,9 +213,11 @@ anywhere on the video and it never fully commits to being part of the chrome.
 - **It rests translucent and sharpens on hover.** At 55% opacity by default so
   it never competes with the stream, full opacity the moment the pointer
   (or a drag) is on it.
-- **A press opens two bubbles: Highlights and Expedition.** Highlights opens
-  the timeline panel. Expedition opens the panel that starts a group hopping
-  channel to channel together (below).
+- **A press opens one bubble: Expedition.** It opens the panel that starts
+  a group hopping channel to channel together (below). Highlights moved
+  out to its own button in the control row, next to the other view
+  controls (`btnHighlights`), so it is reachable without opening the
+  widget at all.
 - **A press-and-drag moves it instead of opening the menu.** `js/widget.js`
   tells the two apart by how far the pointer travelled before it lifted
   (`DRAG_THRESHOLD_PX`): under that, it is a click; over it, the widget
@@ -202,11 +231,12 @@ anywhere on the video and it never fully commits to being part of the chrome.
   did (the rail's hover card, every tile, `B`); it just has no dedicated
   quick-open on the widget, the same as any other single filter chip in the
   Highlights panel.
-- **It hides while a panel is open.** The Highlights panel and the
-  Expedition panel each cover the whole frame the widget sits on, and the
-  widget's own bubble is how a viewer got to either in the first place, so
-  there is nothing for the widget to do while one is up (`css/player.css`'s
-  `.player.is-panel-open .widget`).
+- **It hides while the Expedition panel is open.** The panel covers the
+  whole frame the widget sits on, and its own bubble is how a viewer got
+  there in the first place, so there is nothing for the widget to do while
+  it is up (`css/player.css`'s `.player.is-panel-open .widget`). The
+  Highlights panel does not hide it: it opens in the chat column now,
+  never over the video, so there is nothing for it to cover.
 
 ## Search and bookmarks
 
@@ -241,9 +271,10 @@ immediately rather than leaving stale ones up until the next Enter. Typing,
 searching or watching a result never closes the panel: only `Esc` or its own
 close button does, since the viewer is still browsing it.
 
-**Bookmarks.** A viewer marks a point two ways: the bookmark button that now
-sits on every row (next to the reaction heart, both in the panel and on the
-rail's hover preview), or `B` to bookmark the current playhead from anywhere.
+**Bookmarks.** A viewer marks a point two ways: the bookmark button on the
+rail's hover preview, or `B` to bookmark the current playhead from anywhere.
+The Highlights panel's own tiles carry no bookmark button of their own any
+more, since pressing a tile already opens the clip viewer, which has one.
 One button, one model: bookmarking a point that is already bookmarked removes
 it. A bookmark takes its title from the nearest real moment within 90 seconds,
 or reads as a plain "Bookmarked moment" if there is not one. Bookmarks get
@@ -255,12 +286,14 @@ surface nor a bookmarking one. See the data section below for their labels.
 
 ## Expedition
 
-Press Expedition in the floating widget and a second full-frame panel opens,
-`js/expedition.js`, styled like the Highlights panel and sharing the same
-"a panel is open" state (`.player.is-panel-open`, so the control bar stays up
-and the widget hides the same way). KICK has no expedition surface at all:
-this is a viewer starting a group that travels channel to channel together,
-invented end to end and named to KICK-API-CONVENTIONS.md Part 2.
+Press Expedition in the floating widget and a full-frame panel opens,
+`js/expedition.js`, still a pane over the video the way the Highlights
+panel used to be (`.player.is-panel-open`, so the control bar stays up and
+the widget hides). It has no video underneath it to leave visible the way
+Highlights now does, since starting an expedition is a form to fill in,
+not something to watch while filling it in. KICK has no expedition surface
+at all: this is a viewer starting a group that travels channel to channel
+together, invented end to end and named to KICK-API-CONVENTIONS.md Part 2.
 
 One panel, three shapes, picked from three cards at the top:
 
@@ -389,11 +422,11 @@ and polls `viewer_count`. That is what keeps the idea past Spec Test B1.
 | `js/moments.js` | Markers and peaks become one list of moments, plus the shared group-to-icon map (`iconFor`) the rail and the Highlights list both read |
 | `js/search.js` | Text search over moments or chat, deduped and shaped like a moment |
 | `js/bookmarks.js` | Viewer bookmarks: add, remove, one toggle for both |
-| `js/scrubber.js` | The rail, the notches, the always-on preview and its bookmark/clip buttons |
+| `js/scrubber.js` | The rail, the notches, the always-on preview and its bookmark button |
 | `js/clip.js` | The clip viewer: a single moment or `openSequence`'s stories-style recap, and `fromPoint`, which builds a moment for a point with no recorded clip |
-| `js/overlay.js` | The Highlights panel: the filters, the search field, the tile grid and the recap tile. No curve |
+| `js/overlay.js` | The Highlights panel: the filters, the search field, the row list and the recap tile. No curve |
 | `js/expedition.js` | The Expedition panel: the three types, the invite picker, the streams checklist, the mock `create` |
-| `js/widget.js` | The floating widget: the two bubbles and the drag-vs-click gesture |
+| `js/widget.js` | The floating widget: the one bubble and the drag-vs-click gesture |
 | `js/chat.js` | Chat, which follows the playhead |
 | `js/app.js` | Wiring, the frame, the keyboard, the chat drag handle and the main player's mute (`KT2.audio`) |
 | `check.mjs` | Fails on off-scale type, and on a clip preview that stops drawing |
@@ -405,13 +438,17 @@ and polls `viewer_count`. That is what keeps the idea past Spec Test B1.
 
 ## Where this page differs from kick.com
 
-Twenty-one differences, each on purpose. The first five are inherited from
+Twenty-two differences, each on purpose. The first five are inherited from
 `kick-timelines-2`; the rest are this fork's own, on top of it.
 
-- **The Highlights panel stops above the control bar.** It covers the video
-  frame and leaves the 56px control strip clear, so the viewer can keep
-  scrubbing while the panel is open. The control bar therefore stays up while
-  the panel is open, and while the stream is paused.
+- **The Highlights panel lives in the chat column, not over or beside the
+  video.** This fork tried a pane over the video, then a docked column
+  beside it that shrank the video to make room, then a drawer below it
+  that pushed the video out of view on scroll; none of the three stuck.
+  It now swaps places with chat itself (`css/kick.css`'s `.chat__panel`),
+  so the video's own box never changes at all, and reading it never means
+  scrolling the video out of view either. The control bar stays up while
+  the stream is paused, the same as it always did.
 - **Chat badges are coloured chips, not images.** KICK serves badge images from
   its CDN, and we never fetch an asset at run time.
 - **Avatars are initials on an identity colour.** Same reason. kick.com serves
@@ -443,15 +480,14 @@ Twenty-one differences, each on purpose. The first five are inherited from
   recorded on it gets a clip built on the spot (`KT2.clip.fromPoint`), and
   opening the viewer moves audio focus onto it (mutes the main player,
   never pauses it) rather than the two staying independent.
-- **There is no Timeline button in the control row.** kick.com's control row
-  has no such button either, so this is not a claim about kick.com — it is
-  this fork undoing its own earlier addition. The feature it opened now lives
-  in the floating widget, renamed Highlights, so the control row stays the
-  same shape kick.com ships.
-- **A Multiview button sits where the Timeline button once did.** kick.com's
-  control row has no such button either. It is a stub, `data-icon="multiview"`
-  with no handler, a marker for surface we have not built rather than a
-  claim that it works.
+- **A Highlights button sits in the control row, next to Clip.** kick.com's
+  control row has no such button. This fork tried moving the feature into
+  the floating widget instead for a while; it now sits in the control row
+  again (`btnHighlights`), reachable the same way any other view control
+  is, without opening the widget first.
+- **A Multiview button sits beside it.** kick.com's control row has no such
+  button either. It is a stub, `data-icon="multiview"` with no handler, a
+  marker for surface we have not built rather than a claim that it works.
 - **The floating widget is not a fixed control, it drags.** Nothing on
   kick.com behaves like this; it is closer to AssistiveTouch or an Android
   FAB than to any player chrome. It rests translucent, sharpens on hover, and
@@ -461,12 +497,17 @@ Twenty-one differences, each on purpose. The first five are inherited from
   the panel and a second, smaller one in the rail's own hover state
   (`rail__spark`) — the same line twice. This fork keeps only the rail's, so
   the panel is a filter row and a list, nothing else.
-- **The Highlights list is a grid of tiles, not rows or cards.** A card's
-  thumbnail was a category name in a box, never a real picture. A tile
-  instead carries a colour-and-icon badge, the same one the rail's own notch
-  uses for that group (`KT2.moments.iconFor`), so a viewer sees one
-  consistent set of badges across the rail and the panel rather than two
-  different approximations of the same idea.
+- **The Highlights list is a single column of rows, with a real thumbnail.**
+  It has been three other shapes along the way — plain rows, then a card
+  grid, then a bento grid sized by hype — and lands back on a row, since
+  the chat column's own width (280-460px) never had room for a multi-column
+  grid, bento or plain, to read as one. A card's thumbnail was once a
+  category name in a box, never a real picture; a row's is a live
+  picture-in-the-frame still (below), with a colour-and-icon badge over
+  it, the same one the rail's own notch uses for that group
+  (`KT2.moments.iconFor`), so a viewer sees one consistent set of badges
+  across the rail and the panel. Hype no longer sizes anything either — it
+  sorts the list instead, loudest first.
 - **"Before you joined" is one recap tile, not a list of moments.** Pressing
   it plays the missed moments back stories-style in the clip viewer
   (`KT2.clip.openSequence`), a segmented progress bar and tap zones instead of
@@ -476,18 +517,28 @@ Twenty-one differences, each on purpose. The first five are inherited from
   it either way.
 - **The widget carries no Search bubble.** The Highlights panel already has a
   search field, so the widget need not repeat it.
-- **The widget's second bubble is Expedition, not Bookmarks.** Bookmarking
-  still works everywhere it already did; the widget's own quick-open now
-  starts a group hopping channel to channel together instead (below).
+- **The widget is down to one bubble: Expedition.** It used to fan out to
+  Highlights and Bookmarks too; Highlights now has its own control-row
+  button (above) and bookmarking works everywhere it already did without a
+  dedicated quick-open, so Expedition, starting a group hopping channel to
+  channel together, is the only thing left for the widget to open.
   kick.com has neither surface.
 - **A Kick Expedition, Kick Private Expedition and Kick Custom Expedition
   panel exists at all.** kick.com has no expedition surface. Starting one
   builds the `fake-kick POST /public/v1/expeditions` payload and shows a
   toast; it never launches a real multi-stream session, since there is
   nothing in this prototype to hop to yet.
-- **The widget hides while a panel is open.** Both the Highlights panel and
-  the Expedition panel cover the whole frame the widget sits on, so there is
-  nothing under either for the widget to float over.
+- **The widget hides while the Expedition panel is open, not while
+  Highlights is.** The Expedition panel still covers the whole frame the
+  widget sits on, so there is nothing under it for the widget to float
+  over. The Highlights panel never covered the frame at all, in any of
+  its four shapes, so the widget stays put through all of them.
+- **Highlights rows, the rail's hover card, and the clip viewer carry no
+  clip-and-share button any more.** All copied a link to the same 20
+  seconds either side of a point, so the same simplification found all
+  three: a row and the hover card both already open the clip viewer on a
+  press, which has its own Share button, and the clip viewer's Bookmark
+  became a heart Like button instead (below).
 
 ## What the reference screenshots measure
 

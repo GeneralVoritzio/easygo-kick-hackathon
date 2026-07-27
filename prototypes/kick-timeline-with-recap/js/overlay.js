@@ -1,23 +1,32 @@
 /*
-  The highlights panel. It covers the video frame, not the page, so the
-  viewer never leaves the stream. One filter row, one bento grid of live
-  thumbnail tiles, cell size following hype (rankClasses, below).
+  The Highlights panel. It lives in the chat column now, css/kick.css's
+  .chat__panel and this panel sharing one flex slot in <aside class="chat">
+  — only one of the two ever shows at a time (is-highlights-open, toggled
+  on that aside below). Three shapes came before this one: a pane over the
+  video, a docked column beside it that shrank the video to make room, and
+  a drawer below it that needed scrolling away from the video to read. This
+  one touches neither the video's box nor its width, in either direction.
+
+  Living at chat's width (280-460px) means a single column of compact rows
+  (tileHtml, below), not a multi-column grid — there is no room for a grid
+  to read as one here. Hype no longer sizes a tile, since there is no room
+  for that to read at a glance either; the loudest moments simply sort
+  first within whatever filter is active.
 
   No hype curve here: the rail already draws that (js/scrubber.js's
   rail__spark), so repeating it here would just be the same graph twice.
 
   Two filters are not moment groups: Bookmarks lists what the viewer saved,
   Search lists the live query. Both come back shaped like a moment (see
-  search.js and bookmarks.js), so they render with the same tile code every
+  search.js and bookmarks.js), so they render with the same row code every
   other group already uses.
 
-  Every card opens the clip viewer on a press, a recorded clip or not
+  Every row opens the clip viewer on a press, a recorded clip or not
   (KT2.clip.fromPoint builds one on the spot for the rest, the same as the
   rail's own hover card), and never closes the panel: the viewer is still
-  browsing it. Only the X does. The panel hides the floating widget while
-  it is open (css/player.css), since it covers the whole frame the widget
-  sits on, and the widget's own bubble is how a viewer gets back here in
-  the first place.
+  browsing it. Only the X does. Unlike the Expedition panel, this one does
+  not hide the floating widget: it never sits on top of the frame the
+  widget lives on, so there is nothing to cover.
 */
 (function (global) {
   'use strict';
@@ -27,7 +36,7 @@
 
   var MISSED_LIMIT = 3;
 
-  var root, cardHost, missedBox, missedHost;
+  var root, chatAside, playerEl, cardHost, missedBox, missedHost;
   var momentsHead, sub, searchInput, searchClear, filter = 'all';
   var lastRanQuery = '';
   var missedList = [];
@@ -46,38 +55,29 @@
   }
 
   /*
-    A bento grid, not a card grid: cell size follows hype_score (rankClass),
-    so the loudest moments read as bigger tiles rather than every moment
-    claiming the same footprint. Each tile's background is a live
-    picture-in-the-frame thumbnail, js/stage.js's own drawing at that
-    second (drawTilePreviews, below, paints it once the markup lands) — the
-    same frame the rail's hover card and the clip viewer already show, not
-    a flat category-coloured box. The badge, title, byline and meta sit in
-    a bottom scrim over it, the way a real thumbnail grid reads.
+    A row, not a tile: this column is 280-460px wide, chat's own range, so
+    a grid never had room to read as one. Each row's thumbnail is a live
+    picture-in-the-frame still, js/stage.js's own drawing at that second
+    (drawTilePreviews, below, paints it once the markup lands) — the same
+    frame the rail's hover card and the clip viewer already show, not a
+    flat category-coloured box.
   */
-  function tileHtml(m, rankClass) {
-    var isBookmarked = !!KT2.bookmarks.at(m.t);
+  function tileHtml(m) {
     var icon = moments.iconFor(m.group);
-    return '<article class="hltile hltile--' + rankClass + '" data-id="' + m.id + '">' +
+    return '<article class="hltile" data-id="' + m.id + '">' +
       '<button class="hltile__go" data-seek="' + m.t + '" data-id="' + m.id + '">' +
+      '<span class="hltile__thumb">' +
       '<canvas class="hltile__canvas" data-t="' + m.t + '"></canvas>' +
-      '<span class="hltile__scrim" aria-hidden="true"></span>' +
-      '<span class="hltile__badge hltile__badge--' + m.group + '">' + (icon ? KT2.icons.get(icon, 14) : '') + '</span>' +
-      '<span class="hltile__meta tabular">' + moments.hms(m.t) + ' · ' +
-      moments.abbreviate(m.viewer_count) + '</span>' +
+      '<span class="hltile__badge hltile__badge--' + m.group + '">' + (icon ? KT2.icons.get(icon, 11) : '') + '</span>' +
+      '</span>' +
       '<span class="hltile__text">' +
       '<strong class="hltile__title">' + m.title + '</strong>' +
       '<span class="hltile__byline">' + m.byline + '</span>' +
+      '<span class="hltile__meta tabular">' + moments.hms(m.t) + ' · ' +
+      moments.abbreviate(m.viewer_count) + '</span>' +
       '</span>' +
       '</button>' +
       '<span class="hltile__actions">' +
-      '<button class="hltilebookmark' + (isBookmarked ? ' is-on' : '') + '" data-bookmark="' + m.id + '" ' +
-      'aria-pressed="' + (isBookmarked ? 'true' : 'false') + '" ' +
-      'aria-label="' + (isBookmarked ? 'Remove bookmark' : 'Bookmark this point') + '">' +
-      KT2.icons.get('bookmark', 13) + '</button>' +
-      '<button class="hltileclip" data-clip="' + m.id + '" ' +
-      'aria-label="Copy a shareable clip link, 20 seconds before and after">' +
-      KT2.icons.get('clip', 13) + '</button>' +
       '<button class="hltilereact' + (m.has_reacted ? ' is-on' : '') + '" data-react="' + m.id + '" ' +
       'aria-pressed="' + (m.has_reacted ? 'true' : 'false') + '">' +
       '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
@@ -87,83 +87,11 @@
       '</article>';
   }
 
-  /*
-    Rank by hype, not by the list's own order (moments.missed and every
-    filter still read chronologically, so the loudest one is not
-    necessarily first): the loudest moment in the current list gets the
-    hero cell, the next couple get a wide cell, everyone else is compact.
-    A short list (search down to one or two hits, a quiet filter) has
-    nothing to rank against, so it skips straight to compact for all of it
-    rather than blowing one lonely result up to a hero.
-  */
-  function rankClasses(list) {
-    var byHype = list.slice().sort(function (a, b) { return b.hype - a.hype; });
-    var classFor = {};
-    byHype.forEach(function (m, i) {
-      if (list.length >= 5 && i === 0) classFor[m.id] = 'hero';
-      else if (list.length >= 3 && i < 3) classFor[m.id] = 'wide';
-      else classFor[m.id] = 'compact';
-    });
-    return classFor;
-  }
-
-  // Canvases cannot draw from a template string, so the grid paints them
+  // Canvases cannot draw from a template string, so the list paints them
   // once the markup already has real layout to size against.
   function drawTilePreviews() {
     cardHost.querySelectorAll('.hltile__canvas').forEach(function (canvas) {
       KT2.stage.preview(canvas, { thumbnail: true })(+canvas.dataset.t);
-    });
-  }
-
-  var LAYOUT_GAP = 10;
-  var LAYOUT_TARGET_COL = 170;
-  var LAYOUT_SPANS = { hero: 3, wide: 2, compact: 1 };
-
-  /*
-    A real masonry, not CSS grid: grid packs same-size row tracks, so a
-    compact tile sitting in the same row as a hero left empty space under
-    it, the row track stretched to the hero's height. This instead tracks
-    each column's running height and drops every tile into whichever
-    contiguous span of columns is shortest right now, the standard
-    Pinterest-style placement, so tiles always pack flush against the
-    shortest neighbour with nothing left over.
-
-    Every tile is a fixed 16:9, computed here rather than left to
-    aspect-ratio, since spans are in pixels once colWidth is known.
-  */
-  function layoutTiles(list, rankClass) {
-    var containerWidth = cardHost.clientWidth;
-    if (!containerWidth) return;
-    var colCount = Math.max(1, Math.round((containerWidth + LAYOUT_GAP) / (LAYOUT_TARGET_COL + LAYOUT_GAP)));
-    var colWidth = (containerWidth - (colCount - 1) * LAYOUT_GAP) / colCount;
-    var colHeights = new Array(colCount).fill(0);
-    var positions = {};
-
-    list.forEach(function (m) {
-      var span = Math.min(LAYOUT_SPANS[rankClass[m.id]] || 1, colCount);
-      var bestStart = 0, bestHeight = Infinity;
-      for (var s = 0; s <= colCount - span; s++) {
-        var h = 0;
-        for (var i = s; i < s + span; i++) h = Math.max(h, colHeights[i]);
-        if (h < bestHeight) { bestHeight = h; bestStart = s; }
-      }
-      var tileWidth = span * colWidth + (span - 1) * LAYOUT_GAP;
-      var tileHeight = tileWidth * 9 / 16;
-      positions[m.id] = {
-        left: bestStart * (colWidth + LAYOUT_GAP), top: bestHeight,
-        width: tileWidth, height: tileHeight
-      };
-      for (var j = bestStart; j < bestStart + span; j++) colHeights[j] = bestHeight + tileHeight + LAYOUT_GAP;
-    });
-
-    cardHost.style.height = Math.max(0, Math.max.apply(null, colHeights) - LAYOUT_GAP) + 'px';
-    cardHost.querySelectorAll('.hltile').forEach(function (tile) {
-      var pos = positions[tile.dataset.id];
-      if (!pos) return;
-      tile.style.left = pos.left + 'px';
-      tile.style.top = pos.top + 'px';
-      tile.style.width = pos.width + 'px';
-      tile.style.height = pos.height + 'px';
     });
   }
 
@@ -193,14 +121,6 @@
       '<span class="recaptile__sub">' + list.length + ' ' + noun + ' before you joined</span>' +
       '</span>' +
       '</button>';
-  }
-
-  function shareClip(button, t) {
-    global.navigator.clipboard.writeText(KT2.clip.shareUrl(t)).then(function () {
-      button.classList.add('is-copied');
-      global.clearTimeout(button._copyTimer);
-      button._copyTimer = global.setTimeout(function () { button.classList.remove('is-copied'); }, 2000);
-    });
   }
 
   function headingFor(f, list) {
@@ -236,16 +156,16 @@
     else KT2.scrubber.highlightGroup(groupForFilter(filter));
   }
 
-  var lastList = [], lastRankClass = {};
-
+  /*
+    Loudest first, not chronological: moments.missed and listFor both hand
+    back a time-ordered list, but a single narrow column reads top to
+    bottom, one at a time, so the order itself is what says "this one
+    mattered most" now that a tile's size no longer can.
+  */
   function renderCards() {
-    var list = listFor(filter);
-    var rankClass = rankClasses(list);
-    lastList = list;
-    lastRankClass = rankClass;
-    cardHost.innerHTML = list.map(function (m) { return tileHtml(m, rankClass[m.id]); }).join('');
+    var list = listFor(filter).slice().sort(function (a, b) { return b.hype - a.hype; });
+    cardHost.innerHTML = list.map(tileHtml).join('');
     momentsHead.textContent = headingFor(filter, list);
-    layoutTiles(list, rankClass);
     drawTilePreviews();
     wireTileHover();
     applyFilterGlow();
@@ -299,6 +219,8 @@
   KT2.overlay = {
     mount: function () {
       root = document.getElementById('overlay');
+      chatAside = document.getElementById('chatAside');
+      playerEl = document.getElementById('player');
       cardHost = document.getElementById('momentCards');
       missedBox = document.getElementById('missed');
       missedHost = document.getElementById('missedCards');
@@ -308,15 +230,6 @@
       searchClear = document.getElementById('overlaySearchClear');
 
       sub.textContent = 'You joined at ' + moments.hms(player.state.joinedAt);
-
-      // The masonry is computed in pixels off the panel's own width, so a
-      // window resize while it is open needs a fresh layout pass, the same
-      // way js/stage.js re-sizes its canvas on resize rather than only once.
-      global.addEventListener('resize', function () {
-        if (!KT2.overlay.isOpen()) return;
-        layoutTiles(lastList, lastRankClass);
-        drawTilePreviews();
-      });
 
       searchInput.addEventListener('keydown', function (e) {
         if (e.key !== 'Enter') return;
@@ -338,25 +251,6 @@
 
         var recap = e.target.closest('[data-recap]');
         if (recap) { KT2.clip.openSequence(missedList); return; }
-
-        var bookmark = e.target.closest('[data-bookmark]');
-        if (bookmark) {
-          var target = findAny(bookmark.dataset.bookmark);
-          if (target) {
-            KT2.bookmarks.toggle(target.t, target.title);
-            KT2.scrubber.refresh();
-            renderCards();
-            renderMissed();
-          }
-          return;
-        }
-
-        var clipBtn = e.target.closest('[data-clip]');
-        if (clipBtn) {
-          var toShare = findAny(clipBtn.dataset.clip);
-          if (toShare) shareClip(clipBtn, toShare.t);
-          return;
-        }
 
         var react = e.target.closest('[data-react]');
         if (react) {
@@ -387,9 +281,21 @@
 
     isOpen: function () { return !root.hidden; },
 
+    /*
+      Opening or closing this never touches the video's own box, or its
+      width, at all — it only swaps which of chat's two panels is showing
+      (css/kick.css's .chat.is-highlights-open) — so unlike the shapes this
+      went through before, nothing here needs to dispatch a `resize` event
+      for js/stage.js's canvas to stay correct. It does force the control
+      bar up (css/player.css's .player.is-highlights-open) so the rail and
+      its glowing notches are on screen the whole time a viewer is
+      browsing this panel, not only while they also happen to be
+      hovering the video.
+    */
     open: function () {
       root.hidden = false;
-      document.getElementById('player').classList.add('is-panel-open');
+      chatAside.classList.add('is-highlights-open');
+      playerEl.classList.add('is-highlights-open');
       renderCards();
       renderMissed();
       document.getElementById('overlayClose').focus();
@@ -397,7 +303,8 @@
 
     close: function () {
       root.hidden = true;
-      document.getElementById('player').classList.remove('is-panel-open');
+      chatAside.classList.remove('is-highlights-open');
+      playerEl.classList.remove('is-highlights-open');
       KT2.scrubber.unhighlight();
     },
 
@@ -409,7 +316,14 @@
       searchInput.focus();
     },
 
-    refreshBookmarkState: function () {
+    /*
+      Re-renders the cards and the recap tile in place, without touching
+      is-highlights-open or the dock's width: something about a moment
+      changed (a bookmark toggled, a like landed) somewhere the panel
+      itself was not the one that changed it — the rail's hover card, or
+      the clip viewer.
+    */
+    refresh: function () {
       renderCards();
       renderMissed();
     }

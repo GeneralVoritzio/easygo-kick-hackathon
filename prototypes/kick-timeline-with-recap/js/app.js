@@ -4,7 +4,7 @@
   var player = KT2.player, moments = KT2.moments, icons = KT2.icons;
 
   var el = {};
-  ['clockNow', 'btnPlay', 'btnMute', 'btnLive',
+  ['clockNow', 'btnPlay', 'btnMute', 'btnLive', 'btnHighlights',
     'btnFull', 'channelTitle', 'channelCategory', 'channelAvatar', 'statViewers',
     'sideList', 'followList', 'navAvatar',
     'player', 'volume', 'volumeSlider', 'volumeFill', 'volumeThumb'].forEach(function (id) {
@@ -182,6 +182,7 @@
 
   el.btnPlay.addEventListener('click', player.togglePlay);
   el.btnLive.addEventListener('click', player.goLive);
+  el.btnHighlights.addEventListener('click', KT2.overlay.toggle);
 
   el.btnFull.addEventListener('click', function () {
     if (document.fullscreenElement) document.exitFullscreen();
@@ -203,7 +204,7 @@
     if (key === 'b') {
       KT2.bookmarks.toggle(player.state.t);
       KT2.scrubber.refresh();
-      if (KT2.overlay.isOpen()) KT2.overlay.refreshBookmarkState();
+      if (KT2.overlay.isOpen()) KT2.overlay.refresh();
       return;
     }
     if (key === 'l') { player.goLive(); return; }

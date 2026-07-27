@@ -31,7 +31,7 @@
   var SEGMENT_MS = 5000;
 
   var root, scrim, video, canvas, headline, byline, streamTitle, avatar, chatBox;
-  var closeButton, shareButton, bookmarkButton, playButton, muteButton, timeText, remainText;
+  var closeButton, shareButton, likeButton, playButton, muteButton, timeText, remainText;
   var seek, track, played, thumb, hoverFill;
   var segmentsHost, tapPrev, tapNext;
 
@@ -91,11 +91,30 @@
     muteButton.setAttribute('aria-label', isMuted ? 'Unmute' : 'Mute');
   }
 
-  function updateBookmarkButton() {
-    var on = !!KT2.bookmarks.at(centreOf(clip));
-    bookmarkButton.classList.toggle('is-on', on);
-    bookmarkButton.setAttribute('aria-pressed', on ? 'true' : 'false');
-    bookmarkButton.setAttribute('aria-label', on ? 'Remove bookmark' : 'Bookmark this point');
+  function updateLikeButton() {
+    var on = !!clip.has_reacted;
+    likeButton.classList.toggle('is-on', on);
+    likeButton.setAttribute('aria-pressed', on ? 'true' : 'false');
+    likeButton.setAttribute('aria-label', on ? 'Liked' : 'Like this clip');
+  }
+
+  /*
+    One reaction per viewer, the same rule every other like button on the
+    page follows (js/overlay.js's hltilereact, js/moments.js's react). A
+    real moment, a search hit or a bookmark reacts through its own store,
+    so the count also shows up wherever else that moment is listed. A
+    point built on the spot (fromPoint) is in none of those stores, so it
+    falls back to reacting on the throwaway object itself — real for as
+    long as the viewer stays open, gone once it closes, the same way a
+    preview was never a stored thing to begin with.
+  */
+  function likeClip() {
+    if (clip.has_reacted) return;
+    var reacted = moments.react(clip.id) || KT2.search.react(clip.id) || KT2.bookmarks.react(clip.id);
+    if (reacted) { clip.has_reacted = reacted.has_reacted; clip.reactions_count = reacted.reactions_count; }
+    else { clip.has_reacted = true; clip.reactions_count += 1; }
+    updateLikeButton();
+    KT2.overlay.refresh();
   }
 
   function pause() {
@@ -177,7 +196,7 @@
     byline.textContent = moment.byline + ' • ' +
       moments.abbreviate(moment.view_count) + ' Views • ' + ageText(moment.t);
     chatBox.innerHTML = KT2.chat.replayHtml(moment.t, span);
-    updateBookmarkButton();
+    updateLikeButton();
 
     hideHover();
     drawAt = KT2.stage.preview(canvas);
@@ -276,7 +295,7 @@
       chatBox = document.getElementById('clipChat');
       closeButton = document.getElementById('clipClose');
       shareButton = document.getElementById('clipShare');
-      bookmarkButton = document.getElementById('clipBookmark');
+      likeButton = document.getElementById('clipLike');
       playButton = document.getElementById('clipPlay');
       muteButton = document.getElementById('clipMute');
       timeText = document.getElementById('clipTime');
@@ -306,13 +325,7 @@
         });
       });
 
-      bookmarkButton.addEventListener('click', function () {
-        var point = centreOf(clip);
-        KT2.bookmarks.toggle(point, clip.title);
-        updateBookmarkButton();
-        KT2.scrubber.refresh();
-        KT2.overlay.refreshBookmarkState();
-      });
+      likeButton.addEventListener('click', likeClip);
 
       playButton.addEventListener('click', function () { frame ? pause() : play(); });
       muteButton.addEventListener('click', function () {

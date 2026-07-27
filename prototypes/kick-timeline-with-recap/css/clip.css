@@ -168,7 +168,8 @@
   width:40px; height:40px; flex:none;
   background:var(--kick-light-4); border-radius:var(--r-sm);
 }
-.clipviewer__actions .pbtn.is-on{color:var(--id-sand)}
+/* Rose, the same colour a like turns on the Highlights grid's own react button. */
+.clipviewer__actions .pbtn.is-on{color:var(--id-rose)}
 .clipviewer__actions .pbtn.is-copied{color:var(--kick-green)}
 
 /* The replay sits on the page colour, inset inside the rail. */

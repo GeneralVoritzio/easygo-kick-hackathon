@@ -18,7 +18,9 @@
   moment group in js/moments.js's GROUP_ICON has a glyph on its badge and
   none is left as a bare colour: a mountain peak for a hype spike, an
   arrow for a raid arriving, a bar chart for a poll, and an hourglass for
-  a category switching from one thing to another.
+  a category switching from one thing to another. `heart` is the clip
+  viewer's like button, the solid-fill counterpart to the stroked heart
+  js/overlay.js draws inline for the Highlights grid's react button.
 */
 (function (global) {
   'use strict';
@@ -53,7 +55,8 @@
     peak: [32, 'M16 3 29 28 3 28Z'],
     raid: [32, 'M2 12H16V4L30 16L16 28V20H2Z'],
     poll: [32, 'M4 18H10V28H4Z M13 8H19V28H13Z M22 14H28V28H22Z'],
-    category_change: [32, 'M3 4H29L16 16Z M3 28H29L16 16Z']
+    category_change: [32, 'M3 4H29L16 16Z M3 28H29L16 16Z'],
+    heart: [32, 'M16 28.47 14.07 26.71C7.2 20.48 2.67 16.37 2.67 11.33 2.67 7.23 5.89 4 10 4 12.32 4 14.55 5.08 16 6.79 17.45 5.08 19.68 4 22 4 26.11 4 29.33 7.23 29.33 11.33 29.33 16.37 24.8 20.48 17.93 26.72Z']
   };
 
   function icon(name, size) {

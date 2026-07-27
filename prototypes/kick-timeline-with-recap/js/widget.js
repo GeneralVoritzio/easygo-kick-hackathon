@@ -5,16 +5,20 @@
   for attention with the stream, sharpens to full opacity on hover, and a
   press-and-drag moves it anywhere on the video rather than opening the menu.
 
-  Two bubbles: Highlights opens the timeline panel, Expedition opens the
-  panel that starts a group hopping channel to channel together
-  (js/expedition.js). Search has no bubble of its own — the Highlights panel
-  already carries a search field, so a second copy on the widget would just
-  be the same box twice. Bookmarks has no bubble either: bookmarking still
-  works everywhere it already did (the rail's hover card, every card, `B`),
-  it just has no dedicated quick-open of its own, the same as any other
-  single filter chip in the Highlights panel. Either panel hides the widget
-  while it is open (see css/player.css's `.player.is-panel-open .widget`),
-  since it covers the whole frame the widget sits on.
+  One bubble: Expedition opens the panel that starts a group hopping
+  channel to channel together (js/expedition.js). Highlights moved out to
+  its own button in the control row (js/app.js's btnHighlights), next to
+  the other view controls, the way it always was on kick.com before this
+  fork ever put it here. Search has no bubble of its own — the Highlights
+  panel already carries a search field, so a second copy on the widget
+  would just be the same box twice. Bookmarks has no bubble either:
+  bookmarking still works everywhere it already did (the rail's hover
+  card, every card, `B`), it just has no dedicated quick-open of its own,
+  the same as any other single filter chip in the Highlights panel. The
+  Expedition panel hides the widget while it is open (see css/player.css's
+  `.player.is-panel-open .widget`), since it covers the whole frame the
+  widget sits on. The Highlights panel does not: it is a docked column
+  beside the video now, not a pane over it, so it leaves the widget alone.
 */
 (function (global) {
   'use strict';
@@ -32,7 +36,7 @@
     root.classList.toggle('is-open', menuOpen);
     button.setAttribute('aria-expanded', menuOpen ? 'true' : 'false');
     button.setAttribute('aria-label', menuOpen ? 'Close quick actions' : 'Open quick actions');
-    button.innerHTML = KT2.icons.get(menuOpen ? 'close' : 'highlights', 20);
+    button.innerHTML = KT2.icons.get(menuOpen ? 'close' : 'expedition', 20);
   }
 
   function clamp(value, min, max) { return Math.max(min, Math.min(max, value)); }
@@ -91,7 +95,7 @@
       button = document.getElementById('widgetButton');
       bubbles = document.getElementById('widgetBubbles');
 
-      button.innerHTML = KT2.icons.get('highlights', 20);
+      button.innerHTML = KT2.icons.get('expedition', 20);
 
       button.addEventListener('pointerdown', startDrag);
       button.addEventListener('pointermove', moveDrag);
@@ -108,8 +112,7 @@
         var action = bubble.dataset.widgetAction;
         setMenuOpen(false);
 
-        if (action === 'highlights') KT2.overlay.open();
-        else if (action === 'expedition') KT2.expedition.open();
+        if (action === 'expedition') KT2.expedition.open();
       });
 
       document.addEventListener('click', function (e) {

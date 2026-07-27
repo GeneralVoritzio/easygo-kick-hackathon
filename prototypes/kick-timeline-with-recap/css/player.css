@@ -30,12 +30,18 @@
 
 /*
   The control bar appears on hover, the way KICK's does (Site Reference
-  Section 4). It also stays up while the stream is paused, and while a full
-  panel (the Highlights panel, or the Expedition panel) is open, because
-  both leave this strip clear on purpose.
+  Section 4). It also stays up while the stream is paused, while the
+  Expedition panel is open (a full-frame pane that leaves this strip clear
+  on purpose), and while the Highlights panel is open (js/overlay.js adds
+  is-highlights-open here) — so the rail's glowing notches are still on
+  screen to look at while browsing highlights in the chat column, rather
+  than needing a hover on the video at the same time. A separate class
+  from is-panel-open on purpose: that one also hides the floating widget
+  (below), and the Highlights panel, unlike Expedition, never covers the
+  frame the widget sits on, so it has no reason to hide it too.
 */
 .player:hover,.player:focus-within,
-.player.is-paused,.player.is-panel-open{--controls-opacity:1; --controls-events:auto}
+.player.is-paused,.player.is-panel-open,.player.is-highlights-open{--controls-opacity:1; --controls-events:auto}
 
 .controls{
   position:absolute; inset:auto 0 0 0; z-index:3; padding-bottom:3px;
@@ -222,21 +228,6 @@
 .scrubcard__bookmark:hover{color:var(--text-primary)}
 .scrubcard__bookmark.is-on{color:var(--id-sand)}
 
-/*
-  The clip-and-share toggle, the mirror of the bookmark button on the other
-  corner. One click copies a link carrying the 20 seconds either side of the
-  point, no viewer to open first. is-copied is the "done" flash, cleared
-  after 2 seconds by scrubber.js.
-*/
-.scrubcard__clip{
-  position:absolute; top:8px; left:8px; z-index:1; pointer-events:auto;
-  display:inline-flex; align-items:center; justify-content:center; width:24px; height:24px;
-  background:var(--kick-on-glass-strong); border:none; border-radius:var(--r-sm);
-  color:var(--text-secondary); cursor:pointer;
-}
-.scrubcard__clip:hover{color:var(--text-primary)}
-.scrubcard__clip.is-copied{color:var(--kick-green)}
-
 /* Direct children only. A clip puts its own markup in here, and it sets its own type. */
 .scrubcard__text{display:grid; gap:2px}
 .scrubcard__text > strong{color:var(--text-primary); font-size:14px; line-height:20px; font-weight:600}
@@ -244,30 +235,40 @@
 .scrubcard__text > span{color:var(--text-muted); font-size:12px; line-height:16px}
 
 /*
-  The overlay is a glass pane that floats over the video, so it is inset on every
-  side and it clears the control bar. The glass itself comes from kick.css.
+  The Highlights panel lives in the chat column now, not a pane over the
+  video, a docked column beside it, or a drawer below it (Section "Where
+  this page differs from kick.com" below has the whole history). It shares
+  the slot with chat itself (css/kick.css's .chat__panel): only one of the
+  two ever shows, so the video's own box, and the video's own width, never
+  change at all, in either direction. Every rule below is sized for the
+  280-460px chatroom-width range this column already resizes across
+  (css/kick.css), not for the wide layouts the panel used to get: a single
+  column of compact rows, not a multi-column grid (below), and the filter
+  chips scroll sideways in one row instead of wrapping into three or four.
 */
-.overlay{
-  position:absolute; inset:14px 14px 70px; z-index:2; display:flex; flex-direction:column;
-  overflow:hidden;
-  animation:fade var(--overlay) var(--ease-overlay);
-}
-@keyframes fade{from{opacity:0}}
+.overlay{display:flex; flex-direction:column; flex:1; min-height:0; background:var(--bg-base)}
 
 .overlay__head{
-  display:flex; align-items:flex-start; gap:16px;
-  padding:14px 16px 12px; border-bottom:1px solid var(--border);
+  display:flex; align-items:center; justify-content:space-between; flex:none;
+  min-height:38px; padding:12px 6px 0;
 }
-.overlay__title{margin:0; font-size:20px; line-height:24px; color:var(--text-primary); font-weight:700}
-.overlay__sub{margin:2px 0 0; font-size:12px; line-height:16px; color:var(--text-muted)}
-.overlay__filters{display:flex; gap:6px; flex-wrap:wrap; margin-left:auto}
+.overlay__title{font-size:16px; line-height:24px; color:var(--text-primary); font-weight:600}
+.overlay__sub{margin:0; padding:0 6px; font-size:12px; line-height:16px; color:var(--text-muted)}
+
+/* One row, sideways scroll rather than wrap: wrapping eight chips into three or four rows eats too much of a narrow column. */
+.overlay__filters{
+  display:flex; gap:6px; flex-wrap:nowrap; overflow-x:auto;
+  padding:10px 6px; border-bottom:2px solid var(--kick-chat-rule);
+}
+.overlay__filters::-webkit-scrollbar{display:none}
+.overlay__filters .chip{flex:none}
 
 /*
   Reuses the nav search look (kick.css .nav__search), but on glass: a
   translucent plate rather than a border, matching the chips beside it.
 */
 .overlay__search{
-  display:flex; align-items:center; gap:8px; margin:0 16px 12px; padding:0 12px; height:36px;
+  display:flex; align-items:center; gap:8px; margin:8px 6px; padding:0 10px; height:34px;
   background:var(--kick-on-glass); border-radius:var(--r-sm); color:var(--text-secondary);
   transition:background-color var(--base) var(--ease);
 }
@@ -302,61 +303,44 @@
 .chip.is-active{background:var(--kick-green); color:var(--bg-base)}
 
 
-.overlay__scroll{flex:1; overflow-y:auto; padding:14px 16px 0}
+.overlay__scroll{flex:1; min-height:0; overflow-y:auto; padding:10px 6px}
 .overlay__h3{
-  margin:0 0 8px; font-size:12px; line-height:16px; font-weight:600; letter-spacing:.06em;
+  margin:0 0 8px; padding:0 4px; font-size:12px; line-height:16px; font-weight:600; letter-spacing:.06em;
   text-transform:uppercase; color:var(--text-muted);
 }
-.missed{margin-bottom:18px}
+.missed{margin-bottom:16px}
 
 /*
-  A bento grid, not a card grid: size follows hype_score
-  (js/overlay.js's rankClasses), so the loudest moments read as bigger
-  tiles instead of every moment claiming the same footprint. Each tile's
-  background is a live picture-in-the-frame thumbnail, the same drawing
-  the rail's hover card and the clip viewer already use (js/stage.js), not
-  a flat category-coloured box standing in for a picture.
-
-  Every tile is a fixed 16:9, the same shape a clip card is. Size, not
-  shape, carries the ranking.
-
-  This is a real masonry, not CSS grid: grid packs same-size cells into
-  rows, so a compact tile next to a hero left the rest of that row's
-  height empty underneath it. js/overlay.js's layoutTiles computes a
-  shortest-column placement instead (left, top, width, height per tile, in
-  pixels) and writes it as inline styles, so tiles pack flush against
-  whichever neighbour is shortest with no leftover gap. `.hltiles` only
-  needs to be the positioning parent; its own height is likewise set
-  inline, since every child is out of flow.
+  A single column of compact rows, not a grid: the panel lives in the chat
+  column now, 280-460px, and a multi-column grid at that width is either a
+  cramped two columns or a one-column grid pretending not to be one. A row
+  reads better at this width the way a chat message list already does —
+  one thing at a time, left to right, top to bottom — so hype no longer
+  varies a tile's size (there is no room for that to read at a glance);
+  the loudest moments simply sort first within each filter (js/overlay.js).
 */
-.hltiles{position:relative}
+.hltiles{display:flex; flex-direction:column; gap:6px}
 
-.hltile{position:absolute; border-radius:var(--r-lg); overflow:hidden}
+.hltile{position:relative; display:flex; gap:10px; padding:6px; border-radius:var(--r-lg)}
+.hltile:hover{background:var(--kick-on-glass)}
 
 .hltile__go{
-  position:absolute; inset:0; display:block; width:100%; height:100%;
-  background:none; border:none; padding:0; cursor:pointer;
+  display:flex; gap:10px; flex:1; min-width:0; text-align:left;
+  background:none; border:none; padding:0; color:inherit; font:inherit; cursor:pointer;
 }
-.hltile__go:focus-visible{outline:2px solid var(--kick-green); outline-offset:-2px}
+.hltile__go:focus-visible{outline:2px solid var(--kick-green); outline-offset:2px}
 
+.hltile__thumb{position:relative; flex:none; width:100px; aspect-ratio:16/9; border-radius:var(--r-sm); overflow:hidden}
 /* stage.js's own thumbnail palette is already lightened; the filter is the last push toward reading as a real still. */
 .hltile__canvas{
   position:absolute; inset:0; width:100%; height:100%; display:block;
   filter:saturate(1.3) brightness(1.1) contrast(1.05);
 }
-
-/* Only the bottom quarter needs to hold text, the same rule the rail's own hover card follows. */
-.hltile__scrim{
-  position:absolute; inset:0;
-  background:linear-gradient(to top, rgba(11,11,12,.82) 0%, rgba(11,11,12,.18) 32%, rgba(11,11,12,0) 55%);
-}
-
 .hltile__badge{
-  position:absolute; top:8px; left:8px;
+  position:absolute; top:4px; left:4px;
   display:flex; align-items:center; justify-content:center;
-  width:26px; height:26px; border-radius:50%; color:var(--bg-base); background:var(--text-primary);
+  width:18px; height:18px; border-radius:50%; color:var(--bg-base); background:var(--text-primary);
 }
-.hltile--hero .hltile__badge{width:32px; height:32px; top:10px; left:10px}
 .hltile__badge--peak{background:var(--kick-green-bright)}
 .hltile__badge--clip{background:var(--id-sky)}
 .hltile__badge--raid{background:var(--id-violet)}
@@ -367,33 +351,18 @@
 .hltile__badge--search_chat{background:var(--id-lavender)}
 .hltile__badge--bookmark{background:var(--id-sand)}
 
-.hltile__meta{
-  position:absolute; top:10px; right:10px;
-  font-size:12px; line-height:16px; font-weight:600; color:var(--text-primary);
-  text-shadow:0 1px 4px rgba(0,0,0,.9);
-}
-
-.hltile__text{position:absolute; left:10px; right:10px; bottom:8px; display:flex; flex-direction:column; gap:1px}
+.hltile__text{display:flex; flex-direction:column; justify-content:center; gap:2px; min-width:0}
 .hltile__title{
-  font-size:14px; line-height:18px; font-weight:700; color:var(--text-primary);
-  overflow:hidden; text-overflow:ellipsis; white-space:nowrap; text-shadow:0 1px 4px rgba(0,0,0,.9);
-}
-.hltile--hero .hltile__title{
-  font-size:16px; line-height:22px; white-space:normal;
-  display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;
+  font-size:14px; line-height:18px; font-weight:600; color:var(--text-primary);
+  overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
 }
 .hltile__byline{
   font-size:12px; line-height:16px; color:var(--text-secondary);
-  overflow:hidden; text-overflow:ellipsis; white-space:nowrap; text-shadow:0 1px 4px rgba(0,0,0,.9);
+  overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
 }
-.hltile--compact .hltile__byline{display:none}
+.hltile__meta{font-size:12px; line-height:16px; color:var(--text-muted)}
 
-.hltile__actions{
-  position:absolute; bottom:8px; right:8px; display:flex; align-items:center; gap:4px;
-  opacity:0; transform:translateY(4px);
-  transition:opacity var(--fast) var(--ease), transform var(--fast) var(--ease);
-}
-.hltile:hover .hltile__actions,.hltile:focus-within .hltile__actions{opacity:1; transform:translateY(0)}
+.hltile__actions{display:flex; align-items:center; flex:none; align-self:center}
 
 /*
   Before you joined: one tile, not a list. A viewer catches up with a
@@ -430,23 +399,14 @@
 .scrubcard__label--bookmark{color:var(--id-sand)}
 
 /*
-  These now sit over a live thumbnail, not glass, so the chip is a dark
-  translucent disc rather than --kick-on-glass — a value tuned for a
-  frosted panel reads as barely-there over a bright frame.
+  Sits over a live thumbnail, not glass, so the chip is a dark translucent
+  disc rather than --kick-on-glass — a value tuned for a frosted panel
+  reads as barely-there over a bright frame.
 */
-.hltilebookmark,.hltileclip{
-  display:inline-flex; align-items:center; justify-content:center;
-  width:24px; height:24px; padding:0;
-  background:rgba(11,11,12,.55); border:none; border-radius:var(--r-full);
-  color:var(--text-secondary); cursor:pointer;
-}
-.hltilebookmark:hover,.hltileclip:hover{color:var(--text-primary)}
-.hltilebookmark.is-on{color:var(--id-sand)}
-.hltileclip.is-copied{color:var(--kick-green)}
-
+/* Sits beside the row now, not over the thumbnail, so it takes the standard on-glass chip like any other button here. */
 .hltilereact{
-  display:inline-flex; align-items:center; gap:4px; padding:2px 7px;
-  background:rgba(11,11,12,.55); border:none; border-radius:var(--r-full);
+  display:inline-flex; align-items:center; gap:4px; padding:4px 8px;
+  background:var(--kick-on-glass-strong); border:none; border-radius:var(--r-full);
   color:var(--text-secondary); font:inherit; font-size:12px; line-height:16px; cursor:pointer;
 }
 .hltilereact:hover{color:var(--text-primary)}
@@ -464,10 +424,12 @@
   isolation:isolate plus a z-index well clear of the rail's hover card (4)
   guarantees the button always wins a click, even where the hover card's
   height genuinely reaches wherever the widget has been dragged to. The
-  Highlights and Expedition panels are a lower z-index (2) than that, so
-  neither alone would be enough to cover the widget — each hides it outright
-  instead (below), the same way it would make no sense to drag the widget
-  while the panel it opens is covering the whole frame.
+  Expedition panel is a lower z-index (2) than that, so it alone would not
+  be enough to cover the widget — it hides it outright instead (below),
+  the same way it would make no sense to drag the widget while the panel
+  it opens is covering the whole frame. The Highlights panel does not
+  cover the frame any more (it is a docked column beside it, above), so it
+  leaves the widget alone.
 */
 .widget{
   position:absolute; right:14px; top:50%; z-index:50; isolation:isolate;
@@ -476,7 +438,7 @@
 }
 .widget:hover,.widget:focus-within,.widget.is-open,.widget.is-dragging{opacity:1}
 
-/* Either panel covers the whole frame, so the widget underneath is hidden, not just outranked. */
+/* The Expedition panel covers the whole frame, so the widget underneath is hidden, not just outranked. */
 .player.is-panel-open .widget{display:none}
 
 .widget__button{

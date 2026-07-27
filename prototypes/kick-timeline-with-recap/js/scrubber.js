@@ -10,8 +10,10 @@
   playhead alone, so it can draw at any second, the same way a real
   scrubbing thumbnail would. A recorded clip additionally gets its duration
   and view count on top, and is the only kind of point a press opens in the
-  full clip viewer. The hover card can also bookmark or clip-and-share the
-  exact point under the pointer, whether or not a moment sits there.
+  full clip viewer. The hover card can also bookmark the exact point under
+  the pointer, whether or not a moment sits there. No clip-and-share button
+  any more: the card itself opens the clip viewer on a press, which has its
+  own share button once it is open.
 */
 (function (global) {
   'use strict';
@@ -25,7 +27,7 @@
   var CARD_LINGER_MS = 500;
 
   var rail, played, thumb, notchHost, card, cardText, sparkArea, sparkLine;
-  var bookmarkButton, clipButton;
+  var bookmarkButton;
   var previewBox, previewCanvas, durationBadge, viewsBadge, drawPreview;
   var notches = [], picks = [], isDragging = false, hoverT = null, shownNear = null, bookmarkPointT = null;
   var shownClip = null, lingerTimer = null;
@@ -158,7 +160,6 @@
     shownClip = null;
     shownNear = null;
     bookmarkPointT = null;
-    clipButton.classList.remove('is-copied');
   }
 
   /*
@@ -194,7 +195,6 @@
       card = document.getElementById('scrubcard');
       cardText = document.getElementById('scrubText');
       bookmarkButton = document.getElementById('scrubBookmark');
-      clipButton = document.getElementById('scrubClip');
       previewBox = document.getElementById('scrubStage');
       previewCanvas = document.getElementById('scrubPreview');
       durationBadge = document.getElementById('scrubDuration');
@@ -226,17 +226,7 @@
         updateBookmarkButton(bookmarkPointT);
         buildNotches();
         render();
-        KT2.overlay.refreshBookmarkState();
-      });
-
-      clipButton.addEventListener('click', function (e) {
-        e.stopPropagation();
-        if (bookmarkPointT === null) return;
-        var point = bookmarkPointT;
-        global.navigator.clipboard.writeText(KT2.clip.shareUrl(point)).then(function () {
-          clipButton.classList.add('is-copied');
-          global.setTimeout(function () { clipButton.classList.remove('is-copied'); }, 2000);
-        });
+        KT2.overlay.refresh();
       });
 
       rail.addEventListener('pointermove', function (e) {

@@ -20,12 +20,13 @@ Nothing is fetched from the network, at build time or at run time.
 | The wordmark `kick-logo.svg` | `demo/src/kick/brand/`, `pitch/src/assets/brand/`, `prototypes/hypeprops/src/assets/` | Every surface |
 | Favicon and social logos | `pitch/src/assets/brand/` | The deck |
 | Border devices and patterns | `pitch/src/assets/brand/devices/`, `pitch/src/assets/brand/patterns/` | The deck |
-| The icon set, 67 files | `demo/src/kick/icons/` | The demo |
+| The icon set, 104 files | `demo/src/kick/icons/` | The demo |
 | Channel avatars, 16 files | `demo/src/kick/avatars/` | The demo |
 | KICK's 282 design tokens | `.claude/reference/kick-neon-tokens.css` | Read-only ground truth |
 | The page scrape | `demo/kick-reference/` | The demo |
 
-The icon set grew from 22 to 67 when we scraped kick.com on 26 July 2026. See
+The icon set grew from 22 to 67 when we scraped kick.com on 26 July 2026, and to 104 as the
+settings, footer, profile menu and dashboard pages each added their own. See
 `.claude/KICK-SITE-REFERENCE.md` Section 10 and `demo/kick-reference/README.md`.
 
 
@@ -87,6 +88,37 @@ than every other icon.
 **These are KICK trademarks.** They are here so we can match the chrome, not so we can ship them.
 
 Current copy: `prototypes/kick-timelines-2/js/icons.js`.
+
+### `demo/src/kick/icons/`: the dashboard icons, 15 files
+
+Lifted verbatim from the markup the **dashboard host** serves on `/stream`, read **27 July 2026**
+in the user's own Chrome, logged in. The page needs a session, so these cannot be read logged out.
+Site Reference Section 22 says where each one sits.
+
+| File | Where it is used |
+|---|---|
+| `kick-mark.svg` | The K glyph inside the **Go live** button. Not a live dot |
+| `dash-popout.svg` | The pop-out button that closes every panel header. 16 by 16, dotted corner |
+| `dash-external.svg` | The external-link glyph on a Channel Actions row. A plain box and arrow, and **not** the same glyph as `dash-popout` |
+| `dash-filter.svg` | The filter button on Activity Feed and Mod Actions |
+| `dash-info.svg` | The rail info button |
+| `dash-edit.svg` | The rail edit button, and the pencil on Stream info |
+| `dash-webcam.svg` `dash-activity.svg` `dash-mod-actions.svg` `dash-chat.svg` `dash-broadcast.svg` `dash-overlays.svg` | The seven outlined rail tools, with `dash-moderation.svg` as the seventh. Activity Feed, Mod Actions, Chat and Channel Actions reuse four of them as their header icons |
+| `dash-tools.svg` | The rail dots button, and the channel-points button in chat. 16 by 16 |
+| `chat-emote.svg` | The emote button in the chat input. 16 by 16 |
+| `chat-kicks.svg` | The second glyph on the channel-points button. 24 by 24 |
+
+Same rules as the set above: solid fill, no stroke, `fill="currentColor"`, rendered at 16px.
+
+**These are KICK trademarks too.**
+
+**The chat identity badge is not here.** On the live dashboard it is an account-specific PNG
+embedded in the SVG, not a shared icon, so the clone uses `verified.svg` in that slot. It reads as
+a badge, but it is not the badge KICK shows.
+
+**The default offline banner is not here either.** The dashboard host serves it at 1764 by 993 and
+194 KB. It is stock artwork, not chrome, so the same rule that keeps the campaign plates out keeps
+it out. The clone shows KICK's own offline card on black instead.
 
 ### `brand/devices/`: the edge bar
 

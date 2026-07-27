@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link, NavLink, useParams } from "react-router-dom";
 import { Icon, type KickIconName } from "../Icon";
 import kickLogo from "../brand/kick-logo.svg";
-import { currentUser } from "../mock/api";
+import { categories, currentUser } from "../mock/api";
 
 const navItems: { label: string; to: string; icon: KickIconName; expandable?: boolean }[] = [
   { label: "Stream", to: "/dashboard/stream", icon: "dash-stream" },
@@ -15,66 +15,136 @@ const navItems: { label: string; to: string; icon: KickIconName; expandable?: bo
   { label: "Drops & rewards", to: "/dashboard/drops", icon: "dash-drops" },
 ];
 
+const railTools: { icon: KickIconName; label: string }[] = [
+  { icon: "dash-webcam", label: "Camera" },
+  { icon: "dash-activity", label: "Alerts" },
+  { icon: "dash-mod-actions", label: "Labels" },
+  { icon: "dash-chat", label: "Chat widget" },
+  { icon: "dash-broadcast", label: "Broadcast" },
+  { icon: "dash-overlays", label: "Overlays" },
+  { icon: "dash-moderation", label: "Settings" },
+];
+
+const justChatting = categories.find((c) => c.slug === "just-chatting")!;
+
+function IconButton({
+  icon,
+  label,
+  className,
+}: {
+  icon: KickIconName;
+  label: string;
+  className?: string;
+}) {
+  return (
+    <button
+      type="button"
+      aria-label={label}
+      className={`state-layer-surface flex shrink-0 items-center justify-center rounded bg-transparent font-semibold text-white [&_svg]:size-[1em] ${className ?? ""}`}
+    >
+      <Icon name={icon} />
+    </button>
+  );
+}
+
+function PanelHeader({
+  title,
+  icon,
+  actions,
+}: {
+  title: string;
+  icon: KickIconName;
+  actions?: React.ReactNode;
+}) {
+  return (
+    <div className="flex h-[52px] shrink-0 items-center justify-between rounded-t border-b border-outline-decorative bg-surface-base py-2 pl-6 pr-4 text-sm font-bold">
+      <div className="flex items-center gap-4 text-lg leading-none text-white">
+        <Icon name={icon} className="size-4 shrink-0" />
+        <span>{title}</span>
+      </div>
+      <div className="flex items-center gap-1">{actions}</div>
+    </div>
+  );
+}
+
 function Panel({
   title,
   icon,
-  className,
+  actions,
+  bodyClassName,
+  bigPopout,
   children,
 }: {
   title: string;
   icon: KickIconName;
-  className?: string;
+  actions?: React.ReactNode;
+  bodyClassName?: string;
+  bigPopout?: boolean;
   children?: React.ReactNode;
 }) {
   return (
-    <section
-      className={`flex min-w-0 flex-col rounded border border-outline-decorative bg-surface-lowest ${className ?? ""}`}
-    >
-      <header className="flex h-12 shrink-0 items-center gap-2 border-b border-outline-decorative px-4">
-        <Icon name={icon} className="size-4 shrink-0 text-white" />
-        <h2 className="text-lg font-bold leading-none text-white">{title}</h2>
-        <button
-          type="button"
-          aria-label={`Open ${title} in a new window`}
-          className="ml-auto flex size-6 items-center justify-center rounded state-layer-surface"
-        >
-          <Icon name="share" className="size-3.5 text-subtle" />
-        </button>
-      </header>
-      <div className="min-h-0 flex-1 overflow-y-auto">{children}</div>
-    </section>
+    <div className="flex h-full w-full flex-col">
+      <PanelHeader
+        title={title}
+        icon={icon}
+        actions={
+          <>
+            {actions}
+            <IconButton
+              icon="dash-popout"
+              label={`Open ${title} in a new window`}
+              className={`size-8 leading-none ${bigPopout ? "text-base" : "text-sm"}`}
+            />
+          </>
+        }
+      />
+      <div
+        className={`flex min-h-0 flex-1 grow overflow-hidden rounded-b bg-surface-base ${bodyClassName ?? ""}`}
+      >
+        {children}
+      </div>
+    </div>
   );
 }
 
-function Stat({ label, value, badge }: { label: string; value?: string; badge?: boolean }) {
+function Pane({ style, children }: { style: React.CSSProperties; children: React.ReactNode }) {
   return (
-    <div className="flex min-w-0 flex-1 flex-col gap-1 border-r border-outline-decorative px-4 py-3 last:border-r-0">
+    <div className="overflow-hidden p-0.5" style={style}>
+      {children}
+    </div>
+  );
+}
+
+function Stat({ label, value, badge }: { label: string; value?: string; badge?: string }) {
+  return (
+    <div className="flex w-full flex-col items-start gap-3 px-3 py-4">
       {badge ? (
-        <span className="w-fit rounded-[2px] bg-white px-1 py-0.5 text-xs font-bold uppercase leading-5 text-surface-lowest">
-          Offline
-        </span>
+        <div className="w-fit rounded-sm border border-transparent bg-surfaceInverse-base p-1 text-xs font-semibold uppercase text-surfaceInverse-onInverse">
+          {badge}
+        </div>
       ) : (
-        <span className="text-base font-bold leading-5 text-white">{value}</span>
+        <span className="text-sm font-semibold text-white">{value}</span>
       )}
-      <span className="text-sm font-semibold leading-5 text-subtle">{label}</span>
+      <span className="text-sm font-semibold text-subtle">{label}</span>
     </div>
   );
 }
 
 function Toggle({ on, onChange, label }: { on: boolean; onChange: (v: boolean) => void; label: string }) {
+  const state = on ? "checked" : "unchecked";
   return (
     <button
       type="button"
       role="switch"
       aria-checked={on}
       aria-label={label}
-      data-state={on ? "checked" : "unchecked"}
+      data-state={state}
       onClick={() => onChange(!on)}
-      className="flex h-5 w-9 shrink-0 items-center rounded-full p-0.5 transition-colors data-[state=checked]:bg-primary-base data-[state=unchecked]:bg-neutral-700"
+      className="h-5 w-[2.25rem] shrink-0 cursor-pointer rounded-full bg-secondary-base transition-colors data-[state=checked]:bg-primary-base"
     >
       <span
-        data-state={on ? "checked" : "unchecked"}
-        className="size-4 rounded-full bg-white transition-transform data-[state=checked]:translate-x-4 data-[state=unchecked]:translate-x-0"
+        data-state={state}
+        className="block h-[0.875rem] w-[0.875rem] translate-x-[0.25rem] rounded-full bg-white transition-transform data-[state=checked]:translate-x-[calc(2.25rem-0.25rem-0.875rem)] data-[state=checked]:bg-surface-base"
       />
     </button>
   );
@@ -83,34 +153,57 @@ function Toggle({ on, onChange, label }: { on: boolean; onChange: (v: boolean) =
 function ActionRow({
   label,
   value,
-  chevron,
+  external,
   disabled,
-  children,
 }: {
   label: string;
   value?: string;
-  chevron?: boolean;
+  external?: boolean;
   disabled?: boolean;
-  children?: React.ReactNode;
 }) {
   return (
-    <div
-      className={`flex h-10 items-center gap-2 px-4 text-sm ${
-        disabled ? "text-neutral-600" : "text-white"
-      }`}
+    <button
+      type="button"
+      disabled={disabled}
+      className="flex min-h-11 w-full items-center justify-between gap-4 py-2 text-left text-sm font-normal disabled:text-neutral-600"
     >
-      <span className="min-w-0 truncate font-normal">{label}</span>
-      <span className="ml-auto flex shrink-0 items-center gap-2">
-        {value && <span className="text-xs font-semibold text-neutral-600">{value}</span>}
-        {children}
-        {chevron && <Icon name="chevron-right" className="size-3 text-subtle" />}
-      </span>
+      <div className="min-w-0 shrink grow">
+        <span className="line-clamp-1 leading-tight">{label}</span>
+      </div>
+      <div className="flex items-center gap-4">
+        {value && <span className="text-sm leading-none text-surface-onSurfaceSecondary">{value}</span>}
+        {external && <Icon name="dash-external" className="size-4 shrink-0" />}
+        {!external && !disabled && <Icon name="chevron-right" className="size-3 shrink-0" />}
+      </div>
+    </button>
+  );
+}
+
+function ToggleRow({ label, on, onChange }: { label: string; on: boolean; onChange: (v: boolean) => void }) {
+  return (
+    <div className="flex min-h-11 w-full items-center justify-between gap-4 py-2 text-left text-sm font-normal">
+      <span className="line-clamp-1 leading-tight">{label}</span>
+      <Toggle on={on} onChange={onChange} label={label} />
     </div>
   );
 }
 
-function GroupTitle({ children }: { children: React.ReactNode }) {
-  return <div className="px-4 pb-1 pt-3 text-sm font-bold text-white">{children}</div>;
+function ActionGroup({
+  title,
+  divider,
+  children,
+}: {
+  title: string;
+  divider?: boolean;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="flex flex-col">
+      <span className="pb-2 text-base font-bold text-surface-onSurface">{title}</span>
+      <div className="flex flex-col">{children}</div>
+      {divider && <div className="h-px min-h-px w-full bg-outline-decorative" />}
+    </div>
+  );
 }
 
 export function CreatorDashboard() {
@@ -118,169 +211,228 @@ export function CreatorDashboard() {
   const [subsOnly, setSubsOnly] = useState(false);
   const [emotesOnly, setEmotesOnly] = useState(false);
   const [showViewCount, setShowViewCount] = useState(true);
+  const [draft, setDraft] = useState("");
   const active = `/dashboard/${section ?? "stream"}`;
 
   return (
     <div className="flex h-screen flex-col overflow-hidden bg-surface-lowest">
-      <nav className="relative flex h-[var(--navbar-height)] shrink-0 items-center justify-between bg-surface-lowest pl-3 pr-10">
+      <nav className="flex h-[var(--navbar-height)] shrink-0 items-center justify-between bg-surface-lowest pl-3 pr-10">
         <div className="flex grow-0 items-center gap-2.5">
-          <button
-            type="button"
-            aria-label="Collapse sidebar"
-            className="group flex size-10 shrink-0 items-center justify-center rounded state-layer-surface"
-          >
-            <Icon name="collapse-sidebar" className="size-4 fill-current" />
-          </button>
+          <IconButton icon="menu" label="Collapse sidebar" className="size-10 text-base leading-none" />
           <Link to="/" title="Home" className="shrink-0">
             <img src={kickLogo} alt="Kick Logo" width={97} height={26} />
           </Link>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-5">
           <button
             type="button"
-            className="inline-flex h-9 items-center gap-1.5 rounded bg-primary-base px-3 text-sm font-semibold text-primary-onPrimary transition-all select-none betterhover:active:scale-[0.98]"
+            className="state-layer-base inline-flex h-9 items-center justify-center gap-1.5 rounded bg-primary-base px-2 text-sm font-semibold text-primary-onPrimary"
           >
-            <Icon name="live-dot" className="size-2" />
+            <Icon name="kick-mark" className="size-[1em]" />
             Go live
           </button>
-          <Link to="/" aria-label={currentUser.username} className="shrink-0">
-            <img
-              src={currentUser.avatar}
-              alt={currentUser.username}
-              className="size-8 rounded-full"
-            />
-          </Link>
+          <button type="button" aria-label={currentUser.username} className="shrink-0">
+            <img src={currentUser.avatar} alt="" className="size-8 rounded-full" />
+          </button>
         </div>
       </nav>
 
       <div className="flex min-h-0 flex-1">
-        <div className="hidden w-[var(--sidebar-expanded-width)] shrink-0 flex-col overflow-y-auto bg-surface-lowest px-2 lg:flex">
-          {navItems.map((item) => (
-            <NavLink
-              key={item.to}
-              to={item.to}
-              className={`state-layer-surface flex h-12 w-full items-center gap-4 rounded px-4 py-1 text-base font-semibold ${
-                item.to === active ? "!bg-secondary-base text-white" : "bg-transparent text-white"
-              }`}
-            >
-              <Icon name={item.icon} className="size-4 shrink-0 fill-current" />
-              {item.label}
-              {item.expandable && (
-                <Icon name="chevron-right" className="ml-auto size-3 shrink-0 rotate-90 text-subtle" />
-              )}
-            </NavLink>
-          ))}
+        <div className="hidden w-[var(--sidebar-expanded-width)] shrink-0 flex-col overflow-hidden bg-surface-lowest xl:flex">
+          <ul className="flex w-full flex-col px-2">
+            {navItems.map((item) => (
+              <li key={item.to}>
+                <NavLink
+                  to={item.to}
+                  data-state={item.to === active ? "active" : "inactive"}
+                  className={`state-layer-surface flex h-12 w-full items-center justify-start gap-x-4 rounded px-4 py-1 text-base font-semibold text-white ${
+                    item.to === active ? "!bg-secondary-base" : "bg-transparent"
+                  }`}
+                >
+                  <Icon name={item.icon} className="size-4 shrink-0" />
+                  <span className="grow text-left">{item.label}</span>
+                  {item.expandable && <Icon name="chevron-right" className="size-3 shrink-0 rotate-90" />}
+                </NavLink>
+              </li>
+            ))}
+          </ul>
         </div>
 
-        <div className="flex min-w-0 flex-1 gap-2 overflow-hidden p-2">
-          <div className="flex min-w-0 flex-1 flex-col gap-2">
-            <Panel title="Session Info" icon="dash-stream" className="shrink-0">
-              <div className="flex flex-row">
-                <Stat label="Session" badge />
-                <Stat label="Viewers" value="-" />
-                <Stat label="Followers" value="1" />
-                <Stat label="Sub Counts" value="-" />
-                <Stat label="Time Live" value="-" />
-              </div>
-            </Panel>
+        <div className="flex w-full min-w-0 max-w-full overflow-hidden">
+          <div className="grow overflow-hidden bg-black p-0.5">
+            <div className="flex h-full w-full flex-row">
+              <div className="flex flex-col" style={{ width: "50%" }}>
+                <Pane style={{ height: "22%" }}>
+                  <Panel title="Session Info" icon="dash-stream" bodyClassName="flex-col">
+                    <div className="flex w-full gap-1">
+                      <Stat label="Session" badge="Offline" />
+                      <div className="h-full w-px shrink-0 bg-outline-decorative" />
+                      <Stat label="Viewers" value="-" />
+                      <div className="h-full w-px shrink-0 bg-outline-decorative" />
+                      <Stat label="Followers" value={String(currentUser.followers)} />
+                      <div className="h-full w-px shrink-0 bg-outline-decorative" />
+                      <Stat label="Sub Counts" value="-" />
+                      <div className="h-full w-px shrink-0 bg-outline-decorative" />
+                      <Stat label="Time Live" value="-" />
+                    </div>
+                    <div className="w-full border-t border-outline-decorative" />
+                  </Panel>
+                </Pane>
 
-            <Panel title="Stream Preview" icon="dash-studio" className="shrink-0">
-              <div className="relative aspect-video w-full bg-black">
-                <div className="absolute left-7 top-7 flex h-fit w-fit items-center gap-4 rounded bg-surface-base p-5 font-bold leading-[1.2]">
-                  <span className="rounded-[2px] bg-white p-1 text-sm font-bold uppercase leading-5 text-surface-lowest">
-                    Offline
-                  </span>
-                  <span className="text-2xl font-bold leading-8 text-white">
-                    {currentUser.username} is offline
-                  </span>
-                </div>
-              </div>
-            </Panel>
-
-            <div className="flex min-h-0 flex-1 gap-2">
-              <Panel title="Activity Feed" icon="dash-achievements" className="min-h-[180px] flex-1" />
-              <Panel title="Mod Actions" icon="dash-moderation" className="min-h-[180px] flex-1">
-                <div className="flex items-start gap-2 px-4 py-3">
-                  <Icon name="dash-revenue" className="mt-0.5 size-4 shrink-0 text-subtle" />
-                  <div className="flex min-w-0 flex-col">
-                    <span className="text-sm">
-                      <span className="font-bold text-surface-onSurfacePrimary">
-                        {currentUser.username}
-                      </span>{" "}
-                      <span className="text-white">started a Poll</span>
-                    </span>
-                    <span className="text-xs font-semibold text-subtle">DAW</span>
+                <Pane style={{ height: "50%" }}>
+                  <div className="flex h-full w-full flex-col">
+                    <PanelHeader title="Stream Preview" icon="dash-studio" />
+                    <div className="flex min-h-0 flex-1 grow overflow-hidden rounded-b bg-black">
+                      <div className="flex h-full w-full items-center justify-center">
+                        <div className="flex h-fit w-fit items-center gap-4 rounded bg-surface-base p-5 font-bold leading-[1.2]">
+                          <div className="flex items-center justify-center rounded-sm bg-[#F4F5F6] px-1.5 py-1 text-[10px] uppercase text-[#070809]">
+                            Offline
+                          </div>
+                          <h2 className="text-base font-bold leading-[1.2] text-white lg:text-2xl">
+                            {currentUser.username} is offline
+                          </h2>
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                  <span className="ml-auto shrink-0 text-xs font-semibold text-subtle">1 day ago</span>
+                </Pane>
+
+                <div className="flex flex-row" style={{ height: "28%" }}>
+                  <Pane style={{ width: "50%" }}>
+                    <Panel
+                      title="Activity Feed"
+                      icon="dash-activity"
+                      actions={<IconButton icon="dash-filter" label="Filter Activity Feed" className="size-8 text-sm leading-none" />}
+                    />
+                  </Pane>
+                  <Pane style={{ width: "50%" }}>
+                    <Panel
+                      title="Mod Actions"
+                      icon="dash-mod-actions"
+                      actions={<IconButton icon="dash-filter" label="Filter Mod Actions" className="size-8 text-sm leading-none" />}
+                    />
+                  </Pane>
                 </div>
-              </Panel>
+              </div>
+
+              <Pane style={{ width: "30%" }}>
+                <Panel title="Chat" icon="dash-chat">
+                  <div className="flex h-full w-full flex-col">
+                    <div className="no-scrollbar min-h-0 grow overflow-y-auto" />
+                    <div className="flex shrink-0 flex-col gap-2 px-5 py-3">
+                      <div className="flex w-full items-center rounded border-2 border-neutral-700 py-1 pl-2 pr-1 transition-colors duration-200 focus-within:border-transparent focus-within:bg-[#070809] focus-within:ring-1 focus-within:ring-[#F4F5F6] focus-within:ring-offset-1">
+                        <IconButton icon="verified" label="Chat identity" className="h-[30px] px-[5px] text-base leading-none" />
+                        <input
+                          value={draft}
+                          onChange={(e) => setDraft(e.target.value)}
+                          placeholder="Send a message"
+                          aria-label="Send a message"
+                          className="w-full bg-transparent px-1 text-sm font-medium leading-[1.15] text-white outline-none placeholder:text-[#768087]"
+                        />
+                        <IconButton icon="chat-emote" label="Emotes" className="size-9 text-base leading-none" />
+                      </div>
+                      <div className="flex w-full items-center gap-x-2">
+                        <button
+                          type="button"
+                          aria-label="Channel points"
+                          className="state-layer-surface flex items-center gap-1 rounded bg-transparent px-2 py-1.5 text-sm font-semibold text-white"
+                        >
+                          <Icon name="dash-tools" className="size-4" />
+                          <Icon name="chat-kicks" className="size-5" />
+                        </button>
+                        <div className="ml-auto flex items-center gap-x-2">
+                          <IconButton icon="settings" label="Chat settings" className="size-9 text-base leading-none" />
+                          <button
+                            type="button"
+                            className="state-layer-base rounded bg-primary-base px-3 py-1.5 text-sm font-semibold text-primary-onPrimary"
+                          >
+                            Chat
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </Panel>
+              </Pane>
+
+              <div className="flex flex-col" style={{ width: "20%" }}>
+                <Pane style={{ height: "30%" }}>
+                  <Panel
+                    title="Stream info"
+                    icon="dash-moderation"
+                    bodyClassName="p-4"
+                    actions={<IconButton icon="dash-edit" label="Edit stream info" className="size-8 text-sm leading-none" />}
+                  >
+                    <div className="flex w-full max-w-full flex-col gap-2 text-sm">
+                      <span className="line-clamp-2 font-semibold text-white">My first stream.</span>
+                      <div className="no-scrollbar flex w-full max-w-full items-center gap-2 overflow-x-auto">
+                        <img
+                          src={justChatting.thumbnail}
+                          alt=""
+                          className="aspect-[164/219] h-[46px] shrink-0 overflow-hidden rounded object-cover"
+                        />
+                        <div className="flex flex-col gap-1">
+                          <span className="text-white">{justChatting.name}</span>
+                          <div className="flex min-w-0 gap-2">
+                            <span className="rounded-full bg-secondary-base px-2 py-1 text-sm leading-none text-secondary-onSecondary">
+                              English
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </Panel>
+                </Pane>
+
+                <Pane style={{ height: "70%" }}>
+                  <Panel title="Channel Actions" icon="dash-overlays" bigPopout>
+                    <div className="no-scrollbar h-full min-h-0 w-full overflow-y-auto py-2">
+                      <div className="flex w-full flex-col gap-4 px-4 pt-2 text-white">
+                        <ActionGroup title="Chat access" divider>
+                          <ActionRow label="Account age" value="Off" />
+                          <ActionRow label="Followers only" value="Off" />
+                          <ToggleRow label="Subscribers only" on={subsOnly} onChange={setSubsOnly} />
+                        </ActionGroup>
+                        <ActionGroup title="Chat options" divider>
+                          <ToggleRow label="Emotes only" on={emotesOnly} onChange={setEmotesOnly} />
+                          <ActionRow label="Slow mode" value="Off" />
+                          <ActionRow label="Banned words" />
+                          <ActionRow label="AI Chat Moderation" external />
+                        </ActionGroup>
+                        <ActionGroup title="Channel options">
+                          <ToggleRow label="Show view count" on={showViewCount} onChange={setShowViewCount} />
+                          <ActionRow label="Raid Channel" disabled />
+                          <ActionRow label="Set goals" />
+                        </ActionGroup>
+                      </div>
+                    </div>
+                  </Panel>
+                </Pane>
+              </div>
             </div>
           </div>
 
-          <Panel title="Chat" icon="chatters" className="hidden w-[380px] shrink-0 xl:flex">
-            <div className="flex h-full flex-col">
-              <div className="min-h-0 flex-1" />
-              <div className="shrink-0 border-t border-outline-decorative p-3">
-                <div className="flex h-11 items-center gap-2 rounded border-2 border-neutral-700 px-3 transition-colors betterhover:hover:border-neutral-400">
-                  <input
-                    placeholder="Send a message"
-                    aria-label="Send a message"
-                    className="w-full bg-transparent text-sm text-white outline-none placeholder:text-subtle"
-                  />
-                </div>
-                <div className="mt-2 flex items-center justify-end">
-                  <button
-                    type="button"
-                    className="h-8 rounded bg-primary-base px-3 py-1.5 text-sm font-semibold text-primary-onPrimary"
-                  >
-                    Chat
-                  </button>
-                </div>
-              </div>
+          <div className="flex h-full shrink-0 grow-0 flex-col items-center gap-y-4 rounded-l bg-surface-base px-3 py-2.5">
+            <IconButton icon="dash-info" label="About the dashboard" className="size-10 text-base leading-none" />
+            <div className="flex flex-col items-center gap-2 overflow-hidden">
+              <button
+                type="button"
+                aria-label="Edit layout"
+                className="flex size-10 shrink-0 items-center justify-center rounded bg-secondary-base/20 font-semibold text-white"
+              >
+                <Icon name="dash-edit" className="size-4" />
+              </button>
             </div>
-          </Panel>
-
-          <div className="hidden w-[300px] shrink-0 flex-col gap-2 2xl:flex">
-            <Panel title="Stream info" icon="dash-stream-key" className="shrink-0">
-              <div className="flex flex-col gap-2 px-4 py-3">
-                <span className="text-sm font-semibold text-white">My first stream.</span>
-                <div className="flex items-center gap-2">
-                  <img
-                    src={currentUser.avatar}
-                    alt=""
-                    className="size-8 shrink-0 rounded"
-                  />
-                  <span className="text-sm text-white">Just Chatting</span>
-                </div>
-                <span className="w-fit rounded-full bg-surface-highest px-2 py-0.5 text-xs font-semibold text-subtle">
-                  English
-                </span>
-              </div>
-            </Panel>
-
-            <Panel title="Channel Actions" icon="dash-moderation" className="min-h-0 flex-1">
-              <GroupTitle>Chat access</GroupTitle>
-              <ActionRow label="Account age" value="Off" chevron />
-              <ActionRow label="Followers only" value="Off" chevron />
-              <ActionRow label="Subscribers only">
-                <Toggle on={subsOnly} onChange={setSubsOnly} label="Subscribers only" />
-              </ActionRow>
-              <GroupTitle>Chat options</GroupTitle>
-              <ActionRow label="Emotes only">
-                <Toggle on={emotesOnly} onChange={setEmotesOnly} label="Emotes only" />
-              </ActionRow>
-              <ActionRow label="Slow mode" value="Off" chevron />
-              <ActionRow label="Banned words" chevron />
-              <ActionRow label="AI Chat Moderation">
-                <Icon name="share" className="size-3 text-subtle" />
-              </ActionRow>
-              <GroupTitle>Channel options</GroupTitle>
-              <ActionRow label="Show view count">
-                <Toggle on={showViewCount} onChange={setShowViewCount} label="Show view count" />
-              </ActionRow>
-              <ActionRow label="Raid Channel" disabled />
-              <ActionRow label="Set goals" chevron />
-            </Panel>
+            <div className="h-px w-6 bg-surface-base" />
+            {railTools.map((tool) => (
+              <IconButton
+                key={tool.icon}
+                icon={tool.icon}
+                label={tool.label}
+                className="size-10 border border-primary-base"
+              />
+            ))}
+            <IconButton icon="dash-tools" label="More tools" className="size-10 text-base leading-none" />
           </div>
         </div>
       </div>

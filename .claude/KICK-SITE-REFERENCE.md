@@ -1132,3 +1132,134 @@ The row label is 16px on a 24px line box. The three rows are "Hide Pools, Hot Tu
 knob is a 14 by 14 span, offset 4px from the left and 3px from the top, and it reads `data-state`
 off itself, not off the parent. Unchecked the track is `#42474d` and the knob is white. Checked the
 track is `#53fc18` and the knob turns `#171a1c`. Drive the styling from `data-state`.
+
+---
+
+## 22. The creator dashboard, a separate site
+
+**Source:** the `/stream` page of the dashboard host, read on 27 July 2026 at 2560 by 1305 in the
+user's own Chrome, **logged in**. The page needs a session, so it cannot be read logged out.
+Baseline: `demo/kick-reference/measured/dashboard-stream-2560.json`.
+
+The dashboard host is not the main site. It loads its own CSS chunks (`38u2r_w4u4dju.css`,
+`2m7oyef7xpt18.css`), it shares the token layer, and it lays the page out a different way. Do not
+reuse the main shell for it.
+
+### The navbar
+
+Same 60px height and same `#0b0b0c`, but the contents differ from the main site:
+
+| Part | Main site | Dashboard |
+|---|---|---|
+| Padding | `pl-3 pr-10` | `pl-3 pr-10`, the same |
+| Left | menu button, wordmark, search | menu button, wordmark. **No search** |
+| Left gap | 8px | **10px** (`gap-2.5`) |
+| Right | Get KICKs, chat, avatar | **Go live**, avatar |
+| Right gap | 8px | **20px** (`gap-5`) |
+| Menu icon | `collapse-sidebar` | the same three bars, `aria-label="Collapse sidebar"` |
+| Wordmark | `kick-logo.svg`, 97 by 26 | the same file, byte for byte |
+
+**Go live** is `h-9 px-2 gap-1.5 text-sm font-semibold`, `bg-primary-base` on
+`text-primary-onPrimary`, and it carries **the KICK K glyph**, not a live dot
+(`demo/src/kick/icons/kick-mark.svg`). The avatar is `size-8 rounded-full`. Measured at 2560, the
+button lands at 2386,12 and the avatar at 2488,14.
+
+### The frame
+
+```
+nav                              60px
+sidebar   256px  --sidebar-expanded-width, bg-surface-lowest, ul.px-2
+gutter    fills  bg-black, p-0.5              <- the page under the panels is pure black
+rail      64px   bg-surface-base, rounded-l, px-3 py-2.5, gap-y-4
+```
+
+A sidebar item is `h-12 px-4 py-1 gap-x-4 rounded text-base font-semibold`, and the active one is
+`!bg-secondary-base` (`#42474d`), not the green the main site uses. Each item carries a
+`data-testid` of `dashboard-tab-<name>`, and Studio and Community are buttons that expand.
+
+### The panel grid is percentages, never pixels
+
+Every pane is a percentage of its parent, each pane has a 2px pad, and black shows through the
+gaps. **Copy the percentage.** A pixel freezes one viewport.
+
+| Column | Width | Rows |
+|---|---|---|
+| 1 | 50% | Session Info 22%, Stream Preview 50%, then a row at 28% holding Activity Feed and Mod Actions at 50% each |
+| 2 | 30% | Chat, full height |
+| 3 | 20% | Stream info 30%, Channel Actions 70% |
+
+### A panel
+
+```
+div  flex h-full w-full flex-col
+  div  h-[52px] items-center justify-between rounded-t border-b border-outline-decorative
+       bg-surface-base py-2 pl-6 pr-4
+    div  flex items-center gap-4 text-lg leading-none   ->  icon 16 + title 18px/700
+    div  flex items-center gap-1                        ->  size-8 buttons, pop-out last
+  div  flex flex-1 grow overflow-hidden rounded-b bg-surface-base
+```
+
+**The panel surface is `bg-surface-base` (`#171a1c`), not `surface-lowest`.** This is the opposite
+of the main site, where one surface runs across the whole page. Here the panels are lighter and the
+page under them is black. Getting this backwards is the fastest way to make the dashboard look
+wrong.
+
+Every panel header ends with the pop-out button. Activity Feed and Mod Actions add a filter button
+before it, Stream info adds a pencil, and Stream Preview has none.
+
+**An icon inside a button is sized by the button's font, not by a size class.** Every button
+carries `[&_svg]:size-[1em]`, so the icon follows `text-sm` or `text-base` and a `size-4` on the
+`svg` loses to it. Write the mechanism, never the pixel:
+
+| Button | Font | Icon |
+|---|---|---|
+| Panel header action, `size-8` | `text-sm` | **14px** |
+| Navbar menu, `size-10` | `text-base` | 16px |
+| Go live, `h-9` | `text-sm` | 14px |
+| Rail tool, `size-10` | `text-base` | 16px |
+| Chat identity, `h-[30px] px-[5px]` | 16px through an inner `size-4` wrapper | 16px |
+| Chat emote, `size-9` | `text-base` | 16px |
+
+The leading icon beside a panel title is 16px, because it sits outside a button.
+
+**Channel Actions is the one exception.** Its pop-out renders at **16px** where every other panel
+renders 14px, on an identical 32px button at the same 14px font. Measured, not guessed. Copy the
+exception.
+
+A Channel Actions row ends in a **12px chevron**, or nothing at all when the row is disabled
+(Raid Channel has no chevron). A row that opens another site ends in a **16px** external-link glyph
+(`dash-external`), which is a plain box and arrow, **not** the dotted `dash-popout` the headers
+use. Both sit 16px from the panel's right edge, so their right edges line up with the chevrons.
+
+### Inside the panels
+
+- **Session Info.** `flex w-full gap-1` holding five `w-full flex-col items-start gap-3 px-3 py-4`
+  blocks, separated by `w-px h-full shrink-0 bg-outline-decorative`. **The divider needs
+  `shrink-0`**, or it is crushed to zero by the `w-full` blocks beside it. Session shows a badge
+  (`rounded-sm p-1 text-xs font-semibold uppercase bg-surfaceInverse-base`), the rest show a value.
+  A border-top closes the row.
+- **Stream Preview.** No `aspect-video`. The image fills the panel with `object-cover
+  object-center`, and the offline card centres over it: `h-fit w-fit gap-4 rounded bg-surface-base
+  p-5`, a `bg-[#F4F5F6] text-[#070809] px-1.5 py-1 text-[10px] uppercase` badge, then
+  `text-base lg:text-2xl` "<name> is offline". The artwork is the default offline banner the
+  dashboard host serves, 1764 by 993, 194 KB. It is stock artwork, so it is not ours to commit.
+- **Stream info.** `p-4`, the title as `line-clamp-2 font-semibold`, then a category tile at
+  `aspect-[164/219] h-[46px] rounded object-cover`, the category name, and a language pill
+  (`rounded-full px-2 py-1 text-sm bg-secondary-base`).
+- **Channel Actions.** `py-2` then `px-4 pt-2 gap-4`. Each group is a `pb-2 text-base font-bold`
+  heading, its rows, and a `h-px w-full bg-outline-decorative` rule. A row is `min-h-11 py-2
+  text-sm font-normal justify-between gap-4`, ending in a value plus a 12px chevron, or a switch.
+- **The switch** is `h-5 w-[2.25rem] rounded-full`, `bg-secondary-base` off and `bg-primary-base`
+  on. The knob is `h-[0.875rem] w-[0.875rem]`, `translate-x-[0.25rem]` off and
+  `translate-x-[calc(2.25rem-0.25rem-0.875rem)]` on, which measures 4px to 18px.
+- **Chat.** The message list, then a footer: an input row (`rounded border-2 border-neutral-700
+  pl-2 pr-1`) holding the identity badge, the editor and an emote button, then a row with the
+  channel-points button on the left and the settings gear plus a green **Chat** button on the
+  right.
+
+### The right rail
+
+Ten `size-10` buttons in one 64px column: an info button, an edit button on
+`bg-secondary-base/20`, a `h-px w-6` rule, seven tool buttons that each wear
+`border border-primary-base` on a transparent fill, and a dots button. The icons are 16px. They
+carry no `aria-label` on the live site, and the label comes from a tooltip.

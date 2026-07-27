@@ -36,6 +36,11 @@ Read on 27 July 2026, logged out.
 | `settings-profile-2560.json` | `/settings/profile`, **logged in** | 2560 by 1249 |
 | `settings-preferences-2560.json` | `/settings/preferences`, **logged in** | 2560 by 1249 |
 | `browse-1440.json` | `/browse` | 1440 by 900, read before the box held borders and shadows |
+| `dashboard-stream-2560.json` | `dashboard.kick.com/stream`, **logged in** | 2560 by 1305 |
+
+**The dashboard is a separate site.** `dashboard.kick.com` needs a login, so refresh that file in
+the user's own Chrome. Its heights are at 1305 and not 1249, so compare the ratio and not the
+pixel: every pane is a percentage of its column.
 
 **The settings pages need a session.** Logged out they render an empty shell, so the saved HTML in
 `html/` holds no cards and no form. Read them in the user's Chrome.
@@ -52,5 +57,8 @@ target that finds nothing measures nothing:
 - **A channel page** holds a player and a chat: use `player`, `playerVideo`, `channelContent`,
   `chat`, `chatMessages` and `chatFooter`, which are all `id` selectors on kick.com.
 - **A settings page** holds tabs and a form, so use the tab `data-testid` values and the inputs.
+- **The dashboard holds panels, not cards.** Every panel header is `.h-[52px]`, so read the panel
+  set from those, and add `gutter`, `rail`, `panelHeader`, `statDivider`, `actionRow` and
+  `sidebarItem`. `firstGrid` and `firstCard` find nothing on it.
 
 Each file records the targets it used, and says in `note` which ones do not fit.

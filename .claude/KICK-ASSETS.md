@@ -84,6 +84,37 @@ Real KICK icons: `menu` `search` `close` `home` `browse` `following` `collapseCh
 
 Current copy: `prototypes/kick-timelines-2/js/icons.js`.
 
+### `demo/src/kick/icons/`: the dashboard icons, 15 files
+
+Lifted verbatim from the markup the **dashboard host** serves on `/stream`, read **27 July 2026**
+in the user's own Chrome, logged in. The page needs a session, so these cannot be read logged out.
+Site Reference Section 20 says where each one sits.
+
+| File | Where it is used |
+|---|---|
+| `kick-mark.svg` | The K glyph inside the **Go live** button. Not a live dot |
+| `dash-popout.svg` | The pop-out button that closes every panel header. 16 by 16, dotted corner |
+| `dash-external.svg` | The external-link glyph on a Channel Actions row. A plain box and arrow, and **not** the same glyph as `dash-popout` |
+| `dash-filter.svg` | The filter button on Activity Feed and Mod Actions |
+| `dash-info.svg` | The rail info button |
+| `dash-edit.svg` | The rail edit button, and the pencil on Stream info |
+| `dash-webcam.svg` `dash-activity.svg` `dash-mod-actions.svg` `dash-chat.svg` `dash-broadcast.svg` `dash-overlays.svg` | The seven outlined rail tools, with `dash-moderation.svg` as the seventh. Activity Feed, Mod Actions, Chat and Channel Actions reuse four of them as their header icons |
+| `dash-tools.svg` | The rail dots button, and the channel-points button in chat. 16 by 16 |
+| `chat-emote.svg` | The emote button in the chat input. 16 by 16 |
+| `chat-kicks.svg` | The second glyph on the channel-points button. 24 by 24 |
+
+Same rules as the set above: solid fill, no stroke, `fill="currentColor"`, rendered at 16px.
+
+**These are KICK trademarks too.**
+
+**The chat identity badge is not here.** On the live dashboard it is an account-specific PNG
+embedded in the SVG, not a shared icon, so the clone uses `verified.svg` in that slot. It reads as
+a badge, but it is not the badge KICK shows.
+
+**The default offline banner is not here either.** The dashboard host serves it at 1764 by 993 and
+194 KB. It is stock artwork, not chrome, so the same rule that keeps the campaign plates out keeps
+it out. The clone shows KICK's own offline card on black instead.
+
 ### `brand/devices/`: the edge bar
 
 | File | Size |

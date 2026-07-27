@@ -29,6 +29,7 @@ Read on 27 July 2026, logged out.
 | `browse-2560.json` | `/browse` | 2560 by 1249 |
 | `following-2560.json` | `/following` | 2560 by 1249 |
 | `following-channels-2560.json` | `/following/channels` | 2560 by 1249 |
+| `following-channels-loggedin-2560.json` | `/following/channels`, **logged in** | 2560 by 1249 |
 | `following-categories-2560.json` | `/following/categories` | 2560 by 1249 |
 | `channel-evscape-2560.json` | `/evscape`, live | 2560 by 1249 |
 | `channel-evscape-clips-2560.json` | `/evscape/clips` | 2560 by 1249 |
@@ -46,7 +47,9 @@ The default `TARGETS` in `measure.js` describe a grid page. They do not fit ever
 target that finds nothing measures nothing:
 
 - **Home, browse and following** fit the default set.
-- **The following list pages** hold a list, so `firstGrid` and `firstCard` find nothing.
+- **The following pages need a session.** Logged out they hold an empty state, so `firstGrid` and
+  `firstCard` find nothing and only the chrome measures. Logged in, `/following/channels` holds a
+  card grid. Read it in the user's Chrome, or you measure the empty state and call it the page.
 - **A channel page** holds a player and a chat: use `player`, `playerVideo`, `channelContent`,
   `chat`, `chatMessages` and `chatFooter`, which are all `id` selectors on kick.com.
 - **A settings page** holds tabs and a form, so use the tab `data-testid` values and the inputs.

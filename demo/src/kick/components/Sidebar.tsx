@@ -202,7 +202,7 @@ export function Sidebar({ collapsed }: { collapsed: boolean }) {
               <ChannelRow
                 key={c.slug}
                 {...c}
-                live={c.live}
+                category={c.live ? c.category : undefined}
                 testId={`sidebar-following-channel-${i + 1}`}
               />
             ))}

@@ -1,7 +1,7 @@
 import { NavLink } from "react-router-dom";
 
 const tabs = [
-  { to: "/following", label: "Livestreams" },
+  { to: "/following", label: "Live Channels" },
   { to: "/following/categories", label: "Categories" },
   { to: "/following/channels", label: "Channels" },
 ];

@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 340 420" width="340" height="420" role="img" aria-label="EVERY WEEK STREAM SCHEDULE">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="0.6" y2="1">
+      <stop offset="0" stop-color="#151109"/>
+      <stop offset="1" stop-color="#2e2410"/>
+    </linearGradient>
+    <pattern id="p" width="14" height="14" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+      <rect width="7" height="14" fill="#FFB020" opacity="0.05"/>
+    </pattern>
+  </defs>
+  <rect width="340" height="420" rx="8" fill="url(#g)"/>
+  <rect width="340" height="420" rx="8" fill="url(#p)"/>
+  <g opacity="0.9"><rect x="160" y="110" width="150" height="150" rx="10" fill="#FFB020" opacity="0.14"/><rect x="180" y="140" width="34" height="26" rx="4" fill="#FFB020" opacity="0.34"/><rect x="230" y="140" width="34" height="26" rx="4" fill="#FFB020" opacity="0.20"/><rect x="180" y="182" width="34" height="26" rx="4" fill="#FFB020" opacity="0.20"/><rect x="230" y="182" width="34" height="26" rx="4" fill="#FFB020" opacity="0.28"/></g>
+  <rect x="28" y="40" width="40" height="4" rx="2" fill="#FFB020"/>
+  <text x="28" y="70" font-family="Inter, sans-serif" font-size="12" font-weight="700" letter-spacing="2" fill="#FFB020">EVERY WEEK</text>
+  <text x="28" y="322" font-family="Inter, sans-serif" font-size="34" font-weight="800" fill="#FFFFFF">STREAM</text>
+  <text x="28" y="358" font-family="Inter, sans-serif" font-size="34" font-weight="800" fill="#FFFFFF">SCHEDULE</text>
+  <rect x="28" y="378" width="150" height="30" rx="4" fill="#FFB020"/>
+  <text x="103" y="398" font-family="Inter, sans-serif" font-size="13" font-weight="700" fill="#0B0B0C" text-anchor="middle">SET A REMINDER</text>
+</svg>

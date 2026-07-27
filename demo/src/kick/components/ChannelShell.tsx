@@ -1,10 +1,12 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Link } from "react-router-dom";
-import type { Livestream, OfflineChannel } from "../mock/api";
+import type { ChannelProfile, Livestream } from "../mock/api";
 import { ChannelPlayer } from "./ChannelPlayer";
+import { ChannelLivePreview } from "./ChannelLivePreview";
 import { ChannelBar } from "./ChannelBar";
 import { ChannelChat } from "./ChannelChat";
 import { ChannelOffline } from "./ChannelOffline";
+import { ChannelAboutCard } from "./ChannelSections";
 
 const MIN_CHAT_WIDTH = 260;
 const MAX_CHAT_WIDTH = 480;
@@ -12,45 +14,39 @@ const DEFAULT_CHAT_WIDTH = 340;
 
 export type ChannelTab = "home" | "videos" | "clips" | "about";
 
-const tabs: { id: ChannelTab; label: string }[] = [
-  { id: "home", label: "Home" },
-  { id: "videos", label: "Videos" },
-  { id: "clips", label: "Clips" },
-  { id: "about", label: "About" },
+const tabs: { id: ChannelTab; label: string; path: string }[] = [
+  { id: "home", label: "Home", path: "" },
+  { id: "about", label: "About", path: "/about" },
+  { id: "videos", label: "Videos", path: "/videos" },
+  { id: "clips", label: "Clips", path: "/clips" },
 ];
 
-function ChannelTabs({ slug, active }: { slug: string; active: ChannelTab }) {
+// KICK points Home at /slug, which is the player. We send a live channel to /slug/home instead,
+// so the Home tab is a content page and the player is only entered by Watch now.
+function ChannelTabs({ slug, active, live }: { slug: string; active: ChannelTab; live: boolean }) {
   return (
     <nav
       aria-label="Channel"
-      className="relative flex flex-nowrap overflow-x-auto bg-surface-lowest shadow-[inset_0px_-2px_0] shadow-outline-decorative scroll-smooth md:no-scrollbar"
+      className="relative flex flex-nowrap overflow-x-auto bg-surface-lowest px-4 shadow-[inset_0px_-2px_0] shadow-outline-decorative scroll-smooth md:no-scrollbar"
     >
       {tabs.map((tab) => {
         const isActive = tab.id === active;
-        const className = `state-layer-surface relative flex h-12 shrink-0 cursor-pointer items-center overflow-hidden whitespace-nowrap rounded-t-sm border-b px-2 text-base font-semibold transition-all ${
-          isActive
-            ? "border-surface-onSurfacePrimary text-surface-onSurfacePrimary"
-            : "border-transparent text-white"
-        }`;
-        const testId = `channel-${tab.id}-tab`;
-
-        if (tab.id === "home" || tab.id === "clips") {
-          return (
-            <Link
-              key={tab.id}
-              to={tab.id === "home" ? `/${slug}` : `/${slug}/clips`}
-              data-testid={testId}
-              className={className}
-            >
-              {tab.label}
-            </Link>
-          );
-        }
-
         return (
-          <button key={tab.id} type="button" data-testid={testId} className={className}>
+          <Link
+            key={tab.id}
+            to={tab.id === "home" && live ? `/${slug}/home` : `/${slug}${tab.path}`}
+            data-testid={`channel-${tab.id}-tab`}
+            className={`state-layer-surface relative flex h-12 shrink-0 cursor-pointer items-center overflow-hidden whitespace-nowrap rounded-t-sm border-b px-2 text-base font-semibold transition-all ${
+              isActive
+                ? "border-surface-onSurfacePrimary text-surface-onSurfacePrimary"
+                : "border-transparent text-white"
+            }`}
+          >
+            {isActive && (
+              <div className="absolute inset-x-0 bottom-[-2px] h-0.5 rounded-full bg-surface-onSurfacePrimary" />
+            )}
             {tab.label}
-          </button>
+          </Link>
         );
       })}
     </nav>
@@ -58,14 +54,16 @@ function ChannelTabs({ slug, active }: { slug: string; active: ChannelTab }) {
 }
 
 export function ChannelShell({
+  profile,
   stream,
   active,
-  offline,
+  watch,
   children,
 }: {
-  stream: Livestream;
+  profile: ChannelProfile;
+  stream?: Livestream;
   active: ChannelTab;
-  offline?: OfflineChannel;
+  watch?: boolean;
   children?: ReactNode;
 }) {
   const [chatWidth, setChatWidth] = useState(DEFAULT_CHAT_WIDTH);
@@ -104,15 +102,21 @@ export function ChannelShell({
         id="channel-content"
         className="no-scrollbar flex h-full min-w-0 flex-1 flex-col overflow-y-auto overflow-x-hidden"
       >
-        {offline ? (
-          <ChannelOffline data={offline} />
-        ) : (
+        {stream ? (
           <>
-            <ChannelPlayer stream={stream} />
-            <ChannelBar stream={stream} />
+            {watch ? <ChannelPlayer stream={stream} /> : <ChannelLivePreview stream={stream} />}
+            <div className="flex flex-col gap-6 px-4 py-5 lg:px-7">
+              <ChannelBar stream={stream} showFollowers={!watch} />
+              {watch && <ChannelAboutCard profile={profile} />}
+            </div>
           </>
+        ) : (
+          <ChannelOffline profile={profile} />
         )}
-        <ChannelTabs slug={stream.channel.slug} active={active} />
+        {/* KICK shows no tabs while the player is up. The player is the page. */}
+        {!watch && (
+          <ChannelTabs slug={profile.channel.slug} active={active} live={Boolean(stream)} />
+        )}
         {children}
       </div>
 

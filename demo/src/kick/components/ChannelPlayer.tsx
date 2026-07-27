@@ -48,33 +48,33 @@ export function ChannelPlayer({ stream }: { stream: Livestream }) {
       <img
         src={stream.thumbnail}
         alt={stream.session_title}
-        className="h-full w-full object-cover"
+        className="h-full w-full object-cover brightness-125"
       />
 
       <div className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-150 betterhover:group-hover/player:pointer-events-auto betterhover:group-hover/player:opacity-100 focus-within:pointer-events-auto focus-within:opacity-100">
-        <div className="group/seek absolute inset-x-0 bottom-14 flex h-4 items-center">
-          <div
-            role="slider"
-            aria-label="Loaded progress"
-            aria-valuenow={Math.round(seek)}
-            aria-valuemin={0}
-            aria-valuemax={100}
-            onClick={(e) => setSeek(trackPercent(e))}
-            className="relative h-1 w-full cursor-pointer rounded-full bg-white/20 transition-[height] duration-150 betterhover:group-hover/seek:h-1.5"
-          >
-            <div className="pointer-events-none absolute inset-y-0 left-0 w-full rounded-full bg-white/50" />
+        <div className="z-controls absolute inset-x-0 bottom-0 flex h-11 flex-row items-center justify-between gap-2 bg-gradient-to-t from-black/80 to-transparent px-2 xl:px-5">
+          <div className="group/seekbar absolute -top-7 left-0 flex h-5 w-full items-end">
             <div
-              className="pointer-events-none absolute inset-y-0 left-0 rounded-full bg-primary-base"
-              style={{ width: `${seek}%` }}
-            />
-            <div
-              className="pointer-events-none absolute top-1/2 size-4 -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary-base opacity-0 transition-opacity betterhover:group-hover/seek:opacity-100 before:absolute before:-inset-2 before:content-['']"
-              style={{ left: `${seek}%` }}
-            />
+              role="slider"
+              aria-label="Loaded progress"
+              aria-valuenow={Math.round(seek)}
+              aria-valuemin={0}
+              aria-valuemax={100}
+              onClick={(e) => setSeek(trackPercent(e))}
+              className="relative h-1 w-full cursor-pointer overflow-visible bg-white/30 transition-[height] duration-150 betterhover:group-hover/seekbar:h-1.5"
+            >
+              <div className="pointer-events-none absolute inset-y-0 left-0 w-full bg-white/50" />
+              <div
+                className="pointer-events-none absolute inset-y-0 left-0 bg-primary-base"
+                style={{ width: `${seek}%` }}
+              />
+              <div
+                className="pointer-events-none absolute top-1/2 size-4 -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary-base opacity-0 transition-opacity betterhover:group-hover/seekbar:opacity-100 before:absolute before:-inset-2 before:content-['']"
+                style={{ left: `${seek}%` }}
+              />
+            </div>
           </div>
-        </div>
 
-        <div className="absolute inset-x-5 bottom-5 flex h-11 items-center justify-between gap-2">
           <div className="flex min-w-0 items-center gap-1">
             <button
               type="button"

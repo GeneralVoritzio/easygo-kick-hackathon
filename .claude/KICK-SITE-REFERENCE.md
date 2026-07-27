@@ -16,6 +16,10 @@ viewport, logged out. Values come from the DOM and from computed styles, not fro
 Sections 15 to 18 come from `demo/kick-reference/`, the saved markup and CSS of the live site, read
 on 27 July 2026. Section 14 says how to query it.
 
+Section 19 comes from the live site read **logged in** on 27 July 2026 at 2560 by 1249. It covers
+the three cards, and the browse and following pages. The saved scrape cannot answer it, because a
+logged out card is a skeleton.
+
 **Start at Section 8.** The wordmark, the icon set and the font are committed files. Copying them
 buys more fidelity than any amount of careful CSS.
 
@@ -536,3 +540,282 @@ Read from `css/`. Use these names and these numbers.
 | `z-popover` | 401 |
 
 A scale of 300, 400 and 500 is invented. It works until two invented layers meet.
+
+---
+
+## 19. The three cards, and the browse and following pages
+
+**Source:** `kick.com/browse`, `/browse/categories`, `/browse/clips`, `/following`,
+`/following/categories` and `/trainwreckstv`, read on 27 July 2026 at a 2560 by 1249 viewport,
+**logged in**. The saved scrape cannot answer this section, because a logged out card is a
+skeleton and a skeleton holds no text.
+
+### 19.1 The pill rule. Read this first
+
+**KICK does not show free-text topic tags on a card.** Every livestream card, on every page,
+shows the same pill row in the same order:
+
+```
+category, language, and "18+" when the stream is mature
+```
+
+Ten cards in one row, no exceptions:
+
+```
+Slots & Casino / English / 18+      Old School RuneScape / English
+IRL / English                       Tekken 8 / English
+ASMR / English / 18+                Just Chatting / English
+Movierooms / Chinese                Slots & Casino / Arabic / 18+
+```
+
+**The category is the first pill, not a green link.** The green category link belongs to the
+channel bar under the player, Section 5, and nowhere else. A card that puts the category on its
+own line in `#53FC18` is wrong.
+
+The pill is one class everywhere:
+
+```
+rounded-full px-2 py-1 text-sm font-normal bg-secondary-base text-secondary-onSecondary
+```
+
+22px tall, `bg` `rgb(66,71,77)`, radius 9999. The row is
+`mt-2 flex max-h-[22px] w-full flex-row flex-wrap gap-x-1 overflow-hidden`, so a long row clips
+to one line.
+
+Under the player the channel bar drops the category pill and keeps `English` and `18+`, because
+the category is already a link beside them.
+
+### 19.2 Livestream card, 320 by 270
+
+```
+div.group/card  relative flex w-full shrink-0 grow-0 flex-col gap-2 lg:gap-0
+  a  relative aspect-video w-full select-none overflow-hidden rounded          320x180
+    img  brightness-110 contrast-[110%] saturate-[110%]
+    div  bg-surface-lowest absolute rounded px-1 text-sm font-semibold
+         top-1.5 left-1.5 text-primary-base uppercase        -> LIVE           38x20
+    div  bg-surface-lowest absolute rounded px-1 text-sm font-semibold
+         bottom-1.5 left-1.5   -> <span>35.6K</span> watching                  114x20
+  div  flex w-full flex-row flex-nowrap gap-2 lg:px-1.5 lg:py-2 tv:py-4 fhd:py-5
+    a    img.size-11.rounded-full                                              44x44
+    div  flex w-full min-w-0 flex-col items-start tv:gap-1 fhd:gap-1.5
+      a    username, text-sm font-semibold, white, leading-5                   h20
+      div  flex w-full flex-row flex-nowrap justify-between gap-2
+        a  title, text-base font-normal, text-surface-onSurfaceSecondary       h24
+      div  the pill row of 19.1                                                h22
+  CornerMarks
+```
+
+Four facts that are easy to get backwards:
+
+| Thing | Value |
+|---|---|
+| **LIVE badge** | `bg-surface-lowest`, so a dark chip, and the **text is green**. It is not a red chip |
+| **Line 1** | the **username**, 14px weight 600, white |
+| **Line 2** | the **session title**, 16px weight 400, `#9FA6AD`. The title is the quiet line |
+| **Verified tick** | **not shown on a card**. It appears in the channel bar and the sidebar row |
+
+Both thumbnail badges sit at `1.5`, not `2`, and both are `text-sm`, not `text-xs`.
+
+### 19.3 Category card, 146 by 282
+
+Poster `rounded-lg`, 146 by 195. Then
+`flex flex-col gap-1 p-1 pt-0 lg:pb-3` holding the name at `text-base font-semibold` white, the
+count at `text-sm font-normal` `#9FA6AD` reading **"172.2K watching"**, and a pill row of genre
+tags: `IRL / Casual`, `Shooter / FPS`, `MOBA / Action`, `Strategy / Action`, `RPG / MMO`.
+
+The word is **watching**, not "viewers". Grid gaps are `gap-x-2 gap-y-3 lg:gap-y-6`.
+
+### 19.4 Clip card, 320 by 262
+
+The same anatomy as the livestream card. Duration badge `top-1.5 left-1.5`, views badge
+`bottom-1.5 left-1.5`, both the same `bg-surface-lowest` chip. Then avatar, username, title, and
+a row holding the category pill and the age, for example `Slots & Casino  · 5 days ago`.
+
+The username on a clip card is the **broadcaster**, not whoever cut the clip.
+
+A clip grid uses the **same columns as a stream grid**. It does not get its own.
+
+### 19.5 Corner marks are on all three cards
+
+The green marks of Section 15 are on the livestream card, the category card **and** the clip card.
+Two L shapes, bottom left and bottom right, a 12 by 4 bar and a 4 by 8 bar, `opacity-0` to
+`opacity-100` on `group-hover/card`, gated by `betterhover`. There is no border, no ring and no
+lift. A card that grows a border on hover is wrong.
+
+### 19.6 Tabs and filters
+
+| Page | Tabs | Filter row |
+|---|---|---|
+| `/browse` | Livestreams, Categories, Clips | left `Filter by:` + `Languages`, right `Sort by:` + `Recommended` |
+| `/browse/categories` | the same three | **none** |
+| `/browse/clips` | the same three | left `Sort by:` + `Views`, right `Filter by:` + `Last Week` |
+| `/following` | **Live Channels**, Categories, Channels | **none** |
+
+**There is no Leaderboard tab.** The only leaderboard on kick.com is the gifter strip in chat,
+Section 6. **There is no search box on any browse tab**; the page search is the one in the navbar.
+
+Options, read from the open menus:
+
+- Livestreams, sort: `Featured`, `Recommended`, `Viewers (High to Low)`. Default `Recommended`.
+- Clips, sort: `Views`, `Most Recent`. Filter: `Last Day`, `Last Week`, `Last Month`, `All Time`.
+
+The filter control is **32px** tall, `bg-secondary-base/20`, radius 4, `px-3 py-1.5`, 14px weight
+600 white. Its label is 14px weight 600 white, `gap-2` from the control. The row is
+`flex w-full flex-row flex-wrap items-center justify-between gap-x-8 gap-y-4`, so one control sits
+left and one sits right.
+
+### 19.7 The Following page
+
+```
+h2  Following
+tabs  Live Channels | Categories | Channels
+div.flex.flex-col.gap-6.pb-20.lg:gap-8
+  section.relative.flex.flex-col.gap-y-3.lg:gap-y-4
+    div.flex.items-center.justify-between  ->  h2 "Live Channels"
+    a stream grid, holding only followed channels that are live
+  section.relative.flex.flex-col.gap-y-3.lg:gap-y-4
+    div.flex.items-center.justify-between  ->  "Channels you might like" + "View all"
+    a one row stream grid
+```
+
+The first tab reads **Live Channels**, not "Livestreams". A section heading is
+`text-base font-bold text-white lg:text-2xl`, the same size as the page title. The section shape
+is the same one the home page uses for `Streams For You`.
+
+`/following/categories` follows it: a `Categories` heading and a category grid, no filters. When a
+list is empty KICK shows the empty state, so there is nothing to preview and no toggle to preview
+it with.
+
+### 19.8 A channel page is two different pages, and a live home page has no tabs
+
+Measured on `kick.com/trainwreckstv` (live), `kick.com/trainwreckstv/videos` (live) and
+`kick.com/eddie` (offline), 27 July 2026.
+
+| URL | Live channel | Offline channel |
+|---|---|---|
+| `/slug` | The full player fills the column, then the channel bar. **No tabs.** The column does not scroll: `scrollHeight` equals `clientHeight` | Banner, channel header, **tabs**, then the Home content |
+| `/slug/about`, `/slug/videos`, `/slug/clips` | A **320px black strip holding a small live card**, then the channel bar, then **tabs**, then the content | Banner, channel header, tabs, then the content |
+
+**The player is the live home page.** Do not put a tab strip under it. KICK gives a live channel
+its tabs only on the three sub-pages.
+
+**The live card on a sub-page**, so a viewer can get back into the stream:
+
+```
+div  relative block h-[320px] w-full shrink-0 overflow-hidden bg-black
+  div  the video layer, absolute inset-0 z-player cursor-pointer
+  div  [370x264] bg-surface-base flex flex-col items-start justify-center gap-4 rounded p-5
+    div   [47x28] rounded bg-[#070809] px-2 py-0.5 text-green-400  -> LIVE, text-sm font-bold uppercase
+    div   flex justify-between gap-4  -> title, line-clamp-2 font-bold, and a 32px mute button
+    div   flex items-center gap-1 text-sm font-bold
+          an icon, then "<span class=text-primary-base>30.7K</span> watching" in text-subtle
+    button [330x40] Watch now, bg-primary-base, full card width
+```
+
+The viewer count in that card is **green**, and the word "watching" is subtle. The card sits at the
+left of the strip and is centred in its 320px height.
+
+**There is no link from a live home page to the tabs.** The channel name in the bar is an `h1` with
+no href, and the only `/slug` links on the page are the sidebar rows. A viewer reaches
+`/slug/videos` by URL, by search, or from a card menu elsewhere. Our demo makes the name and the
+avatar in the channel bar link to `/slug/about`, which KICK does not do, so that the four tabs are
+reachable by clicking. That is a deliberate divergence, recorded here so nobody 'corrects' it back.
+
+### 19.9 The channel bar avatar, and the second line
+
+Measured on `kick.com/sweatergxd/about`, a live channel, 27 July 2026. Read a **live** channel for
+this. A channel that goes offline mid-read loses the ring and the badge, which is easy to misread
+as "KICK does not draw one".
+
+```
+div  shrink-0
+  button  inline-flex h-14 w-12 items-center justify-center border-0 !p-0 lg:h-[68px] lg:w-16
+    div  [64x64] group relative flex aspect-square shrink-0 items-center size-12 lg:size-16
+      div  [64x64] aspect-square w-full overflow-hidden rounded-full border-2 border-green-500 lg:border-4
+        img  [56x56]
+      span [34x20] absolute -bottom-1.5 left-1/2 -translate-x-1/2 transform rounded-sm bg-green-500
+                   px-1.5 py-1 text-[10px] font-bold  ->  LIVE
+```
+
+| Thing | Value |
+|---|---|
+| Ring | A **4px solid border** on the avatar itself, `border-4 border-green-500`, `border-2` below `lg`. **Not** a `ring` with an offset. There is no dark gap between the picture and the green |
+| Avatar box | 64 by 64. The picture inside is **56 by 56**, because the border eats 4px a side |
+| LIVE badge | 34 by 20, `rounded-sm` (2px), `px-1.5 py-1`, 10px weight 700, ink `#171A1C` on `#53FC18`, **centred** on the bottom edge with `-bottom-1.5 left-1/2 -translate-x-1/2` |
+
+**The second line of the channel bar changes with the page.**
+
+| Page | Line 2 |
+|---|---|
+| Live home, the player page | The **session title**, 14px weight 600, white |
+| A sub-page (`/about`, `/videos`, `/clips`) | **"84K followers"**, 14px weight 700, `#929EA6`. The number carries `text-primary-base lg:text-[unset]`, so it is green on a small screen and inherits on a large one |
+
+Line 3 is the same on both: the green category link, then the pills, in a
+`flex min-w-0 max-w-full flex-wrap items-center gap-2 overflow-hidden` row.
+
+### 19.10 Our Home tab, a second deliberate divergence
+
+KICK points the Home tab at `/slug`, which for a live channel is the full player. So the Home tab
+puts a viewer back in the stream, and a live channel has no content page.
+
+Our demo adds **`/slug/home`**. The Home tab of a live channel goes there, and that page shows the
+live card of 19.8, the tabs, and the Stream Videos, Popular Clips and Recently Streamed Categories
+sections. `/slug` stays the player, and only `Watch now` and a card click go to it. An offline
+channel keeps Home on `/slug`, because there is no player to protect.
+
+Recorded here with 19.8 so nobody 'corrects' either one back.
+
+### 19.11 The live channel page scrolls, and the right cluster is two rows
+
+Measured on `kick.com/adrienbroner`, a live channel, 27 July 2026.
+
+**Correction to 19.8.** A live channel page **does** scroll, and it holds an About card and panels
+under the channel bar. An earlier read said the column does not scroll. That read queried
+`#channel-content`, which is **our** id, not KICK's. KICK's scroll container is `main`. Query the
+live page by tag, never by an id our own build invented.
+
+The column under the player is `padding: 20px 28px` with `gap: 24px`, holding, in order: the
+channel bar, the About card, then the panels.
+
+**The channel bar right cluster is two rows**, not one:
+
+```
+div  flex shrink-0 flex-col items-end gap-2                      [353x92]
+  div  flex grow gap-2 lg:grow-0                                 [353x40]
+    button [96x40]  Follow      bg #53FC18, ink #0B0B0C, r4, gap-1.5, px-3 py-2, 16px/600, icon 16
+    button [116x40] Gift Subs   bg #42474D, white
+    button [124x40] Subscribe   bg #42474D, white
+  div  flex items-center gap-2 self-end py-0.5                   [223x44]
+    div  flex items-center gap-1 text-sm font-bold               [127x20]
+      svg [16x16] white
+      span text-subtle  ->  "<span class=text-primary-base>3,012</span> watching"
+    button [40x40]  share,  transparent, icon only
+    button [40x40]  report, transparent, icon only
+```
+
+| Thing | Value |
+|---|---|
+| Share and report | **Transparent 40px icon buttons on the second row**, beside the viewer count. They are not filled buttons on the button row |
+| Report | KICK has one, a warning triangle. A channel bar without it is incomplete |
+| Viewer count | `3,012 watching`. The **number is green and comma grouped**, the word `watching` is `#929EA6`. It is not "3.0K viewers" in green |
+| Follow | Widens to fit its label. It is not a fixed 96px |
+
+**The About card**, first thing under the bar:
+
+```
+section  bg-surface-base flex h-fit grow flex-col gap-2 rounded-lg p-6      bg #171A1C, r8
+  div  flex grow items-center justify-between gap-3
+    div  text-base font-bold  ->  "About <name>" + a 16px verified tick
+    span text-sm font-semibold #9FA6AD  ->  "<span green>189.8K</span> Followers"
+  div  flex flex-wrap items-center gap-2 lg:gap-x-4 lg:gap-y-2
+    a  min-h-9 max-w-[200px] rounded px-2 gap-1.5 text-sm font-semibold  ->  icon 16 + handle
+  the bio, one short line
+```
+
+**Panels** sit under the About card, centred, as a wrapping row. On kick.com they are sponsor
+images a streamer uploads. Not every channel has them, so the row hides when the list is empty.
+
+**Panel size.** A panel is **340px wide**. The height follows the uploaded image, so it varies:
+340 by 414 and 340 by 340 on one channel. `object-fit: fill`, no radius, `max-width: 100%`. Panels
+are portrait or square, never a 16:9 landscape box. Each panel sits in its own `flex flex-col
+gap-3`, and the row gap is 12px. Not every channel has panels, and the count varies.

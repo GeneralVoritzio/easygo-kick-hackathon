@@ -1,15 +1,16 @@
 import type { ReactNode } from "react";
-import { NavLink, useLocation } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { PageShell } from "./Layout";
 
+// Only two of these have a page. The rest render and do nothing, they do not navigate.
 const tabs = [
-  { to: "/settings/profile", label: "Profile" },
-  { to: "/settings/security", label: "Security" },
-  { to: "/settings/preferences", label: "Preferences" },
-  { to: "/settings/notifications", label: "Notifications" },
-  { to: "/settings/connections", label: "Connections" },
-  { to: "/settings/developer", label: "Developer" },
-  { to: "/settings/payment-methods", label: "Payment methods" },
+  { to: "/settings/profile", label: "Profile", routed: true },
+  { to: "/settings/security", label: "Security", routed: false },
+  { to: "/settings/preferences", label: "Preferences", routed: true },
+  { to: "/settings/notifications", label: "Notifications", routed: false },
+  { to: "/settings/connections", label: "Connections", routed: false },
+  { to: "/settings/developer", label: "Developer", routed: false },
+  { to: "/settings/payment-methods", label: "Payment methods", routed: false },
 ];
 
 type SettingsLayoutProps = {
@@ -30,21 +31,31 @@ export function SettingsLayout({ title, children }: SettingsLayoutProps) {
       >
         {tabs.map((tab) => {
           const isActive = pathname === tab.to;
+          const testId = `tab-${tab.to.split("/").pop()}`;
+          const className = `state-layer-surface relative flex h-12 shrink-0 cursor-pointer items-center overflow-hidden whitespace-nowrap rounded-t-sm border-b px-2 text-base font-semibold transition-all ${
+            isActive
+              ? "border-surface-onSurfacePrimary text-surface-onSurfacePrimary"
+              : "border-transparent text-white"
+          }`;
+
+          if (!tab.routed) {
+            return (
+              <button key={tab.to} type="button" data-testid={testId} className={className}>
+                {tab.label}
+              </button>
+            );
+          }
+
           return (
-            <NavLink
+            <Link
               key={tab.to}
               to={tab.to}
-              end
-              data-testid={`tab-${tab.to.split("/").pop()}`}
+              data-testid={testId}
               data-state={isActive ? "active" : "inactive"}
-              className={`state-layer-surface relative flex h-12 shrink-0 cursor-pointer items-center overflow-hidden whitespace-nowrap rounded-t-sm border-b px-2 text-base font-semibold transition-all ${
-                isActive
-                  ? "border-surface-onSurfacePrimary text-surface-onSurfacePrimary"
-                  : "border-transparent text-white"
-              }`}
+              className={className}
             >
               {tab.label}
-            </NavLink>
+            </Link>
           );
         })}
       </nav>

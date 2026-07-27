@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 340 420" width="340" height="420" role="img" aria-label="BUILT FOR LATE NIGHTS DESK UPGRADE">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="0.6" y2="1">
+      <stop offset="0" stop-color="#0d1117"/>
+      <stop offset="1" stop-color="#102630"/>
+    </linearGradient>
+    <pattern id="p" width="14" height="14" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+      <rect width="7" height="14" fill="#18E9FB" opacity="0.05"/>
+    </pattern>
+  </defs>
+  <rect width="340" height="420" rx="8" fill="url(#g)"/>
+  <rect width="340" height="420" rx="8" fill="url(#p)"/>
+  <g opacity="0.9"><rect x="150" y="130" width="160" height="100" rx="6" fill="#18E9FB" opacity="0.16"/><rect x="196" y="238" width="68" height="12" rx="4" fill="#18E9FB" opacity="0.24"/><rect x="164" y="146" width="132" height="68" rx="3" fill="#18E9FB" opacity="0.10"/></g>
+  <rect x="28" y="40" width="40" height="4" rx="2" fill="#18E9FB"/>
+  <text x="28" y="70" font-family="Inter, sans-serif" font-size="12" font-weight="700" letter-spacing="2" fill="#18E9FB">BUILT FOR LATE NIGHTS</text>
+  <text x="28" y="322" font-family="Inter, sans-serif" font-size="34" font-weight="800" fill="#FFFFFF">DESK</text>
+  <text x="28" y="358" font-family="Inter, sans-serif" font-size="34" font-weight="800" fill="#FFFFFF">UPGRADE</text>
+  <rect x="28" y="378" width="150" height="30" rx="4" fill="#18E9FB"/>
+  <text x="103" y="398" font-family="Inter, sans-serif" font-size="13" font-weight="700" fill="#0B0B0C" text-anchor="middle">SEE THE BUILD</text>
+</svg>

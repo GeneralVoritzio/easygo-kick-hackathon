@@ -1,80 +1,84 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { Icon } from "../Icon";
-import { formatViewers, type Livestream } from "../mock/api";
+import { Pill } from "./CardBits";
+import { formatFollowers, type Livestream } from "../mock/api";
 
-export function ChannelBar({ stream }: { stream: Livestream }) {
+export function ChannelBar({
+  stream,
+  showFollowers,
+}: {
+  stream: Livestream;
+  showFollowers?: boolean;
+}) {
   const [following, setFollowing] = useState(false);
   const [subscribed, setSubscribed] = useState(false);
   const { channel } = stream;
 
   return (
-    <div className="flex flex-col gap-3 px-4 py-3 lg:flex-row lg:items-start lg:justify-between lg:gap-8 lg:px-7 lg:py-5">
+    <div className="flex w-full min-w-0 max-w-full flex-col justify-between gap-3 pb-3 pt-2 lg:flex-row lg:gap-12 lg:pb-0 lg:pt-0">
       <div className="flex min-w-0 gap-3 lg:gap-4">
-        <div className="relative shrink-0">
-          <div className="size-14 overflow-hidden rounded-full ring-2 ring-primary-base ring-offset-2 ring-offset-surface-lowest">
+        <Link to={`/${channel.slug}/home`} className="relative flex size-12 shrink-0 items-center lg:size-16">
+          <div className="aspect-square w-full overflow-hidden rounded-full border-2 border-green-500 lg:border-4">
             <img
               src={channel.avatar}
               alt={channel.username}
-              className="aspect-square w-full select-none transition-transform duration-300 ease-in-out"
+              className="aspect-square w-full select-none transition-transform duration-300 ease-in-out betterhover:group-hover:scale-110"
             />
           </div>
-          <span className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-sm bg-primary-base px-1 py-0.5 text-[10px] font-bold leading-none text-primary-onPrimary">
-            LIVE
+          <span className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 transform whitespace-nowrap rounded-[2px] bg-green-500 px-1.5 py-1 text-[10px] font-bold uppercase leading-3 text-[#171A1C]">
+            Live
           </span>
-        </div>
+        </Link>
 
-        <div className="flex min-w-0 flex-col gap-1 pt-0.5">
-          <h1 className="flex items-center gap-1 text-xl font-bold leading-[1.2] text-white">
-            {channel.username}
-            {channel.verified && <Icon name="verified" className="size-4 shrink-0" />}
+        <div className="flex min-w-0 grow flex-col gap-1 overflow-hidden">
+          <h1 className="flex items-center gap-2 text-xl font-bold leading-[1.2] text-white">
+            <Link to={`/${channel.slug}/home`} className="truncate betterhover:hover:underline">
+              {channel.username}
+            </Link>
+            {channel.verified && <Icon name="verified" className="size-5 shrink-0" />}
           </h1>
-          <p className="truncate text-sm font-semibold leading-[1.2] text-white">{stream.session_title}</p>
-          <div className="flex flex-wrap items-center gap-2 pt-1">
+          {showFollowers ? (
+            <span className="truncate text-sm font-bold leading-[1.2] text-subtle">
+              <span className="text-primary-base lg:text-[unset]">
+                {formatFollowers(channel.followers)}
+              </span>{" "}
+              followers
+            </span>
+          ) : (
+            <p className="truncate text-sm font-semibold leading-[1.2] text-white">
+              {stream.session_title}
+            </p>
+          )}
+          <div className="flex min-w-0 max-w-full flex-wrap items-center gap-2 overflow-hidden">
             <button
               type="button"
               className="text-sm font-normal leading-[1.2] text-surface-onSurfacePrimary betterhover:hover:underline"
             >
               {stream.category.name}
             </button>
-            {stream.tags.map((tag) => (
-              <button
-                key={tag}
-                type="button"
-                className="rounded-full bg-surface-highest px-2 py-0.5 text-sm font-normal leading-[1.2] text-white state-layer-surface"
-              >
-                {tag}
-              </button>
-            ))}
+            <Pill>{stream.language}</Pill>
+            {stream.is_mature && <Pill>18+</Pill>}
           </div>
         </div>
       </div>
 
       <div className="flex shrink-0 flex-col items-end gap-2">
-        <div className="flex items-center gap-2">
-          {following ? (
-            <button
-              type="button"
-              aria-label="Unfollow"
-              aria-pressed
-              onClick={() => setFollowing(false)}
-              className="flex size-10 shrink-0 items-center justify-center rounded bg-secondary-base transition-all select-none betterhover:active:scale-[0.98]"
-            >
-              <Icon name="heart-filled" className="size-4 text-primary-base" />
-            </button>
-          ) : (
-            <button
-              type="button"
-              aria-label="Follow"
-              onClick={() => setFollowing(true)}
-              className="flex h-10 w-24 shrink-0 items-center justify-center gap-1.5 whitespace-nowrap rounded bg-primary-base px-3 text-base font-semibold leading-none text-primary-onPrimary transition-all select-none betterhover:active:scale-[0.98]"
-            >
-              <Icon name="heart" className="size-4" />
-              Follow
-            </button>
-          )}
+        <div className="flex grow gap-2 lg:grow-0">
           <button
             type="button"
-            className="flex h-10 w-[116px] shrink-0 items-center justify-center gap-1.5 whitespace-nowrap rounded bg-secondary-base px-3 text-base font-semibold leading-none text-white transition-all select-none betterhover:active:scale-[0.98]"
+            aria-pressed={following}
+            onClick={() => setFollowing((v) => !v)}
+            className={`flex h-10 shrink-0 items-center justify-center gap-1.5 whitespace-nowrap rounded px-3 py-2 text-base font-semibold transition-all select-none betterhover:active:scale-[0.98] ${
+              following ? "bg-secondary-base text-white" : "bg-primary-base text-primary-onPrimary"
+            }`}
+          >
+            <Icon name={following ? "heart-filled" : "heart"} className="size-4" />
+            {following ? "Following" : "Follow"}
+          </button>
+          <button
+            type="button"
+            className="flex h-10 shrink-0 items-center justify-center gap-1.5 whitespace-nowrap rounded bg-secondary-base px-3 py-2 text-base font-semibold text-white transition-all select-none betterhover:active:scale-[0.98]"
           >
             <Icon name="gift" className="size-4" />
             Gift Subs
@@ -82,24 +86,39 @@ export function ChannelBar({ stream }: { stream: Livestream }) {
           <button
             type="button"
             onClick={() => setSubscribed((v) => !v)}
-            className={`flex h-10 w-[124px] shrink-0 items-center justify-center gap-1.5 whitespace-nowrap rounded px-3 text-base font-semibold leading-none transition-all select-none betterhover:active:scale-[0.98] ${
+            className={`flex h-10 shrink-0 items-center justify-center gap-1.5 whitespace-nowrap rounded px-3 py-2 text-base font-semibold transition-all select-none betterhover:active:scale-[0.98] ${
               subscribed ? "bg-primary-base text-primary-onPrimary" : "bg-secondary-base text-white"
             }`}
           >
             <Icon name="subscriptions" className="size-4" />
             {subscribed ? "Subscribed" : "Subscribe"}
           </button>
+        </div>
+
+        <div className="flex items-center gap-2 self-end py-0.5">
+          <div className="flex min-h-[1.375rem] items-center gap-1 text-sm font-bold">
+            <Icon name="chatters" className="size-4 shrink-0 fill-white" />
+            <span className="text-subtle">
+              <span className="text-primary-base tabular-nums">
+                {stream.viewer_count.toLocaleString("en-US")}
+              </span>{" "}
+              watching
+            </span>
+          </div>
           <button
             type="button"
             aria-label="Share channel"
-            className="flex size-10 shrink-0 items-center justify-center rounded bg-secondary-base text-white state-layer-surface"
+            className="flex size-10 shrink-0 items-center justify-center rounded text-white state-layer-surface"
           >
             <Icon name="share" className="size-4 fill-current" />
           </button>
-        </div>
-
-        <div className="text-sm font-bold leading-[1.2] text-primary-base">
-          {formatViewers(stream.viewer_count)} viewers
+          <button
+            type="button"
+            aria-label="Report channel"
+            className="flex size-10 shrink-0 items-center justify-center rounded text-white state-layer-surface"
+          >
+            <Icon name="report" className="size-4 fill-current" />
+          </button>
         </div>
       </div>
     </div>

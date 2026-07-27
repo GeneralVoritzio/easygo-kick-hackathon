@@ -1,4 +1,4 @@
-import { categories } from "./api";
+import { categories, followedChannels, livestreams, type Channel } from "./api";
 
 export type Clip = {
   id: number;
@@ -6,7 +6,7 @@ export type Clip = {
   thumbnail: string;
   duration_seconds: number;
   view_count: number;
-  creator_username: string;
+  channel: Channel;
   category: { name: string; slug: string };
   created_at: string;
 };
@@ -19,13 +19,14 @@ const art = import.meta.glob("../art/*.svg", {
   import: "default",
 }) as Record<string, string>;
 
-let thumbIndex = 0;
-const thumb = (_seed: string) => {
-  const slugs = ["old-school-runescape", "just-chatting", "irl"];
-  const slug = slugs[thumbIndex % slugs.length];
-  const variant = (thumbIndex % 3) + 1;
-  thumbIndex += 1;
-  return art[`../art/thumb-${slug}-${variant}.svg`] ?? "";
+const bySlug = new Map<string, Channel>(
+  [...livestreams.map((stream) => stream.channel), ...followedChannels].map((c) => [c.slug, c]),
+);
+
+const chan = (slug: string) => {
+  const c = bySlug.get(slug);
+  if (!c) throw new Error(`No channel for ${slug}. Add it to livestreams or followedChannels.`);
+  return c;
 };
 
 const cat = (slug: string) => {
@@ -33,145 +34,53 @@ const cat = (slug: string) => {
   return { name: c.name, slug: c.slug };
 };
 
+const clip = (
+  id: number,
+  channelSlug: string,
+  categorySlug: string,
+  title: string,
+  duration_seconds: number,
+  view_count: number,
+  created_at: string,
+): Clip => ({
+  id,
+  title,
+  thumbnail: art[`../art/thumb-${categorySlug}-${(id % 3) + 1}.svg`] ?? "",
+  duration_seconds,
+  view_count,
+  channel: chan(channelSlug),
+  category: cat(categorySlug),
+  created_at,
+});
+
 export const clips: Clip[] = [
-  {
-    id: 1,
-    title: "JAD DIED IN ONE TICK, FIRE CAPE SECURED",
-    thumbnail: thumb("clip-firecape"),
-    duration_seconds: 42,
-    view_count: 58200,
-    creator_username: "evscape",
-    category: cat("old-school-runescape"),
-    created_at: "2026-07-25T18:40:00Z",
-  },
-  {
-    id: 2,
-    title: "wrong world hop, lost the whole raid team",
-    thumbnail: thumb("clip-worldhop"),
-    duration_seconds: 28,
-    view_count: 12300,
-    creator_username: "clipfarm3r",
-    category: cat("old-school-runescape"),
-    created_at: "2026-07-23T14:10:00Z",
-  },
-  {
-    id: 3,
-    title: "chat convinced me to send it on a wildy boss, regret immediate",
-    thumbnail: thumb("clip-wildyboss"),
-    duration_seconds: 35,
-    view_count: 21500,
-    creator_username: "ratioed_again",
-    category: cat("old-school-runescape"),
-    created_at: "2026-07-21T20:05:00Z",
-  },
-  {
-    id: 4,
-    title: "twisted bow drop, I do not believe it",
-    thumbnail: thumb("clip-tbow"),
-    duration_seconds: 19,
-    view_count: 94100,
-    creator_username: "evscape",
-    category: cat("old-school-runescape"),
-    created_at: "2026-07-17T11:22:00Z",
-  },
-  {
-    id: 5,
-    title: "explaining ironman rules for the 400th time",
-    thumbnail: thumb("clip-ironmanrules"),
-    duration_seconds: 51,
-    view_count: 8700,
-    creator_username: "kekw_enjoyer",
-    category: cat("just-chatting"),
-    created_at: "2026-07-14T09:15:00Z",
-  },
-  {
-    id: 6,
-    title: "accidentally alched the whip, chat lost it",
-    thumbnail: thumb("clip-alchwhip"),
-    duration_seconds: 24,
-    view_count: 33900,
-    creator_username: "TurboRaccoon_",
-    category: cat("old-school-runescape"),
-    created_at: "2026-07-11T16:48:00Z",
-  },
-  {
-    id: 7,
-    title: "duo raid wipe because I forgot prayer",
-    thumbnail: thumb("clip-raidwipe"),
-    duration_seconds: 46,
-    view_count: 15400,
-    creator_username: "sleepygoose204",
-    category: cat("old-school-runescape"),
-    created_at: "2026-07-08T13:30:00Z",
-  },
-  {
-    id: 8,
-    title: "the barbarian assault queue took 40 minutes and this happened",
-    thumbnail: thumb("clip-baqueue"),
-    duration_seconds: 39,
-    view_count: 6200,
-    creator_username: "evscape",
-    category: cat("old-school-runescape"),
-    created_at: "2026-07-24T21:12:00Z",
-  },
-  {
-    id: 9,
-    title: "gave a random f2p player a bond, he cried",
-    thumbnail: thumb("clip-bondgift"),
-    duration_seconds: 33,
-    view_count: 41200,
-    creator_username: "vibecheckerr",
-    category: cat("irl"),
-    created_at: "2026-07-04T10:05:00Z",
-  },
-  {
-    id: 10,
-    title: "chat asked what rank and I lied on stream",
-    thumbnail: thumb("clip-rankquestion"),
-    duration_seconds: 27,
-    view_count: 5100,
-    creator_username: "notacop_promise",
-    category: cat("just-chatting"),
-    created_at: "2026-06-29T19:44:00Z",
-  },
-  {
-    id: 11,
-    title: "raid team disbanded mid fight, HCIM PANIC",
-    thumbnail: thumb("clip-hcimpanic"),
-    duration_seconds: 55,
-    view_count: 118000,
-    creator_username: "evscape",
-    category: cat("old-school-runescape"),
-    created_at: "2026-06-16T15:20:00Z",
-  },
-  {
-    id: 12,
-    title: "hit a 0 on the boss and rage quit for real",
-    thumbnail: thumb("clip-ragequit"),
-    duration_seconds: 22,
-    view_count: 27600,
-    creator_username: "crispymoth42",
-    category: cat("old-school-runescape"),
-    created_at: "2026-07-20T08:57:00Z",
-  },
-  {
-    id: 13,
-    title: "gym cameo mid stream, chat did not expect that",
-    thumbnail: thumb("clip-gymcameo"),
-    duration_seconds: 44,
-    view_count: 19800,
-    creator_username: "mid_diff_andy",
-    category: cat("irl"),
-    created_at: "2026-06-06T12:00:00Z",
-  },
-  {
-    id: 14,
-    title: "pet finally dropped after 3200 kc, I screamed",
-    thumbnail: thumb("clip-petdrop"),
-    duration_seconds: 31,
-    view_count: 76300,
-    creator_username: "evscape",
-    category: cat("old-school-runescape"),
-    created_at: "2026-07-25T07:33:00Z",
-  },
+  clip(1, "ironvow", "old-school-runescape", "JAD DIED IN ONE TICK, FIRE CAPE SECURED", 42, 58200, "2026-07-25T18:40:00Z"),
+  clip(2, "capequest", "old-school-runescape", "wrong world hop, lost the whole raid team", 28, 12300, "2026-07-23T14:10:00Z"),
+  clip(3, "ironvow", "old-school-runescape", "chat convinced me to send it on a wildy boss, regret immediate", 35, 21500, "2026-07-21T20:05:00Z"),
+  clip(4, "ironvow", "old-school-runescape", "twisted bow drop, I do not believe it", 19, 94100, "2026-07-17T11:22:00Z"),
+  clip(5, "notadoc", "just-chatting", "explaining ironman rules for the 400th time", 51, 8700, "2026-07-14T09:15:00Z"),
+  clip(6, "capequest", "old-school-runescape", "accidentally alched the whip, chat lost it", 24, 33900, "2026-07-11T16:48:00Z"),
+  clip(7, "ironvow", "old-school-runescape", "duo raid wipe because I forgot prayer", 46, 15400, "2026-07-08T13:30:00Z"),
+  clip(8, "ironvow", "old-school-runescape", "the barbarian assault queue took 40 minutes and this happened", 39, 6200, "2026-07-24T21:12:00Z"),
+  clip(9, "wanderfuse", "irl", "gave a random stranger a bond, he cried", 33, 41200, "2026-07-04T10:05:00Z"),
+  clip(10, "notadoc", "just-chatting", "chat asked what rank and I lied on stream", 27, 5100, "2026-06-29T19:44:00Z"),
+  clip(11, "ironvow", "old-school-runescape", "raid team disbanded mid fight, HCIM PANIC", 55, 118000, "2026-06-16T15:20:00Z"),
+  clip(12, "capequest", "old-school-runescape", "hit a 0 on the boss and rage quit for real", 22, 27600, "2026-07-20T08:57:00Z"),
+  clip(13, "panfriedpaul", "irl", "gym cameo mid stream, chat did not expect that", 44, 19800, "2026-06-06T12:00:00Z"),
+  clip(14, "ironvow", "old-school-runescape", "pet finally dropped after 3200 kc, I screamed", 31, 76300, "2026-07-25T07:33:00Z"),
+  clip(15, "reelgoblin", "slots-casino", "max win on the last spin of the balance", 47, 132400, "2026-07-25T22:18:00Z"),
+  clip(16, "tiltcabinet", "slots-casino", "bonus buy number 11 finally pays for the other ten", 36, 64800, "2026-07-22T23:41:00Z"),
+  clip(17, "mudbrickmage", "minecraft", "the worst base in the world collapses on camera", 29, 38700, "2026-07-24T15:26:00Z"),
+  clip(18, "flickgremlin", "counter-strike-2", "1v5 clutch with a pistol and no armour", 41, 87500, "2026-07-23T19:03:00Z"),
+  clip(19, "snoozebaron", "just-sleeping", "day 3 of the sleep stream and the alarm went off", 25, 45900, "2026-07-24T04:12:00Z"),
+  clip(20, "chartfairy", "gakuen-idolmaster", "perfect combo on the hardest chart, hands shaking", 38, 9400, "2026-07-26T02:55:00Z"),
+  clip(21, "panfriedpaul", "irl", "chat picked the meal and I regret every bite", 52, 23100, "2026-07-19T17:37:00Z"),
+  clip(22, "nocturnalnorm", "just-sleeping", "woke up to 40 thousand people watching", 21, 71200, "2026-07-26T06:09:00Z"),
+  clip(23, "couchsenate", "slots-casino", "the balance hit seven figures and nobody breathed", 50, 65400, "2026-07-01T12:00:00Z"),
+  clip(24, "couchsenate", "just-chatting", "a rare sensible take, live on the couch", 50, 32900, "2026-06-14T12:00:00Z"),
+  clip(25, "couchsenate", "slots-casino", "the weekly stream ends the only way it can", 60, 27100, "2026-05-02T12:00:00Z"),
+  clip(26, "charcoalchef", "irl", "the smoke alarm becomes a bit", 42, 19400, "2026-06-30T12:00:00Z"),
+  clip(27, "charcoalchef", "irl", "chat orders the worst possible topping", 55, 12200, "2026-05-11T12:00:00Z"),
+  clip(28, "midnightden", "slots-casino", "the den has never been louder", 48, 88300, "2026-07-02T12:00:00Z"),
+  clip(29, "midnightden", "slots-casino", "balance goes up, den goes feral", 31, 44100, "2026-06-08T12:00:00Z"),
 ];

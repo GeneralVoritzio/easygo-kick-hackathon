@@ -4,9 +4,9 @@ import { Icon } from "../Icon";
 import { PageShell } from "../components/Layout";
 import { StreamGrid } from "../components/StreamCard";
 import { CategoryGrid } from "../components/CategoryCard";
-import { HomeBanner } from "../components/HomeBanner";
 import { ClipGrid } from "../components/ClipCard";
-import { livestreams, categories, currentUser, followedChannels } from "../mock/api";
+import { Pill, SectionHeading } from "../components/CardBits";
+import { livestreams, categories, currentUser, followedChannels, streamPills } from "../mock/api";
 import { clips } from "../mock/clips";
 
 const heroStreams = livestreams.slice(0, 6);
@@ -17,39 +17,6 @@ const heroChat = [
   { author: followedChannels[1].username, color: "#E36BAE", message: "ironman mode is unhinged ngl" },
   { author: followedChannels[2].username, color: "#A3E635", message: "W stream, no cap" },
 ];
-
-function SectionHeading({
-  green,
-  white,
-  viewAllHref,
-}: {
-  green?: string;
-  white: string;
-  viewAllHref: string;
-}) {
-  return (
-    <div className="flex items-center justify-between">
-      <Link to={viewAllHref} className="max-w-full truncate text-base font-bold text-white lg:text-2xl">
-        {green && <span className="text-surface-onSurfacePrimary">{green} </span>}
-        {white}
-      </Link>
-      <Link
-        to={viewAllHref}
-        className="shrink-0 text-xs font-semibold text-surface-onSurface focus-visible:underline lg:text-sm"
-      >
-        View all
-      </Link>
-    </div>
-  );
-}
-
-function Pill({ children }: { children: React.ReactNode }) {
-  return (
-    <span className="flex h-[22px] shrink-0 items-center rounded-full bg-surface-highest px-2 text-xs font-semibold leading-none text-surface-onSurfaceSecondary">
-      {children}
-    </span>
-  );
-}
 
 function HeroCarousel() {
   const [index, setIndex] = useState(0);
@@ -100,23 +67,24 @@ function HeroCarousel() {
                 <div className="flex min-w-0 grow flex-col gap-1">
                   <Link
                     to={`/${stream.channel.slug}`}
-                    className="truncate text-base font-bold leading-[1.2] text-white lg:text-xl"
+                    className="flex items-center gap-1 truncate text-base font-bold leading-[1.2] text-white lg:text-xl"
                   >
-                    {stream.session_title}
+                    {stream.channel.username}
+                    {stream.channel.verified && (
+                      <Icon name="verified" className="size-4 shrink-0 text-surface-onSurfacePrimary" />
+                    )}
                   </Link>
-                  <div className="flex items-center gap-2">
+                  <div className="flex min-w-0 items-center gap-2">
                     <Link
                       to={`/${stream.channel.slug}`}
-                      className="flex items-center gap-1 text-sm font-semibold leading-[1.2] text-white betterhover:hover:text-surface-onSurfaceSecondary"
+                      className="truncate text-sm font-normal leading-5 text-surface-onSurfaceSecondary betterhover:hover:text-white"
                     >
-                      {stream.channel.username}
-                      {stream.channel.verified && (
-                        <Icon name="verified" className="size-3.5 shrink-0 text-surface-onSurfacePrimary" />
-                      )}
+                      {stream.session_title}
                     </Link>
-                    <div className="flex items-center gap-1">
-                      <Pill>{stream.category.name}</Pill>
-                      <Pill>{stream.language}</Pill>
+                    <div className="flex shrink-0 items-center gap-1">
+                      {streamPills(stream).map((pill) => (
+                        <Pill key={pill}>{pill}</Pill>
+                      ))}
                     </div>
                   </div>
                 </div>
@@ -193,14 +161,12 @@ export function Home() {
 
   return (
     <PageShell scroller="" column="gap-y-5 pt-3 lg:gap-y-7 lg:pt-0">
-      <HomeBanner />
-
       <div className="flex w-full flex-col gap-3">
         <HeroCarousel />
       </div>
 
       <section className="relative flex flex-col gap-y-3 lg:gap-y-4">
-        <SectionHeading white="Top Live Categories" viewAllHref="/browse/categories" />
+        <SectionHeading white="Top Live Categories" viewAll />
         <CategoryGrid categories={categories} oneRow />
       </section>
 
@@ -210,12 +176,12 @@ export function Home() {
       </section>
 
       <section className="relative flex flex-col gap-y-3 lg:gap-y-4">
-        <SectionHeading white="Popular Clips This Week" viewAllHref="/browse/clips" />
+        <SectionHeading white="Popular Clips This Week" viewAll />
         <ClipGrid clips={popularClips} />
       </section>
 
       <section className="relative flex flex-col gap-y-3 lg:gap-y-4">
-        <SectionHeading white="Slots & Casino" viewAllHref="/browse/slots-casino" />
+        <SectionHeading white="Slots & Casino" viewAll />
         <StreamGrid streams={casinoStreams} oneRow />
       </section>
     </PageShell>

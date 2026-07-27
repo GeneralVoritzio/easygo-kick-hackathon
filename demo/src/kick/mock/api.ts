@@ -21,11 +21,17 @@ export type Livestream = {
   hide_viewer_count?: boolean;
 };
 
-const globSvg = { eager: true, query: "?url", import: "default" } as const;
+const avatarFiles = import.meta.glob("../avatars/*.svg", {
+  eager: true,
+  query: "?url",
+  import: "default",
+}) as Record<string, string>;
 
-const avatarFiles = import.meta.glob("../avatars/*.svg", globSvg) as Record<string, string>;
-
-const art = import.meta.glob("../art/*.svg", globSvg) as Record<string, string>;
+const art = import.meta.glob("../art/*.svg", {
+  eager: true,
+  query: "?url",
+  import: "default",
+}) as Record<string, string>;
 
 const avatar = (slug: string) => {
   const url = avatarFiles[`../avatars/${slug}.svg`];

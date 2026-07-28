@@ -18,6 +18,7 @@ export type Livestream = {
   started_at: string;
   is_mature: boolean;
   hide_viewer_count?: boolean;
+  event?: string;
 };
 
 const avatarFiles = import.meta.glob("../avatars/*.svg", {
@@ -118,6 +119,7 @@ export const livestreams: Livestream[] = [
     thumbnail: artUrl("thumb-just-sleeping-2"),
     started_at: "2026-07-25T20:05:00Z",
     is_mature: false,
+    event: "Charity marathon, day 3",
   },
   {
     id: 4,
@@ -226,6 +228,7 @@ export const livestreams: Livestream[] = [
     thumbnail: artUrl("thumb-irl-2"),
     started_at: "2026-07-26T11:05:00Z",
     is_mature: false,
+    event: "Birthday stream",
   },
   {
     id: 13,
@@ -274,6 +277,7 @@ export const livestreams: Livestream[] = [
     thumbnail: artUrl("thumb-old-school-runescape-3"),
     started_at: "2026-07-26T08:05:00Z",
     is_mature: false,
+    event: "3 year anniversary",
   },
   {
     id: 17,
@@ -624,6 +628,10 @@ export function formatDuration(seconds: number): string {
 }
 
 const NOW = new Date("2026-07-26T13:30:00Z").getTime();
+
+export function liveSeconds(iso: string): number {
+  return Math.max(0, Math.floor((NOW - new Date(iso).getTime()) / 1000));
+}
 
 export function timeAgo(iso: string): string {
   const diff = Math.max(0, NOW - new Date(iso).getTime());

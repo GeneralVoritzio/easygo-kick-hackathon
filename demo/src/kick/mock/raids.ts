@@ -5,7 +5,9 @@ import {
   FEATURED_COOLDOWN_MINUTES,
   MIN_SCORE,
   RECOVERY_HOURS,
+  relativeSignals,
   sizeFit,
+  squash,
   type ChannelActivity,
 } from "./score";
 
@@ -31,6 +33,19 @@ const activity: ChannelActivity[] = [
   { slug: "nocturnalnorm", unique_chatters: 12, chat_messages: 186, follows: 10, kicks: 6, viewer_delta: 2, chat_rate_delta: 1.4, last_raid: { incoming_viewers: 2200, existing_viewers: 1400, kept_viewers: 342 } },
   { slug: "ironvow", unique_chatters: 233, chat_messages: 2646, follows: 144, kicks: 86, viewer_delta: 33, chat_rate_delta: 22.1, last_raid: { incoming_viewers: 2800, existing_viewers: 3600, kept_viewers: 2067 } },
 ];
+
+// Invented surface: fake-kick GET /public/v1/channels/{slug}/raids/history?target=<host>, how
+// many times this channel has raided the host before, and when it last happened.
+const raidHistory: Record<string, { count: number; lastAt: string }> = {
+  capequest: { count: 1, lastAt: "2026-07-24T10:15:00Z" },
+  cluecrawler: { count: 2, lastAt: "2026-07-20T18:40:00Z" },
+  mudbrickmage: { count: 4, lastAt: "2026-06-15T12:00:00Z" },
+  yapmerchant: { count: 1, lastAt: "2026-07-10T09:00:00Z" },
+};
+
+export function raidHistoryFor(slug: string): { count: number; lastAt?: string } {
+  return raidHistory[slug] ?? { count: 0 };
+}
 
 const activityFor = (slug: string) => {
   const found = activity.find((a) => a.slug === slug);
@@ -84,6 +99,13 @@ export type Candidate = {
   score: number;
   reason: string;
 };
+
+// Section 7.4's participation signal, read back out as a plain percentage for the preview
+// popover: how far past (or short of) what a channel this size would normally see.
+export function interactivityPercent(candidate: Candidate): number {
+  const relative = relativeSignals(activityFor(candidate.stream.channel.slug), candidate.stream.viewer_count);
+  return Math.round(squash(relative.participation) * 100);
+}
 
 // Section 7.4, in order: the floor, then the exposure factor, then the size-fit multiplier.
 export function recommendationsFor(hostSlug: string, hostViewers: number): Candidate[] {

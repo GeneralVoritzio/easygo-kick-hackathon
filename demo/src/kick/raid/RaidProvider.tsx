@@ -6,14 +6,12 @@ import {
   acceptEntry,
   addChatVotes,
   advance,
-  canReroll,
   candidateFor,
   declineEntry,
-  justRaidThem,
   openTankVote,
   playTile,
+  replaceFinalists,
   startRaid,
-  tryAnother,
   type Raid,
   type RaidMode,
 } from "./machine";
@@ -33,7 +31,7 @@ type RaidApi = {
   hostSlug: string;
   openDialog: (kind: DialogKind) => void;
   dismissDialog: () => void;
-  start: (mode: RaidMode, pickedSlug?: string) => void;
+  start: (mode: RaidMode, pickedSlug?: string, pickedSlugs?: string[]) => void;
   startAsViewer: (host: Livestream, mode: RaidMode) => void;
   act: (fn: (raid: Raid) => Raid) => void;
   join: () => void;
@@ -94,25 +92,31 @@ export function RaidProvider({ children }: { children: ReactNode }) {
     return () => clearInterval(id);
   }, [voting, raid?.poll?.round, raid?.poll?.slot]);
 
-  // Section 13: the demo forces the tank acceptances on cue. The logic is real, the timing
-  // is scripted. The first reroll is where the fork is shown, so after it everybody accepts.
+  // Section 13: the demo forces the tank acceptances on cue. The logic is real, the timing is
+  // scripted. The first pair always drama-declines its second seat; a reselected replacement
+  // is a coin flip, so rerolling into the mass-invite fallback is possible but not guaranteed.
   const accepting = raid?.phase === "tank-accept";
   const finalists = raid?.finalists.join() ?? "";
   useEffect(() => {
-    if (!accepting) return;
-    const [first, second] = finalists.split(",");
-    const timers = [
-      setTimeout(() => setRaid((r) => (r ? acceptEntry(r, first) : r)), 5000),
-      setTimeout(
-        () => setRaid((r) => (r ? (r.rerolls === 0 ? declineEntry : acceptEntry)(r, second) : r)),
-        11000,
-      ),
-    ];
+    if (!accepting || !raid) return;
+    const pending = raid.finalists.filter((s) => !raid.accepted.includes(s));
+    const firstCycle = raid.rerolls === 0;
+    const timers = pending.map((slug, i) => {
+      // The original pair always drama-declines its second seat; any reselected seat is a
+      // coin flip, so the mass-invite fallback is reachable but never guaranteed.
+      const willDecline = firstCycle ? i === pending.length - 1 : Math.random() < 0.5;
+      const delay = firstCycle ? 5000 + i * 6000 : 5000 + i * 3000;
+      return setTimeout(
+        () => setRaid((r) => (r ? (willDecline ? declineEntry : acceptEntry)(r, slug) : r)),
+        delay,
+      );
+    });
     return () => timers.forEach(clearTimeout);
   }, [accepting, finalists]);
 
   // Section 13: on the viewer side the streamer is not in the room, so their decisions are
-  // scripted too. A viewer never sees the controls that make them.
+  // scripted too. A viewer never sees the controls that make them, or the fork screen the
+  // streamer resolves it from — replacing the open seat(s) is simulated the same way.
   const viewerPhase = raid?.viewer ? raid.phase : null;
   useEffect(() => {
     if (viewerPhase === "tank-browse") {
@@ -123,10 +127,18 @@ export function RaidProvider({ children }: { children: ReactNode }) {
       return () => [...tiles, vote].forEach(clearTimeout);
     }
     if (viewerPhase === "tank-fork") {
-      const id = setTimeout(
-        () => setRaid((r) => (r ? (canReroll(r) && r.rerolls === 0 ? tryAnother : justRaidThem)(r) : r)),
-        4000,
-      );
+      const id = setTimeout(() => {
+        setRaid((r) => {
+          if (!r) return r;
+          const openCount = r.finalists.filter((s) => !r.accepted.includes(s)).length;
+          const taken = new Set([...r.accepted, ...r.declined, ...r.finalists]);
+          const picks = r.candidates
+            .filter((c) => !taken.has(c.stream.channel.slug))
+            .slice(0, openCount)
+            .map((c) => c.stream.channel.slug);
+          return picks.length === openCount ? replaceFinalists(r, picks) : r;
+        });
+      }, 4000);
       return () => clearTimeout(id);
     }
   }, [viewerPhase]);
@@ -170,7 +182,7 @@ export function RaidProvider({ children }: { children: ReactNode }) {
       }
       setDialog(null);
     },
-    start: (mode, pickedSlug) => {
+    start: (mode, pickedSlug, pickedSlugs) => {
       setJoined(null);
       setRaid(
         startRaid({
@@ -178,6 +190,7 @@ export function RaidProvider({ children }: { children: ReactNode }) {
           hostSlug: currentUser.slug,
           hostViewers: currentSession.viewer_count,
           pickedSlug,
+          pickedSlugs,
         }),
       );
       setDialog(null);

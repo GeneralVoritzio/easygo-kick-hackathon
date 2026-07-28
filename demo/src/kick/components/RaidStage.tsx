@@ -60,7 +60,7 @@ function Stage({ caption, children }: { caption: string; children: ReactNode }) 
 function TankGrid({ raid }: { raid: Raid }) {
   const { act } = useRaid();
   const caption = raid.viewer
-    ? "The top ten are in the tank. The streamer is looking through them"
+    ? "The top ten are in the Showdown. The streamer is looking through them"
     : `Tap a tile to watch it for up to ${TIMING.tankTile} seconds`;
 
   return (

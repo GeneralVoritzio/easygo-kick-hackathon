@@ -121,7 +121,6 @@ export function Expedition() {
   const { id } = useParams<{ id: string }>();
   const {
     expeditions,
-    riderExpeditionId,
     join,
     hopOff,
     currentStop,
@@ -350,9 +349,12 @@ export function Expedition() {
   };
 
   const startMoveOnVote = () => {
+    // Demo reliability: the crowd only ever votes yes here, never no, so clicking "Vote to move
+    // on" always actually moves on by the time it resolves — same reasoning as the seeded
+    // expeditions' other deterministic demo moments elsewhere in this file.
     setMoveOnVote({
       yes: 1 + Math.floor(Math.random() * 3),
-      no: 1 + Math.floor(Math.random() * 3),
+      no: 0,
       endsAt: Date.now() + MOVE_ON_VOTE_SECONDS * 1000,
       myVote: null,
       resolved: false,
@@ -396,9 +398,16 @@ export function Expedition() {
   const resolveMoveOnVoteRef = useRef(resolveMoveOnVote);
   resolveMoveOnVoteRef.current = resolveMoveOnVote;
 
+  // Joins once per id, on arrival — not "whenever riderExpeditionId differs from id," or leaving
+  // (hopOff, from Leave waiting room and every other exit path) would immediately be undone by
+  // this same effect noticing the mismatch and rejoining before the page even finishes
+  // navigating away.
+  const autoJoinedIdRef = useRef<string | null>(null);
   useEffect(() => {
-    if (id && riderExpeditionId !== id) join(id);
-  }, [id, riderExpeditionId, join]);
+    if (!id || autoJoinedIdRef.current === id) return;
+    autoJoinedIdRef.current = id;
+    join(id);
+  }, [id, join]);
 
   useEffect(() => {
     setMuted(true);
@@ -523,10 +532,10 @@ export function Expedition() {
           setMoveOnEligibleAt(Date.now() + MOVE_ON_COOLDOWN_SECONDS * 1000);
         }
       } else {
+        // Only "yes" ever grows on its own — see the reasoning on startMoveOnVote above.
         const yes = currentVote.yes + (Math.random() < 0.35 ? 1 : 0);
-        const no = currentVote.no + (Math.random() < 0.25 ? 1 : 0);
-        if (yes !== currentVote.yes || no !== currentVote.no) {
-          setMoveOnVote({ ...currentVote, yes, no });
+        if (yes !== currentVote.yes) {
+          setMoveOnVote({ ...currentVote, yes });
         }
       }
     }, 1000);
@@ -654,6 +663,14 @@ export function Expedition() {
     announceInMainChat(funnyLine);
     hopOff();
     navigate(`/${current!.channel.slug}`);
+  }
+
+  // Boarding hasn't departed yet — there's no stop to fall back to and watch instead, so leaving
+  // here just means leaving, back to the lobby. Plain hopOff, no markKicked: this is your own
+  // choice, not a consequence, so nothing stops you from joining it again later.
+  function leaveWaitingRoom() {
+    hopOff();
+    navigate("/expeditions");
   }
 
   function startLeadershipTransfer() {
@@ -869,6 +886,16 @@ export function Expedition() {
               >
                 <Icon name="log-out" className="size-3.5" />
                 Stay and watch {current.channel.username}
+              </button>
+            )}
+            {isBoarding && (
+              <button
+                type="button"
+                onClick={leaveWaitingRoom}
+                className="flex shrink-0 items-center gap-1.5 rounded-lg border border-outline-decorative bg-secondary-base px-3 py-2 text-xs font-bold text-white transition-colors betterhover:hover:bg-neutral-700"
+              >
+                <Icon name="log-out" className="size-3.5" />
+                Leave waiting room
               </button>
             )}
             {canManageLeadership && leadershipStep.kind === "idle" && (

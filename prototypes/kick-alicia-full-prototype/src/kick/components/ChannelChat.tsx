@@ -81,6 +81,11 @@ export type Message = {
   badges: BadgeName[];
   color: string;
   body: string;
+  /** No username, no badges, centered and italic — same treatment Explorer Chat gives its own
+   *  system lines ("Now arriving at...", vote outcomes). An injected notice (a kick, an
+   *  expedition pouring in) reads as something that happened to the room, not as a message from
+   *  a "KICK" user. */
+  system?: boolean;
 };
 
 let nextId = 1;
@@ -196,6 +201,14 @@ function GifterLeaderboard() {
 }
 
 function ChatMessage({ message }: { message: Message }) {
+  if (message.system) {
+    return (
+      <div className="px-2 py-[var(--chatroom-message-spacing)] text-center text-[length:var(--chatroom-font-size)] italic text-subtle lg:px-3">
+        {renderBody(message.body)}
+      </div>
+    );
+  }
+
   return (
     <div className="group relative px-2 lg:px-3">
       <div className="betterhover:group-hover:bg-surface-highest w-full min-w-0 shrink-0 break-words rounded-lg px-2 py-[var(--chatroom-message-spacing)] text-[length:var(--chatroom-font-size)] leading-[1.5]">
@@ -637,7 +650,7 @@ export function ChatFeed({
     injectedIdRef.current = injectMessage.id;
     setFlowing((prev) => [
       ...prev.slice(-149),
-      { id: nextId++, username: "KICK", badges: [], color: "#53FC18", body: injectMessage.body },
+      { id: nextId++, username: "", badges: [], color: "", body: injectMessage.body, system: true },
     ]);
   }, [driver, injectMessage, setFlowing]);
 
@@ -693,13 +706,16 @@ export function ChatFeed({
 export function ChannelChat({
   onCollapse,
   driver,
+  injectMessage,
 }: {
   onCollapse?: () => void;
   driver?: ChatDriver;
+  injectMessage?: { id: string; body: string } | null;
 }) {
   return (
     <ChatFeed
       driver={driver}
+      injectMessage={injectMessage}
       header={
         <>
           <ChatHeader onCollapse={onCollapse} />

@@ -16,9 +16,15 @@ import { useTimelineChat } from "../timeline/useTimelineChat";
 // The watch page's chat slot: the Highlights panel swaps in for chat while open (same slot,
 // css never touches the video), and chat itself follows the timeline playhead instead of
 // running its own organic random feed. Only ever mounted inside a TimelineProvider.
-function WatchChat({ onCollapse }: { onCollapse: () => void }) {
+function WatchChat({
+  onCollapse,
+  chatNotice,
+}: {
+  onCollapse: () => void;
+  chatNotice?: { id: string; body: string } | null;
+}) {
   const { timeline, t, isPlaying, highlightsOpen, closeHighlights } = useTimeline();
-  const driver = useTimelineChat(timeline, t, isPlaying);
+  const driver = useTimelineChat(timeline, t, isPlaying, chatNotice);
   if (highlightsOpen) return <HighlightsPanel onClose={closeHighlights} />;
   return <ChannelChat onCollapse={onCollapse} driver={driver} />;
 }
@@ -73,12 +79,16 @@ export function ChannelShell({
   stream,
   active,
   watch,
+  chatNotice,
   children,
 }: {
   profile: ChannelProfile;
   stream?: Livestream;
   active: ChannelTab;
   watch?: boolean;
+  /** A one-off line for this channel's chat, arriving from outside — an expedition kick or
+   *  end-of-run pour landing here, say. */
+  chatNotice?: { id: string; body: string } | null;
   children?: ReactNode;
 }) {
   const [chatWidth, setChatWidth] = useState(DEFAULT_CHAT_WIDTH);
@@ -170,9 +180,9 @@ export function ChannelShell({
           className="h-full max-h-full min-w-0 shrink-0 grow-0 overflow-hidden transition-[width,opacity] duration-300 ease-out"
         >
           {watching ? (
-            <WatchChat onCollapse={() => setChatOpen(false)} />
+            <WatchChat onCollapse={() => setChatOpen(false)} chatNotice={chatNotice} />
           ) : (
-            <ChannelChat onCollapse={() => setChatOpen(false)} />
+            <ChannelChat onCollapse={() => setChatOpen(false)} injectMessage={chatNotice} />
           )}
         </div>
       </div>

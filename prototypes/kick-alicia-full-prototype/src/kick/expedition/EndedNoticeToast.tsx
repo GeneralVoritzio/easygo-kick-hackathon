@@ -1,12 +1,16 @@
 import { Icon } from "../Icon";
 import { useExpeditions } from "./ExpeditionContext";
+import { NotificationCountdownBar } from "./NotificationCountdownBar";
+
+const NOTIFICATION_DURATION_MS = 8_000;
 
 /*
   What just happened to an expedition that ended — bottom-center, the same spot
   kick-web-redesign's KickBossRewardToast uses for its own payoff notice, global rather than a
   banner on the lobby page alone, so it still shows up wherever you land next. Worded generically
   rather than "you ended it" — an expedition can end on its own (the ending-soon demo, a Kick
-  Break completing its lap) just as often as from an explicit action.
+  Break completing its lap) just as often as from an explicit action. Auto-dismisses on the same
+  countdown bar as the corner toasts.
 */
 export function EndedNoticeToast() {
   const { endedNotice, clearEndedNotice } = useExpeditions();
@@ -35,6 +39,11 @@ export function EndedNoticeToast() {
           <Icon name="close" className="size-3.5" />
         </button>
       </div>
+      <NotificationCountdownBar
+        durationMs={NOTIFICATION_DURATION_MS}
+        colorClass="bg-primary-base"
+        onExpire={clearEndedNotice}
+      />
     </div>
   );
 }

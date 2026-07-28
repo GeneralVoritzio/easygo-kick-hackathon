@@ -254,7 +254,11 @@ export function Expedition() {
     const destination = current ?? stops[Math.floor(Math.random() * stops.length)];
     hopOff();
     setKickSelf({ kind: "idle" });
-    navigate(destination ? `/${destination.channel.slug}` : "/expeditions");
+    navigate(destination ? `/${destination.channel.slug}` : "/expeditions", {
+      state: destination
+        ? { chatNotice: `🥾 ${currentUser.username} just got kicked off an expedition and crash-landed here!` }
+        : undefined,
+    });
   }
 
   // Only a custom expedition that chose "decide the route in chat" ever has one of these: the
@@ -586,7 +590,11 @@ export function Expedition() {
         announceInMainChat(`🌊 The whole ${expedition.name} crew just poured in here at once!`);
         const destination = endExpedition(expedition.id);
         hopOff();
-        navigate(destination ? `/${destination.channel.slug}` : "/expeditions");
+        navigate(destination ? `/${destination.channel.slug}` : "/expeditions", {
+          state: destination
+            ? { chatNotice: `🌊 The whole ${expedition.name} crew just poured in here at once!` }
+            : undefined,
+        });
       }
       setExpeditionEnding({ kind: "idle" });
       return;
@@ -659,9 +667,12 @@ export function Expedition() {
   }
 
   function confirmEnd() {
+    const name = expedition!.name;
     const destination = endExpedition(expedition!.id);
     hopOff();
-    navigate(destination ? `/${destination.channel.slug}` : "/expeditions");
+    navigate(destination ? `/${destination.channel.slug}` : "/expeditions", {
+      state: destination ? { chatNotice: `🌊 The whole ${name} crew just poured in here at once!` } : undefined,
+    });
   }
 
   return (
@@ -840,7 +851,7 @@ export function Expedition() {
                   {moveOnOnCooldown ? `Vote to move on (${moveOnCooldownSeconds}s)` : "Vote to move on"}
                 </button>
               )}
-            {!isBoarding && (
+            {!isBoarding && !canManageLeadership && (
               <button
                 type="button"
                 onClick={handleStayHere}

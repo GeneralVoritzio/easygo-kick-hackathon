@@ -103,7 +103,7 @@ export function NextStopVotePanel({
                     setSuggesting(false);
                     setQuery("");
                   }}
-                  className="truncate rounded-lg border border-outline-decorative bg-secondary-base px-2 py-1.5 text-left text-[11px] font-bold text-white betterhover:hover:bg-neutral-700"
+                  className="shrink-0 truncate rounded-lg border border-outline-decorative bg-secondary-base px-2 py-1.5 text-left text-[11px] font-bold text-white betterhover:hover:bg-neutral-700"
                 >
                   {s.channel.username}
                 </button>

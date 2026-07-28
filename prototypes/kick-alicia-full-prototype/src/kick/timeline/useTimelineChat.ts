@@ -39,10 +39,30 @@ function fill(timeline: Timeline, t: number) {
   return rows;
 }
 
-export function useTimelineChat(timeline: Timeline, t: number, isPlaying: boolean): ChatDriver {
+export function useTimelineChat(
+  timeline: Timeline,
+  t: number,
+  isPlaying: boolean,
+  injectMessage?: { id: string; body: string } | null,
+): ChatDriver {
   const [messages, setMessages] = useState<Message[]>(() => fill(timeline, t));
   const lastT = useRef(t);
   const carry = useRef(0);
+  const injectedIdRef = useRef<string | null>(null);
+
+  // A one-off line dropped into this feed from outside — arriving here as an expedition's
+  // kicked or poured-out landing spot, say. Keyed by id so the same event never appends twice
+  // even though the prop keeps getting passed on every render, same pattern as ChatFeed's own
+  // ambient injectMessage.
+  useEffect(() => {
+    if (!injectMessage || injectMessage.id === injectedIdRef.current) return;
+    injectedIdRef.current = injectMessage.id;
+    setMessages((prev) =>
+      [...prev, { id: seq++, username: "", badges: [], color: "", body: injectMessage.body, system: true }].slice(
+        -MAX_ROWS,
+      ),
+    );
+  }, [injectMessage]);
 
   useEffect(() => {
     const moved = t - lastT.current;

@@ -123,7 +123,7 @@ function describePreset(s: CustomExpeditionFormSettings): string {
     s.stopDurationMode === "1min"
       ? "1 min stops"
       : s.stopDurationMode === "custom"
-        ? `${s.stopDurationSeconds}s stops`
+        ? `${s.stopDurationSeconds / 60} min stops`
         : "whole stream";
   const streamers = s.streamerSelectionMode === "chat" ? "chat picks" : `${s.selectedSlugs.length} streamers`;
   return `${s.visibility === "private" ? "Private" : "Public"} · ${duration} · ${streamers}`;
@@ -568,12 +568,12 @@ export function CreateExpedition() {
 
                 {stopDurationMode === "custom" && (
                   <label className="flex flex-col gap-1 text-xs font-semibold text-subtle">
-                    Seconds per stop
+                    Minutes per stop
                     <input
                       type="number"
-                      min={10}
-                      value={stopDurationSeconds}
-                      onChange={(e) => setStopDurationSeconds(Math.max(10, Number(e.target.value)))}
+                      min={1}
+                      value={stopDurationSeconds / 60}
+                      onChange={(e) => setStopDurationSeconds(Math.max(1, Number(e.target.value)) * 60)}
                       className={`${inputClass} w-32`}
                     />
                   </label>

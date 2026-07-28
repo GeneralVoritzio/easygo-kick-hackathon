@@ -1,4 +1,4 @@
-import { Link, useParams } from "react-router-dom";
+import { Link, useLocation, useParams } from "react-router-dom";
 import { liveStreamFor, profileFor } from "../mock/api";
 import { ChannelShell, type ChannelTab } from "../components/ChannelShell";
 import {
@@ -28,6 +28,9 @@ function ChannelNotFound({ slug }: { slug: string }) {
 export function Channel({ tab = "home", watch }: { tab?: ChannelTab; watch?: boolean }) {
   const { slug = "" } = useParams();
   const profile = profileFor(slug);
+  const location = useLocation();
+  const chatNoticeBody = (location.state as { chatNotice?: string } | null)?.chatNotice;
+  const chatNotice = chatNoticeBody ? { id: location.key, body: chatNoticeBody } : null;
 
   if (!profile) return <ChannelNotFound slug={slug} />;
 
@@ -35,7 +38,7 @@ export function Channel({ tab = "home", watch }: { tab?: ChannelTab; watch?: boo
   const inPlayer = Boolean(watch && stream);
 
   return (
-    <ChannelShell profile={profile} stream={stream} active={tab} watch={inPlayer}>
+    <ChannelShell profile={profile} stream={stream} active={tab} watch={inPlayer} chatNotice={chatNotice}>
       {!inPlayer && tab === "home" && <ChannelHome profile={profile} />}
       {tab === "about" && <ChannelAbout profile={profile} />}
       {tab === "videos" && <ChannelVideos profile={profile} />}

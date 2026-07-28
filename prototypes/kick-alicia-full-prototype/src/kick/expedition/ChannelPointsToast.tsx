@@ -1,10 +1,13 @@
 import { Icon } from "../Icon";
 import { useExpeditions } from "./ExpeditionContext";
+import { NotificationCountdownBar } from "./NotificationCountdownBar";
+
+const NOTIFICATION_DURATION_MS = 8_000;
 
 /*
   The payoff for staying through an entire Kick Break without hopping off. Bottom-center, the
-  same spot kick-web-redesign's KickBossRewardToast uses for its own reward payoff — manual close
-  only, no auto-dismiss, since this is a reward, not a passing notice.
+  same spot kick-web-redesign's KickBossRewardToast uses for its own reward payoff — auto-dismisses
+  on the same countdown bar as the corner toasts, same as every other passing notice here.
 */
 export function ChannelPointsToast() {
   const { channelPointsNotice, clearChannelPointsNotice } = useExpeditions();
@@ -33,6 +36,11 @@ export function ChannelPointsToast() {
           <Icon name="close" className="size-3.5" />
         </button>
       </div>
+      <NotificationCountdownBar
+        durationMs={NOTIFICATION_DURATION_MS}
+        colorClass="bg-primary-base"
+        onExpire={clearChannelPointsNotice}
+      />
     </div>
   );
 }

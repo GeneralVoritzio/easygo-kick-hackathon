@@ -1,10 +1,14 @@
 import { Icon } from "../Icon";
 import { useExpeditions } from "./ExpeditionContext";
+import { NotificationCountdownBar } from "./NotificationCountdownBar";
+
+const NOTIFICATION_DURATION_MS = 8_000;
 
 /*
   What just happened when a creator hands off their expedition to someone else — bottom-center,
   the same spot kick-web-redesign's KickBossRewardToast uses for its own payoff notice, global
   rather than a banner on the lobby page alone, so it still shows up wherever you land next.
+  Auto-dismisses on the same countdown bar as the corner toasts.
 */
 export function HandoffNoticeToast() {
   const { handoffNotice, clearHandoffNotice } = useExpeditions();
@@ -32,6 +36,11 @@ export function HandoffNoticeToast() {
           <Icon name="close" className="size-3.5" />
         </button>
       </div>
+      <NotificationCountdownBar
+        durationMs={NOTIFICATION_DURATION_MS}
+        colorClass="bg-primary-base"
+        onExpire={clearHandoffNotice}
+      />
     </div>
   );
 }

@@ -8,13 +8,15 @@ type StageFrame = { key: string; src: string; name: string; note?: string };
 // The host is the current session, not a recommendation, so it never comes out of the
 // candidate list.
 function frameFor(raid: Raid, slug: string): StageFrame | null {
-  if (slug === raid.hostSlug)
+  if (slug === raid.hostSlug) {
+    const host = liveStreamFor(slug);
     return {
       key: slug,
-      src: currentSession.thumbnail,
-      name: currentUser.username,
+      src: host?.thumbnail ?? currentSession.thumbnail,
+      name: host?.channel.username ?? currentUser.username,
       note: `${formatViewers(raid.hostViewers)} watching`,
     };
+  }
   const c = candidateFor(raid, slug);
   if (!c) return null;
   return {
@@ -57,8 +59,12 @@ function Stage({ caption, children }: { caption: string; children: ReactNode }) 
 
 function TankGrid({ raid }: { raid: Raid }) {
   const { act } = useRaid();
+  const caption = raid.viewer
+    ? "The top ten are in the tank. The streamer is looking through them"
+    : `Tap a tile to watch it for up to ${TIMING.tankTile} seconds`;
+
   return (
-    <Stage caption={`Tap a tile to watch it for up to ${TIMING.tankTile} seconds`}>
+    <Stage caption={caption}>
       <div className="grid h-full w-full grid-cols-5 grid-rows-2 gap-0.5">
         {raid.candidates.slice(0, 10).map((c) => {
           const frame = frameFor(raid, c.stream.channel.slug);
@@ -67,6 +73,7 @@ function TankGrid({ raid }: { raid: Raid }) {
               <button
                 key={frame.key}
                 type="button"
+                disabled={raid.viewer}
                 onClick={() => act((r) => playTile(r, c.stream.channel.slug))}
                 className="relative overflow-hidden"
               >

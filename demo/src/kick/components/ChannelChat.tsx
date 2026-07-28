@@ -8,9 +8,9 @@ import {
   type ReactNode,
 } from "react";
 import { Icon, type KickIconName } from "../Icon";
-import { currentUser } from "../mock/api";
+import { currentUser, type Livestream } from "../mock/api";
 import { useRaid } from "../raid/RaidProvider";
-import { RaidBanner, RaidPanel } from "./RaidChat";
+import { RaidBanner, RaidPanel, RaidPreviewAsViewer } from "./RaidChat";
 import identityBadge from "../icons/identity-badge.png";
 
 // Identity colours resolved from assets/reference/kick-neon-tokens.css (--neon-identity-*).
@@ -678,7 +678,15 @@ function ChatFooter({
 
 // The dashboard panels are lighter than the page under them, so the chat runs on surface-base
 // there. On the channel page one surface runs across the whole site, so it runs on surface-lowest.
-export function ChatFeed({ header, dashboard }: { header?: ReactNode; dashboard?: boolean }) {
+export function ChatFeed({
+  header,
+  dashboard,
+  host,
+}: {
+  header?: ReactNode;
+  dashboard?: boolean;
+  host?: Livestream;
+}) {
   const surface = dashboard ? "bg-surface-base" : "bg-surface-lowest";
   const [messages, setMessages] = useFlowingMessages();
   const [draft, setDraft] = useState("");
@@ -716,6 +724,7 @@ export function ChatFeed({ header, dashboard }: { header?: ReactNode; dashboard?
       <RaidBanner open={panelOpen} onToggle={() => setPanelOpen((v) => !v)} />
       <ChatMessages messages={messages} surface={surface} />
       {raid && panelOpen && <RaidPanel onClose={() => setPanelOpen(false)} />}
+      {!raid && host && <RaidPreviewAsViewer host={host} />}
       <ChatFooter
         draft={draft}
         dashboard={dashboard}
@@ -730,9 +739,16 @@ export function ChatFeed({ header, dashboard }: { header?: ReactNode; dashboard?
   );
 }
 
-export function ChannelChat({ onCollapse }: { onCollapse?: () => void }) {
+export function ChannelChat({
+  onCollapse,
+  host,
+}: {
+  onCollapse?: () => void;
+  host?: Livestream;
+}) {
   return (
     <ChatFeed
+      host={host}
       header={
         <>
           <ChatHeader onCollapse={onCollapse} />

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Icon } from "../Icon";
-import { formatViewers, streamPills } from "../mock/api";
+import { formatViewers, streamPills, type Livestream } from "../mock/api";
 import { useRaid } from "../raid/RaidProvider";
 import {
   advance,
@@ -14,6 +14,7 @@ import {
   tryAnother,
   type Poll,
   type Raid,
+  type RaidMode,
 } from "../raid/machine";
 
 const clock = (seconds: number) => `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")}`;
@@ -225,6 +226,8 @@ function Countdown({ raid }: { raid: Raid }) {
 function StreamerControls({ raid }: { raid: Raid }) {
   const { act } = useRaid();
 
+  if (raid.viewer) return null;
+
   if (raid.phase === "tank-browse") {
     return (
       <button
@@ -277,12 +280,18 @@ function Body({ raid }: { raid: Raid }) {
     case "tank-browse":
       return (
         <span className="text-sm text-surface-onSurfaceSecondary">
-          Ten channels are in the player. Watch any of them, then open the vote and chat picks
-          two.
+          {raid.viewer
+            ? "Ten channels are in the player. The streamer opens the vote when they are ready."
+            : "Ten channels are in the player. Watch any of them, then open the vote and chat picks two."}
         </span>
       );
     case "tank-fork":
-      return null;
+      return raid.viewer ? (
+        <span className="text-sm text-surface-onSurfaceSecondary">
+          {nameOf(raid, raid.declined[raid.declined.length - 1])} is out. The streamer is
+          deciding what happens to the open slot.
+        </span>
+      ) : null;
     case "vote":
       return raid.poll ? <PollRows raid={raid} poll={raid.poll} /> : null;
     case "tank-accept":
@@ -336,20 +345,26 @@ function Body({ raid }: { raid: Raid }) {
         </div>
       );
     default:
+      // Section 9: the streamer is told to pick someone else, the viewer is told they are
+      // still here.
       return (
         <div className="flex flex-col gap-3">
-          <span className="text-sm text-surface-onSurfaceNegative">{raid.note}</span>
+          <span className="text-sm text-surface-onSurfaceNegative">
+            {raid.viewer ? "The raid failed, so you are still here." : raid.note}
+          </span>
           <div className="flex gap-2">
-            <button
-              type="button"
-              onClick={() => {
-                clear();
-                openDialog("raid");
-              }}
-              className="state-layer-base h-9 flex-1 rounded bg-primary-base text-sm font-semibold text-primary-onPrimary"
-            >
-              Pick someone else
-            </button>
+            {!raid.viewer && (
+              <button
+                type="button"
+                onClick={() => {
+                  clear();
+                  openDialog("raid");
+                }}
+                className="state-layer-base h-9 flex-1 rounded bg-primary-base text-sm font-semibold text-primary-onPrimary"
+              >
+                Pick someone else
+              </button>
+            )}
             <Link
               to="/browse"
               onClick={clear}
@@ -361,6 +376,40 @@ function Body({ raid }: { raid: Raid }) {
         </div>
       );
   }
+}
+
+// Section 13: the demo runs the raid from the viewer's seat. The streamer's decisions are
+// scripted, and the viewer keeps the vote, the join and the leave.
+export function RaidPreviewAsViewer({ host }: { host: Livestream }) {
+  const { startAsViewer } = useRaid();
+  const modes: { id: RaidMode; label: string }[] = [
+    { id: "random", label: "Random" },
+    { id: "chat", label: "Chat picks" },
+    { id: "tank", label: "Raid tank" },
+  ];
+
+  return (
+    <div className="shrink-0 border-t border-outline-decorative bg-surface-base px-3 py-2">
+      <div className="mb-1.5 flex items-center gap-2">
+        <span className="text-xs uppercase text-surface-onSurfaceSecondary">Demo</span>
+        <span className="min-w-0 truncate text-sm font-bold text-white">
+          Preview as viewer: {host.channel.username} raids
+        </span>
+      </div>
+      <div className="flex gap-1.5">
+        {modes.map((mode) => (
+          <button
+            key={mode.id}
+            type="button"
+            onClick={() => startAsViewer(host, mode.id)}
+            className="h-8 flex-1 rounded bg-secondary-base text-xs font-semibold text-secondary-onSecondary betterhover:hover:bg-surface-highest"
+          >
+            {mode.label}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
 }
 
 // Section 5.2: the panel above the chat input carries the detail on demand. Closing it never

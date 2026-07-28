@@ -1,14 +1,19 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
-import { currentSession, currentUser } from "../mock/api";
+import { currentSession, currentUser, type Livestream } from "../mock/api";
 import { recordRaid, type Candidate } from "../mock/raids";
 import { isHidden, usePrefs } from "../prefs";
 import {
   acceptEntry,
   addChatVotes,
   advance,
+  canReroll,
   candidateFor,
   declineEntry,
+  justRaidThem,
+  openTankVote,
+  playTile,
   startRaid,
+  tryAnother,
   type Raid,
   type RaidMode,
 } from "./machine";
@@ -29,6 +34,7 @@ type RaidApi = {
   openDialog: (kind: DialogKind) => void;
   dismissDialog: () => void;
   start: (mode: RaidMode, pickedSlug?: string) => void;
+  startAsViewer: (host: Livestream, mode: RaidMode) => void;
   act: (fn: (raid: Raid) => Raid) => void;
   join: () => void;
   leave: () => void;
@@ -105,6 +111,26 @@ export function RaidProvider({ children }: { children: ReactNode }) {
     return () => timers.forEach(clearTimeout);
   }, [accepting, finalists]);
 
+  // Section 13: on the viewer side the streamer is not in the room, so their decisions are
+  // scripted too. A viewer never sees the controls that make them.
+  const viewerPhase = raid?.viewer ? raid.phase : null;
+  useEffect(() => {
+    if (viewerPhase === "tank-browse") {
+      const tiles = [2000, 4000].map((at, i) =>
+        setTimeout(() => setRaid((r) => (r ? playTile(r, r.candidates[i].stream.channel.slug) : r)), at),
+      );
+      const vote = setTimeout(() => setRaid((r) => (r ? openTankVote(r) : r)), 7000);
+      return () => [...tiles, vote].forEach(clearTimeout);
+    }
+    if (viewerPhase === "tank-fork") {
+      const id = setTimeout(
+        () => setRaid((r) => (r ? (canReroll(r) && r.rerolls === 0 ? tryAnother : justRaidThem)(r) : r)),
+        4000,
+      );
+      return () => clearTimeout(id);
+    }
+  }, [viewerPhase]);
+
   const landed = raid?.phase === "landed";
   useEffect(() => {
     if (!landed) return;
@@ -134,14 +160,39 @@ export function RaidProvider({ children }: { children: ReactNode }) {
       // Section 4.1: Random is the fallback, so a dismissed end-of-stream prompt still
       // hands the viewers on.
       if (dialog === "end" && prefs.autoRaid && !raid) {
-        setRaid(startRaid("random", currentUser.slug, currentSession.viewer_count));
+        setRaid(
+          startRaid({
+            mode: "random",
+            hostSlug: currentUser.slug,
+            hostViewers: currentSession.viewer_count,
+          }),
+        );
       }
       setDialog(null);
     },
     start: (mode, pickedSlug) => {
       setJoined(null);
-      setRaid(startRaid(mode, currentUser.slug, currentSession.viewer_count, pickedSlug));
+      setRaid(
+        startRaid({
+          mode,
+          hostSlug: currentUser.slug,
+          hostViewers: currentSession.viewer_count,
+          pickedSlug,
+        }),
+      );
       setDialog(null);
+    },
+    startAsViewer: (host, mode) => {
+      setJoined(null);
+      setPreview(null);
+      setRaid(
+        startRaid({
+          mode,
+          hostSlug: host.channel.slug,
+          hostViewers: host.viewer_count,
+          viewer: true,
+        }),
+      );
     },
     act: (fn) => setRaid((r) => (r ? fn(r) : r)),
     join: () => setJoined(true),

@@ -53,6 +53,9 @@ export type Raid = {
   seconds: number;
   hostSlug: string;
   hostViewers: number;
+  // On the viewer side the streamer's own decisions arrive on a script, so the panel hides
+  // the streamer controls.
+  viewer: boolean;
   candidates: Candidate[];
   featured: string[];
   previewIndex: number;
@@ -91,12 +94,15 @@ function ranked(raid: Raid, poll: Poll) {
   );
 }
 
-export function startRaid(
-  mode: RaidMode,
-  hostSlug: string,
-  hostViewers: number,
-  pickedSlug?: string,
-): Raid {
+export type RaidStart = {
+  mode: RaidMode;
+  hostSlug: string;
+  hostViewers: number;
+  pickedSlug?: string;
+  viewer?: boolean;
+};
+
+export function startRaid({ mode, hostSlug, hostViewers, pickedSlug, viewer }: RaidStart): Raid {
   const all = recommendationsFor(hostSlug, hostViewers);
   const candidates = mode === "tank" ? tankCandidates(all) : all;
   const base: Raid = {
@@ -105,6 +111,7 @@ export function startRaid(
     seconds: TIMING.countdown,
     hostSlug,
     hostViewers,
+    viewer: Boolean(viewer),
     candidates,
     featured: [],
     previewIndex: 0,

@@ -2,6 +2,7 @@ import { useEffect, useState, type PointerEvent as ReactPointerEvent } from "rea
 import { useSearchParams } from "react-router-dom";
 import { Icon } from "../Icon";
 import type { Livestream } from "../mock/api";
+import { RaidStage } from "./RaidStage";
 
 function formatElapsed(totalSeconds: number) {
   const h = Math.floor(totalSeconds / 3600);
@@ -79,6 +80,8 @@ export function ChannelPlayer({ stream }: { stream: Livestream }) {
         alt={stream.session_title}
         className="h-full w-full object-contain brightness-125"
       />
+
+      <RaidStage />
 
       <div className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-150 betterhover:group-hover/player:pointer-events-auto betterhover:group-hover/player:opacity-100 focus-within:pointer-events-auto focus-within:opacity-100">
         <div className="z-controls absolute inset-x-0 bottom-0 flex h-11 flex-row items-center justify-between gap-2 bg-gradient-to-t from-black/80 to-transparent px-2 xl:px-5">

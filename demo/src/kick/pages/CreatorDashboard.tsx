@@ -3,8 +3,10 @@ import { Link, NavLink, useParams } from "react-router-dom";
 import { Icon, type KickIconName } from "../Icon";
 import { ProfileMenu } from "../components/ProfileMenu";
 import kickLogo from "../brand/kick-logo.svg";
-import { categories, currentUser } from "../mock/api";
+import { categories, currentSession, currentUser, formatFollowers, formatViewers } from "../mock/api";
 import { ChatFeed } from "../components/ChannelChat";
+import { RaidStage } from "../components/RaidStage";
+import { useRaid } from "../raid/RaidProvider";
 
 const streamItem = "/dashboard/stream";
 
@@ -159,16 +161,19 @@ function ActionRow({
   value,
   external,
   disabled,
+  onClick,
 }: {
   label: string;
   value?: string;
   external?: boolean;
   disabled?: boolean;
+  onClick?: () => void;
 }) {
   return (
     <button
       type="button"
       disabled={disabled}
+      onClick={onClick}
       className="flex min-h-11 w-full items-center justify-between gap-4 py-2 text-left text-sm font-normal disabled:text-neutral-600"
     >
       <div className="min-w-0 shrink grow">
@@ -216,6 +221,7 @@ export function CreatorDashboard() {
   const [emotesOnly, setEmotesOnly] = useState(false);
   const [showViewCount, setShowViewCount] = useState(true);
   const [menuOpen, setMenuOpen] = useState(false);
+  const { openDialog } = useRaid();
   const active = `/dashboard/${section ?? "stream"}`;
 
   return (
@@ -228,12 +234,15 @@ export function CreatorDashboard() {
           </Link>
         </div>
         <div className="flex items-center gap-5">
+          {/* Section 6: the two entry points open the same dialog. Only the heading and the
+              escape wording differ. */}
           <button
             type="button"
+            onClick={() => openDialog("end")}
             className="state-layer-base inline-flex h-9 items-center justify-center gap-1.5 rounded bg-primary-base px-2 text-sm font-semibold text-primary-onPrimary"
           >
             <Icon name="kick-mark" className="size-[1em]" />
-            Go live
+            End stream
           </button>
           <button
             type="button"
@@ -294,15 +303,15 @@ export function CreatorDashboard() {
                 <Pane style={{ height: "22%" }}>
                   <Panel title="Session Info" icon="dash-stream" bodyClassName="flex-col">
                     <div className="flex w-full gap-1">
-                      <Stat label="Session" badge="Offline" />
+                      <Stat label="Session" badge="Live" />
                       <div className="h-full w-px shrink-0 bg-outline-decorative" />
-                      <Stat label="Viewers" value="-" />
+                      <Stat label="Viewers" value={formatViewers(currentSession.viewer_count)} />
                       <div className="h-full w-px shrink-0 bg-outline-decorative" />
-                      <Stat label="Followers" value={String(currentUser.followers)} />
+                      <Stat label="Followers" value={formatFollowers(currentUser.followers)} />
                       <div className="h-full w-px shrink-0 bg-outline-decorative" />
-                      <Stat label="Sub Counts" value="-" />
+                      <Stat label="Sub Counts" value={String(currentSession.subscriber_count)} />
                       <div className="h-full w-px shrink-0 bg-outline-decorative" />
-                      <Stat label="Time Live" value="-" />
+                      <Stat label="Time Live" value={currentSession.time_live} />
                     </div>
                     <div className="w-full border-t border-outline-decorative" />
                   </Panel>
@@ -311,17 +320,14 @@ export function CreatorDashboard() {
                 <Pane style={{ height: "50%" }}>
                   <div className="flex h-full w-full flex-col">
                     <PanelHeader title="Stream Preview" icon="dash-studio" />
-                    <div className="flex min-h-0 flex-1 grow overflow-hidden rounded-b bg-black">
-                      <div className="flex h-full w-full items-center justify-center">
-                        <div className="flex h-fit w-fit items-center gap-4 rounded bg-surface-base p-5 font-bold leading-[1.2]">
-                          <div className="flex items-center justify-center rounded-sm bg-[#F4F5F6] px-1.5 py-1 text-[10px] uppercase text-[#070809]">
-                            Offline
-                          </div>
-                          <h2 className="text-base font-bold leading-[1.2] text-white lg:text-2xl">
-                            {currentUser.username} is offline
-                          </h2>
-                        </div>
-                      </div>
+                    <div className="relative flex min-h-0 flex-1 grow overflow-hidden rounded-b bg-black">
+                      <img
+                        src={currentSession.thumbnail}
+                        alt={currentSession.title}
+                        className="h-full w-full object-contain brightness-125"
+                      />
+                      {/* Section 5.1: every raid preview plays here, never in the chat column. */}
+                      <RaidStage />
                     </div>
                   </div>
                 </Pane>
@@ -359,7 +365,9 @@ export function CreatorDashboard() {
                     actions={<IconButton icon="dash-edit" label="Edit stream info" className="size-8 text-sm leading-none" />}
                   >
                     <div className="flex w-full max-w-full flex-col gap-2 text-sm">
-                      <span className="line-clamp-2 font-semibold text-white">My first stream.</span>
+                      <span className="line-clamp-2 font-semibold text-white">
+                        {currentSession.title}
+                      </span>
                       <div className="no-scrollbar flex w-full max-w-full items-center gap-2 overflow-x-auto">
                         <img
                           src={justChatting.thumbnail}
@@ -396,7 +404,7 @@ export function CreatorDashboard() {
                         </ActionGroup>
                         <ActionGroup title="Channel options">
                           <ToggleRow label="Show view count" on={showViewCount} onChange={setShowViewCount} />
-                          <ActionRow label="Raid Channel" disabled />
+                          <ActionRow label="Raid Channel" onClick={() => openDialog("raid")} />
                           <ActionRow label="Set goals" />
                         </ActionGroup>
                       </div>

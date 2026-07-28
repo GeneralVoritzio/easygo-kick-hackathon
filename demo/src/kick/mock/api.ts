@@ -642,12 +642,22 @@ export function timeAgo(iso: string): string {
 }
 
 export const currentUser = {
+  slug: "superdude1337",
   username: "SuperDude1337",
   avatar: avatar("superdude1337"),
-  followers: 1,
+  followers: 18430,
   bio: "SuperDude1337's Kick Channel",
   banner: artUrl("banner-midnightden"),
   offlineBanner: artUrl("thumb-just-chatting-1"),
+};
+
+// The dashboard runs on a live session, because a raid starts when a stream ends.
+export const currentSession = {
+  title: "last stream before the break, chat picks where we go next",
+  viewer_count: 1240,
+  subscriber_count: 312,
+  time_live: "3:15:22",
+  thumbnail: artUrl("thumb-just-chatting-1"),
 };
 
 export function streamPills(stream: Livestream): string[] {

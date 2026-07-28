@@ -9,6 +9,14 @@ import type { GlobePoint } from './types'
 const SURFACE_RADIUS = 1.006
 const CORE_RADIUS = 0.009
 const HALO_SCALE = 2.7
+/**
+ * Hover targets never shrink below this radius in *pixels*. The visible halo
+ * scales down as you zoom in (so dense points stay distinguishable), which left
+ * a target only a few pixels wide — dead-centre aiming still missed. The pick
+ * layer is invisible and sized in screen space, so hovering stays forgiving at
+ * every zoom without making the dots look bigger.
+ */
+const PICK_MIN_PIXELS = 15
 
 type Props = {
   points: GlobePoint[]
@@ -32,6 +40,7 @@ export default function LivePointLayer({ points, style = 'solid', onPointOver, o
   const coreRef = useRef<THREE.InstancedMesh>(null)
   const haloRef = useRef<THREE.InstancedMesh>(null)
   const backingRef = useRef<THREE.InstancedMesh>(null)
+  const pickRef = useRef<THREE.InstancedMesh>(null)
   const hovered = useRef<number | null>(null)
   const dummy = useMemo(() => new THREE.Object3D(), [])
   const outlined = style === 'outlined'
@@ -54,12 +63,17 @@ export default function LivePointLayer({ points, style = 'solid', onPointOver, o
     [],
   )
 
-  useFrame(({ clock, camera }) => {
+  useFrame(({ clock, camera, size }) => {
     const core = coreRef.current
     const halo = haloRef.current
     if (!core || !halo) return
     const t = clock.elapsedTime
-    const zoomScale = pointScaleForDistance(camera.position.length())
+    const distance = camera.position.length()
+    const zoomScale = pointScaleForDistance(distance)
+    // world units per pixel at the body's distance, from the camera's own fov
+    const perspective = camera as THREE.PerspectiveCamera
+    const worldPerPixel = (2 * Math.tan((perspective.fov * Math.PI) / 360) * distance) / size.height
+    const minPickScale = (PICK_MIN_PIXELS * worldPerPixel) / CORE_RADIUS
     data.forEach((d, i) => {
       const boost = hovered.current === i ? 1.4 : 1
       const size = d.scale * zoomScale * boost
@@ -86,10 +100,18 @@ export default function LivePointLayer({ points, style = 'solid', onPointOver, o
       dummy.scale.setScalar(size * HALO_SCALE * pulse)
       dummy.updateMatrix()
       halo.setMatrixAt(i, dummy.matrix)
+      // invisible pick target: whichever is larger, the halo or a comfortable
+      // minimum measured in pixels
+      if (pickRef.current) {
+        dummy.scale.setScalar(Math.max(size * HALO_SCALE, minPickScale))
+        dummy.updateMatrix()
+        pickRef.current.setMatrixAt(i, dummy.matrix)
+      }
     })
     core.instanceMatrix.needsUpdate = true
     halo.instanceMatrix.needsUpdate = true
     if (backingRef.current) backingRef.current.instanceMatrix.needsUpdate = true
+    if (pickRef.current) pickRef.current.instanceMatrix.needsUpdate = true
   })
 
   const instanceOf = (e: ThreeEvent<PointerEvent> | ThreeEvent<MouseEvent>) =>
@@ -125,6 +147,26 @@ export default function LivePointLayer({ points, style = 'solid', onPointOver, o
         ref={haloRef}
         args={[undefined, undefined, points.length]}
         frustumCulled={false}
+        raycast={() => null}
+      >
+        <sphereGeometry args={[CORE_RADIUS, 12, 12]} />
+        <meshBasicMaterial
+          color="#53fc18"
+          transparent
+          opacity={0.22}
+          blending={THREE.AdditiveBlending}
+          depthWrite={false}
+          toneMapped={false}
+        />
+      </instancedMesh>
+
+      {/* invisible, generously sized hover target — drawn last so it wins the
+          depth test against its own dot, but it writes no colour or depth */}
+      <instancedMesh
+        key={`pick-${points.length}`}
+        ref={pickRef}
+        args={[undefined, undefined, points.length]}
+        frustumCulled={false}
         onPointerOver={(e) => {
           e.stopPropagation()
           const i = instanceOf(e)
@@ -149,15 +191,8 @@ export default function LivePointLayer({ points, style = 'solid', onPointOver, o
           if (i != null) onPointClick(data[i].point)
         }}
       >
-        <sphereGeometry args={[CORE_RADIUS, 12, 12]} />
-        <meshBasicMaterial
-          color="#53fc18"
-          transparent
-          opacity={0.22}
-          blending={THREE.AdditiveBlending}
-          depthWrite={false}
-          toneMapped={false}
-        />
+        <sphereGeometry args={[CORE_RADIUS, 10, 10]} />
+        <meshBasicMaterial transparent opacity={0} depthWrite={false} colorWrite={false} />
       </instancedMesh>
     </group>
   )

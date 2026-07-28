@@ -195,11 +195,17 @@ export default function DiscoveryPage() {
 
       {webglOk ? (
         <div className="relative min-h-0 flex-1">
+          {/* the swap between views is a jump cut without this: each view
+              arrives with a short warp so travelling reads as movement */}
           {viewMode === 'system' ? (
-            <SolarSystemView counts={counts} />
+            <div key="system" className="animate-warp-out h-full w-full">
+              <SolarSystemView counts={counts} />
+            </div>
           ) : (
             // keyed by body: a new body means a fresh scene and camera
-            <DiscoveryGlobe key={activeBody} bodyId={activeBody} />
+            <div key={activeBody} className="animate-warp-in h-full w-full">
+              <DiscoveryGlobe bodyId={activeBody} />
+            </div>
           )}
 
           {viewMode === 'body' && (

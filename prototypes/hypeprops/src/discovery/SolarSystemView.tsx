@@ -1,6 +1,6 @@
 import { useMemo, useRef } from 'react'
 import * as THREE from 'three'
-import { Canvas, useFrame } from '@react-three/fiber'
+import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { Html, Stars, useTexture } from '@react-three/drei'
 import { BODIES, BODY_ORDER, orbitRings, systemPlacement, systemPosition } from './bodies'
 import { useDiscovery } from './discoveryStore'
@@ -103,10 +103,29 @@ function SystemBody({ body, count, onPick }: { body: CelestialBody; count: numbe
   )
 }
 
+/** settle the camera inward on arrival — the CSS warp handles the cut, this
+ * gives the view its own moment of deceleration */
+const REST_Z = 9.4
+
+function ArrivalDolly() {
+  const camera = useThree((s) => s.camera)
+  const started = useRef(false)
+  useFrame((_, dt) => {
+    if (!started.current) {
+      camera.position.z = REST_Z + 3.2
+      started.current = true
+      return
+    }
+    camera.position.z = THREE.MathUtils.damp(camera.position.z, REST_Z, 3.4, dt)
+  })
+  return null
+}
+
 function SystemScene({ counts }: { counts: Record<BodyId, number> }) {
   const setActiveBody = useDiscovery((s) => s.setActiveBody)
   return (
     <>
+      <ArrivalDolly />
       <Stars radius={24} depth={8} count={2600} factor={2} saturation={0} fade speed={0.3} />
       {orbitRings().map((radius) => (
         <OrbitRing key={radius} radius={radius} />

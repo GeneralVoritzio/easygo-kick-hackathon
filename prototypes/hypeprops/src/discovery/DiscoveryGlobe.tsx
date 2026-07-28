@@ -95,16 +95,55 @@ function CameraRig({
   }, [])
 
   /**
-   * OrbitControls clamps at maxDistance, so "keep zooming out" can only be
-   * detected as an *attempt*: a zoom-out wheel tick while already parked at the
-   * ceiling. Two consecutive ticks are required so a single overshoot from
-   * normal zooming doesn't launch you into space.
+   * Two wheel jobs on one listener.
+   *
+   * 1. OrbitControls clamps at maxDistance, so "keep zooming out" can only be
+   *    detected as an *attempt*: a zoom-out tick while already parked at the
+   *    ceiling. Two consecutive ticks are required so a single overshoot from
+   *    normal zooming doesn't launch you into space.
+   *
+   * 2. R3F only raycasts on pointer events, so a wheel-zoom slides the dots
+   *    around underneath a stationary cursor without any hover being
+   *    re-evaluated — you end up parked on a hotspot with nothing showing until
+   *    you jiggle the mouse. Once the zoom settles we replay a pointermove at
+   *    the last known position so hover reflects what's actually under it.
    */
   useEffect(() => {
     const el = gl.domElement
     let ticksAtCeiling = 0
     let resetAt: number | null = null
+    let rehoverAt: number | null = null
+    let pointer: { x: number; y: number } | null = null
+
+    const onPointerMove = (e: PointerEvent) => {
+      pointer = { x: e.clientX, y: e.clientY }
+    }
+    const onPointerLeave = () => {
+      pointer = null
+    }
+
+    const rehover = () => {
+      if (!pointer) return
+      const rect = el.getBoundingClientRect()
+      const event = new PointerEvent('pointermove', {
+        clientX: pointer.x,
+        clientY: pointer.y,
+        bubbles: true,
+        pointerType: 'mouse',
+      })
+      // R3F's default `compute` reads offsetX/offsetY, which a constructed
+      // PointerEvent leaves at 0 — without these the replayed ray would be cast
+      // at the canvas's top-left corner instead of under the cursor
+      Object.defineProperty(event, 'offsetX', { value: pointer.x - rect.left })
+      Object.defineProperty(event, 'offsetY', { value: pointer.y - rect.top })
+      el.dispatchEvent(event)
+    }
+
     const onWheel = (e: WheelEvent) => {
+      // the camera keeps easing after the last tick, so wait for it to settle
+      if (rehoverAt) window.clearTimeout(rehoverAt)
+      rehoverAt = window.setTimeout(rehover, 220)
+
       if (e.deltaY <= 0) {
         ticksAtCeiling = 0
         return
@@ -123,10 +162,16 @@ function CameraRig({
         onZoomOutPastCeiling()
       }
     }
+
     el.addEventListener('wheel', onWheel, { passive: true })
+    el.addEventListener('pointermove', onPointerMove)
+    el.addEventListener('pointerleave', onPointerLeave)
     return () => {
       el.removeEventListener('wheel', onWheel)
+      el.removeEventListener('pointermove', onPointerMove)
+      el.removeEventListener('pointerleave', onPointerLeave)
       if (resetAt) window.clearTimeout(resetAt)
+      if (rehoverAt) window.clearTimeout(rehoverAt)
     }
   }, [gl, camera, onZoomOutPastCeiling])
 

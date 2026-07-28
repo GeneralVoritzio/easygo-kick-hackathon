@@ -15,6 +15,10 @@
   /* "backwards", not "both": once the entrance finishes the element's own
      hover transforms must win again (a filled animation would pin scale(1)) */
   --animate-pop: pop 0.3s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+  /* arriving in the solar system: fall away from the body you just left */
+  --animate-warp-out: warp-out 0.55s cubic-bezier(0.16, 1, 0.3, 1) both;
+  /* arriving at a body: rush in towards it */
+  --animate-warp-in: warp-in 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
 
   @keyframes pulse-fast {
     0%, 100% { opacity: 1; }
@@ -26,6 +30,14 @@
   }
   @keyframes pop {
     from { opacity: 0; transform: scale(0.4); }
+    to { opacity: 1; transform: scale(1); }
+  }
+  @keyframes warp-out {
+    from { opacity: 0; transform: scale(1.18); }
+    to { opacity: 1; transform: scale(1); }
+  }
+  @keyframes warp-in {
+    from { opacity: 0; transform: scale(0.86); }
     to { opacity: 1; transform: scale(1); }
   }
 }

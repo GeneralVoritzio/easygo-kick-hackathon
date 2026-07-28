@@ -1,0 +1,97 @@
+{
+ "captured": "2026-07-27",
+ "source": "https://kick.com/browse",
+ "loggedIn": false,
+ "viewport": [
+  1440,
+  900
+ ],
+ "url": "/browse",
+ "navbar": {
+  "rect": [
+   1440,
+   60,
+   0,
+   0
+  ],
+  "box": {
+   "display": "flex",
+   "padding": "0px 40px 0px 12px",
+   "fontSize": "16px",
+   "lineHeight": "24px",
+   "fontWeight": "400",
+   "color": "rgb(255, 255, 255)",
+   "backgroundColor": "rgb(11, 11, 12)",
+   "zIndex": "402"
+  }
+ },
+ "sidebar": {
+  "rect": [
+   256,
+   840,
+   0,
+   60
+  ],
+  "box": {
+   "display": "flex",
+   "fontSize": "16px",
+   "lineHeight": "24px",
+   "fontWeight": "400",
+   "color": "rgb(255, 255, 255)",
+   "backgroundColor": "rgb(11, 11, 12)",
+   "zIndex": "401"
+  }
+ },
+ "column": {
+  "rect": [
+   1100,
+   1749.63,
+   296,
+   84
+  ],
+  "box": {
+   "display": "flex",
+   "gap": "12px normal",
+   "fontSize": "16px",
+   "lineHeight": "24px",
+   "fontWeight": "400",
+   "color": "rgb(255, 255, 255)",
+   "backgroundColor": "rgba(0, 0, 0, 0)"
+  }
+ },
+ "firstGrid": {
+  "rect": [
+   1100,
+   1547.63,
+   296,
+   250
+  ],
+  "box": {
+   "display": "grid",
+   "gridTemplateColumns": "263px 263px 263px 263px",
+   "gridTemplateRows": "237.938px 237.938px 237.938px 237.938px 237.938px 237.938px",
+   "gap": "24px 16px",
+   "fontSize": "16px",
+   "lineHeight": "24px",
+   "fontWeight": "400",
+   "color": "rgb(255, 255, 255)",
+   "backgroundColor": "rgba(0, 0, 0, 0)"
+  }
+ },
+ "firstCard": {
+  "rect": [
+   263,
+   237.94,
+   296,
+   250
+  ],
+  "box": {
+   "display": "flex",
+   "fontSize": "16px",
+   "lineHeight": "24px",
+   "fontWeight": "400",
+   "color": "rgb(255, 255, 255)",
+   "backgroundColor": "rgba(0, 0, 0, 0)"
+  }
+ }
+}

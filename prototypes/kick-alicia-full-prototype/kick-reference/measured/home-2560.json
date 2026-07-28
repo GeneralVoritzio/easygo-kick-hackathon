@@ -1,0 +1,19 @@
+{
+ "captured": "2026-07-27",
+ "source": "https://kick.com/",
+ "loggedIn": false,
+ "viewport": [2560, 1249],
+ "url": "/",
+ "body": { "rect": [2560, 1249, 0, 0], "box": { "display": "block", "fontSize": "16px", "lineHeight": "24px", "fontWeight": "400", "color": "rgb(255, 255, 255)", "backgroundColor": "rgb(11, 11, 12)" } },
+ "navbar": { "rect": [2560, 60, 0, 0], "box": { "display": "flex", "padding": "0px 40px 0px 12px", "backgroundColor": "rgb(11, 11, 12)", "zIndex": "402", "boxShadow": "rgba(0, 0, 0, 0.2) 0px 2px 4px 0px" } },
+ "sidebar": { "rect": [256, 1189, 0, 60], "box": { "display": "flex", "backgroundColor": "rgb(11, 11, 12)", "zIndex": "401" } },
+ "column": { "rect": [2000, 7290.34, 406, 60], "box": { "display": "flex", "gap": "28px normal" } },
+ "firstGrid": { "rect": [2000, 270, 406, 978.06], "box": { "display": "grid", "gridTemplateColumns": "320px 320px 320px 320px 320px 320px", "gridTemplateRows": "270px 0px", "gap": "0px 16px" } },
+ "firstCard": { "rect": [320, 270, 406, 978.06], "box": { "display": "flex" } },
+ "testid:sidebar-collapse": { "rect": [40, 40, 12, 10], "box": { "display": "flex", "gap": "8px", "lineHeight": "16px", "fontWeight": "600", "borderRadius": "4px", "boxShadow": "rgb(255, 255, 255) 0px 0px 0px 0px, rgba(24, 153, 251, 0.5) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px" } },
+ "testid:sidebar-following-channel-3": { "rect": [232, 44, 12, 341], "box": { "display": "flex", "gap": "8px", "padding": "0px 6px", "fontWeight": "600", "borderRadius": "4px" } },
+ "testid:sidebar-recommended-channel-8": { "rect": [232, 44, 12, 753], "box": { "display": "flex", "gap": "8px", "padding": "0px 6px", "fontWeight": "600", "borderRadius": "4px" } },
+ "testid:identity-badge-subscriber": { "rect": [19.38, 19.38, 1936, -228.19], "box": { "display": "flex", "fontSize": "14px", "lineHeight": "21px" } },
+ "testid:category-Slots & Casino": { "rect": [138.45, 24, 410, 1575.33], "box": { "display": "block", "fontWeight": "600" } },
+ "testid:category-Counter-Strike 2": { "rect": [138.45, 24, 1645.69, 1575.33], "box": { "display": "block", "fontWeight": "600" } }
+}

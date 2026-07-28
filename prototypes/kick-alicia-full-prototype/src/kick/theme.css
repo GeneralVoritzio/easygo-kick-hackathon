@@ -1,0 +1,387 @@
+@import "tailwindcss";
+
+@source not "../../kick-reference";
+
+@custom-variant betterhover (@media (hover: hover));
+
+@utility grid-cols-auto-fill-category {
+  grid-template-columns: repeat(auto-fill, minmax(139px, 1fr));
+}
+
+@font-face {
+  font-family: "Inter";
+  src: url("./fonts/inter-variable-latin.woff2") format("woff2");
+  font-weight: 100 900;
+  font-display: swap;
+  font-style: normal;
+}
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+
+  --color-white: #fff;
+  --color-black: #000;
+
+  --color-neutral-50: #f0f1f2;
+  --color-neutral-100: #e3e6e8;
+  --color-neutral-200: #d6d9dc;
+  --color-neutral-300: #babfc4;
+  --color-neutral-400: #9fa6ad;
+  --color-neutral-500: #808a93;
+  --color-neutral-600: #606971;
+  --color-neutral-700: #42474d;
+  --color-neutral-800: #232629;
+  --color-neutral-900: #171a1c;
+  --color-neutral-950: #0b0b0c;
+
+  --color-green-50: #ebffe4;
+  --color-green-100: #dafecd;
+  --color-green-200: #b8fea0;
+  --color-green-300: #96fd73;
+  --color-green-400: #75fd45;
+  --color-green-500: #53fc18;
+  --color-green-600: #3ad903;
+  --color-green-700: #2ba202;
+  --color-green-800: #1d6a01;
+  --color-green-900: #0e3301;
+  --color-green-950: #061700;
+
+  --color-red-50: #ffe3e3;
+  --color-red-100: #fecdcd;
+  --color-red-200: #fea0a0;
+  --color-red-300: #fd7272;
+  --color-red-400: #fc4545;
+  --color-red-500: #fb1818;
+  --color-red-600: #d80303;
+  --color-red-700: #a10202;
+  --color-red-800: #690202;
+  --color-red-900: #320101;
+  --color-red-950: #170000;
+
+  --color-orange-50: #fff4e3;
+  --color-orange-100: #feebcd;
+  --color-orange-200: #fedaa0;
+  --color-orange-300: #fdc872;
+  --color-orange-400: #fcb645;
+  --color-orange-500: #fba418;
+  --color-orange-600: #d88603;
+  --color-orange-700: #a16402;
+  --color-orange-800: #694202;
+  --color-orange-900: #321f01;
+  --color-orange-950: #170e00;
+
+  --color-blue-50: #e3f3ff;
+  --color-blue-100: #cde9fe;
+  --color-blue-200: #a0d5fe;
+  --color-blue-300: #72c1fd;
+  --color-blue-400: #45adfc;
+  --color-blue-500: #1899fb;
+  --color-blue-600: #037cd8;
+  --color-blue-700: #025ca1;
+  --color-blue-800: #023c69;
+  --color-blue-900: #011d32;
+  --color-blue-950: #000d17;
+
+  --color-purple-50: #f4e3ff;
+  --color-purple-100: #eacdfe;
+  --color-purple-200: #d8a0fe;
+  --color-purple-300: #c572fd;
+  --color-purple-400: #b345fc;
+  --color-purple-500: #a018fb;
+  --color-purple-600: #8303d8;
+  --color-purple-700: #6102a1;
+  --color-purple-800: #400269;
+  --color-purple-900: #1e0132;
+  --color-purple-950: #0e0017;
+
+  --color-cyan-50: #e3fcff;
+  --color-cyan-100: #cdfafe;
+  --color-cyan-200: #a0f6fe;
+  --color-cyan-300: #72f1fd;
+  --color-cyan-400: #45edfc;
+  --color-cyan-500: #18e9fb;
+  --color-cyan-600: #03c6d8;
+  --color-cyan-700: #0294a1;
+  --color-cyan-800: #026169;
+  --color-cyan-900: #012e32;
+  --color-cyan-950: #001517;
+
+  --color-icedOutCyan-200: #0ff;
+
+  --color-light-4: #f0f1f20a;
+  --color-light-8: #f0f1f214;
+  --color-light-12: #f0f1f21f;
+  --color-light-16: #f0f1f229;
+  --color-light-24: #f0f1f23d;
+  --color-light-32: #f0f1f252;
+  --color-light-40: #f0f1f266;
+  --color-light-48: #f0f1f27a;
+  --color-light-56: #f0f1f28f;
+  --color-light-64: #f0f1f2a3;
+  --color-light-80: #f0f1f2cc;
+
+  --color-dark-4: #0b0b0c0a;
+  --color-dark-8: #0b0b0c14;
+  --color-dark-12: #0b0b0c1f;
+  --color-dark-16: #0b0b0c29;
+  --color-dark-24: #0b0b0c3d;
+  --color-dark-32: #0b0b0c52;
+  --color-dark-40: #0b0b0c66;
+  --color-dark-48: #0b0b0c7a;
+  --color-dark-56: #0b0b0c8f;
+  --color-dark-64: #0b0b0ca3;
+  --color-dark-80: #0b0b0ccc;
+
+  --color-surface-lowest: #0b0b0c;
+  --color-surface-base: #171a1c;
+  --color-surface-highest: #232629;
+  --color-surface-onSurface: #fff;
+  --color-surface-onSurfaceSecondary: #9fa6ad;
+  --color-surface-onSurfacePrimary: #53fc18;
+  --color-surface-onSurfacePositive: #53fc18;
+  --color-surface-onSurfaceNegative: #fd7272;
+  --color-surface-onSurfaceAccent1: #0ff;
+
+  --color-surfaceInverse-base: #fff;
+  --color-surfaceInverse-onInverse: #0b0b0c;
+  --color-surfaceOverlay-base: #0b0b0ccc;
+  --color-surfaceOverlay-onOverlay: #fff;
+  --color-surfaceOverlay-onOverlayPrimary: #53fc18;
+  --color-surfaceOverlay-onOverlayPositive: #53fc18;
+
+  --color-outline-region: #f0f1f266;
+  --color-outline-decorative: #f0f1f229;
+
+  --color-subtle: #929ea6;
+
+  --color-identity-cyan: var(--color-cyan-500);
+
+  --color-primary-base: #53fc18;
+  --color-primary-onPrimary: #0b0b0c;
+  --color-secondary-base: #42474d;
+  --color-secondary-onSecondary: #fff;
+  --color-secondary-onSecondaryVariant: #babfc4;
+  --color-positive-base: #53fc18;
+  --color-positive-onPositive: #0b0b0c;
+  --color-negative-base: #d80303;
+  --color-negative-onNegative: #fff;
+  --color-warning-base: #fba418;
+  --color-warning-onWarning: #000;
+  --color-accent2-base: #4c4014;
+  --color-accent2-onAccent2: #e3cf89;
+
+  --color-disabled-base: #f0f1f214;
+  --color-disabled-onSurface: #f0f1f23d;
+
+  --color-focusLight: #fff;
+  --color-focusDark: #0b0b0c;
+
+  --color-stateLayer-surfaceHover: #f0f1f20a;
+  --color-stateLayer-surfaceFocus: #f0f1f214;
+  --color-stateLayer-surfacePress: #f0f1f214;
+  --color-stateLayer-defaultHover: #0b0b0c1f;
+  --color-stateLayer-defaultFocus: #0b0b0c29;
+  --color-stateLayer-defaultPress: #0b0b0c29;
+
+  --radius-sm: 4px;
+  --radius-DEFAULT: 4px;
+  --radius-lg: 8px;
+
+  --breakpoint-3xl: 120rem;
+  /* Measured on 27 July 2026: at 2560 a kick.com stream card computes padding
+     8px 6px, so neither tv:py-4 nor fhd:py-5 applies there. Both breakpoints are
+     above 2560. The exact values live in a CSS chunk we have not captured, so
+     these two are derived from real display widths, not read. */
+  --breakpoint-fhd: 180rem;
+  --breakpoint-tv: 240rem;
+}
+
+:root {
+  --navbar-height: 60px;
+  --channel-info-height: 132px;
+  --sidebar-expanded-width: 256px;
+  --sidebar-collapsed-width: 56px;
+  --chat-width: 340px;
+  --chatroom-font-size: 14px;
+  --chatroom-message-spacing: 4px;
+  --chatroom-timestamps-display: none;
+  --chatroom-mod-actions-display: none;
+  --channel-desktop-banner-height: 134px;
+  --channel-info-height: 132px;
+  --embedded-collapsed-player-left: 80px;
+  --embedded-expanded-player-left: 272px;
+
+  --z-navbar: 400;
+  --z-player: 300;
+  --z-popover: 500;
+}
+
+@layer utilities {
+  .z-absolute { z-index: 101 }
+  .z-player { z-index: 201 }
+  .z-controls { z-index: 202 }
+  .z-navbar { z-index: 301 }
+  .z-popover { z-index: 401 }
+
+  .h-xvh { height: 100vh }
+  .w-xvw { width: 100vw }
+
+  .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none }
+  .no-scrollbar::-webkit-scrollbar { display: none }
+
+  .state-layer-surface,
+  .state-layer-base { position: relative }
+  .state-layer-surface::after,
+  .state-layer-base::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: transparent;
+    pointer-events: none;
+    transition: background 150ms ease-in-out;
+  }
+  .state-layer-surface:hover::after { background: var(--color-stateLayer-surfaceHover) }
+  .state-layer-surface:active::after { background: var(--color-stateLayer-surfacePress) }
+  .state-layer-base:hover::after { background: var(--color-stateLayer-defaultHover) }
+  .state-layer-base:active::after { background: var(--color-stateLayer-defaultPress) }
+
+  .animate-leaderboards-marquee { animation: 9s ease-in-out 2s infinite leaderboards-marquee }
+
+  /* Hovering a stream card's thumbnail — StopPreview's own reasoning applies here too: KICK
+     gives no way to embed a channel's real video outside its own player, and every stream in
+     this prototype is mocked, so "playing a snippet" is a slow pan across the still thumbnail
+     rather than a fake video feed. */
+  .animate-hover-preview { animation: hover-preview-pan 6s ease-in-out infinite }
+
+  .animate-emote-picker { animation: emote-picker-open 350ms ease-out }
+  .animate-emote-picker-close { animation: emote-picker-close 350ms ease-out forwards }
+  .animate-emote-picker-body {
+    animation: emote-picker-fade 300ms cubic-bezier(0.14, 0.98, 0.49, 1);
+  }
+  .animate-emote-picker-body-close {
+    animation: emote-picker-fade 300ms cubic-bezier(0.14, 0.98, 0.49, 1) reverse forwards;
+  }
+
+  /* The plate is ::before and the arrow is ::after, so the plate can round on all
+     four corners. The arrow keeps the button centre when the plate aligns to an edge. */
+  .tooltip-top { position: relative }
+  .tooltip-top::before {
+    content: attr(aria-label);
+    position: absolute;
+    bottom: calc(100% + 2px);
+    left: 50%;
+    translate: -50%;
+    z-index: 801;
+    padding: 5px;
+    border-radius: 6px;
+    background: #fff;
+    color: #000;
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 20px;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+  }
+  .tooltip-top::after {
+    content: "";
+    position: absolute;
+    inset: auto auto calc(100% - 3px) 50%;
+    translate: -50%;
+    z-index: 801;
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-top: 5px solid #fff;
+    border-radius: 0;
+    background: none;
+    transition: none;
+    opacity: 0;
+    pointer-events: none;
+  }
+  .tooltip-top:hover::before,
+  .tooltip-top:hover::after { opacity: 1 }
+  .tooltip-start::before { left: 0; translate: none }
+  .tooltip-end::before { left: auto; right: 0; translate: none }
+}
+
+@keyframes emote-picker-open {
+  from { max-height: 50px }
+  to { max-height: 50vh }
+}
+
+@keyframes emote-picker-close {
+  from { max-height: 50vh }
+  to { max-height: 0 }
+}
+
+@keyframes emote-picker-fade {
+  from { opacity: 0 }
+  to { opacity: 1 }
+}
+
+@keyframes leaderboards-marquee {
+  0% { transform: translate(0) }
+  55.556% { transform: translate(-100%) }
+  to { transform: translate(-100%) }
+}
+
+@keyframes hover-preview-pan {
+  0%, 100% { transform: scale(1.08) translate(0, 0) }
+  50% { transform: scale(1.16) translate(-1.5%, -1%) }
+}
+
+/* The timeline rail's notch glow, kick-timeline-with-recap/css/player.css's notchGlow. Each
+   notch sets its own --notch-glow to its group colour, so the pulse always glows the badge's
+   own colour rather than one shared highlight colour. */
+@keyframes notch-glow {
+  0%, 100% { box-shadow: 0 0 4px 1px var(--notch-glow) }
+  50% { box-shadow: 0 0 12px 5px var(--notch-glow) }
+}
+
+/* The bottom-right nudge toasts' non-numeric timer: a bar that shrinks to nothing over its own
+   --countdown-duration, then the toast removes itself (onAnimationEnd). Plain CSS in place of
+   kick-web-redesign's framer-motion version — this project has no framer-motion dependency. */
+@keyframes notification-countdown {
+  from { transform: scaleX(1) }
+  to { transform: scaleX(0) }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-leaderboards-marquee { animation: none }
+  .animate-hover-preview { animation: none }
+}
+
+button:not(:disabled),
+[role="button"]:not([aria-disabled="true"]),
+[role="switch"],
+[role="tab"],
+a[href],
+summary,
+label[for] {
+  cursor: pointer;
+}
+
+button:disabled,
+[aria-disabled="true"] {
+  cursor: not-allowed;
+}
+
+html, body, #root { height: 100% }
+
+body {
+  margin: 0;
+  overflow: hidden;
+  background: var(--color-surface-lowest);
+  color: var(--color-surface-onSurface);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+::-webkit-scrollbar { width: 4px; height: 4px }
+::-webkit-scrollbar-track { background: 0 0 }
+::-webkit-scrollbar-thumb {
+  background-clip: padding-box;
+  border: 5px solid #ffffff40;
+  border-radius: 15px;
+}

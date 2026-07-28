@@ -795,10 +795,12 @@ export function Expedition() {
             )}
           </span>
 
-          <span className="absolute right-3 top-3 flex items-center gap-1.5 rounded-full border border-outline-decorative bg-black/70 px-2.5 py-1 text-[11px] font-bold tabular-nums text-white backdrop-blur-sm">
-            <Icon name="chatters" className="size-3 text-primary-base" />
-            {expedition.viewerCount}/{expedition.maxViewers} expeditors
-          </span>
+          {!isKickBreak && (
+            <span className="absolute right-3 top-3 flex items-center gap-1.5 rounded-full border border-outline-decorative bg-black/70 px-2.5 py-1 text-[11px] font-bold tabular-nums text-white backdrop-blur-sm">
+              <Icon name="chatters" className="size-3 text-primary-base" />
+              {expedition.viewerCount}/{expedition.maxViewers} expeditors
+            </span>
+          )}
         </div>
 
         <div className="flex items-center justify-between gap-3 border-b border-outline-decorative p-3 sm:p-4">

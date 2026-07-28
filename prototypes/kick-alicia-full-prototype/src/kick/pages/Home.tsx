@@ -232,7 +232,7 @@ export function Home() {
   const popularClips = [...clips].sort((a, b) => b.view_count - a.view_count);
   const categoryPool = categories.map((c) => c.slug);
 
-  const { expeditions, join, promotedNotice, clearPromotedNotice, missedNotice, clearMissedNotice } =
+  const { expeditions, join, promotedNotice, clearPromotedNotice, missedNotice, clearMissedNotice, riderExpeditionId } =
     useExpeditions();
   const navigate = useNavigate();
   const { shouldPrompt } = useIdleNudge();
@@ -263,7 +263,10 @@ export function Home() {
   const expeditionNudge = expeditions
     .filter((e) => e.status === "boarding" && e.id !== promotedNotice?.id)
     .sort((a, b) => a.secondsRemaining - b.secondsRemaining)[0];
-  const showExpedition = notifyOnDeparture && shouldPrompt && expeditionNudge && expeditionNudge.id !== closedExpeditionId;
+  // None of these "join/confirm a spot" prompts make sense while already riding one — you can't
+  // act on them without leaving the ride you're already on.
+  const showExpedition =
+    !riderExpeditionId && notifyOnDeparture && shouldPrompt && expeditionNudge && expeditionNudge.id !== closedExpeditionId;
 
   return (
     <PageShell scroller="" column="gap-y-5 pt-3 lg:gap-y-7 lg:pt-0">
@@ -290,7 +293,7 @@ export function Home() {
       <Footer />
 
       <NotificationStack>
-        {notifyOnDeparture && promotedNotice && (
+        {!riderExpeditionId && notifyOnDeparture && promotedNotice && (
           <ExpeditionPromptToast
             expedition={promotedNotice}
             title="A spot opened up for you"
@@ -311,7 +314,7 @@ export function Home() {
           />
         )}
 
-        {notifyOnDeparture && missedNotice && (
+        {!riderExpeditionId && notifyOnDeparture && missedNotice && (
           <ExpeditionMissedToast
             expeditionName={missedNotice.name}
             onDismiss={clearMissedNotice}

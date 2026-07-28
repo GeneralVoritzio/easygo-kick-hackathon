@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import type { Livestream } from "../mock/api";
 import {
   createExpeditions,
@@ -52,6 +52,10 @@ type ExpeditionContextValue = {
   /** Which expedition "you" are currently riding, if any. */
   riderExpeditionId: string | null;
   join: (id: string) => void;
+  /** True when `id` isn't one of your own and you're already running a live expedition (or Kick
+   *  Break) of your own — the lobby uses this to explain a disabled join button rather than let
+   *  the click silently do nothing. */
+  blockedByOwnExpedition: (id: string) => boolean;
   hopOff: () => void;
   currentStop: (expedition: Expedition) => Livestream;
   /** Adds a viewer-created expedition (Quick or Custom) to the live list. */
@@ -181,6 +185,19 @@ export function ExpeditionProvider({
       setProvisionalRiderId(null);
     }
   }
+
+  // Running your own expedition (or Kick Break) takes the attention a leader owes it — you can
+  // still open another one to look at it, but joining or waitlisting onto it as a rider is
+  // refused while one of your own is live. Your own expedition never counts against itself here,
+  // so join(id) still works the moment you land on the one you just created.
+  const blockedByOwnExpedition = useCallback(
+    (id: string): boolean => {
+      const target = expeditions.find((e) => e.id === id);
+      if (target?.createdByViewer) return false;
+      return expeditions.some((e) => e.createdByViewer && !e.isDraft && e.id !== id);
+    },
+    [expeditions],
+  );
 
   useEffect(() => {
     const timer = window.setInterval(() => {
@@ -326,9 +343,10 @@ export function ExpeditionProvider({
       expeditions,
       riderExpeditionId,
       join: (id) => {
-        if (kickedExpeditionIds.has(id)) return;
+        if (kickedExpeditionIds.has(id) || blockedByOwnExpedition(id)) return;
         setRiderExpeditionId(id);
       },
+      blockedByOwnExpedition,
       hopOff: () => setRiderExpeditionIdState(null),
       currentStop: (expedition) => expedition.stops[expedition.stopIndex],
       createExpedition: (expedition) => setExpeditions((prev) => [...prev, expedition]),
@@ -374,7 +392,7 @@ export function ExpeditionProvider({
 
       waitlistedExpeditionId,
       joinWaitlist: (id) => {
-        if (kickedExpeditionIds.has(id)) return;
+        if (kickedExpeditionIds.has(id) || blockedByOwnExpedition(id)) return;
         setWaitlistedExpeditionId(id);
       },
       leaveWaitlist: () => setWaitlistedExpeditionId(null),
@@ -456,6 +474,7 @@ export function ExpeditionProvider({
     [
       expeditions,
       riderExpeditionId,
+      blockedByOwnExpedition,
       waitlistedExpeditionId,
       provisionalRiderId,
       promotedNotice,

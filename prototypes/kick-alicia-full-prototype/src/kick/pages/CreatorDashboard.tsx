@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, NavLink, useNavigate, useParams } from "react-router-dom";
+import { Link, NavLink, useLocation, useNavigate, useParams } from "react-router-dom";
 import { Icon, type KickIconName } from "../Icon";
 import { ProfileMenu } from "../components/ProfileMenu";
 import kickLogo from "../brand/kick-logo.svg";
@@ -391,12 +391,18 @@ function KickBreakModal({
 export function CreatorDashboard() {
   const { section } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const { expeditions, createExpedition, endKickBreak } = useExpeditions();
   const [subsOnly, setSubsOnly] = useState(false);
   const [emotesOnly, setEmotesOnly] = useState(false);
   const [showViewCount, setShowViewCount] = useState(true);
   const [menuOpen, setMenuOpen] = useState(false);
-  const [kickBreakModalOpen, setKickBreakModalOpen] = useState(false);
+  // A Kick Break can only be entered through this page's own preview button, so when its lap
+  // finishes and Expedition.tsx sends the viewer back here, it asks for the same modal to reopen
+  // rather than landing back on a bare dashboard.
+  const [kickBreakModalOpen, setKickBreakModalOpen] = useState(
+    Boolean((location.state as { reopenKickBreakModal?: boolean } | null)?.reopenKickBreakModal),
+  );
   const active = `/dashboard/${section ?? "stream"}`;
   const activeKickBreak = expeditions.find((e) => e.kind === "kick-break" && e.createdByViewer);
 

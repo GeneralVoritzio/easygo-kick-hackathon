@@ -23,6 +23,7 @@ import { ExpeditionSettingsProvider } from './kick/expedition/ExpeditionSettings
 import { ChannelPointsToast } from './kick/expedition/ChannelPointsToast'
 import { HandoffNoticeToast } from './kick/expedition/HandoffNoticeToast'
 import { EndedNoticeToast } from './kick/expedition/EndedNoticeToast'
+import { RidingMiniPlayer } from './kick/expedition/RidingMiniPlayer'
 import { livestreams } from './kick/mock/api'
 import Demo from './App.tsx'
 
@@ -62,6 +63,7 @@ createRoot(document.getElementById('root')!).render(
             <ChannelPointsToast />
             <HandoffNoticeToast />
             <EndedNoticeToast />
+            <RidingMiniPlayer />
           </BrowserRouter>
         </ExpeditionProvider>
       </ExpeditionSettingsProvider>

@@ -150,6 +150,8 @@ export function Expeditions() {
     joinWaitlist,
     waitlistedExpeditionId,
     provisionalRiderId,
+    riderExpeditionId,
+    blockedByOwnExpedition,
     handOffLeadership,
     endExpedition,
     deleteDraft,
@@ -226,7 +228,11 @@ export function Expeditions() {
     return true;
   });
   const filteredYours = filtered.filter((exp) => exp.createdByViewer);
-  const filteredOthers = filtered.filter((exp) => !exp.createdByViewer);
+  // The one you're actually riding (if it isn't one of your own) always leads this section — you
+  // shouldn't have to hunt for it among ones you aren't on.
+  const filteredOthers = filtered
+    .filter((exp) => !exp.createdByViewer)
+    .sort((a, b) => Number(b.id === riderExpeditionId) - Number(a.id === riderExpeditionId));
 
   function enter(exp: Expedition) {
     join(exp.id);
@@ -269,6 +275,8 @@ export function Expeditions() {
     const boardingFull = isBoardingFull(exp);
     const waitlisted = waitlistedExpeditionId === exp.id;
     const provisional = provisionalRiderId === exp.id;
+    const riding = riderExpeditionId === exp.id;
+    const blockedByOwn = !riding && blockedByOwnExpedition(exp.id);
     const kicked = kickedExpeditionIds.has(exp.id);
     const firstStop = exp.stops[0];
     const nowAt = exp.stops[exp.stopIndex];
@@ -280,11 +288,21 @@ export function Expeditions() {
     return (
       <div
         key={exp.id}
-        className="flex flex-col gap-3 rounded-xl border border-outline-decorative bg-surface-base p-4 transition-colors betterhover:hover:border-neutral-600"
+        className={`flex flex-col gap-3 rounded-xl border p-4 transition-colors ${
+          riding
+            ? "border-primary-base/50 bg-primary-base/[0.04]"
+            : "border-outline-decorative bg-surface-base betterhover:hover:border-neutral-600"
+        }`}
       >
         <div className="flex items-center justify-between gap-2">
           <h2 className="truncate text-sm font-bold text-white">{exp.name}</h2>
           <div className="flex shrink-0 items-center gap-1.5">
+            {riding && (
+              <span className="flex items-center gap-1 rounded-full bg-primary-base/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-primary-base">
+                <span className="size-1.5 rounded-full bg-primary-base" />
+                You're in this
+              </span>
+            )}
             {isEndingSoon(exp) && (
               <span className="flex items-center gap-1 rounded-full bg-orange-500/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-orange-400">
                 <span className="size-1.5 animate-pulse rounded-full bg-orange-400" />
@@ -509,29 +527,36 @@ export function Expeditions() {
             </span>
             <button
               type="button"
-              disabled={kicked || waitlisted || (full && !boardingFull)}
-              onClick={() => (provisional ? enter(exp) : requestJoin(exp))}
+              disabled={!riding && (kicked || blockedByOwn || waitlisted || (full && !boardingFull))}
+              onClick={() => (riding || provisional ? enter(exp) : requestJoin(exp))}
+              title={blockedByOwn ? "End or hand off your own expedition before joining another." : undefined}
               className={`shrink-0 rounded-lg px-3 py-2 text-xs font-bold transition-colors ${
-                kicked || waitlisted || (full && !boardingFull)
-                  ? "cursor-not-allowed bg-disabled-base text-disabled-onSurface"
-                  : boardingFull && !provisional
-                    ? "bg-secondary-base text-white betterhover:hover:bg-neutral-700"
-                    : "bg-primary-base text-primary-onPrimary betterhover:hover:bg-green-400"
+                riding
+                  ? "bg-primary-base text-primary-onPrimary betterhover:hover:bg-green-400"
+                  : kicked || blockedByOwn || waitlisted || (full && !boardingFull)
+                    ? "cursor-not-allowed bg-disabled-base text-disabled-onSurface"
+                    : boardingFull && !provisional
+                      ? "bg-secondary-base text-white betterhover:hover:bg-neutral-700"
+                      : "bg-primary-base text-primary-onPrimary betterhover:hover:bg-green-400"
               }`}
             >
-              {kicked
-                ? "You've been kicked off"
-                : provisional
-                  ? "Confirm your spot"
-                  : waitlisted
-                    ? "On the waitlist"
-                    : boardingFull
-                      ? `Join waitlist · ${waitlistSize(exp.id)} waiting`
-                      : full
-                        ? "Expedition full"
-                        : exp.status === "boarding"
-                          ? "Join expedition"
-                          : "Jump in now"}
+              {riding
+                ? "Return to expedition"
+                : kicked
+                  ? "You've been kicked off"
+                  : blockedByOwn
+                    ? "Hand off or end your expedition"
+                    : provisional
+                      ? "Confirm your spot"
+                      : waitlisted
+                        ? "On the waitlist"
+                        : boardingFull
+                          ? `Join waitlist · ${waitlistSize(exp.id)} waiting`
+                          : full
+                            ? "Expedition full"
+                            : exp.status === "boarding"
+                              ? "Join expedition"
+                            : "Jump in now"}
             </button>
           </div>
         )}

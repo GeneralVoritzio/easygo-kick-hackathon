@@ -560,13 +560,15 @@ export function Expedition() {
   // every other expedition kind, which only ever disappears via an explicit action on this same
   // page. Riding one that vanishes out from under you this way means it's back at the main
   // streamer already — the channel points toast (if you stayed the whole time) is global, so it
-  // still shows up here regardless.
+  // still shows up here regardless. A Kick Break is only ever entered through the Creator
+  // Dashboard's own preview button, so "back" means the dashboard, with the same modal reopened
+  // rather than a fresh empty one.
   const wasKickBreakRef = useRef(false);
   if (expedition?.kind === "kick-break") wasKickBreakRef.current = true;
   useEffect(() => {
     if (!expedition && wasKickBreakRef.current) {
       wasKickBreakRef.current = false;
-      navigate("/");
+      navigate("/dashboard", { state: { reopenKickBreakModal: true } });
     }
   }, [expedition, navigate]);
 
@@ -808,11 +810,13 @@ export function Expedition() {
             <p className="tabular-nums text-xs font-semibold text-white">
               {isBoarding
                 ? `Departing in ${formatCountdown(expedition.secondsRemaining)}`
-                : isWholeStream
-                  ? "Watching until the group moves on"
-                  : isChatDuration
-                    ? "Chat decides when to move on"
-                    : `Next stop in ${formatCountdown(expedition.secondsRemaining)}`}
+                : isKickBreak && !hasNext
+                  ? `Going back to ${expedition.originStreamerSlug}'s stream, hold your horses`
+                  : isWholeStream
+                    ? "Watching until the group moves on"
+                    : isChatDuration
+                      ? "Chat decides when to move on"
+                      : `Next stop in ${formatCountdown(expedition.secondsRemaining)}`}
             </p>
             <p className="truncate text-xs text-subtle">
               {isBoarding ? (
@@ -822,6 +826,10 @@ export function Expedition() {
               ) : next ? (
                 <>
                   Next: <span className="font-semibold text-white">{next.channel.username}</span>
+                </>
+              ) : isKickBreak ? (
+                <>
+                  Next: <span className="font-semibold text-white">{expedition.originStreamerSlug}</span>
                 </>
               ) : nextStopVote && !nextStopVote.resolved ? (
                 "Next: chat is still voting"

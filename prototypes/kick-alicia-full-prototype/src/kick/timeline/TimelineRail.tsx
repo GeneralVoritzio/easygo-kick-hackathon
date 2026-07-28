@@ -142,6 +142,21 @@ export function TimelineRail() {
     railRef.current?.releasePointerCapture(e.pointerId);
   }
 
+  // setPointerCapture (below) locks every further pointer event, including the eventual
+  // pointerup/click, to the rail for the rest of the gesture — scrub, then keep holding while
+  // sliding up onto the hover card's bookmark button, and the release would fire on the rail
+  // instead of the button, so the click there would never register. Ending the drag the moment
+  // the pointer actually leaves the rail avoids that: the rest of the gesture (moving onto the
+  // card, releasing over the bookmark icon) then behaves like any ordinary, uncaptured click.
+  function onPointerLeaveRail(e: ReactPointerEvent<HTMLDivElement>) {
+    if (dragging) {
+      railRef.current?.releasePointerCapture(e.pointerId);
+      setDragging(false);
+    }
+    closeRail();
+    releaseCard();
+  }
+
   function releaseCard() {
     window.clearTimeout(lingerRef.current);
     lingerRef.current = window.setTimeout(() => setCardShown(false), 500);
@@ -188,10 +203,7 @@ export function TimelineRail() {
         tabIndex={0}
         onPointerEnter={openRail}
         onFocus={openRail}
-        onPointerLeave={() => {
-          closeRail();
-          releaseCard();
-        }}
+        onPointerLeave={onPointerLeaveRail}
         onBlur={() => {
           closeRail();
           releaseCard();
@@ -228,7 +240,7 @@ export function TimelineRail() {
       {cardShown && hoverT !== null && (
         <div
           onPointerEnter={() => window.clearTimeout(lingerRef.current)}
-          onPointerLeave={() => setCardShown(false)}
+          onPointerLeave={releaseCard}
           onClick={handleCardClick}
           style={{ left: cardLeft }}
           className="absolute bottom-full z-popover mb-2 w-[220px] -translate-x-1/2 cursor-pointer rounded-lg border border-light-16 bg-dark-64 p-2 text-white shadow-lg backdrop-blur-[8px]"
@@ -270,7 +282,10 @@ export function TimelineRail() {
               }}
               className={`flex size-6 shrink-0 items-center justify-center rounded ${existingBookmark ? "text-primary-base" : "text-white/70"}`}
             >
-              <Icon name="bookmark" className="size-4" />
+              {/* pointer-events-none so the SVG's own painted-area hit-testing (nothing registers
+                  over the ribbon's notch or its corners) never wins over the button — every pixel
+                  of the button's box always counts as a click, not just the drawn shape. */}
+              <Icon name="bookmark" className="pointer-events-none size-4" />
             </button>
           </div>
         </div>

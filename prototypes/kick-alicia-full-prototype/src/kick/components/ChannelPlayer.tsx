@@ -51,14 +51,19 @@ export function ChannelPlayer({ stream }: { stream: Livestream }) {
   const displayVolume = muted ? 0 : volume;
 
   return (
-    <div className="relative block w-full shrink-0 overflow-hidden bg-black max-h-[calc(100vh-var(--navbar-height)-var(--channel-info-height))] supports-[height:100dvh]:max-h-[calc(100dvh-var(--navbar-height)-var(--channel-info-height))]">
-      {/* The stills are graded down (saturate 0.42), so the glow puts it back to clear the black wrapper. */}
-      <img
-        src={stream.thumbnail}
-        alt=""
-        aria-hidden
-        className="pointer-events-none absolute inset-0 h-full w-full scale-125 object-cover opacity-50 blur-[64px] saturate-[2.2] brightness-[1.6]"
-      />
+    <div className="relative block w-full shrink-0 bg-black max-h-[calc(100vh-var(--navbar-height)-var(--channel-info-height))] supports-[height:100dvh]:max-h-[calc(100dvh-var(--navbar-height)-var(--channel-info-height))]">
+      {/* The stills are graded down (saturate 0.42), so the glow puts it back to clear the black
+          wrapper. Clipped in its own layer, not on the root: the root has to stay overflow-visible
+          or the timeline's hover card (which pops up above the rail, inside #injected-channel-player)
+          gets cut off by it whenever the video is short enough for the card to reach the top edge. */}
+      <div className="pointer-events-none absolute inset-0 overflow-hidden">
+        <img
+          src={stream.thumbnail}
+          alt=""
+          aria-hidden
+          className="h-full w-full scale-125 object-cover opacity-50 blur-[64px] saturate-[2.2] brightness-[1.6]"
+        />
+      </div>
 
       <div
         id="injected-channel-player"

@@ -111,7 +111,7 @@ function PollRows({ raid, poll }: { raid: Raid; poll: Poll }) {
         {poll.myVote
           ? "Your vote is locked."
           : poll.picks === 2
-            ? "Chat picks two. One vote each."
+            ? "One vote each, and it locks. Top 2 will pitch-off"
             : "One vote each, and it locks."}
       </span>
     </div>

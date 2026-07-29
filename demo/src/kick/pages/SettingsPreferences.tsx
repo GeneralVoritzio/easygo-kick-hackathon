@@ -14,8 +14,8 @@ const contentRows: { key: keyof Prefs; label: string }[] = [
 const raidRows: { key: keyof Prefs; label: string; description: string }[] = [
   {
     key: "joinTanks",
-    label: "Join Showdowns",
-    description: "Bigger channels can put you in a Showdown.",
+    label: "Join raid tanks",
+    description: "Bigger channels can put you in a raid tank.",
   },
   {
     key: "autoRaid",

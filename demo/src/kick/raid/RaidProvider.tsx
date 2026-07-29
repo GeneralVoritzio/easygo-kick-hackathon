@@ -7,10 +7,7 @@ import {
   addChatVotes,
   advance,
   candidateFor,
-  declineEntry,
-  openTankVote,
   playTile,
-  replaceFinalists,
   startRaid,
   type Raid,
   type RaidMode,
@@ -93,54 +90,30 @@ export function RaidProvider({ children }: { children: ReactNode }) {
   }, [voting, raid?.poll?.round, raid?.poll?.slot]);
 
   // Section 13: the demo forces the tank acceptances on cue. The logic is real, the timing is
-  // scripted. The first pair always drama-declines its second seat; a reselected replacement
-  // is a coin flip, so rerolling into the mass-invite fallback is possible but not guaranteed.
+  // scripted: both finalists accept, staggered, so the invite panel is visible mid-decision
+  // before the accept timer runs out and carries the raid into the pitch.
   const accepting = raid?.phase === "tank-accept";
   const finalists = raid?.finalists.join() ?? "";
   useEffect(() => {
     if (!accepting || !raid) return;
     const pending = raid.finalists.filter((s) => !raid.accepted.includes(s));
-    const firstCycle = raid.rerolls === 0;
-    const timers = pending.map((slug, i) => {
-      // The original pair always drama-declines its second seat; any reselected seat is a
-      // coin flip, so the mass-invite fallback is reachable but never guaranteed.
-      const willDecline = firstCycle ? i === pending.length - 1 : Math.random() < 0.5;
-      const delay = firstCycle ? 5000 + i * 6000 : 5000 + i * 3000;
-      return setTimeout(
-        () => setRaid((r) => (r ? (willDecline ? declineEntry : acceptEntry)(r, slug) : r)),
-        delay,
-      );
-    });
+    const timers = pending.map((slug, i) =>
+      setTimeout(() => setRaid((r) => (r ? acceptEntry(r, slug) : r)), 3000 + i * 3000),
+    );
     return () => timers.forEach(clearTimeout);
   }, [accepting, finalists]);
 
   // Section 13: on the viewer side the streamer is not in the room, so their decisions are
-  // scripted too. A viewer never sees the controls that make them, or the fork screen the
-  // streamer resolves it from — replacing the open seat(s) is simulated the same way.
+  // scripted too. A viewer never sees the controls that make them.
   const viewerPhase = raid?.viewer ? raid.phase : null;
   useEffect(() => {
-    if (viewerPhase === "tank-browse") {
-      const tiles = [2000, 4000].map((at, i) =>
-        setTimeout(() => setRaid((r) => (r ? playTile(r, r.candidates[i].stream.channel.slug) : r)), at),
-      );
-      const vote = setTimeout(() => setRaid((r) => (r ? openTankVote(r) : r)), 7000);
-      return () => [...tiles, vote].forEach(clearTimeout);
-    }
-    if (viewerPhase === "tank-fork") {
-      const id = setTimeout(() => {
-        setRaid((r) => {
-          if (!r) return r;
-          const openCount = r.finalists.filter((s) => !r.accepted.includes(s)).length;
-          const taken = new Set([...r.accepted, ...r.declined, ...r.finalists]);
-          const picks = r.candidates
-            .filter((c) => !taken.has(c.stream.channel.slug))
-            .slice(0, openCount)
-            .map((c) => c.stream.channel.slug);
-          return picks.length === openCount ? replaceFinalists(r, picks) : r;
-        });
-      }, 4000);
-      return () => clearTimeout(id);
-    }
+    if (viewerPhase !== "tank-browse") return;
+    // The vote itself opens off the real browse timer, same as the streamer's own raid, so
+    // this only simulates the streamer glancing through a couple of tiles while it runs.
+    const tiles = [2000, 4000].map((at, i) =>
+      setTimeout(() => setRaid((r) => (r ? playTile(r, r.candidates[i].stream.channel.slug) : r)), at),
+    );
+    return () => tiles.forEach(clearTimeout);
   }, [viewerPhase]);
 
   const landed = raid?.phase === "landed";

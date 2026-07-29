@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Icon } from "../Icon";
 import { RouletteReel } from "./RouletteReel";
 import { formatDuration, formatViewers, liveSeconds, streamPills, timeAgo } from "../mock/api";
@@ -10,7 +10,7 @@ import {
   type Candidate,
 } from "../mock/raids";
 import { useRaid } from "../raid/RaidProvider";
-import { candidateFor, MIN_HOST_VIEWERS, replaceFinalists, type RaidMode } from "../raid/machine";
+import { MIN_HOST_VIEWERS, type RaidMode } from "../raid/machine";
 
 const modes: { id: RaidMode; label: string; outcome: string; timing: string; action: string }[] = [
   {
@@ -36,14 +36,14 @@ const modes: { id: RaidMode; label: string; outcome: string; timing: string; act
   },
   {
     id: "tank",
-    label: "Showdown",
-    outcome: "Two creators pitch. Chat votes who you raid.",
-    timing: "Pick 2, then 60s pitch each, chat decides.",
-    action: "Open the Showdown",
+    label: "Raid tank",
+    outcome: "Pick 10. Chat votes 2 into a pitch off.",
+    timing: "60s pitch each, then chat picks the winner.",
+    action: "Open the raid tank",
   },
 ];
 
-const maxPicksFor = (mode: RaidMode) => ({ random: 0, pick: 1, chat: 3, tank: 2 })[mode];
+const maxPicksFor = (mode: RaidMode) => ({ random: 0, pick: 1, chat: 3, tank: 10 })[mode];
 
 type SortKey = "recommended" | "viewers" | "live" | "az" | "lastRaided" | "mostRaids";
 type ViewMode = "grid" | "list";
@@ -455,94 +455,23 @@ function RandomPool({
   );
 }
 
-function ReplaceFinalistDialog() {
-  const { dismissDialog, raid, act } = useRaid();
-  const [picked, setPicked] = useState<string[]>([]);
-  if (!raid) return null;
-
-  const openSlugs = raid.finalists.filter((s) => !raid.accepted.includes(s));
-  const openCount = openSlugs.length;
-  const excluded = new Set([...raid.accepted, ...raid.declined, ...raid.finalists]);
-  const pool = raid.candidates.filter((c) => !excluded.has(c.stream.channel.slug));
-  const stayingName = raid.finalists
-    .filter((s) => raid.accepted.includes(s))
-    .map((s) => candidateFor(raid, s)?.stream.channel.username)
-    .find(Boolean);
-
-  function toggle(slug: string) {
-    setPicked((prev) => {
-      if (prev.includes(slug)) return prev.filter((s) => s !== slug);
-      if (prev.length >= openCount) return prev;
-      return [...prev, slug];
-    });
-  }
-
-  function confirm() {
-    if (picked.length !== openCount) return;
-    act((r) => replaceFinalists(r, picked));
-    dismissDialog();
-  }
-
-  return (
-    <div className="z-popover fixed inset-0 flex items-center justify-center bg-surfaceOverlay-base p-4">
-      <div className="relative flex max-h-full w-full max-w-[820px] flex-col overflow-hidden rounded-xl bg-surface-base shadow-2xl">
-        <div className="absolute right-5 top-[17px] z-20">
-          <button
-            type="button"
-            aria-label="Close"
-            onClick={dismissDialog}
-            className="flex size-8 items-center justify-center text-white"
-          >
-            <Icon name="close" className="size-3.5" />
-          </button>
-        </div>
-
-        <div className="flex flex-col gap-1 p-5 pb-0">
-          <h2 className="text-lg font-bold leading-5 text-white">Pick a replacement</h2>
-          <span className="text-sm text-surface-onSurfaceSecondary">
-            {openCount > 1
-              ? "Both creators declined. Choose 2 to fill the Showdown."
-              : stayingName
-                ? `${stayingName} is still in. Choose who fills the open slot.`
-                : "Choose who fills the open slot."}
-          </span>
-        </div>
-
-        <div className="flex h-[440px] flex-col p-5">
-          <CandidateBrowse candidates={pool} picked={picked} maxPicks={openCount} onToggle={toggle} />
-        </div>
-
-        <div className="flex shrink-0 flex-col gap-2 border-t-2 border-outline-decorative p-5">
-          <button
-            type="button"
-            disabled={picked.length !== openCount}
-            onClick={confirm}
-            className="state-layer-base h-11 w-full rounded-md bg-primary-base text-base font-semibold text-primary-onPrimary disabled:bg-disabled-base disabled:text-disabled-onSurface"
-          >
-            Confirm replacement
-          </button>
-          <button
-            type="button"
-            onClick={dismissDialog}
-            className="h-9 w-full rounded-md text-sm font-semibold text-surface-onSurfaceSecondary betterhover:hover:text-white"
-          >
-            Not now
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 export function RaidDialog() {
-  const { dialog, dismissDialog, start, hostViewers, hostSlug, setPreview, raid } = useRaid();
+  const { dialog, dismissDialog, start, hostViewers, hostSlug, setPreview } = useRaid();
   const [mode, setMode] = useState<RaidMode>("random");
   const [picked, setPicked] = useState<string[]>([]);
   const [rollingSlug, setRollingSlug] = useState<string | null>(null);
 
-  if (!dialog) return null;
+  // Section 5.1: the dialog never unmounts, it just stops rendering, so closing it (a
+  // dismiss, or a raid actually starting) has to clear its own picks and roll state. Without
+  // this a second raid opens mid-roll, every button disabled, until the page is refreshed.
+  useEffect(() => {
+    if (dialog) return;
+    setMode("random");
+    setPicked([]);
+    setRollingSlug(null);
+  }, [dialog]);
 
-  if (raid?.phase === "tank-fork" && !raid.viewer) return <ReplaceFinalistDialog />;
+  if (!dialog) return null;
 
   const all = recommendationsFor(hostSlug, hostViewers);
   const candidates = mode === "tank" ? tankCandidates(all) : all;

@@ -6,6 +6,7 @@ import kickLogo from "../brand/kick-logo.svg";
 import { categories, currentSession, currentUser, formatFollowers, formatViewers } from "../mock/api";
 import { ChatFeed } from "../components/ChannelChat";
 import { RaidStage } from "../components/RaidStage";
+import { RaidDevControls } from "../components/RaidChat";
 import { useRaid } from "../raid/RaidProvider";
 
 const streamItem = "/dashboard/stream";
@@ -226,6 +227,7 @@ export function CreatorDashboard() {
 
   return (
     <div className="flex h-screen flex-col overflow-hidden bg-surface-lowest">
+      <RaidDevControls />
       <nav className="flex h-[var(--navbar-height)] shrink-0 items-center justify-between bg-surface-lowest pl-3 pr-10">
         <div className="flex grow-0 items-center gap-2.5">
           <IconButton icon="menu" label="Collapse sidebar" className="size-10 text-base leading-none" />

@@ -14,6 +14,7 @@ import { recommendationsFor, tankCandidates, type Candidate } from "../mock/raid
 export const TIMING = {
   countdown: 15,
   chatPreview: 30,
+  tankBrowse: 20,
   tankTile: 30,
   pitch: 60,
   accept: 20,
@@ -21,12 +22,8 @@ export const TIMING = {
   // The roulette reel's own spin (4.2s) plus its landed hold (0.9s), Section 5.1: long enough
   // that the reel always finishes landing before this phase's own timer advances it on.
   rouletteReveal: 6,
-  // How long the mass-invite fallback stays open before one of the invited channels is picked
-  // as having accepted.
-  massInvite: 6,
 };
 
-export const REROLL_CAP = 2;
 export const MIN_HOST_VIEWERS = 5;
 
 export type RaidMode = "random" | "pick" | "chat" | "tank";
@@ -36,8 +33,6 @@ export type Phase =
   | "vote"
   | "tank-browse"
   | "tank-accept"
-  | "tank-fork"
-  | "tank-mass-invite"
   | "tank-pitch"
   | "reveal"
   | "countdown"
@@ -69,13 +64,9 @@ export type Raid = {
   poll?: Poll;
   finalists: string[];
   accepted: string[];
-  declined: string[];
-  rerolls: number;
   pitchIndex: number;
   targetSlug?: string;
   note?: string;
-  // Section 4.4 step 6: the mass-invite fallback's batch, only populated while it is open.
-  massInvited: string[];
 };
 
 export const candidateFor = (raid: Raid, slug: string) =>
@@ -111,7 +102,7 @@ export type RaidStart = {
   viewer?: boolean;
 };
 
-// Section 4.4: the streamer curates who is in play for Chat pick (3) and Showdown (2) from
+// Section 4.4: the streamer curates who is in play for Chat pick (3) and raid tank (2) from
 // the browse dialog. That replaces the old auto-top-N selection, it does not add a step.
 export function startRaid({
   mode,
@@ -135,10 +126,7 @@ export function startRaid({
     previewIndex: 0,
     finalists: [],
     accepted: [],
-    declined: [],
-    rerolls: 0,
     pitchIndex: 0,
-    massInvited: [],
   };
 
   if (mode === "random") {
@@ -157,7 +145,15 @@ export function startRaid({
     };
   }
   if (mode === "pick") {
-    return { ...base, targetSlug: pickedSlug, featured: pickedSlug ? [pickedSlug] : [] };
+    // Section 13: on the viewer side nobody is browsing a candidate list to pick from, so the
+    // streamer's choice is simulated the same way their other decisions are, standing in with
+    // their top recommendation rather than leaving the raid with no target at all.
+    const target = pickedSlug ? candidateFor(base, pickedSlug) : candidates[0];
+    return {
+      ...base,
+      targetSlug: target?.stream.channel.slug,
+      featured: target ? [target.stream.channel.slug] : [],
+    };
   }
   if (mode === "chat") {
     const three = pickedSlugs && pickedSlugs.length === 3 ? pickedSlugs : slugsOf(candidates.slice(0, 3));
@@ -169,16 +165,20 @@ export function startRaid({
       featured: three,
     };
   }
-  if (pickedSlugs && pickedSlugs.length === 2) {
-    return {
-      ...base,
-      phase: "tank-accept",
-      seconds: TIMING.accept,
-      finalists: pickedSlugs,
-      featured: pickedSlugs,
-    };
-  }
-  return { ...base, phase: "tank-browse", seconds: 0, featured: slugsOf(candidates.slice(0, 10)) };
+  // Section 4.4: the streamer curates the pool of 10 in the dialog. That pool becomes the
+  // raid's whole candidate set, so the player grid, the vote, and the pitch only ever consider
+  // streamers the streamer actually chose, not a wider auto-picked list.
+  const pool =
+    pickedSlugs && pickedSlugs.length === 10
+      ? (pickedSlugs.map((slug) => candidateFor(base, slug)).filter(Boolean) as Candidate[])
+      : candidates.slice(0, 10);
+  return {
+    ...base,
+    candidates: pool,
+    phase: "tank-browse",
+    seconds: TIMING.tankBrowse,
+    featured: slugsOf(pool),
+  };
 }
 
 function closeVote(raid: Raid): Raid {
@@ -211,23 +211,10 @@ function closeVote(raid: Raid): Raid {
   };
 }
 
-// Section 4.4 step 4: a decline creates a fork, not a dead end, whether it is one seat or both.
-// The streamer gets a limited number of manual reselection visits; once those run out the
-// fallback is automatic, not a dead end either.
+// Section 4.4 step 4: both finalists always accept, so the accept timer always closes
+// straight into the pitch.
 function closeAccept(raid: Raid): Raid {
-  const missing = raid.finalists.filter((s) => !raid.accepted.includes(s));
-  if (missing.length === 0) {
-    return {
-      ...raid,
-      phase: "tank-pitch",
-      pitchIndex: 0,
-      stage: raid.finalists[0],
-      seconds: TIMING.pitch,
-    };
-  }
-  const declined = [...new Set([...raid.declined, ...missing])];
-  const forked = { ...raid, declined };
-  return canReroll(forked) ? { ...forked, phase: "tank-fork", seconds: 0 } : massInvite(forked);
+  return { ...raid, phase: "tank-pitch", pitchIndex: 0, stage: raid.finalists[0], seconds: TIMING.pitch };
 }
 
 export function advance(raid: Raid): Raid {
@@ -246,13 +233,13 @@ export function advance(raid: Raid): Raid {
       };
     }
     case "tank-browse":
-      return { ...raid, stage: undefined, seconds: 0 };
+      // A tile's own preview timer expiring just returns to the grid, with the browse timer
+      // restarted. The browse timer itself expiring opens the vote.
+      return raid.stage ? { ...raid, stage: undefined, seconds: TIMING.tankBrowse } : openTankVote(raid);
     case "vote":
       return closeVote(raid);
     case "tank-accept":
       return closeAccept(raid);
-    case "tank-mass-invite":
-      return resolveMassInvite(raid);
     case "tank-pitch": {
       const next = raid.pitchIndex + 1;
       if (next < raid.finalists.length)
@@ -312,81 +299,6 @@ export const playTile = (raid: Raid, slug: string): Raid => ({
 export function acceptEntry(raid: Raid, slug: string): Raid {
   if (raid.phase !== "tank-accept" || !raid.finalists.includes(slug)) return raid;
   return { ...raid, accepted: [...new Set([...raid.accepted, slug])] };
-}
-
-export function declineEntry(raid: Raid, slug: string): Raid {
-  if (raid.phase !== "tank-accept" || !raid.finalists.includes(slug)) return raid;
-  return closeAccept({ ...raid, declined: [...new Set([...raid.declined, slug])] });
-}
-
-export const canReroll = (raid: Raid) => raid.rerolls < REROLL_CAP;
-
-// Section 4.4 step 5: a decliner is out of this tank for good, and anyone already accepted
-// stays locked. The streamer replaces the open slot from the Raid Channel dialog, not chat.
-// Fills every open seat at once (one, if a single creator declined, or both, if neither did),
-// and counts as a single reselection visit either way.
-export function replaceFinalists(raid: Raid, newSlugs: string[]): Raid {
-  const openSlots = raid.finalists
-    .map((s, i) => (!raid.accepted.includes(s) ? i : -1))
-    .filter((i) => i >= 0);
-  if (openSlots.length === 0 || newSlugs.length !== openSlots.length || !canReroll(raid)) return raid;
-  const finalists = [...raid.finalists];
-  openSlots.forEach((slot, i) => {
-    finalists[slot] = newSlugs[i];
-  });
-  return {
-    ...raid,
-    phase: "tank-accept",
-    seconds: TIMING.accept,
-    finalists,
-    rerolls: raid.rerolls + 1,
-    featured: feature(raid, newSlugs),
-  };
-}
-
-// Section 4.4 step 6: once the streamer's reselections run out, every open seat fills itself.
-// A batch goes out at once and whoever accepts first takes each seat, no further manual step.
-export function massInvite(raid: Raid): Raid {
-  const openSlots = raid.finalists.filter((s) => !raid.accepted.includes(s));
-  const taken = new Set([...raid.accepted, ...raid.declined, ...raid.finalists]);
-  const invited = slugsOf(raid.candidates.filter((c) => !taken.has(c.stream.channel.slug))).slice(0, 5);
-  if (openSlots.length === 0 || invited.length === 0) {
-    return { ...raid, phase: "cancelled", seconds: 0, note: "Nobody was left to invite." };
-  }
-  return {
-    ...raid,
-    phase: "tank-mass-invite",
-    seconds: TIMING.massInvite,
-    massInvited: invited,
-    featured: feature(raid, invited),
-  };
-}
-
-function resolveMassInvite(raid: Raid): Raid {
-  if (raid.massInvited.length === 0) return raid;
-  const openSlots = raid.finalists
-    .map((s, i) => (!raid.accepted.includes(s) ? i : -1))
-    .filter((i) => i >= 0);
-  if (openSlots.length === 0) return raid;
-  const pool = [...raid.massInvited];
-  const finalists = [...raid.finalists];
-  const winners: string[] = [];
-  for (const slot of openSlots) {
-    if (pool.length === 0) break;
-    const [pick] = pool.splice(Math.floor(Math.random() * pool.length), 1);
-    finalists[slot] = pick;
-    winners.push(pick);
-  }
-  return {
-    ...raid,
-    phase: "tank-pitch",
-    pitchIndex: 0,
-    stage: finalists[0],
-    seconds: TIMING.pitch,
-    finalists,
-    accepted: [...new Set([...raid.accepted, ...winners])],
-    massInvited: [],
-  };
 }
 
 // Section 9: never a silent substitution. Offline mid-countdown cancels, offline mid-vote

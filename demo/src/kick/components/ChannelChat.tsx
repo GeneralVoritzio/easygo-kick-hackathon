@@ -722,7 +722,7 @@ export function ChatFeed({
       {header}
       <ChatMessages messages={messages} surface={surface} />
       {raid && <RaidPanel />}
-      {!raid && host && <RaidPreviewAsViewer host={host} />}
+      {host && <RaidPreviewAsViewer host={host} />}
       <ChatFooter
         draft={draft}
         dashboard={dashboard}

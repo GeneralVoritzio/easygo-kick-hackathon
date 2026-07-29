@@ -209,15 +209,20 @@ export function Explore() {
       className="relative -mb-6 flex h-[calc(100vh-var(--navbar-height))] w-full overflow-hidden bg-surface-lowest"
     >
       {webglOk ? (
-        <div className="relative min-h-0 flex-1">
+        // min-w-0 is load bearing: a flex item defaults to min-width auto, so a label the system
+        // view puts near the edge would widen this box, which widens the canvas, which moves the
+        // label further out again.
+        <div className="relative min-h-0 min-w-0 flex-1 overflow-hidden">
           {/* Each view arrives with a short warp, so travel reads as movement instead of a cut. */}
+          {/* The canvas wrapper is absolute, so a drei Html label cannot grow it, and the canvas
+              cannot then grow with it. */}
           {viewMode === "system" ? (
-            <div key="system" className="animate-warp-out h-full w-full">
+            <div key="system" className="animate-warp-out absolute inset-0">
               <SolarSystemView counts={counts} />
             </div>
           ) : (
             // Keyed by body: a new body means a fresh scene and a fresh camera.
-            <div key={activeBody} className="animate-warp-in h-full w-full">
+            <div key={activeBody} className="animate-warp-in absolute inset-0">
               <ExploreGlobe bodyId={activeBody} />
             </div>
           )}

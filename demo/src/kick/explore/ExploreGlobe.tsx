@@ -405,6 +405,9 @@ export function ExploreGlobe({ bodyId }: { bodyId: BodyId }) {
     <Canvas
       camera={{ fov: 40, near: 0.05, far: 30, position: initialPosition }}
       gl={{ antialias: true }}
+      // offsetSize measures the layout box. The default reads getBoundingClientRect, which the warp
+      // animation scales, and R3F would write that scaled size onto the canvas and keep it.
+      resize={{ offsetSize: true }}
     >
       <color attach="background" args={[CANVAS_BACKGROUND]} />
       <Suspense fallback={null}>

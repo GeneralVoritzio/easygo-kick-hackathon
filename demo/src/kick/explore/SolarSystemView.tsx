@@ -179,7 +179,12 @@ function SystemScene({ counts }: { counts: Record<BodyId, number> }) {
 // Mars is a few pixels, so the page says so instead of implying astronomical accuracy.
 export function SolarSystemView({ counts }: { counts: Record<BodyId, number> }) {
   return (
-    <Canvas camera={{ fov: 42, near: 0.1, far: 60, position: [0, 1.6, 9.4] }} gl={{ antialias: true }}>
+    <Canvas
+      camera={{ fov: 42, near: 0.1, far: 60, position: [0, 1.6, 9.4] }}
+      gl={{ antialias: true }}
+      // See ExploreGlobe: the warp animation scales the measured rect, so measure the layout box.
+      resize={{ offsetSize: true }}
+    >
       <color attach="background" args={[CANVAS_BACKGROUND]} />
       <SystemScene counts={counts} />
     </Canvas>

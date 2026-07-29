@@ -27,6 +27,8 @@ type RaidApi = {
   hostSlug: string;
   openDialog: (kind: DialogKind) => void;
   dismissDialog: () => void;
+  // Section 4.1: ends the stream. Never starts a raid on its own, it only closes the dialog.
+  endStream: () => void;
   start: (mode: RaidMode, pickedSlug?: string, pickedSlugs?: string[]) => void;
   startAsViewer: (host: Livestream, mode: RaidMode) => void;
   act: (fn: (raid: Raid) => Raid) => void;
@@ -88,10 +90,10 @@ export function RaidProvider({ children }: { children: ReactNode }) {
     return () => clearInterval(id);
   }, [voting, raid?.poll?.round, raid?.poll?.slot]);
 
-  // Section 13: the demo forces the tank acceptances on cue. The logic is real, the timing is
-  // scripted: both finalists accept, staggered, so the invite panel is visible mid-decision
+  // Section 13: the demo forces the showdown acceptances on cue. The logic is real, the timing
+  // is scripted: both finalists accept, staggered, so the invite panel is visible mid-decision
   // before the accept timer runs out and carries the raid into the pitch.
-  const accepting = raid?.phase === "tank-accept";
+  const accepting = raid?.phase === "showdown-accept";
   const finalists = raid?.finalists.join() ?? "";
   useEffect(() => {
     if (!accepting || !raid) return;
@@ -106,7 +108,7 @@ export function RaidProvider({ children }: { children: ReactNode }) {
   // scripted too. A viewer never sees the controls that make them.
   const viewerPhase = raid?.viewer ? raid.phase : null;
   useEffect(() => {
-    if (viewerPhase !== "tank-browse") return;
+    if (viewerPhase !== "showdown-browse") return;
     // The vote itself opens off the real browse timer, same as the streamer's own raid, so
     // this only simulates the streamer glancing through a couple of tiles while it runs.
     const tiles = [2000, 4000].map((at, i) =>
@@ -128,20 +130,10 @@ export function RaidProvider({ children }: { children: ReactNode }) {
     hostSlug: currentUser.slug,
     targetIsHidden,
     openDialog: setDialog,
-    dismissDialog: () => {
-      // Section 4.1: Random is the fallback, so a dismissed end-of-stream prompt still
-      // hands the viewers on.
-      if (dialog === "end" && prefs.autoRaid && !raid) {
-        setRaid(
-          startRaid({
-            mode: "random",
-            hostSlug: currentUser.slug,
-            hostViewers: currentSession.viewer_count,
-          }),
-        );
-      }
-      setDialog(null);
-    },
+    // Section 4.1: ending the stream, or dismissing the dialog, never starts a raid on its
+    // own. Both just close whatever raid UI is open.
+    dismissDialog: () => setDialog(null),
+    endStream: () => setDialog(null),
     start: (mode, pickedSlug, pickedSlugs) => {
       setJoined(null);
       setRaid(

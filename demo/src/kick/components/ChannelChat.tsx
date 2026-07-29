@@ -8,6 +8,7 @@ import {
   type ReactNode,
 } from "react";
 import { Icon, type KickIconName } from "../Icon";
+import { onChatAnnounce } from "../announce";
 import { currentUser, type Livestream } from "../mock/api";
 import { useRaid } from "../raid/RaidProvider";
 import { RaidPanel, RaidPreviewAsViewer } from "./RaidChat";
@@ -158,6 +159,7 @@ type Message = {
   badges: BadgeName[];
   color: string;
   body: string;
+  announcement?: boolean;
 };
 
 let nextId = 1;
@@ -273,6 +275,17 @@ function GifterLeaderboard() {
 }
 
 function ChatMessage({ message }: { message: Message }) {
+  if (message.announcement) {
+    return (
+      <div className="px-2 py-0.5 lg:px-3">
+        <div className="animate-pick-reveal flex items-center gap-2 rounded-lg bg-primary-base/10 px-2.5 py-1.5 text-[length:var(--chatroom-font-size)]">
+          <Icon name="play" className="size-3 shrink-0 text-primary-base" />
+          <span className="font-semibold text-primary-base">{message.body}</span>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="group relative px-2 lg:px-3">
       <div className="betterhover:group-hover:bg-surface-highest w-full min-w-0 shrink-0 break-words rounded-lg px-2 py-[var(--chatroom-message-spacing)] text-[length:var(--chatroom-font-size)] leading-[1.5]">
@@ -691,6 +704,22 @@ export function ChatFeed({
   const [messages, setMessages] = useFlowingMessages();
   const [draft, setDraft] = useState("");
   const { raid } = useRaid();
+
+  useEffect(() => {
+    return onChatAnnounce((body) => {
+      setMessages((prev) => [
+        ...prev.slice(-149),
+        {
+          id: nextId++,
+          username: currentUser.username,
+          badges: [],
+          color: colorFor(currentUser.username),
+          body,
+          announcement: true,
+        },
+      ]);
+    });
+  }, [setMessages]);
 
   function send(body: string) {
     if (!body) return;

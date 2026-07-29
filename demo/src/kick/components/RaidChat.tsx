@@ -24,13 +24,13 @@ function bannerText(raid: Raid) {
   switch (raid.phase) {
     case "preview":
       return `Previewing ${raid.previewIndex + 1} of 3`;
-    case "tank-browse":
-      return "Raid tank is open";
+    case "showdown-browse":
+      return "Showdown is open";
     case "vote":
       return raid.poll?.picks === 2 ? "Chat is voting for top 2" : "Chat is voting";
-    case "tank-accept":
+    case "showdown-accept":
       return "Creators are deciding";
-    case "tank-pitch":
+    case "showdown-pitch":
       return `${nameOf(raid, raid.finalists[raid.pitchIndex])} is pitching`;
     case "reveal":
       return "Rolling the raid";
@@ -166,7 +166,7 @@ const REVEAL_BADGE: Record<RaidMode, { label: string; icon?: KickIconName }> = {
   random: { label: "Randomly selected" },
   pick: { label: "Handpicked by the streamer", icon: "pin" },
   chat: { label: "Chosen by chat" },
-  tank: { label: "Won the raid tank" },
+  showdown: { label: "Won the showdown" },
 };
 
 function RevealSpotlight({ raid }: { raid: Raid }) {
@@ -479,21 +479,21 @@ function Matchup({ raid }: { raid: Raid }) {
 // The roster reads as the same zoom-meeting grid the player shows, shrunk to fit the chat
 // card, with the currently-previewed tile ringed. The countdown is a badge, not a bar, so it
 // reads at a glance the same way the reveal's ring does.
-function TankBrowseTimer({ raid }: { raid: Raid }) {
-  const roster = raid.candidates.slice(0, 10);
+function ShowdownBrowseTimer({ raid }: { raid: Raid }) {
+  const roster = raid.candidates.slice(0, 6);
   return (
-    <div className="flex flex-col gap-2.5">
-      <div className="grid grid-cols-5 gap-1.5">
+    <div className="flex flex-col gap-1.5">
+      <div className="mx-auto grid w-full max-w-[186px] grid-cols-3 gap-1">
         {roster.map((c, i) => {
           const slug = c.stream.channel.slug;
           const active = raid.stage === slug;
-          const col = i % 5;
-          const align = col === 0 ? "start" : col === 4 ? "end" : "center";
+          const col = i % 3;
+          const align = col === 0 ? "start" : col === 2 ? "end" : "center";
           return (
             <div key={slug} className="group relative">
               <AvatarInfoCard candidate={c} align={align} />
               <div
-                className={`relative aspect-square overflow-hidden rounded-md bg-surface-lowest transition-all duration-300 ${
+                className={`relative aspect-square overflow-hidden rounded bg-surface-lowest transition-all duration-300 ${
                   active ? "ring-2 ring-primary-base" : "ring-1 ring-outline-decorative"
                 }`}
               >
@@ -503,17 +503,19 @@ function TankBrowseTimer({ raid }: { raid: Raid }) {
                   className={`h-full w-full object-cover transition-opacity ${active ? "" : "opacity-70"}`}
                 />
                 {active && (
-                  <span className="absolute inset-x-0 bottom-0 h-1 animate-pick-glow bg-primary-base" />
+                  <span className="absolute inset-x-0 bottom-0 h-0.5 animate-pick-glow bg-primary-base" />
                 )}
               </div>
             </div>
           );
         })}
       </div>
-      <div className="flex items-center gap-2.5 rounded-lg bg-surface-lowest px-2.5 py-2">
-        <div className="relative flex size-9 shrink-0 items-center justify-center">
-          <CountdownRing seconds={raid.seconds} total={TIMING.tankBrowse} size={36} />
-          <span className="relative text-xs font-black tabular-nums text-primary-base">{raid.seconds}</span>
+      <div className="flex items-center gap-2 rounded-lg bg-surface-lowest px-2 py-1.5">
+        <div className="relative flex size-6 shrink-0 items-center justify-center">
+          <CountdownRing seconds={raid.seconds} total={TIMING.showdownBrowse} size={24} />
+          <span className="relative text-[10px] font-black tabular-nums text-primary-base">
+            {raid.seconds}
+          </span>
         </div>
         <span className="min-w-0 flex-1 text-xs leading-snug text-surface-onSurfaceSecondary">
           Voting will begin soon.
@@ -529,13 +531,13 @@ function Body({ raid }: { raid: Raid }) {
   switch (raid.phase) {
     case "preview":
       return <PreviewTracker raid={raid} />;
-    case "tank-browse":
-      return <TankBrowseTimer raid={raid} />;
+    case "showdown-browse":
+      return <ShowdownBrowseTimer raid={raid} />;
     case "vote":
       return raid.poll ? <PollRows raid={raid} poll={raid.poll} /> : null;
-    case "tank-accept":
+    case "showdown-accept":
       return <Matchup raid={raid} />;
-    case "tank-pitch":
+    case "showdown-pitch":
       return (
         <span className="text-sm text-surface-onSurfaceSecondary">
           {nameOf(raid, raid.finalists[raid.pitchIndex])} has 60 seconds to say why they deserve
@@ -592,7 +594,7 @@ export function RaidPreviewAsViewer({ host }: { host: Livestream }) {
     { id: "random", label: "Random" },
     { id: "pick", label: "Streamer pick" },
     { id: "chat", label: "Chat picks" },
-    { id: "tank", label: "Raid tank" },
+    { id: "showdown", label: "Showdown" },
   ];
 
   if (raid && raid.seconds > 0) {
@@ -633,17 +635,17 @@ export function RaidPreviewAsViewer({ host }: { host: Livestream }) {
   );
 }
 
-const TANK_STEPS = ["Browse", "Vote", "Pitch", "Winner", "Go"] as const;
+const SHOWDOWN_STEPS = ["Browse", "Vote", "Pitch", "Winner", "Go"] as const;
 
-function tankStepIndex(raid: Raid): number {
+function showdownStepIndex(raid: Raid): number {
   switch (raid.phase) {
-    case "tank-browse":
+    case "showdown-browse":
       return 0;
     case "vote":
       return raid.poll?.round === 2 ? 3 : 1;
-    case "tank-accept":
+    case "showdown-accept":
       return 1;
-    case "tank-pitch":
+    case "showdown-pitch":
       return 2;
     case "countdown":
     case "landed":
@@ -653,13 +655,13 @@ function tankStepIndex(raid: Raid): number {
   }
 }
 
-// Section 5.2: the raid tank is the only mode with enough steps to need a tracker. The other
+// Section 5.2: the showdown is the only mode with enough steps to need a tracker. The other
 // three modes already say where they are in the banner text alone.
-function TankProgress({ raid }: { raid: Raid }) {
-  const index = tankStepIndex(raid);
+function ShowdownProgress({ raid }: { raid: Raid }) {
+  const index = showdownStepIndex(raid);
   return (
-    <div className="mb-2 flex gap-1" aria-hidden="true">
-      {TANK_STEPS.map((step, i) => (
+    <div className="mb-1.5 flex gap-1" aria-hidden="true">
+      {SHOWDOWN_STEPS.map((step, i) => (
         <div
           key={step}
           className={`h-1 flex-1 rounded-full ${i <= index ? "bg-primary-base" : "bg-surface-highest"}`}
@@ -686,19 +688,19 @@ export function RaidPanel() {
         : bannerText(raid);
 
   return (
-    <div className="shrink-0 border-t border-outline-decorative bg-surface-base px-3 py-3">
-      <div className="mb-2 flex items-center justify-between gap-2">
-        <span className="min-w-0 flex-1 truncate text-sm font-bold text-white">{panelHeader}</span>
-        {raid.seconds > 0 && raid.phase !== "countdown" && raid.phase !== "tank-browse" && (
-          <span className="shrink-0 text-sm font-bold tabular-nums text-primary-base">
+    <div className="shrink-0 border-t border-outline-decorative bg-surface-base px-3 py-2">
+      <div className="mb-1.5 flex items-center justify-between gap-2">
+        <span className="min-w-0 flex-1 truncate text-xs font-bold text-white">{panelHeader}</span>
+        {raid.seconds > 0 && raid.phase !== "countdown" && raid.phase !== "showdown-browse" && (
+          <span className="shrink-0 text-xs font-bold tabular-nums text-primary-base">
             {clock(raid.seconds)}
           </span>
         )}
       </div>
 
-      {raid.mode === "tank" && <TankProgress raid={raid} />}
+      {raid.mode === "showdown" && <ShowdownProgress raid={raid} />}
 
-      <div className="flex flex-col gap-3">
+      <div className="flex flex-col gap-2">
         <Body raid={raid} />
       </div>
     </div>

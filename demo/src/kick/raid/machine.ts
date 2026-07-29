@@ -1,21 +1,21 @@
-import { recommendationsFor, tankCandidates, type Candidate } from "../mock/raids";
+import { recommendationsFor, showdownCandidates, type Candidate } from "../mock/raids";
 
 // Invented surface, named as if KICK's engineers built it. The state below is what these
 // would carry:
 //   fake-kick POST   /public/v1/raids
 //   fake-kick GET    /public/v1/raids/recommendations
 //   fake-kick POST   /public/v1/raids/{raid_id}/votes
-//   fake-kick POST   /public/v1/raids/{raid_id}/tank/entries/{slug}/accept
+//   fake-kick POST   /public/v1/raids/{raid_id}/showdown/entries/{slug}/accept
 //   fake-kick DELETE /public/v1/raids/{raid_id}
-//   fake-kick raid.started, raid.vote.opened, raid.vote.closed, raid.tank.entry.declined,
-//   fake-kick raid.tank.abandoned, raid.completed, raid.cancelled
+//   fake-kick raid.started, raid.vote.opened, raid.vote.closed, raid.showdown.entry.declined,
+//   fake-kick raid.showdown.abandoned, raid.completed, raid.cancelled
 //   scopes raids:read and raids:write
 
 export const TIMING = {
   countdown: 15,
   chatPreview: 30,
-  tankBrowse: 20,
-  tankTile: 30,
+  showdownBrowse: 20,
+  showdownTile: 30,
   pitch: 60,
   accept: 20,
   vote: 20,
@@ -26,14 +26,14 @@ export const TIMING = {
 
 export const MIN_HOST_VIEWERS = 5;
 
-export type RaidMode = "random" | "pick" | "chat" | "tank";
+export type RaidMode = "random" | "pick" | "chat" | "showdown";
 
 export type Phase =
   | "preview"
   | "vote"
-  | "tank-browse"
-  | "tank-accept"
-  | "tank-pitch"
+  | "showdown-browse"
+  | "showdown-accept"
+  | "showdown-pitch"
   | "reveal"
   | "countdown"
   | "landed"
@@ -102,7 +102,7 @@ export type RaidStart = {
   viewer?: boolean;
 };
 
-// Section 4.4: the streamer curates who is in play for Chat pick (3) and raid tank (2) from
+// Section 4.4: the streamer curates who is in play for Chat pick (3) and showdown (2) from
 // the browse dialog. That replaces the old auto-top-N selection, it does not add a step.
 export function startRaid({
   mode,
@@ -113,7 +113,7 @@ export function startRaid({
   viewer,
 }: RaidStart): Raid {
   const all = recommendationsFor(hostSlug, hostViewers);
-  const candidates = mode === "tank" ? tankCandidates(all) : all;
+  const candidates = mode === "showdown" ? showdownCandidates(all) : all;
   const base: Raid = {
     mode,
     phase: "countdown",
@@ -165,18 +165,18 @@ export function startRaid({
       featured: three,
     };
   }
-  // Section 4.4: the streamer curates the pool of 10 in the dialog. That pool becomes the
+  // Section 4.4: the streamer curates the pool of 6 in the dialog. That pool becomes the
   // raid's whole candidate set, so the player grid, the vote, and the pitch only ever consider
   // streamers the streamer actually chose, not a wider auto-picked list.
   const pool =
-    pickedSlugs && pickedSlugs.length === 10
+    pickedSlugs && pickedSlugs.length === 6
       ? (pickedSlugs.map((slug) => candidateFor(base, slug)).filter(Boolean) as Candidate[])
-      : candidates.slice(0, 10);
+      : candidates.slice(0, 6);
   return {
     ...base,
     candidates: pool,
-    phase: "tank-browse",
-    seconds: TIMING.tankBrowse,
+    phase: "showdown-browse",
+    seconds: TIMING.showdownBrowse,
     featured: slugsOf(pool),
   };
 }
@@ -193,7 +193,7 @@ function closeVote(raid: Raid): Raid {
   if (poll.slot === undefined) {
     return {
       ...raid,
-      phase: "tank-accept",
+      phase: "showdown-accept",
       seconds: TIMING.accept,
       finalists: order.slice(0, poll.picks),
       poll: undefined,
@@ -203,7 +203,7 @@ function closeVote(raid: Raid): Raid {
   finalists[poll.slot] = order[0];
   return {
     ...raid,
-    phase: "tank-accept",
+    phase: "showdown-accept",
     seconds: TIMING.accept,
     finalists,
     featured: feature(raid, [order[0]]),
@@ -214,7 +214,13 @@ function closeVote(raid: Raid): Raid {
 // Section 4.4 step 4: both finalists always accept, so the accept timer always closes
 // straight into the pitch.
 function closeAccept(raid: Raid): Raid {
-  return { ...raid, phase: "tank-pitch", pitchIndex: 0, stage: raid.finalists[0], seconds: TIMING.pitch };
+  return {
+    ...raid,
+    phase: "showdown-pitch",
+    pitchIndex: 0,
+    stage: raid.finalists[0],
+    seconds: TIMING.pitch,
+  };
 }
 
 export function advance(raid: Raid): Raid {
@@ -232,15 +238,17 @@ export function advance(raid: Raid): Raid {
         poll: openPoll(1, order, 1),
       };
     }
-    case "tank-browse":
+    case "showdown-browse":
       // A tile's own preview timer expiring just returns to the grid, with the browse timer
       // restarted. The browse timer itself expiring opens the vote.
-      return raid.stage ? { ...raid, stage: undefined, seconds: TIMING.tankBrowse } : openTankVote(raid);
+      return raid.stage
+        ? { ...raid, stage: undefined, seconds: TIMING.showdownBrowse }
+        : openShowdownVote(raid);
     case "vote":
       return closeVote(raid);
-    case "tank-accept":
+    case "showdown-accept":
       return closeAccept(raid);
-    case "tank-pitch": {
+    case "showdown-pitch": {
       const next = raid.pitchIndex + 1;
       if (next < raid.finalists.length)
         return { ...raid, pitchIndex: next, stage: raid.finalists[next], seconds: TIMING.pitch };
@@ -279,8 +287,8 @@ export function addChatVotes(raid: Raid, votes: Record<string, number>): Raid {
   return { ...raid, poll: { ...poll, votes: next } };
 }
 
-export function openTankVote(raid: Raid): Raid {
-  const options = slugsOf(raid.candidates.slice(0, 10));
+export function openShowdownVote(raid: Raid): Raid {
+  const options = slugsOf(raid.candidates.slice(0, 6));
   return {
     ...raid,
     phase: "vote",
@@ -293,11 +301,11 @@ export function openTankVote(raid: Raid): Raid {
 export const playTile = (raid: Raid, slug: string): Raid => ({
   ...raid,
   stage: slug,
-  seconds: TIMING.tankTile,
+  seconds: TIMING.showdownTile,
 });
 
 export function acceptEntry(raid: Raid, slug: string): Raid {
-  if (raid.phase !== "tank-accept" || !raid.finalists.includes(slug)) return raid;
+  if (raid.phase !== "showdown-accept" || !raid.finalists.includes(slug)) return raid;
   return { ...raid, accepted: [...new Set([...raid.accepted, slug])] };
 }
 

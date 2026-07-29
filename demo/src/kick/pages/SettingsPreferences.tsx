@@ -2,7 +2,7 @@ import { SettingsLayout } from "../components/SettingsLayout";
 import { SettingsCard } from "../components/SettingsCard";
 import { SettingsSwitch } from "../components/SettingsSwitch";
 import { currentUser } from "../mock/api";
-import { setJoinsTanks } from "../mock/raids";
+import { setJoinsShowdowns } from "../mock/raids";
 import { usePrefs, type Prefs } from "../prefs";
 
 const contentRows: { key: keyof Prefs; label: string }[] = [
@@ -13,14 +13,9 @@ const contentRows: { key: keyof Prefs; label: string }[] = [
 
 const raidRows: { key: keyof Prefs; label: string; description: string }[] = [
   {
-    key: "joinTanks",
-    label: "Join raid tanks",
-    description: "Bigger channels can put you in a raid tank.",
-  },
-  {
-    key: "autoRaid",
-    label: "Auto raid when I end a stream",
-    description: "If you skip the prompt, your viewers are still passed on.",
+    key: "joinShowdowns",
+    label: "Join showdowns",
+    description: "Bigger channels can put you in a showdown.",
   },
 ];
 
@@ -70,7 +65,7 @@ export function SettingsPreferences() {
               checked={prefs[row.key]}
               onChange={(checked) => {
                 update({ [row.key]: checked });
-                if (row.key === "joinTanks") setJoinsTanks(currentUser.slug, checked);
+                if (row.key === "joinShowdowns") setJoinsShowdowns(currentUser.slug, checked);
               }}
             />
           ))}

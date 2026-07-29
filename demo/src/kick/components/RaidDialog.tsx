@@ -1,14 +1,16 @@
 import { useEffect, useMemo, useState } from "react";
 import { Icon } from "../Icon";
 import { RouletteReel } from "./RouletteReel";
-import { formatDuration, formatViewers, liveSeconds, streamPills, timeAgo } from "../mock/api";
+import { CornerMarks } from "./CardBits";
+import { formatDuration, formatViewers, liveSeconds, streamPills } from "../mock/api";
 import {
   findHandle,
   raidHistoryFor,
   recommendationsFor,
-  tankCandidates,
+  showdownCandidates,
   type Candidate,
 } from "../mock/raids";
+import { usePrefs } from "../prefs";
 import { useRaid } from "../raid/RaidProvider";
 import { MIN_HOST_VIEWERS, type RaidMode } from "../raid/machine";
 
@@ -16,34 +18,34 @@ const modes: { id: RaidMode; label: string; outcome: string; timing: string; act
   {
     id: "random",
     label: "Random",
-    outcome: "Kick picks a channel at random.",
-    timing: "15s countdown. No preview, no vote.",
+    outcome: "Kick picks a random streamer.",
+    timing: "",
     action: "Roll and raid",
   },
   {
     id: "pick",
     label: "Pick",
-    outcome: "You choose the channel.",
-    timing: "Search, filter, or type a handle.",
+    outcome: "You choose any streamer to raid.",
+    timing: "",
     action: "Raid",
   },
   {
     id: "chat",
     label: "Chat pick",
-    outcome: "Chat votes for the best of three, after a preview.",
-    timing: "Pick 3, then 30s preview each, one vote.",
+    outcome: "Pick 3 streamers.",
+    timing: "Chat previews and votes.",
     action: "Chat pick",
   },
   {
-    id: "tank",
-    label: "Raid tank",
-    outcome: "Pick 10. Chat votes 2 into a pitch off.",
-    timing: "60s pitch each, then chat picks the winner.",
-    action: "Open the raid tank",
+    id: "showdown",
+    label: "Showdown",
+    outcome: "Pick max 6.",
+    timing: "Chat votes 2 into a pitch-off, then chooses the winner.",
+    action: "Open the showdown",
   },
 ];
 
-const maxPicksFor = (mode: RaidMode) => ({ random: 0, pick: 1, chat: 3, tank: 10 })[mode];
+const maxPicksFor = (mode: RaidMode) => ({ random: 0, pick: 1, chat: 3, showdown: 6 })[mode];
 
 type SortKey = "recommended" | "viewers" | "live" | "az" | "lastRaided" | "mostRaids";
 type ViewMode = "grid" | "list";
@@ -122,7 +124,6 @@ function CandidateCard({
     candidate.stream;
   const liveFor = formatDuration(liveSeconds(started_at));
   const pills = streamPills(candidate.stream);
-  const history = raidHistoryFor(channel.slug);
 
   if (view === "list") {
     return (
@@ -169,14 +170,6 @@ function CandidateCard({
             </span>
           )}
           <span className="text-xs text-surface-onSurfaceSecondary">Live {liveFor}</span>
-          {history.count > 0 && (
-            <span className="text-xs font-bold text-primary-base">Raided you {history.count}x</span>
-          )}
-          {history.lastAt && (
-            <span className="text-xs text-surface-onSurfaceSecondary">
-              Last raided {timeAgo(history.lastAt)}
-            </span>
-          )}
         </div>
         {picked && (
           <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-primary-base text-sm font-bold text-primary-onPrimary">
@@ -192,64 +185,59 @@ function CandidateCard({
       type="button"
       aria-pressed={picked}
       onClick={onSelect}
-      className={`flex flex-col gap-2 rounded-lg p-2 text-left transition-colors ${
-        picked ? "bg-surface-highest" : "bg-transparent betterhover:hover:bg-surface-highest"
+      className={`group/card relative flex w-full flex-col gap-1.5 rounded-lg p-1.5 text-left transition-colors ${
+        picked ? "bg-surface-highest" : "bg-transparent"
       }`}
     >
-      <div className="relative aspect-video w-full overflow-hidden rounded-lg bg-surface-lowest">
-        <img src={thumbnail} alt="" className="h-full w-full object-cover" />
-        <span className="absolute left-1.5 top-1.5 rounded bg-black/70 px-1 text-xs font-semibold uppercase leading-5 text-primary-base">
+      <div className="relative aspect-video w-full select-none overflow-hidden rounded">
+        <img
+          src={thumbnail}
+          alt=""
+          className="aspect-video w-full object-cover brightness-110 contrast-[110%] saturate-[110%]"
+        />
+        <span className="absolute left-1 top-1 rounded bg-surface-lowest px-1 text-[10px] font-semibold uppercase leading-4 text-primary-base">
           Live
         </span>
-        <span className="absolute bottom-1.5 right-1.5 rounded bg-black/70 px-1 text-xs font-semibold leading-5 text-white">
-          {liveFor}
-        </span>
         {!hide_viewer_count && (
-          <span className="absolute bottom-1.5 left-1.5 flex items-center gap-1 rounded bg-black/70 px-1 text-xs font-semibold leading-5 text-white">
-            <span className="size-2 rounded-full bg-red-500" />
+          <span className="absolute bottom-1 left-1 rounded bg-surface-lowest px-1 text-[10px] font-semibold leading-4 text-white">
             {formatViewers(viewer_count)}
           </span>
         )}
         {picked && (
-          <span className="absolute right-1.5 top-1.5 flex size-6 items-center justify-center rounded-full bg-primary-base text-sm font-bold text-primary-onPrimary">
+          <span className="absolute right-1 top-1 flex size-5 items-center justify-center rounded-full bg-primary-base text-xs font-bold text-primary-onPrimary">
             &#10003;
           </span>
         )}
       </div>
-      <div className="flex items-start gap-2">
-        <img src={channel.avatar} alt="" className="size-8 shrink-0 rounded-full" />
-        <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-1.5">
-            <span className="truncate text-sm font-bold text-white">{channel.username}</span>
-            {channel.verified && <Icon name="verified" className="size-3.5 shrink-0" />}
+
+      <div className="flex w-full flex-row flex-nowrap gap-1.5">
+        <img src={channel.avatar} alt="" className="size-7 shrink-0 rounded-full" />
+        <div className="flex w-full min-w-0 flex-col items-start">
+          <div className="flex max-w-full items-center gap-1">
+            <span className="max-w-full truncate text-xs font-semibold leading-4 text-white">
+              {channel.username}
+            </span>
+            {channel.verified && <Icon name="verified" className="size-3 shrink-0" />}
           </div>
-          <span className="block truncate text-xs text-surface-onSurfaceSecondary">{session_title}</span>
+          <span className="max-w-full truncate text-[11px] leading-4 text-surface-onSurfaceSecondary">
+            {session_title}
+          </span>
+          <div className="flex flex-wrap items-center gap-1 pt-0.5">
+            <EventTag event={event} />
+            {mostSimilar && <HighlightPill>Most similar to you</HighlightPill>}
+            {mostRecentRaider && <HighlightPill>Most recent raider</HighlightPill>}
+            {pills.map((pill) => (
+              <span
+                key={pill}
+                className="whitespace-nowrap rounded-full bg-secondary-base px-1.5 py-0.5 text-[10px] leading-none text-secondary-onSecondary"
+              >
+                {pill}
+              </span>
+            ))}
+          </div>
         </div>
       </div>
-      <div className="flex flex-wrap items-center gap-1">
-        <EventTag event={event} />
-        {mostSimilar && <HighlightPill>Most similar to you</HighlightPill>}
-        {mostRecentRaider && <HighlightPill>Most recent raider</HighlightPill>}
-        {pills.map((pill) => (
-          <span
-            key={pill}
-            className="whitespace-nowrap rounded-full bg-secondary-base px-1.5 py-0.5 text-[11px] leading-none text-secondary-onSecondary"
-          >
-            {pill}
-          </span>
-        ))}
-      </div>
-      <span className="truncate text-xs text-surface-onSurfaceSecondary">{candidate.reason}</span>
-      {history.count > 0 && (
-        <span className="truncate text-xs font-bold text-primary-base">
-          Raided you {history.count}x
-        </span>
-      )}
-      {history.lastAt && (
-        <span className="truncate text-xs text-surface-onSurfaceSecondary">
-          Last raided {timeAgo(history.lastAt)}
-        </span>
-      )}
+      <CornerMarks />
     </button>
   );
 }
@@ -268,7 +256,7 @@ function CandidateBrowse({
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState<string | null>(null);
   const [sort, setSort] = useState<SortKey>("recommended");
-  const [view, setView] = useState<ViewMode>("list");
+  const [view, setView] = useState<ViewMode>("grid");
 
   const categories = useMemo(
     () => [...new Set(candidates.map((c) => c.stream.category.name))].sort(),
@@ -334,17 +322,17 @@ function CandidateBrowse({
         <div className="flex h-9 shrink-0 items-center gap-0.5 rounded-md bg-surface-lowest p-1">
           <button
             type="button"
-            onClick={() => setView("list")}
-            className={`flex h-full items-center rounded px-3 text-xs font-semibold transition-colors ${view === "list" ? "bg-secondary-base text-white" : "text-surface-onSurfaceSecondary"}`}
-          >
-            List
-          </button>
-          <button
-            type="button"
             onClick={() => setView("grid")}
             className={`flex h-full items-center rounded px-3 text-xs font-semibold transition-colors ${view === "grid" ? "bg-secondary-base text-white" : "text-surface-onSurfaceSecondary"}`}
           >
             Grid
+          </button>
+          <button
+            type="button"
+            onClick={() => setView("list")}
+            className={`flex h-full items-center rounded px-3 text-xs font-semibold transition-colors ${view === "list" ? "bg-secondary-base text-white" : "text-surface-onSurfaceSecondary"}`}
+          >
+            List
           </button>
         </div>
         {maxPicks > 1 && (
@@ -384,7 +372,7 @@ function CandidateBrowse({
 
       <div className="min-h-0 flex-1 overflow-y-auto">
         {sorted.length > 0 ? (
-          <div className={view === "grid" ? "grid grid-cols-3 gap-2" : "flex flex-col gap-1"}>
+          <div className={view === "grid" ? "grid grid-cols-5 gap-2" : "flex flex-col gap-1"}>
             {sorted.map((c) => (
               <CandidateCard
                 key={c.stream.channel.slug}
@@ -457,9 +445,11 @@ function RandomPool({
 
 export function RaidDialog() {
   const { dialog, dismissDialog, start, hostViewers, hostSlug, setPreview } = useRaid();
+  const [prefs] = usePrefs();
   const [mode, setMode] = useState<RaidMode>("random");
   const [picked, setPicked] = useState<string[]>([]);
   const [rollingSlug, setRollingSlug] = useState<string | null>(null);
+  const availableModes = prefs.showdownRaids ? modes : modes.filter((m) => m.id !== "showdown");
 
   // Section 5.1: the dialog never unmounts, it just stops rendering, so closing it (a
   // dismiss, or a raid actually starting) has to clear its own picks and roll state. Without
@@ -471,10 +461,16 @@ export function RaidDialog() {
     setRollingSlug(null);
   }, [dialog]);
 
+  // Turning the Showdown toggle off mid-dialog falls back to Random, the same as any other
+  // disabled mode.
+  useEffect(() => {
+    if (!prefs.showdownRaids && mode === "showdown") setMode("random");
+  }, [prefs.showdownRaids, mode]);
+
   if (!dialog) return null;
 
   const all = recommendationsFor(hostSlug, hostViewers);
-  const candidates = mode === "tank" ? tankCandidates(all) : all;
+  const candidates = mode === "showdown" ? showdownCandidates(all) : all;
   const enough = hostViewers >= MIN_HOST_VIEWERS;
   const current = modes.find((m) => m.id === mode)!;
   const maxPicks = maxPicksFor(mode);
@@ -519,8 +515,8 @@ export function RaidDialog() {
     setPreview(slug);
   }
 
-  function autoSelectTen() {
-    setPicked(candidates.slice(0, 10).map((c) => c.stream.channel.slug));
+  function autoSelectSix() {
+    setPicked(candidates.slice(0, 6).map((c) => c.stream.channel.slug));
   }
 
   return (
@@ -550,7 +546,7 @@ export function RaidDialog() {
           </div>
 
           <div className="flex flex-col gap-1.5 overflow-y-auto">
-            {modes.map((m) => (
+            {availableModes.map((m) => (
               <button
                 key={m.id}
                 type="button"
@@ -601,7 +597,7 @@ export function RaidDialog() {
                 }
                 setPreview(null);
                 if (mode === "pick") start(mode, picked[0]);
-                else if (mode === "chat" || mode === "tank") start(mode, undefined, picked);
+                else if (mode === "chat" || mode === "showdown") start(mode, undefined, picked);
               }}
               className="state-layer-base h-11 w-full rounded-md bg-primary-base text-base font-semibold text-primary-onPrimary disabled:bg-disabled-base disabled:text-disabled-onSurface"
             >
@@ -618,17 +614,17 @@ export function RaidDialog() {
         </div>
       </div>
 
-      {mode === "tank" && (
+      {mode === "showdown" && (
         // Section 5.1: bottom-4 left-4 is also where the skip-timer panel sits when a previous
         // raid is still active behind this dialog. Stacked higher, so the two never overlap.
         <div className="z-popover fixed bottom-20 left-4 flex items-center gap-2 rounded-lg bg-surface-highest px-3 py-2 shadow-2xl">
           <span className="text-xs font-semibold uppercase text-surface-onSurfaceSecondary">Demo</span>
           <button
             type="button"
-            onClick={autoSelectTen}
+            onClick={autoSelectSix}
             className="state-layer-base rounded bg-primary-base px-2 py-1 text-xs font-semibold text-primary-onPrimary"
           >
-            Auto-select 10
+            Auto-select 6
           </button>
         </div>
       )}

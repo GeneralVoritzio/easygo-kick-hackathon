@@ -76,18 +76,18 @@ const activityFor = (slug: string) => {
   return found;
 };
 
-// Section 10: the only consent toggle. Off means never eligible for a tank.
-const tankOptOut = new Set(["notadoc"]);
+// Section 10: the only consent toggle. Off means never eligible for a showdown.
+const showdownOptOut = new Set(["notadoc"]);
 
-export const joinsTanks = (slug: string) => !tankOptOut.has(slug);
+export const joinsShowdowns = (slug: string) => !showdownOptOut.has(slug);
 
-export function setJoinsTanks(slug: string, joins: boolean) {
-  if (joins) tankOptOut.delete(slug);
-  else tankOptOut.add(slug);
+export function setJoinsShowdowns(slug: string, joins: boolean) {
+  if (joins) showdownOptOut.delete(slug);
+  else showdownOptOut.add(slug);
 }
 
-export const tankCandidates = (candidates: Candidate[]) =>
-  candidates.filter((c) => joinsTanks(c.stream.channel.slug));
+export const showdownCandidates = (candidates: Candidate[]) =>
+  candidates.filter((c) => joinsShowdowns(c.stream.channel.slug));
 
 type Exposure = { readyAt: number; recoveredAt: number };
 

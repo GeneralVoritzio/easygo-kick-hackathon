@@ -418,11 +418,20 @@ function PreviewTracker({ raid }: { raid: Raid }) {
 
 // One contender's avatar, ringed and badged by where they stand: pulsing while the invite is
 // out, green and checked once accepted.
-function FinalistBadge({ raid, slug }: { raid: Raid; slug: string }) {
+function FinalistBadge({
+  raid,
+  slug,
+  align,
+}: {
+  raid: Raid;
+  slug: string;
+  align: "start" | "end";
+}) {
   const c = candidateFor(raid, slug);
   const accepted = raid.accepted.includes(slug);
   return (
-    <div className="flex flex-1 flex-col items-center gap-1.5">
+    <div className="group relative flex flex-1 flex-col items-center gap-1.5">
+      {c && <AvatarInfoCard candidate={c} align={align} />}
       <div
         className={`relative flex size-14 shrink-0 items-center justify-center rounded-full ring-2 ${
           accepted ? "ring-primary-base" : "ring-outline-decorative"
@@ -458,9 +467,9 @@ function FinalistBadge({ raid, slug }: { raid: Raid; slug: string }) {
 function Matchup({ raid }: { raid: Raid }) {
   return (
     <div className="flex items-center justify-center gap-2">
-      <FinalistBadge raid={raid} slug={raid.finalists[0]} />
+      <FinalistBadge raid={raid} slug={raid.finalists[0]} align="start" />
       <span className="shrink-0 text-xs font-black text-surface-onSurfaceSecondary">VS</span>
-      <FinalistBadge raid={raid} slug={raid.finalists[1]} />
+      <FinalistBadge raid={raid} slug={raid.finalists[1]} align="end" />
     </div>
   );
 }

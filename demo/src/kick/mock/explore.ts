@@ -564,3 +564,7 @@ const clusterById = new Map(EXPLORE_CLUSTERS.map((c) => [c.id, c]));
 
 export const findExploreChannel = (id: string) => channelById.get(id);
 export const findExploreCluster = (id: string) => clusterById.get(id);
+
+const streamBySlug = new Map(EXPLORE_CHANNELS.map((ch) => [ch.stream.channel.slug, ch.stream]));
+
+export const exploreStreamFor = (slug: string) => streamBySlug.get(slug);

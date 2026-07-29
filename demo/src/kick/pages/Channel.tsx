@@ -1,5 +1,6 @@
 import { Link, useParams } from "react-router-dom";
-import { liveStreamFor, profileFor } from "../mock/api";
+import { liveStreamFor, profileFor, profileForStream } from "../mock/api";
+import { exploreStreamFor } from "../mock/explore";
 import { ChannelShell, type ChannelTab } from "../components/ChannelShell";
 import {
   ChannelAbout,
@@ -27,11 +28,13 @@ function ChannelNotFound({ slug }: { slug: string }) {
 
 export function Channel({ tab = "home", watch }: { tab?: ChannelTab; watch?: boolean }) {
   const { slug = "" } = useParams();
-  const profile = profileFor(slug);
+  // A channel on the Explore map streams, but most of them have no profile of their own, so the
+  // page is built from the livestream instead of turning into a dead end.
+  const stream = liveStreamFor(slug) ?? exploreStreamFor(slug);
+  const profile = profileFor(slug) ?? (stream ? profileForStream(stream) : undefined);
 
   if (!profile) return <ChannelNotFound slug={slug} />;
 
-  const stream = liveStreamFor(slug);
   const inPlayer = Boolean(watch && stream);
 
   return (

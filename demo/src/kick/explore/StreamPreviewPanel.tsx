@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { Icon } from "../Icon";
 import { HeroChatFeed } from "../components/ChannelChat";
-import { formatViewers, profileFor } from "../mock/api";
+import { formatViewers } from "../mock/api";
 import { isLocationHidden } from "./bodyView";
 import { INTERACTION_BADGES } from "./badges";
 import { useExplore } from "./exploreStore";
@@ -29,8 +29,6 @@ export function StreamPreviewPanel({ channel, cluster }: Props) {
   const hidden = isLocationHidden(channel, hiddenOverrides);
   const streamerControl = stream.channel.slug === STREAMER_CONTROL_SLUG;
   const badges = channel.interaction.badges;
-  // A generated channel has no channel page, so it gets no Watch live button.
-  const routable = Boolean(profileFor(stream.channel.slug));
   const close = () => setSelectedChannel(null);
 
   return (
@@ -39,9 +37,9 @@ export function StreamPreviewPanel({ channel, cluster }: Props) {
 
       <section
         aria-label={`${stream.channel.username} live channel details`}
-        className="absolute inset-x-0 bottom-0 z-[102] flex h-[70%] animate-slide-up flex-col overflow-y-auto rounded-t-lg border-t border-outline-decorative bg-surface-base lg:inset-y-0 lg:left-auto lg:right-0 lg:h-full lg:w-[46%] lg:max-w-[620px] lg:rounded-none lg:border-l lg:border-t-0"
+        className="absolute inset-x-0 bottom-0 z-[102] flex h-[70%] animate-slide-up flex-col overflow-hidden rounded-t-lg border-t border-outline-decorative bg-surface-base lg:inset-y-0 lg:left-auto lg:right-0 lg:h-full lg:w-[46%] lg:max-w-[620px] lg:rounded-none lg:border-l lg:border-t-0"
       >
-        <header className="flex items-center justify-between px-4 py-3">
+        <header className="flex shrink-0 items-center justify-between px-4 py-3">
           <span className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wide text-primary-base">
             <span className="h-1.5 w-1.5 animate-pulse-fast rounded-full bg-primary-base" />
             Live now
@@ -56,6 +54,8 @@ export function StreamPreviewPanel({ channel, cluster }: Props) {
           </button>
         </header>
 
+        {/* One scroller, so the actions below it can never be pushed off the panel. */}
+        <div className="no-scrollbar flex min-h-0 flex-1 flex-col overflow-y-auto">
         <div className="relative mx-4 aspect-video shrink-0 overflow-hidden rounded-lg bg-black ring-1 ring-outline-decorative">
           <img
             src={stream.thumbnail}
@@ -166,8 +166,10 @@ export function StreamPreviewPanel({ channel, cluster }: Props) {
             )}
           </div>
 
-          <div className="flex min-h-[160px] flex-1 flex-col gap-1.5 rounded border border-outline-decorative bg-surface-highest p-3">
-            <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wide text-surface-onSurfaceSecondary">
+          {/* A fixed height, because HeroChatFeed pins to the end and clips. Without it the feed
+              grows with every new line and pushes the rest of the panel around. */}
+          <div className="flex h-44 shrink-0 flex-col gap-1.5 rounded border border-outline-decorative bg-surface-highest p-3">
+            <div className="flex shrink-0 items-center gap-1.5 text-[10px] font-bold uppercase tracking-wide text-surface-onSurfaceSecondary">
               <span className="h-1.5 w-1.5 animate-pulse-fast rounded-full bg-primary-base" />
               Live chat
             </div>
@@ -175,24 +177,23 @@ export function StreamPreviewPanel({ channel, cluster }: Props) {
               <HeroChatFeed />
             </div>
           </div>
+        </div>
+        </div>
 
-          <div className="mt-auto flex flex-col gap-2">
-            {routable && (
-              <Link
-                to={`/${stream.channel.slug}`}
-                className="rounded bg-primary-base px-4 py-3 text-center text-sm font-bold text-primary-onPrimary transition-colors betterhover:hover:bg-green-600"
-              >
-                Watch live
-              </Link>
-            )}
-            <button
-              type="button"
-              onClick={close}
-              className="state-layer-surface rounded border border-outline-decorative px-4 py-3 text-sm font-semibold text-white"
-            >
-              Keep exploring
-            </button>
-          </div>
+        <div className="flex shrink-0 flex-col gap-2 border-t border-outline-decorative p-4">
+          <Link
+            to={`/${stream.channel.slug}`}
+            className="rounded bg-primary-base px-4 py-3 text-center text-sm font-bold text-primary-onPrimary transition-colors betterhover:hover:bg-green-600"
+          >
+            Watch live
+          </Link>
+          <button
+            type="button"
+            onClick={close}
+            className="state-layer-surface rounded border border-outline-decorative px-4 py-3 text-sm font-semibold text-white"
+          >
+            Keep exploring
+          </button>
         </div>
       </section>
     </>

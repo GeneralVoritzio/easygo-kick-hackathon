@@ -11,6 +11,7 @@ import { Icon, type KickIconName } from "../Icon";
 import { currentUser, type Livestream } from "../mock/api";
 import { useRaid } from "../raid/RaidProvider";
 import { RaidPanel, RaidPreviewAsViewer } from "./RaidChat";
+import { BreakPanel } from "./BreakChat";
 import identityBadge from "../icons/identity-badge.png";
 
 // Identity colours resolved from assets/reference/kick-neon-tokens.css (--neon-identity-*).
@@ -690,7 +691,7 @@ export function ChatFeed({
   const surface = dashboard ? "bg-surface-base" : "bg-surface-lowest";
   const [messages, setMessages] = useFlowingMessages();
   const [draft, setDraft] = useState("");
-  const { raid } = useRaid();
+  const { raid, breakRaid } = useRaid();
 
   function send(body: string) {
     if (!body) return;
@@ -722,6 +723,7 @@ export function ChatFeed({
       {header}
       <ChatMessages messages={messages} surface={surface} />
       {raid && <RaidPanel />}
+      {breakRaid && <BreakPanel />}
       {host && <RaidPreviewAsViewer host={host} />}
       <ChatFooter
         draft={draft}

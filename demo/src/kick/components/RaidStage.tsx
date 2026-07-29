@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
-import { currentSession, currentUser, formatViewers, liveStreamFor } from "../mock/api";
+import { Icon } from "../Icon";
+import { currentSession, currentUser, formatDuration, formatViewers, liveStreamFor } from "../mock/api";
 import { useRaid } from "../raid/RaidProvider";
 import { candidateFor, playTile, TIMING, type Raid } from "../raid/machine";
 
@@ -100,11 +101,78 @@ function TwoUp({ raid, slugs, caption }: { raid: Raid; slugs: string[]; caption:
   );
 }
 
+// "We'll bring you back automatically" needs a visible moment in the player itself, not just
+// the toast, since the dashboard's own preview pane is small enough that a toast alone could
+// be missed. Shown for as long as the ended break card sits undismissed in chat, same window
+// either surface uses.
+function WelcomeBackStage() {
+  return (
+    <Stage caption="Back to the stream">
+      <div className="flex h-full w-full flex-col items-center justify-center gap-2 bg-black">
+        <span className="animate-pick-reveal flex size-12 items-center justify-center rounded-full bg-primary-base/20">
+          <Icon name="live-dot" className="size-5 text-primary-base" />
+        </span>
+        <span className="animate-pick-reveal text-base font-black text-white">Welcome back!</span>
+      </div>
+    </Stage>
+  );
+}
+
+// The main stream never gets replaced or navigated away from: the BRB card stays the base of
+// the player no matter what a viewer picks. Picking a creator adds a small preview on top of
+// it, picture-in-picture style, so the "discover someone" choice actually shows something
+// without ever forcing anyone off the host's channel.
+export function BreakStage() {
+  const { breakRaid } = useRaid();
+  if (!breakRaid) return null;
+  if (breakRaid.ended) return <WelcomeBackStage />;
+  const host = liveStreamFor(breakRaid.hostSlug);
+  const chosen = breakRaid.myChoice ? liveStreamFor(breakRaid.myChoice) : undefined;
+  return (
+    <Stage caption="Streamer is on a break">
+      <div className="relative flex h-full w-full flex-col items-center justify-center gap-3 bg-black">
+        <img
+          src={host?.channel.avatar ?? currentUser.avatar}
+          alt=""
+          className="size-16 rounded-full opacity-70 grayscale"
+        />
+        <span className="text-lg font-black uppercase tracking-wide text-white">Brb</span>
+        <span className="text-sm text-surface-onSurfaceSecondary">
+          Back in {formatDuration(breakRaid.seconds)}
+        </span>
+
+        {chosen && (
+          // The hover controls bar (ChannelPlayer's group/player) rises from the bottom over
+          // the same corner, so this rides up out of its way on the same hover, instead of
+          // getting covered by it.
+          <div className="animate-pick-reveal absolute bottom-3 right-3 w-2/5 max-w-[220px] overflow-hidden rounded-lg shadow-2xl ring-2 ring-primary-base transition-transform duration-150 betterhover:group-hover/player:-translate-y-14">
+            <div className="relative aspect-video w-full overflow-hidden bg-black">
+              <img src={chosen.thumbnail} alt="" className="h-full w-full object-cover brightness-125" />
+              <span className="absolute left-1.5 top-1.5 flex items-center gap-1 rounded bg-black/70 px-1.5 py-0.5 text-[10px] font-bold uppercase text-white">
+                <span className="size-1.5 rounded-full bg-red-500" />
+                Previewing
+              </span>
+            </div>
+            <div className="flex items-center gap-1.5 bg-surface-highest px-2 py-1.5">
+              <img src={chosen.channel.avatar} alt="" className="size-5 shrink-0 rounded-full" />
+              <span className="min-w-0 flex-1 truncate text-xs font-semibold text-white">
+                {chosen.channel.username}
+              </span>
+            </div>
+          </div>
+        )}
+      </div>
+    </Stage>
+  );
+}
+
 // Section 5.1: every preview plays in the player, and a stream never renders in the chat
 // column. The pitch is two player embeds side by side in the viewer's own browser, so it is
 // never a co-stream and never described as one.
 export function RaidStage() {
-  const { raid, preview } = useRaid();
+  const { raid, preview, breakRaid } = useRaid();
+
+  if (breakRaid) return <BreakStage />;
 
   if (!raid) {
     const stream = preview ? liveStreamFor(preview) : undefined;

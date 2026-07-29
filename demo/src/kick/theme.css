@@ -249,6 +249,7 @@
   .animate-leaderboards-marquee { animation: 9s ease-in-out 2s infinite leaderboards-marquee }
   .animate-pick-reveal { animation: pick-reveal 420ms ease-out }
   .animate-pick-glow { animation: pick-glow 2.4s ease-in-out infinite }
+  .animate-deplete { animation: deplete 5s linear forwards }
 
   .animate-emote-picker { animation: emote-picker-open 350ms ease-out }
   .animate-emote-picker-close { animation: emote-picker-close 350ms ease-out forwards }
@@ -332,10 +333,16 @@
   50% { opacity: 0.7 }
 }
 
+@keyframes deplete {
+  from { width: 100% }
+  to { width: 0% }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .animate-leaderboards-marquee { animation: none }
   .animate-pick-reveal { animation: none }
   .animate-pick-glow { animation: none }
+  .animate-deplete { animation: none }
 }
 
 button:not(:disabled),

@@ -14,6 +14,7 @@ import { SettingsPreferences } from './kick/pages/SettingsPreferences'
 import { CreatorDashboard } from './kick/pages/CreatorDashboard'
 import { RaidProvider } from './kick/raid/RaidProvider'
 import { RaidDialog } from './kick/components/RaidDialog'
+import { BreakNotice } from './kick/components/BreakChat'
 import Demo from './App.tsx'
 
 createRoot(document.getElementById('root')!).render(
@@ -21,6 +22,7 @@ createRoot(document.getElementById('root')!).render(
     <BrowserRouter>
       <RaidProvider>
         <RaidDialog />
+        <BreakNotice />
         <Routes>
           <Route path="/demo" element={<Demo />} />
           <Route path="/dashboard" element={<CreatorDashboard />} />

@@ -1,8 +1,9 @@
 import { Link } from "react-router-dom";
 import { Icon, type KickIconName } from "../Icon";
 import { formatViewers, profileFor, streamPills, type Livestream } from "../mock/api";
-import { interactivityPercent, type Candidate } from "../mock/raids";
+import { interactivityPercent, recommendationsFor, type Candidate } from "../mock/raids";
 import { useRaid } from "../raid/RaidProvider";
+import { BREAK_DURATION_DEFAULT } from "../raid/break";
 import { RouletteReel } from "./RouletteReel";
 import {
   advance,
@@ -324,7 +325,7 @@ const CARD_TAIL_ALIGN = {
   end: "right-4",
 } as const;
 
-function AvatarInfoCard({
+export function AvatarInfoCard({
   candidate,
   align = "center",
 }: {
@@ -337,7 +338,7 @@ function AvatarInfoCard({
   ];
   return (
     <div
-      className={`z-popover pointer-events-none absolute bottom-full mb-2 w-52 rounded-lg bg-surface-highest p-3 opacity-0 shadow-xl transition-opacity duration-150 group-hover:opacity-100 ${CARD_ALIGN[align]}`}
+      className={`z-popover pointer-events-none absolute bottom-full mb-2 w-52 rounded-lg bg-surface-highest p-3 text-left opacity-0 shadow-xl transition-opacity duration-150 group-hover:opacity-100 ${CARD_ALIGN[align]}`}
     >
       <div className="flex items-center gap-2">
         <img src={candidate.stream.channel.avatar} alt="" className="size-8 shrink-0 rounded-full" />
@@ -587,7 +588,7 @@ function Body({ raid }: { raid: Raid }) {
 // Floats in the same bottom-left slot RaidDevControls uses once a raid is running: before
 // one starts there is nothing to skip, so the two never compete for the spot.
 export function RaidPreviewAsViewer({ host }: { host: Livestream }) {
-  const { raid, startAsViewer, act } = useRaid();
+  const { raid, breakRaid, startAsViewer, startBreakAsViewer, endBreak, act } = useRaid();
   const modes: { id: RaidMode; label: string }[] = [
     { id: "random", label: "Random" },
     { id: "pick", label: "Streamer pick" },
@@ -612,6 +613,33 @@ export function RaidPreviewAsViewer({ host }: { host: Livestream }) {
 
   if (raid) return null;
 
+  if (breakRaid && !breakRaid.ended) {
+    return (
+      <div className="z-popover fixed bottom-4 left-4 flex items-center gap-2 rounded-lg bg-surface-highest px-3 py-2 shadow-2xl">
+        <span className="text-xs font-semibold uppercase text-surface-onSurfaceSecondary">Demo</span>
+        <button
+          type="button"
+          onClick={endBreak}
+          className="state-layer-base rounded bg-primary-base px-2 py-1 text-xs font-semibold text-primary-onPrimary"
+        >
+          End break
+        </button>
+      </div>
+    );
+  }
+
+  // The ended card is still sitting in chat, waiting on its own dismiss, so a fresh demo
+  // trigger doesn't show until that's cleared.
+  if (breakRaid) return null;
+
+  function triggerBreak() {
+    const options = recommendationsFor(host.channel.slug, host.viewer_count)
+      .slice(0, 3)
+      .map((c) => c.stream.channel.slug);
+    if (options.length === 0) return;
+    startBreakAsViewer(host, options, BREAK_DURATION_DEFAULT);
+  }
+
   return (
     <div className="z-popover fixed bottom-4 left-4 flex w-64 flex-col gap-2 rounded-lg bg-surface-highest p-3 shadow-2xl">
       <span className="text-xs font-semibold uppercase text-surface-onSurfaceSecondary">
@@ -629,6 +657,13 @@ export function RaidPreviewAsViewer({ host }: { host: Livestream }) {
           </button>
         ))}
       </div>
+      <button
+        type="button"
+        onClick={triggerBreak}
+        className="h-8 rounded bg-secondary-base text-xs font-semibold text-secondary-onSecondary betterhover:hover:bg-surface-lowest"
+      >
+        Break raid
+      </button>
     </div>
   );
 }

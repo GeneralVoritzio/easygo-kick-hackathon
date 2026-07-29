@@ -10,6 +10,7 @@ import {
   type Candidate,
 } from "../mock/raids";
 import { useRaid } from "../raid/RaidProvider";
+import { BREAK_DURATION_DEFAULT, BREAK_DURATION_PRESETS } from "../raid/break";
 import { MIN_HOST_VIEWERS, type RaidMode } from "../raid/machine";
 
 const modes: { id: RaidMode; label: string; outcome: string; timing: string; action: string }[] = [
@@ -456,10 +457,12 @@ function RandomPool({
 }
 
 export function RaidDialog() {
-  const { dialog, dismissDialog, start, hostViewers, hostSlug, setPreview } = useRaid();
+  const { dialog, dismissDialog, start, startBreak, hostViewers, hostSlug, setPreview } = useRaid();
   const [mode, setMode] = useState<RaidMode>("random");
   const [picked, setPicked] = useState<string[]>([]);
   const [rollingSlug, setRollingSlug] = useState<string | null>(null);
+  const [breakDuration, setBreakDuration] = useState(BREAK_DURATION_DEFAULT);
+  const [customBreak, setCustomBreak] = useState(false);
 
   // Section 5.1: the dialog never unmounts, it just stops rendering, so closing it (a
   // dismiss, or a raid actually starting) has to clear its own picks and roll state. Without
@@ -469,6 +472,8 @@ export function RaidDialog() {
     setMode("random");
     setPicked([]);
     setRollingSlug(null);
+    setBreakDuration(BREAK_DURATION_DEFAULT);
+    setCustomBreak(false);
   }, [dialog]);
 
   if (!dialog) return null;
@@ -478,6 +483,9 @@ export function RaidDialog() {
   const enough = hostViewers >= MIN_HOST_VIEWERS;
   const current = modes.find((m) => m.id === mode)!;
   const maxPicks = maxPicksFor(mode);
+  // A break dialog never touches `mode` (it stays at its default), so it needs its own cap
+  // instead of maxPicksFor("random"), which is 0.
+  const pickCap = dialog === "break" ? 3 : maxPicks;
   const pickedCandidate = candidates.find((c) => c.stream.channel.slug === picked[0]);
   const ready = enough && (maxPicks === 0 || picked.length === maxPicks) && !rollingSlug;
   const action =
@@ -511,9 +519,9 @@ export function RaidDialog() {
 
   function toggle(slug: string) {
     setPicked((prev) => {
-      if (maxPicks === 1) return [slug];
+      if (pickCap === 1) return [slug];
       if (prev.includes(slug)) return prev.filter((s) => s !== slug);
-      if (prev.length >= maxPicks) return prev;
+      if (prev.length >= pickCap) return prev;
       return [...prev, slug];
     });
     setPreview(slug);
@@ -521,6 +529,117 @@ export function RaidDialog() {
 
   function autoSelectTen() {
     setPicked(candidates.slice(0, 10).map((c) => c.stream.channel.slug));
+  }
+
+  if (dialog === "break") {
+    const breakReady = enough && picked.length > 0 && picked.length <= 3;
+    return (
+      <div className="z-popover fixed inset-0 flex items-center justify-center bg-surfaceOverlay-base p-4">
+        <div className="relative flex max-h-full w-full max-w-[820px] flex-col overflow-hidden rounded-xl bg-surface-base shadow-2xl">
+          <div className="absolute right-5 top-[17px] z-20">
+            <button
+              type="button"
+              aria-label="Close"
+              onClick={dismissDialog}
+              className="flex size-8 items-center justify-center text-white"
+            >
+              <Icon name="close" className="size-3.5" />
+            </button>
+          </div>
+
+          <div className="flex flex-col gap-3 p-5 pb-0">
+            <div className="flex flex-col gap-1">
+              <h2 className="text-lg font-bold leading-5 text-white">Take a break</h2>
+              <span className="text-sm text-surface-onSurfaceSecondary">
+                Pick up to 3 channels to offer chat while you're away. Nobody is
+                forced off your channel.
+              </span>
+            </div>
+            <div className="flex flex-wrap items-center gap-1.5">
+              <span className="text-xs font-semibold uppercase text-surface-onSurfaceSecondary">
+                Back in
+              </span>
+              {BREAK_DURATION_PRESETS.map((seconds) => (
+                <button
+                  key={seconds}
+                  type="button"
+                  onClick={() => {
+                    setCustomBreak(false);
+                    setBreakDuration(seconds);
+                  }}
+                  className={`rounded-full px-2.5 py-1 text-xs font-semibold transition-colors ${
+                    !customBreak && breakDuration === seconds
+                      ? "bg-secondary-base text-white"
+                      : "bg-surface-lowest text-surface-onSurfaceSecondary betterhover:hover:bg-surface-highest"
+                  }`}
+                >
+                  {seconds / 60} min
+                </button>
+              ))}
+              <button
+                type="button"
+                onClick={() => setCustomBreak(true)}
+                className={`rounded-full px-2.5 py-1 text-xs font-semibold transition-colors ${
+                  customBreak
+                    ? "bg-secondary-base text-white"
+                    : "bg-surface-lowest text-surface-onSurfaceSecondary betterhover:hover:bg-surface-highest"
+                }`}
+              >
+                Custom
+              </button>
+              {customBreak && (
+                <div className="flex items-center gap-1.5 rounded-full bg-surface-lowest py-1 pl-2.5 pr-1.5">
+                  <input
+                    type="number"
+                    min={1}
+                    max={60}
+                    value={Math.round(breakDuration / 60)}
+                    onChange={(e) => {
+                      const minutes = Math.min(60, Math.max(1, Number(e.target.value) || 1));
+                      setBreakDuration(minutes * 60);
+                    }}
+                    className="h-5 w-8 bg-transparent text-right text-xs font-semibold text-white outline-none"
+                  />
+                  <span className="text-xs font-semibold text-surface-onSurfaceSecondary">min</span>
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="flex h-[440px] flex-col p-5">
+            {!enough ? (
+              <p className="text-sm leading-6 text-surface-onSurfaceSecondary">
+                A break needs at least {MIN_HOST_VIEWERS} viewers. You have{" "}
+                {formatViewers(hostViewers)}.
+              </p>
+            ) : (
+              <CandidateBrowse candidates={candidates} picked={picked} maxPicks={3} onToggle={toggle} />
+            )}
+          </div>
+
+          <div className="flex shrink-0 flex-col gap-2 border-t-2 border-outline-decorative p-5">
+            <button
+              type="button"
+              disabled={!breakReady}
+              onClick={() => {
+                setPreview(null);
+                startBreak(picked, breakDuration);
+              }}
+              className="state-layer-base h-11 w-full rounded-md bg-primary-base text-base font-semibold text-primary-onPrimary disabled:bg-disabled-base disabled:text-disabled-onSurface"
+            >
+              {picked.length === 0 ? "Pick at least one channel" : `Start break with ${picked.length}`}
+            </button>
+            <button
+              type="button"
+              onClick={dismissDialog}
+              className="h-9 w-full rounded-md text-sm font-semibold text-surface-onSurfaceSecondary betterhover:hover:text-white"
+            >
+              Not now
+            </button>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (

@@ -54,9 +54,12 @@ export function StreamPreviewPanel({ channel, cluster }: Props) {
           </button>
         </header>
 
-        {/* One scroller, so the actions below it can never be pushed off the panel. */}
-        <div className="no-scrollbar flex min-h-0 flex-1 flex-col overflow-y-auto">
-        <div className="relative mx-4 aspect-video shrink-0 overflow-hidden rounded-lg bg-black ring-1 ring-outline-decorative">
+        {/* One scroller, so the actions below it can never be pushed off the panel. The scrollbar
+            stays visible here, because a short window really does cut the content off. */}
+        <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
+        {/* The preview is capped, not 16 by 9, so the live chat below it gets the spare height.
+            object-cover crops the frame instead of letterboxing it. */}
+        <div className="relative mx-4 aspect-video max-h-[30%] shrink-0 overflow-hidden rounded-lg bg-black ring-1 ring-outline-decorative">
           <img
             src={stream.thumbnail}
             alt={`${stream.channel.username} stream preview`}
@@ -67,7 +70,7 @@ export function StreamPreviewPanel({ channel, cluster }: Props) {
           </span>
         </div>
 
-        <div className="flex flex-1 flex-col gap-4 p-4">
+        <div className="flex min-h-0 flex-1 flex-col gap-4 p-4">
           <div className="flex items-center gap-3">
             <img
               src={stream.channel.avatar}
@@ -166,9 +169,10 @@ export function StreamPreviewPanel({ channel, cluster }: Props) {
             )}
           </div>
 
-          {/* A fixed height, because HeroChatFeed pins to the end and clips. Without it the feed
-              grows with every new line and pushes the rest of the panel around. */}
-          <div className="flex h-44 shrink-0 flex-col gap-1.5 rounded border border-outline-decorative bg-surface-highest p-3">
+          {/* The chat takes the space the rest of the panel leaves, and no more. flex-1 with a min
+              height gives it every spare pixel on a tall screen, and stops it from growing with each
+              new line on a short one, where the middle scrolls instead. */}
+          <div className="flex min-h-[220px] flex-1 flex-col gap-1.5 rounded border border-outline-decorative bg-surface-highest p-3">
             <div className="flex shrink-0 items-center gap-1.5 text-[10px] font-bold uppercase tracking-wide text-surface-onSurfaceSecondary">
               <span className="h-1.5 w-1.5 animate-pulse-fast rounded-full bg-primary-base" />
               Live chat

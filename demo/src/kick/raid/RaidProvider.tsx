@@ -1,6 +1,5 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import { currentSession, currentUser, type Livestream } from "../mock/api";
-import { recordRaid, type Candidate } from "../mock/raids";
 import { isHidden, usePrefs } from "../prefs";
 import {
   acceptEntry,
@@ -115,18 +114,6 @@ export function RaidProvider({ children }: { children: ReactNode }) {
     );
     return () => tiles.forEach(clearTimeout);
   }, [viewerPhase]);
-
-  const landed = raid?.phase === "landed";
-  useEffect(() => {
-    if (!landed) return;
-    setRaid((r) => {
-      if (!r?.targetSlug) return r;
-      const winner = candidateFor(r, r.targetSlug);
-      const featured = r.featured.map((s) => candidateFor(r, s)).filter(Boolean) as Candidate[];
-      if (winner) recordRaid(winner, featured, r.hostViewers);
-      return r;
-    });
-  }, [landed]);
 
   const target = raid?.targetSlug ? candidateFor(raid, raid.targetSlug) : undefined;
   const targetIsHidden = Boolean(target && isHidden(target.stream.category.slug, prefs));

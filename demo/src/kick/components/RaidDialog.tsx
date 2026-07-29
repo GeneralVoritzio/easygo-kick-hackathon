@@ -519,6 +519,10 @@ export function RaidDialog() {
     setPreview(slug);
   }
 
+  function autoSelectTen() {
+    setPicked(candidates.slice(0, 10).map((c) => c.stream.channel.slug));
+  }
+
   return (
     <div className="z-popover fixed inset-0 flex items-center justify-center bg-surfaceOverlay-base p-4">
       <div className="relative flex max-h-full w-full max-w-[1180px] overflow-hidden rounded-xl bg-surface-base shadow-2xl">
@@ -613,6 +617,21 @@ export function RaidDialog() {
           </div>
         </div>
       </div>
+
+      {mode === "tank" && (
+        // Section 5.1: bottom-4 left-4 is also where the skip-timer panel sits when a previous
+        // raid is still active behind this dialog. Stacked higher, so the two never overlap.
+        <div className="z-popover fixed bottom-20 left-4 flex items-center gap-2 rounded-lg bg-surface-highest px-3 py-2 shadow-2xl">
+          <span className="text-xs font-semibold uppercase text-surface-onSurfaceSecondary">Demo</span>
+          <button
+            type="button"
+            onClick={autoSelectTen}
+            className="state-layer-base rounded bg-primary-base px-2 py-1 text-xs font-semibold text-primary-onPrimary"
+          >
+            Auto-select 10
+          </button>
+        </div>
+      )}
     </div>
   );
 }

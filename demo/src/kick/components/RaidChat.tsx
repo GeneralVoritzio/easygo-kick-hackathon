@@ -46,24 +46,27 @@ function bannerText(raid: Raid) {
 function PollRows({ raid, poll }: { raid: Raid; poll: Poll }) {
   const { act } = useRaid();
   const total = Object.values(poll.votes).reduce((sum, n) => sum + n, 0) || 1;
-  const ranked = [...poll.options].sort((a, b) => (poll.votes[b] ?? 0) - (poll.votes[a] ?? 0));
+  // Section 5.3: the row order stays exactly as the poll opened it. Ranking by live votes
+  // would make cards jump around mid-vote, so "leading" is a badge on the row with the most
+  // votes, never a reshuffle a click could land on the wrong card.
+  const maxVotes = Math.max(0, ...poll.options.map((slug) => poll.votes[slug] ?? 0));
 
   return (
     <div className="flex flex-col gap-2">
-      <div className="flex max-h-64 flex-col gap-1.5 overflow-y-auto p-1">
-        {ranked.map((slug, i) => {
+      <div className="flex max-h-40 flex-col gap-1 overflow-y-auto p-1">
+        {poll.options.map((slug) => {
           const c = candidateFor(raid, slug);
           const votes = poll.votes[slug] ?? 0;
           const percent = Math.round((votes / total) * 100);
           const mine = poll.myVote === slug;
-          const leading = i === 0 && votes > 0;
+          const leading = votes > 0 && votes === maxVotes;
           return (
             <button
               key={slug}
               type="button"
               disabled={Boolean(poll.myVote)}
               onClick={() => act((r) => castVote(r, slug))}
-              className={`relative flex shrink-0 items-center gap-2.5 overflow-hidden rounded-lg bg-surface-lowest p-1.5 text-left transition-all duration-500 disabled:cursor-default ${
+              className={`relative flex shrink-0 items-center gap-2 overflow-hidden rounded-lg bg-surface-lowest p-1 text-left transition-all duration-500 disabled:cursor-default ${
                 mine ? "ring-2 ring-primary-base" : ""
               }`}
             >
@@ -71,13 +74,13 @@ function PollRows({ raid, poll }: { raid: Raid; poll: Poll }) {
                 className="absolute inset-y-0 left-0 bg-primary-base/20 transition-all duration-700 ease-out"
                 style={{ width: `${percent}%` }}
               />
-              <div className="relative flex w-full items-center gap-2.5">
+              <div className="relative flex w-full items-center gap-2">
                 {c && (
                   <img
                     src={c.stream.channel.avatar}
                     alt=""
                     className={`shrink-0 rounded-full ring-2 transition-all duration-300 ${
-                      leading ? "size-9 ring-primary-base" : "size-8 opacity-80 ring-transparent"
+                      leading ? "size-7 ring-primary-base" : "size-6 opacity-80 ring-transparent"
                     }`}
                   />
                 )}
@@ -87,16 +90,16 @@ function PollRows({ raid, poll }: { raid: Raid; poll: Poll }) {
                       {nameOf(raid, slug)}
                     </span>
                     {leading && (
-                      <span className="shrink-0 rounded-full bg-primary-base px-1.5 py-0.5 text-[10px] font-bold uppercase leading-none text-primary-onPrimary">
+                      <span className="shrink-0 rounded-full bg-primary-base px-1 py-0.5 text-[9px] font-bold uppercase leading-none text-primary-onPrimary">
                         Leading
                       </span>
                     )}
                   </div>
-                  <span className="text-[11px] text-surface-onSurfaceSecondary">
+                  <span className="text-[10px] text-surface-onSurfaceSecondary">
                     {formatViewers(votes)} votes
                   </span>
                 </div>
-                <span className="shrink-0 text-lg font-black tabular-nums text-primary-base">
+                <span className="shrink-0 text-sm font-black tabular-nums text-primary-base">
                   {percent}%
                 </span>
               </div>
@@ -472,24 +475,28 @@ function TankBrowseTimer({ raid }: { raid: Raid }) {
   return (
     <div className="flex flex-col gap-2.5">
       <div className="grid grid-cols-5 gap-1.5">
-        {roster.map((c) => {
+        {roster.map((c, i) => {
           const slug = c.stream.channel.slug;
           const active = raid.stage === slug;
+          const col = i % 5;
+          const align = col === 0 ? "start" : col === 4 ? "end" : "center";
           return (
-            <div
-              key={slug}
-              className={`relative aspect-square overflow-hidden rounded-md bg-surface-lowest transition-all duration-300 ${
-                active ? "ring-2 ring-primary-base" : "ring-1 ring-outline-decorative"
-              }`}
-            >
-              <img
-                src={c.stream.channel.avatar}
-                alt=""
-                className={`h-full w-full object-cover transition-opacity ${active ? "" : "opacity-70"}`}
-              />
-              {active && (
-                <span className="absolute inset-x-0 bottom-0 h-1 animate-pick-glow bg-primary-base" />
-              )}
+            <div key={slug} className="group relative">
+              <AvatarInfoCard candidate={c} align={align} />
+              <div
+                className={`relative aspect-square overflow-hidden rounded-md bg-surface-lowest transition-all duration-300 ${
+                  active ? "ring-2 ring-primary-base" : "ring-1 ring-outline-decorative"
+                }`}
+              >
+                <img
+                  src={c.stream.channel.avatar}
+                  alt=""
+                  className={`h-full w-full object-cover transition-opacity ${active ? "" : "opacity-70"}`}
+                />
+                {active && (
+                  <span className="absolute inset-x-0 bottom-0 h-1 animate-pick-glow bg-primary-base" />
+                )}
+              </div>
             </div>
           );
         })}

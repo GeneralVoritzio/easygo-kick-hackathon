@@ -2,7 +2,15 @@ import { useEffect, useRef, useState } from "react";
 import { Icon, type KickIconName } from "../Icon";
 import { formatDuration, formatViewers } from "../mock/api";
 import { useTimeline } from "./TimelineContext";
-import { categoryAt, fromPoint, GROUP_ICON, type Moment, type MomentGroup, type Timeline } from "./data";
+import {
+  categoryAt,
+  fromPoint,
+  GROUP_ICON,
+  SHARE_PAD_SECONDS,
+  type Moment,
+  type MomentGroup,
+  type Timeline,
+} from "./data";
 import { useStagePreview } from "./useStagePreview";
 
 /*
@@ -267,6 +275,7 @@ function InlinePlayer({
   const [elapsed, setElapsed] = useState(0);
   const [muted, setMuted] = useState(true);
   const [playing, setPlaying] = useState(true);
+  const [shareCopied, setShareCopied] = useState(false);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
@@ -302,6 +311,17 @@ function InlinePlayer({
   function enlarge() {
     openClipSequence(moments);
     onClose();
+  }
+
+  function share() {
+    const centre = clip.center ?? clip.t;
+    const url = new URL(window.location.href);
+    url.searchParams.set("clip_start", String(Math.max(0, Math.round(centre - SHARE_PAD_SECONDS))));
+    url.searchParams.set("clip_end", String(Math.round(centre + SHARE_PAD_SECONDS)));
+    navigator.clipboard?.writeText(url.toString()).then(() => {
+      setShareCopied(true);
+      window.setTimeout(() => setShareCopied(false), 2000);
+    });
   }
 
   return (
@@ -377,14 +397,24 @@ function InlinePlayer({
               <Icon name={muted ? "mute" : "volume"} />
             </button>
           </div>
-          <button
-            type="button"
-            aria-label="Enlarge"
-            onClick={enlarge}
-            className="flex size-7 items-center justify-center rounded text-white [&_svg]:size-3.5"
-          >
-            <Icon name="fullscreen" />
-          </button>
+          <div className="flex items-center gap-1">
+            <button
+              type="button"
+              aria-label={shareCopied ? "Link copied" : "Share"}
+              onClick={share}
+              className="flex size-7 items-center justify-center rounded text-white [&_svg]:size-3.5"
+            >
+              <Icon name="share" />
+            </button>
+            <button
+              type="button"
+              aria-label="Enlarge"
+              onClick={enlarge}
+              className="flex size-7 items-center justify-center rounded text-white [&_svg]:size-3.5"
+            >
+              <Icon name="fullscreen" />
+            </button>
+          </div>
         </div>
       </div>
     </div>

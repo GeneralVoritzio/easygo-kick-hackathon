@@ -1,7 +1,14 @@
 import { useEffect, useMemo, useState } from "react";
 import { Icon } from "../Icon";
 import { RouletteReel } from "./RouletteReel";
-import { formatDuration, formatViewers, liveSeconds, streamPills, timeAgo } from "../mock/api";
+import {
+  activeSubscribersCount,
+  formatDuration,
+  formatViewers,
+  liveSeconds,
+  streamPills,
+  timeAgo,
+} from "../mock/api";
 import {
   findHandle,
   raidHistoryFor,
@@ -46,12 +53,24 @@ const modes: { id: RaidMode; label: string; outcome: string; timing: string; act
 
 const maxPicksFor = (mode: RaidMode) => ({ random: 0, pick: 1, chat: 3, tank: 10 })[mode];
 
-type SortKey = "recommended" | "viewers" | "live" | "az" | "lastRaided" | "mostRaids";
+type SortKey =
+  | "recommended"
+  | "viewers"
+  | "lowestSubscribers"
+  | "live"
+  | "az"
+  | "lastRaided"
+  | "mostRaids";
 type ViewMode = "grid" | "list";
+
+// Below this many viewers, a card flags itself as a small streamer, the CandidateBrowse
+// callers care about since break raids cap picks at 3 of them.
+const SMALL_STREAMER_MAX_VIEWERS = 50;
 
 const SORTS: { id: SortKey; label: string }[] = [
   { id: "recommended", label: "Recommended" },
-  { id: "viewers", label: "Most viewers" },
+  { id: "viewers", label: "Least viewers" },
+  { id: "lowestSubscribers", label: "Lowest subscribers" },
   { id: "live", label: "Longest live" },
   { id: "az", label: "A to Z" },
   { id: "lastRaided", label: "Last raided" },
@@ -62,7 +81,12 @@ function sortCandidates(candidates: Candidate[], sort: SortKey): Candidate[] {
   const list = [...candidates];
   switch (sort) {
     case "viewers":
-      return list.sort((a, b) => b.stream.viewer_count - a.stream.viewer_count);
+      return list.sort((a, b) => a.stream.viewer_count - b.stream.viewer_count);
+    case "lowestSubscribers":
+      return list.sort(
+        (a, b) =>
+          activeSubscribersCount(a.stream.channel) - activeSubscribersCount(b.stream.channel),
+      );
     case "live":
       return list.sort(
         (a, b) => new Date(a.stream.started_at).getTime() - new Date(b.stream.started_at).getTime(),
@@ -86,6 +110,16 @@ function sortCandidates(candidates: Candidate[], sort: SortKey): Candidate[] {
 }
 
 const HOST_CATEGORY_SLUG = "just-chatting";
+
+// Display-only, for this dialog alone: the mock livestreams carry real, busy-site viewer
+// counts, but every candidate the raid and break pickers show should read as a small stream.
+// Stable per channel so a card doesn't flicker between renders, and never touches the real
+// viewer_count, which recommendationsFor's scoring and the sort options still use.
+function displaySmallViewerCount(slug: string): number {
+  let hash = 0;
+  for (let i = 0; i < slug.length; i++) hash = (hash * 31 + slug.charCodeAt(i)) >>> 0;
+  return (hash % 29) + 1;
+}
 
 function EventTag({ event }: { event?: string }) {
   if (!event) return null;
@@ -124,6 +158,7 @@ function CandidateCard({
   const liveFor = formatDuration(liveSeconds(started_at));
   const pills = streamPills(candidate.stream);
   const history = raidHistoryFor(channel.slug);
+  const displayedViewerCount = displaySmallViewerCount(channel.slug);
 
   if (view === "list") {
     return (
@@ -166,7 +201,12 @@ function CandidateCard({
           {!hide_viewer_count && (
             <span className="flex items-center gap-1 text-sm font-semibold text-white">
               <span className="size-2 rounded-full bg-red-500" />
-              {formatViewers(viewer_count)}
+              {formatViewers(displayedViewerCount)}
+              {viewer_count < SMALL_STREAMER_MAX_VIEWERS && (
+                <span className="rounded-full bg-primary-base px-1.5 py-0.5 text-[10px] font-bold uppercase leading-none text-primary-onPrimary">
+                  Small
+                </span>
+              )}
             </span>
           )}
           <span className="text-xs text-surface-onSurfaceSecondary">Live {liveFor}</span>
@@ -208,7 +248,12 @@ function CandidateCard({
         {!hide_viewer_count && (
           <span className="absolute bottom-1.5 left-1.5 flex items-center gap-1 rounded bg-black/70 px-1 text-xs font-semibold leading-5 text-white">
             <span className="size-2 rounded-full bg-red-500" />
-            {formatViewers(viewer_count)}
+            {formatViewers(displayedViewerCount)}
+            {viewer_count < SMALL_STREAMER_MAX_VIEWERS && (
+              <span className="rounded-full bg-primary-base px-1 text-[10px] font-bold uppercase leading-4 text-primary-onPrimary">
+                Small
+              </span>
+            )}
           </span>
         )}
         {picked && (
@@ -551,8 +596,7 @@ export function RaidDialog() {
             <div className="flex flex-col gap-1">
               <h2 className="text-lg font-bold leading-5 text-white">Take a break</h2>
               <span className="text-sm text-surface-onSurfaceSecondary">
-                Pick up to 3 channels to offer chat while you're away. Nobody is
-                forced off your channel.
+                Share the love: Pick up to 3 small creators. No one leaves your channel—everyone returns when you do.
               </span>
             </div>
             <div className="flex flex-wrap items-center gap-1.5">

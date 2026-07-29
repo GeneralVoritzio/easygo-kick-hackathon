@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 340 420" width="340" height="420" role="img" aria-label="PARTNERED OFFICIAL SPONSOR">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="0.6" y2="1">
+      <stop offset="0" stop-color="#0c1410"/>
+      <stop offset="1" stop-color="#16301c"/>
+    </linearGradient>
+    <pattern id="p" width="14" height="14" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+      <rect width="7" height="14" fill="#53FC18" opacity="0.05"/>
+    </pattern>
+  </defs>
+  <rect width="340" height="420" rx="8" fill="url(#g)"/>
+  <rect width="340" height="420" rx="8" fill="url(#p)"/>
+  <g opacity="0.9"><circle cx="230" cy="170" r="82" fill="#53FC18" opacity="0.10"/><path d="M194 172 l24 26 l50 -60" stroke="#53FC18" stroke-width="12" fill="none" opacity="0.35" stroke-linecap="round" stroke-linejoin="round"/></g>
+  <rect x="28" y="40" width="40" height="4" rx="2" fill="#53FC18"/>
+  <text x="28" y="70" font-family="Inter, sans-serif" font-size="12" font-weight="700" letter-spacing="2" fill="#53FC18">PARTNERED</text>
+  <text x="28" y="322" font-family="Inter, sans-serif" font-size="34" font-weight="800" fill="#FFFFFF">OFFICIAL</text>
+  <text x="28" y="358" font-family="Inter, sans-serif" font-size="34" font-weight="800" fill="#FFFFFF">SPONSOR</text>
+  <rect x="28" y="378" width="150" height="30" rx="4" fill="#53FC18"/>
+  <text x="103" y="398" font-family="Inter, sans-serif" font-size="13" font-weight="700" fill="#0B0B0C" text-anchor="middle">CLAIM THE OFFER</text>
+</svg>

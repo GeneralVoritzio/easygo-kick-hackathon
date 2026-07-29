@@ -7,6 +7,7 @@ import { categories, currentSession, currentUser, formatFollowers, formatViewers
 import { ChatFeed } from "../components/ChannelChat";
 import { RaidStage } from "../components/RaidStage";
 import { RaidDevControls } from "../components/RaidChat";
+import { BreakStreamerControls } from "../components/BreakChat";
 import { useRaid } from "../raid/RaidProvider";
 
 const streamItem = "/dashboard/stream";
@@ -228,6 +229,7 @@ export function CreatorDashboard() {
   return (
     <div className="flex h-screen flex-col overflow-hidden bg-surface-lowest">
       <RaidDevControls />
+      <BreakStreamerControls />
       <nav className="flex h-[var(--navbar-height)] shrink-0 items-center justify-between bg-surface-lowest pl-3 pr-10">
         <div className="flex grow-0 items-center gap-2.5">
           <IconButton icon="menu" label="Collapse sidebar" className="size-10 text-base leading-none" />
@@ -407,6 +409,7 @@ export function CreatorDashboard() {
                         <ActionGroup title="Channel options">
                           <ToggleRow label="Show view count" on={showViewCount} onChange={setShowViewCount} />
                           <ActionRow label="Raid Channel" onClick={() => openDialog("raid")} />
+                          <ActionRow label="Break Raid" onClick={() => openDialog("break")} />
                           <ActionRow label="Set goals" />
                         </ActionGroup>
                       </div>

@@ -1,7 +1,14 @@
 import { useEffect, useMemo, useState } from "react";
 import { Icon } from "../Icon";
 import { RouletteReel } from "./RouletteReel";
-import { formatDuration, formatViewers, liveSeconds, streamPills, timeAgo } from "../mock/api";
+import {
+  activeSubscribersCount,
+  formatDuration,
+  formatViewers,
+  liveSeconds,
+  streamPills,
+  timeAgo,
+} from "../mock/api";
 import {
   findHandle,
   raidHistoryFor,
@@ -10,6 +17,7 @@ import {
   type Candidate,
 } from "../mock/raids";
 import { useRaid } from "../raid/RaidProvider";
+import { BREAK_DURATION_DEFAULT, BREAK_DURATION_PRESETS } from "../raid/break";
 import { MIN_HOST_VIEWERS, type RaidMode } from "../raid/machine";
 
 const modes: { id: RaidMode; label: string; outcome: string; timing: string; action: string }[] = [
@@ -45,12 +53,24 @@ const modes: { id: RaidMode; label: string; outcome: string; timing: string; act
 
 const maxPicksFor = (mode: RaidMode) => ({ random: 0, pick: 1, chat: 3, tank: 10 })[mode];
 
-type SortKey = "recommended" | "viewers" | "live" | "az" | "lastRaided" | "mostRaids";
+type SortKey =
+  | "recommended"
+  | "viewers"
+  | "lowestSubscribers"
+  | "live"
+  | "az"
+  | "lastRaided"
+  | "mostRaids";
 type ViewMode = "grid" | "list";
+
+// Below this many viewers, a card flags itself as a small streamer, the CandidateBrowse
+// callers care about since break raids cap picks at 3 of them.
+const SMALL_STREAMER_MAX_VIEWERS = 50;
 
 const SORTS: { id: SortKey; label: string }[] = [
   { id: "recommended", label: "Recommended" },
-  { id: "viewers", label: "Most viewers" },
+  { id: "viewers", label: "Least viewers" },
+  { id: "lowestSubscribers", label: "Lowest subscribers" },
   { id: "live", label: "Longest live" },
   { id: "az", label: "A to Z" },
   { id: "lastRaided", label: "Last raided" },
@@ -61,7 +81,12 @@ function sortCandidates(candidates: Candidate[], sort: SortKey): Candidate[] {
   const list = [...candidates];
   switch (sort) {
     case "viewers":
-      return list.sort((a, b) => b.stream.viewer_count - a.stream.viewer_count);
+      return list.sort((a, b) => a.stream.viewer_count - b.stream.viewer_count);
+    case "lowestSubscribers":
+      return list.sort(
+        (a, b) =>
+          activeSubscribersCount(a.stream.channel) - activeSubscribersCount(b.stream.channel),
+      );
     case "live":
       return list.sort(
         (a, b) => new Date(a.stream.started_at).getTime() - new Date(b.stream.started_at).getTime(),
@@ -85,6 +110,16 @@ function sortCandidates(candidates: Candidate[], sort: SortKey): Candidate[] {
 }
 
 const HOST_CATEGORY_SLUG = "just-chatting";
+
+// Display-only, for this dialog alone: the mock livestreams carry real, busy-site viewer
+// counts, but every candidate the raid and break pickers show should read as a small stream.
+// Stable per channel so a card doesn't flicker between renders, and never touches the real
+// viewer_count, which recommendationsFor's scoring and the sort options still use.
+function displaySmallViewerCount(slug: string): number {
+  let hash = 0;
+  for (let i = 0; i < slug.length; i++) hash = (hash * 31 + slug.charCodeAt(i)) >>> 0;
+  return (hash % 29) + 1;
+}
 
 function EventTag({ event }: { event?: string }) {
   if (!event) return null;
@@ -123,6 +158,7 @@ function CandidateCard({
   const liveFor = formatDuration(liveSeconds(started_at));
   const pills = streamPills(candidate.stream);
   const history = raidHistoryFor(channel.slug);
+  const displayedViewerCount = displaySmallViewerCount(channel.slug);
 
   if (view === "list") {
     return (
@@ -165,7 +201,12 @@ function CandidateCard({
           {!hide_viewer_count && (
             <span className="flex items-center gap-1 text-sm font-semibold text-white">
               <span className="size-2 rounded-full bg-red-500" />
-              {formatViewers(viewer_count)}
+              {formatViewers(displayedViewerCount)}
+              {viewer_count < SMALL_STREAMER_MAX_VIEWERS && (
+                <span className="rounded-full bg-primary-base px-1.5 py-0.5 text-[10px] font-bold uppercase leading-none text-primary-onPrimary">
+                  Small
+                </span>
+              )}
             </span>
           )}
           <span className="text-xs text-surface-onSurfaceSecondary">Live {liveFor}</span>
@@ -207,7 +248,12 @@ function CandidateCard({
         {!hide_viewer_count && (
           <span className="absolute bottom-1.5 left-1.5 flex items-center gap-1 rounded bg-black/70 px-1 text-xs font-semibold leading-5 text-white">
             <span className="size-2 rounded-full bg-red-500" />
-            {formatViewers(viewer_count)}
+            {formatViewers(displayedViewerCount)}
+            {viewer_count < SMALL_STREAMER_MAX_VIEWERS && (
+              <span className="rounded-full bg-primary-base px-1 text-[10px] font-bold uppercase leading-4 text-primary-onPrimary">
+                Small
+              </span>
+            )}
           </span>
         )}
         {picked && (
@@ -456,10 +502,12 @@ function RandomPool({
 }
 
 export function RaidDialog() {
-  const { dialog, dismissDialog, start, hostViewers, hostSlug, setPreview } = useRaid();
+  const { dialog, dismissDialog, start, startBreak, hostViewers, hostSlug, setPreview } = useRaid();
   const [mode, setMode] = useState<RaidMode>("random");
   const [picked, setPicked] = useState<string[]>([]);
   const [rollingSlug, setRollingSlug] = useState<string | null>(null);
+  const [breakDuration, setBreakDuration] = useState(BREAK_DURATION_DEFAULT);
+  const [customBreak, setCustomBreak] = useState(false);
 
   // Section 5.1: the dialog never unmounts, it just stops rendering, so closing it (a
   // dismiss, or a raid actually starting) has to clear its own picks and roll state. Without
@@ -469,6 +517,8 @@ export function RaidDialog() {
     setMode("random");
     setPicked([]);
     setRollingSlug(null);
+    setBreakDuration(BREAK_DURATION_DEFAULT);
+    setCustomBreak(false);
   }, [dialog]);
 
   if (!dialog) return null;
@@ -478,6 +528,9 @@ export function RaidDialog() {
   const enough = hostViewers >= MIN_HOST_VIEWERS;
   const current = modes.find((m) => m.id === mode)!;
   const maxPicks = maxPicksFor(mode);
+  // A break dialog never touches `mode` (it stays at its default), so it needs its own cap
+  // instead of maxPicksFor("random"), which is 0.
+  const pickCap = dialog === "break" ? 3 : maxPicks;
   const pickedCandidate = candidates.find((c) => c.stream.channel.slug === picked[0]);
   const ready = enough && (maxPicks === 0 || picked.length === maxPicks) && !rollingSlug;
   const action =
@@ -511,9 +564,9 @@ export function RaidDialog() {
 
   function toggle(slug: string) {
     setPicked((prev) => {
-      if (maxPicks === 1) return [slug];
+      if (pickCap === 1) return [slug];
       if (prev.includes(slug)) return prev.filter((s) => s !== slug);
-      if (prev.length >= maxPicks) return prev;
+      if (prev.length >= pickCap) return prev;
       return [...prev, slug];
     });
     setPreview(slug);
@@ -521,6 +574,116 @@ export function RaidDialog() {
 
   function autoSelectTen() {
     setPicked(candidates.slice(0, 10).map((c) => c.stream.channel.slug));
+  }
+
+  if (dialog === "break") {
+    const breakReady = enough && picked.length > 0 && picked.length <= 3;
+    return (
+      <div className="z-popover fixed inset-0 flex items-center justify-center bg-surfaceOverlay-base p-4">
+        <div className="relative flex max-h-full w-full max-w-[820px] flex-col overflow-hidden rounded-xl bg-surface-base shadow-2xl">
+          <div className="absolute right-5 top-[17px] z-20">
+            <button
+              type="button"
+              aria-label="Close"
+              onClick={dismissDialog}
+              className="flex size-8 items-center justify-center text-white"
+            >
+              <Icon name="close" className="size-3.5" />
+            </button>
+          </div>
+
+          <div className="flex flex-col gap-3 p-5 pb-0">
+            <div className="flex flex-col gap-1">
+              <h2 className="text-lg font-bold leading-5 text-white">Take a break</h2>
+              <span className="text-sm text-surface-onSurfaceSecondary">
+                Share the love: Pick up to 3 small creators. No one leaves your channel—everyone returns when you do.
+              </span>
+            </div>
+            <div className="flex flex-wrap items-center gap-1.5">
+              <span className="text-xs font-semibold uppercase text-surface-onSurfaceSecondary">
+                Back in
+              </span>
+              {BREAK_DURATION_PRESETS.map((seconds) => (
+                <button
+                  key={seconds}
+                  type="button"
+                  onClick={() => {
+                    setCustomBreak(false);
+                    setBreakDuration(seconds);
+                  }}
+                  className={`rounded-full px-2.5 py-1 text-xs font-semibold transition-colors ${
+                    !customBreak && breakDuration === seconds
+                      ? "bg-secondary-base text-white"
+                      : "bg-surface-lowest text-surface-onSurfaceSecondary betterhover:hover:bg-surface-highest"
+                  }`}
+                >
+                  {seconds / 60} min
+                </button>
+              ))}
+              <button
+                type="button"
+                onClick={() => setCustomBreak(true)}
+                className={`rounded-full px-2.5 py-1 text-xs font-semibold transition-colors ${
+                  customBreak
+                    ? "bg-secondary-base text-white"
+                    : "bg-surface-lowest text-surface-onSurfaceSecondary betterhover:hover:bg-surface-highest"
+                }`}
+              >
+                Custom
+              </button>
+              {customBreak && (
+                <div className="flex items-center gap-1.5 rounded-full bg-surface-lowest py-1 pl-2.5 pr-1.5">
+                  <input
+                    type="number"
+                    min={1}
+                    max={60}
+                    value={Math.round(breakDuration / 60)}
+                    onChange={(e) => {
+                      const minutes = Math.min(60, Math.max(1, Number(e.target.value) || 1));
+                      setBreakDuration(minutes * 60);
+                    }}
+                    className="h-5 w-8 bg-transparent text-right text-xs font-semibold text-white outline-none"
+                  />
+                  <span className="text-xs font-semibold text-surface-onSurfaceSecondary">min</span>
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="flex h-[440px] flex-col p-5">
+            {!enough ? (
+              <p className="text-sm leading-6 text-surface-onSurfaceSecondary">
+                A break needs at least {MIN_HOST_VIEWERS} viewers. You have{" "}
+                {formatViewers(hostViewers)}.
+              </p>
+            ) : (
+              <CandidateBrowse candidates={candidates} picked={picked} maxPicks={3} onToggle={toggle} />
+            )}
+          </div>
+
+          <div className="flex shrink-0 flex-col gap-2 border-t-2 border-outline-decorative p-5">
+            <button
+              type="button"
+              disabled={!breakReady}
+              onClick={() => {
+                setPreview(null);
+                startBreak(picked, breakDuration);
+              }}
+              className="state-layer-base h-11 w-full rounded-md bg-primary-base text-base font-semibold text-primary-onPrimary disabled:bg-disabled-base disabled:text-disabled-onSurface"
+            >
+              {picked.length === 0 ? "Pick at least one channel" : `Start break with ${picked.length}`}
+            </button>
+            <button
+              type="button"
+              onClick={dismissDialog}
+              className="h-9 w-full rounded-md text-sm font-semibold text-surface-onSurfaceSecondary betterhover:hover:text-white"
+            >
+              Not now
+            </button>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (

@@ -52,6 +52,13 @@ const channel = (
   verified = false,
 ): Channel => ({ slug, username, avatar: avatar(slug), verified, followers });
 
+// kick GET /public/v1/channels returns active_subscribers_count directly. The mock livestream
+// list only carries followers, so this derives a plausible subscriber count from it instead of
+// storing a second literal per channel.
+export function activeSubscribersCount(channel: Channel): number {
+  return Math.round(channel.followers * 0.04);
+}
+
 export type Category = {
   name: string;
   slug: string;

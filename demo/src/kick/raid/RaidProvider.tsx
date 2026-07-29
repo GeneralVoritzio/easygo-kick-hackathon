@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import { currentSession, currentUser, type Livestream } from "../mock/api";
 import { isHidden, usePrefs } from "../prefs";
+import { addBreakVotes, chooseBreak as chooseBreakPure, startBreak as startBreakPure, type Break } from "./break";
 import {
   acceptEntry,
   addChatVotes,
@@ -12,7 +13,7 @@ import {
   type RaidMode,
 } from "./machine";
 
-export type DialogKind = "raid" | "end";
+export type DialogKind = "raid" | "end" | "break";
 
 type RaidApi = {
   raid: Raid | null;
@@ -34,6 +35,13 @@ type RaidApi = {
   leave: () => void;
   clear: () => void;
   targetIsHidden: boolean;
+  breakRaid: Break | null;
+  breakNotice: string | null;
+  startBreak: (options: string[], duration: number) => void;
+  startBreakAsViewer: (host: Livestream, options: string[], duration: number) => void;
+  chooseBreak: (choice: string | null) => void;
+  endBreak: () => void;
+  dismissBreak: () => void;
 };
 
 const RaidContext = createContext<RaidApi | null>(null);
@@ -69,11 +77,29 @@ function simulateVotes(raid: Raid) {
   return addChatVotes(raid, votes);
 }
 
+const BREAK_TICKS_PER_VOTE = 20;
+
+// A break is optional, so only a slice of chat ever wanders off, unlike a raid's forced sweep.
+// Weights are even across the streamer's three picks, since there is no host-affinity score
+// to lean on the way a raid vote has.
+function simulateBreakVotes(b: Break, hostViewers: number) {
+  const batch = Math.round((hostViewers * 0.08) / BREAK_TICKS_PER_VOTE);
+  if (batch <= 0) return b;
+  const votes: Record<string, number> = {};
+  for (let i = 0; i < batch; i++) {
+    const slug = b.options[Math.floor(Math.random() * b.options.length)];
+    votes[slug] = (votes[slug] ?? 0) + 1;
+  }
+  return addBreakVotes(b, votes);
+}
+
 export function RaidProvider({ children }: { children: ReactNode }) {
   const [raid, setRaid] = useState<Raid | null>(null);
   const [dialog, setDialog] = useState<DialogKind | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [joined, setJoined] = useState<boolean | null>(null);
+  const [breakRaid, setBreakRaid] = useState<Break | null>(null);
+  const [breakNotice, setBreakNotice] = useState<string | null>(null);
   const [prefs] = usePrefs();
 
   useEffect(() => {
@@ -114,6 +140,45 @@ export function RaidProvider({ children }: { children: ReactNode }) {
     );
     return () => tiles.forEach(clearTimeout);
   }, [viewerPhase]);
+
+  // A break is a plain countdown, no phase machine: tick it down, and a separate effect below
+  // ends it the instant it reaches zero.
+  useEffect(() => {
+    const id = setInterval(() => {
+      setBreakRaid((b) => (b && b.seconds > 0 ? { ...b, seconds: b.seconds - 1 } : b));
+    }, 1000);
+    return () => clearInterval(id);
+  }, []);
+
+  const breakVoting = Boolean(breakRaid) && !breakRaid?.ended;
+  useEffect(() => {
+    if (!breakVoting) return;
+    const id = setInterval(
+      () => setBreakRaid((b) => (b ? simulateBreakVotes(b, currentSession.viewer_count) : b)),
+      800,
+    );
+    return () => clearInterval(id);
+  }, [breakVoting]);
+
+  function endBreak() {
+    // Read from the render-time closure, not from inside the setBreakRaid updater: Strict
+    // Mode double-invokes updaters, and setBreakNotice/setTimeout are side effects that must
+    // only fire once per real end.
+    if (breakRaid?.myChoice) {
+      setBreakNotice(`${currentUser.username} is back. Bringing you back...`);
+      setTimeout(() => setBreakNotice(null), 4000);
+    }
+    // Section 5.2-style: like a landed raid, this stays around as an "ended" card in chat
+    // instead of vanishing, until the viewer dismisses it themselves.
+    setBreakRaid((b) => (b ? { ...b, ended: true, seconds: 0 } : b));
+  }
+
+  const breakEnded = breakRaid?.seconds === 0;
+  useEffect(() => {
+    if (!breakEnded) return;
+    endBreak();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [breakEnded]);
 
   const target = raid?.targetSlug ? candidateFor(raid, raid.targetSlug) : undefined;
   const targetIsHidden = Boolean(target && isHidden(target.stream.category.slug, prefs));
@@ -171,6 +236,18 @@ export function RaidProvider({ children }: { children: ReactNode }) {
     join: () => setJoined(true),
     leave: () => setJoined(false),
     clear: () => setRaid(null),
+    breakRaid,
+    breakNotice,
+    startBreak: (options, duration) => {
+      setBreakRaid(startBreakPure(currentUser.slug, options, duration));
+      setDialog(null);
+    },
+    startBreakAsViewer: (host, options, duration) => {
+      setBreakRaid(startBreakPure(host.channel.slug, options, duration));
+    },
+    chooseBreak: (choice) => setBreakRaid((b) => (b ? chooseBreakPure(b, choice) : b)),
+    endBreak,
+    dismissBreak: () => setBreakRaid(null),
   };
 
   return <RaidContext.Provider value={api}>{children}</RaidContext.Provider>;

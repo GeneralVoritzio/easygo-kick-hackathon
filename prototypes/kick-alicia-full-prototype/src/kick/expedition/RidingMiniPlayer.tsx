@@ -24,9 +24,9 @@ function cornerStyle(corner: Corner): CSSProperties {
 /*
   Riding an expedition or a Kick Break doesn't end just because you navigate off its page — this
   floating corner player follows you anywhere else in the app, the same "keep watching while you
-  browse" a real picture-in-picture player gives you. Clicking it returns to the ride. There's no
-  way to dismiss it short of that — you're still riding whatever it's showing, so it stays put as
-  a reminder until you either return to it or actually leave the ride from its own page.
+  browse" a real picture-in-picture player gives you. Clicking it returns to the ride. Its own
+  close button only hides this floating widget, it doesn't end the ride — you're still riding, the
+  widget just stops following you until the next ride starts.
 
   Draggable like a real PIP window: grab it anywhere and it follows the pointer, let go and it
   snaps to whichever of the four screen corners its centre ended up closest to — it never rests
@@ -38,8 +38,15 @@ export function RidingMiniPlayer() {
   const navigate = useNavigate();
   const [corner, setCorner] = useState<Corner>("bottom-right");
   const [livePos, setLivePos] = useState<{ left: number; top: number } | null>(null);
+  const [dismissed, setDismissed] = useState(false);
   const elRef = useRef<HTMLDivElement>(null);
   const draggedRef = useRef(false);
+  const prevRiderIdRef = useRef(riderExpeditionId);
+
+  if (prevRiderIdRef.current !== riderExpeditionId) {
+    prevRiderIdRef.current = riderExpeditionId;
+    if (dismissed) setDismissed(false);
+  }
 
   const expedition = riderExpeditionId ? expeditions.find((e) => e.id === riderExpeditionId) : undefined;
 
@@ -90,6 +97,7 @@ export function RidingMiniPlayer() {
   }
 
   if (!expedition) return null;
+  if (dismissed) return null;
   if (location.pathname === `/expedition/${expedition.id}`) return null;
 
   const current = expedition.stops[expedition.stopIndex] ?? expedition.stops[0];
@@ -119,6 +127,18 @@ export function RidingMiniPlayer() {
         <ThumbBadge corner="top-left" className="pointer-events-none uppercase text-primary-base">
           Live
         </ThumbBadge>
+
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            setDismissed(true);
+          }}
+          aria-label="Close mini player"
+          className="absolute right-1.5 top-1.5 flex size-7 items-center justify-center rounded-full bg-black/50 text-white backdrop-blur-sm"
+        >
+          <Icon name="close" className="size-3.5" />
+        </button>
 
         <div className="pointer-events-none absolute inset-x-0 bottom-0 flex items-center gap-1 bg-gradient-to-t from-black/80 to-transparent px-2 py-2">
           <Icon name="expedition" className="size-3 shrink-0 text-primary-base" />

@@ -7,6 +7,8 @@ import { StreamSurface } from './StreamSurface';
 import { StreamSignalLabel } from './StreamSignalLabel';
 import { StreamTagPills } from './StreamTagPills';
 
+const SWIPE_THRESHOLD = 70;
+
 interface StreamViewProps {
   stream: LiveStream;
   onClose: () => void;
@@ -15,7 +17,12 @@ interface StreamViewProps {
 /** Fullscreen stream + chat — reached by tapping any stream card, whether
  *  it's the discovery tile, a pinned dock thumbnail, or a focus-mosaic tile.
  *  Always unmuted: being open here is what makes a stream "audio focused"
- *  for whichever multi-tile view the viewer returns to. */
+ *  for whichever multi-tile view the viewer returns to.
+ *
+ *  Drag right anywhere on the sheet to go back, same threshold/rubber-band
+ *  pattern as DiscoveryTile's vertical swipe. `drag="x"` makes framer set
+ *  `touch-action: pan-y` on the root, so the chat list underneath still
+ *  scrolls vertically without fighting the gesture. */
 export function StreamView({ stream, onClose }: StreamViewProps) {
   const { messages, sendMessage } = useLiveChat();
   const [draft, setDraft] = useState('');
@@ -32,6 +39,13 @@ export function StreamView({ stream, onClose }: StreamViewProps) {
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: 24 }}
       transition={{ duration: 0.25 }}
+      drag="x"
+      dragElastic={0.3}
+      dragSnapToOrigin
+      dragConstraints={{ left: 0, right: 0 }}
+      onDragEnd={(_, info) => {
+        if (info.offset.x > SWIPE_THRESHOLD) onClose();
+      }}
     >
       <div className="relative aspect-video w-full shrink-0 bg-surface">
         <StreamSurface stream={stream} muted={false} />
@@ -39,7 +53,7 @@ export function StreamView({ stream, onClose }: StreamViewProps) {
           type="button"
           onClick={onClose}
           aria-label="Back"
-          className="absolute left-2 top-2 flex h-8 w-8 items-center justify-center rounded-full bg-page/70 text-lg text-ink-bright"
+          className="absolute left-[calc(env(safe-area-inset-left)+0.5rem)] top-[calc(env(safe-area-inset-top)+0.5rem)] flex h-11 w-11 items-center justify-center rounded-full bg-page/70 text-xl text-ink-bright"
         >
           ←
         </button>

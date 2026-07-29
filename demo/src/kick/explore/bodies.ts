@@ -73,7 +73,9 @@ const PLACEMENTS: Record<BodyId, SystemPlacement> = {
     satelliteOf: "earth",
     satelliteOffset: [1.25, 0.55],
   },
-  mars: { orbitRadius: 5.2, angleDeg: 46, displayScale: 0.52 },
+  // Mars sits on the far side of the Sun from Earth. Earth carries the Moon, so both of them are on
+  // one side, and a Mars on the same side leaves half the view empty.
+  mars: { orbitRadius: 5.2, angleDeg: 134, displayScale: 0.52 },
 };
 
 export function systemPosition(id: BodyId): [number, number, number] {

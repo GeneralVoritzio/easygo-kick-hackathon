@@ -1,4 +1,4 @@
-import { useMemo, useRef } from "react";
+import { Suspense, useMemo, useRef } from "react";
 import * as THREE from "three";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { Html, Stars, useTexture } from "@react-three/drei";
@@ -186,7 +186,11 @@ export function SolarSystemView({ counts }: { counts: Record<BodyId, number> }) 
       resize={{ offsetSize: true }}
     >
       <color attach="background" args={[CANVAS_BACKGROUND]} />
-      <SystemScene counts={counts} />
+      {/* useTexture suspends, and without a boundary inside the Canvas the suspension tears the
+          renderer down and takes its WebGL context with it. */}
+      <Suspense fallback={null}>
+        <SystemScene counts={counts} />
+      </Suspense>
     </Canvas>
   );
 }

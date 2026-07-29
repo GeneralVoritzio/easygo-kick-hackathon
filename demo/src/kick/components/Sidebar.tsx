@@ -6,9 +6,9 @@ import { followedChannels, livestreams, formatViewers } from "../mock/api";
 const navItems: { to: string; label: string; icon: KickIconName; activeIcon: KickIconName }[] = [
   { to: "/", label: "Home", icon: "nav-home", activeIcon: "nav-home-active" },
   { to: "/browse", label: "Browse", icon: "nav-browse", activeIcon: "nav-browse-active" },
-  // KICK has no Explore item, so it has no outline and filled pair either. Both nav rows also mark
+  // KICK has no Planet item, so it has no outline and filled pair either. Both nav rows also mark
   // the active item with a background, so one globe reads correctly in both states.
-  { to: "/explore", label: "Explore", icon: "globe", activeIcon: "globe" },
+  { to: "/explore", label: "Planet", icon: "globe", activeIcon: "globe" },
   { to: "/following", label: "Following", icon: "nav-following", activeIcon: "nav-following-active" },
 ];
 

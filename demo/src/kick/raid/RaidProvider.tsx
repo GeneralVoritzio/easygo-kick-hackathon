@@ -1,6 +1,14 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import { currentSession, currentUser, type Livestream } from "../mock/api";
+import { joinsShowdowns } from "../mock/raids";
 import { isHidden, usePrefs } from "../prefs";
+import {
+  acceptInvite,
+  declineInvite,
+  openInvite,
+  tickInvite,
+  type ShowdownInvite,
+} from "./invite";
 import {
   acceptEntry,
   addChatVotes,
@@ -16,6 +24,13 @@ export type DialogKind = "raid" | "end";
 
 type RaidApi = {
   raid: Raid | null;
+  // A showdown somebody else runs, which this streamer has been put into.
+  invite: ShowdownInvite | null;
+  inviteShowdown: () => void;
+  answerInvite: (accepted: boolean) => void;
+  clearInvite: () => void;
+  // The pitch window is a minute, which nobody wants to sit through in a demo.
+  skipInvite: () => void;
   dialog: DialogKind | null;
   // Section 5.1: selecting a channel in the dialog plays it in the player, never in the dialog.
   preview: string | null;
@@ -53,6 +68,11 @@ const tick = (raid: Raid | null) => {
 
 const TICKS_PER_VOTE = 25;
 
+// Who puts this streamer in a showdown. IronVow is the biggest channel the demo follows, and
+// CapeQuest is the other finalist, so the invite reads as a big room choosing between two small ones.
+const INVITE_HOST_SLUG = "ironvow";
+const INVITE_OPPONENT_SLUG = "capequest";
+
 // The votes are simulated, not typed. The weight is the candidate's own score, so the poll
 // behaves like a chat that broadly agrees with the ranking without ever matching it.
 function simulateVotes(raid: Raid) {
@@ -73,13 +93,17 @@ function simulateVotes(raid: Raid) {
 
 export function RaidProvider({ children }: { children: ReactNode }) {
   const [raid, setRaid] = useState<Raid | null>(null);
+  const [invite, setInvite] = useState<ShowdownInvite | null>(null);
   const [dialog, setDialog] = useState<DialogKind | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [joined, setJoined] = useState<boolean | null>(null);
   const [prefs] = usePrefs();
 
   useEffect(() => {
-    const id = setInterval(() => setRaid(tick), 1000);
+    const id = setInterval(() => {
+      setRaid(tick);
+      setInvite(tickInvite);
+    }, 1000);
     return () => clearInterval(id);
   }, []);
 
@@ -122,6 +146,16 @@ export function RaidProvider({ children }: { children: ReactNode }) {
 
   const api: RaidApi = {
     raid,
+    invite,
+    // Section 10: the consent toggle gates this, so an invite cannot arrive for a streamer who
+    // turned showdowns off.
+    inviteShowdown: () => {
+      if (!joinsShowdowns(currentUser.slug)) return;
+      setInvite(openInvite(INVITE_HOST_SLUG, INVITE_OPPONENT_SLUG));
+    },
+    answerInvite: (accepted) => setInvite((i) => (i ? (accepted ? acceptInvite(i) : declineInvite(i)) : i)),
+    clearInvite: () => setInvite(null),
+    skipInvite: () => setInvite((i) => (i ? { ...i, seconds: 1 } : i)),
     dialog,
     preview,
     setPreview,

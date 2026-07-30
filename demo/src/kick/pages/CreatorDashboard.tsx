@@ -7,6 +7,7 @@ import { categories, currentSession, currentUser, formatFollowers, formatViewers
 import { ChatFeed } from "../components/ChannelChat";
 import { RaidStage } from "../components/RaidStage";
 import { RaidDevControls } from "../components/RaidChat";
+import { ShowdownInvite } from "../components/ShowdownInvite";
 import { BackFromBreakToast } from "../components/BackFromBreakToast";
 import { useRaid } from "../raid/RaidProvider";
 import { usePrefs } from "../prefs";
@@ -326,6 +327,7 @@ export function CreatorDashboard() {
   return (
     <div className="flex h-screen flex-col overflow-hidden bg-surface-lowest">
       <RaidDevControls />
+      <ShowdownInvite />
       {showRaidReminder && (
         <RaidReminder
           raidReminder={prefs.raidReminder}

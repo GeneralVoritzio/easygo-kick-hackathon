@@ -1567,3 +1567,124 @@ modal leaves the page.
 `mr-[calc((1-var(--chat-clip-dialog-expanded))*105px)]` and the same form for `mt` at 13px. So it
 sits on the top right of the **video** while the rail is open, and moves inside the video, clear of
 the controls, when the rail collapses. A collapsed rail puts a `Chat` button at `right-5 top-3`.
+
+## 24. The drops pages, measured on kick.com 30 July 2026, logged in at 2560 by 1305
+
+**Source:** `kick.com/drops/inventory` and `kick.com/drops/all-campaigns`. Reached from the profile
+menu row "Drops & rewards". Both tabs render inside one shell, so the two URLs are real routes.
+
+The page needs a login. A logged out visit shows no cards at all.
+
+### 24.1 The shell, shared by both tabs
+
+`main` is the scroller: `no-scrollbar relative w-full flex-1 overflow-y-auto overflow-x-hidden
+outline-none`. This is not the home or browse shell, so do not reuse `PageShell`.
+
+| Part | Class | Measured |
+|---|---|---|
+| page column | `mx-auto flex w-full max-w-[1472px] flex-col gap-4 py-7 px-10` | 1472 wide, padding 28px 40px, gap 16px |
+| page title | `h2.text-white font-bold text-2xl lg:text-2xl` | 32 high, 24px/700 |
+| tab wrapper | `flex flex-col gap-4 rounded-lg py-3` | |
+| tab bar | the standard bar, plus `shrink-0 pt-2 lg:pt-0` | 48 high |
+| a tab | `... rounded-t-sm border-b px-2 h-12 text-base font-semibold` | 48 high, padding 0 8px, radius **2px** |
+| content | `flex flex-col gap-5 lg:gap-6` | |
+| a section | `flex w-full shrink-0 grow-0 flex-col gap-2` (first) or `gap-3` | |
+
+**A tab radius is 2px, not 4px.** `rounded-t-sm` on kick.com computes 2px, so `--radius-sm` is 2px
+and `--radius-DEFAULT` is 4px. We had `--radius-sm: 4px`, which was wrong on every tab bar.
+
+### 24.2 The two tabs disagree on the heading weight
+
+This is the one value you cannot carry from one tab to the other:
+
+| Tab | Section `h1` | Weight |
+|---|---|---|
+| Inventory | `text-white text-base font-semibold lg:text-xl` | 600 |
+| All campaigns | `text-white text-base font-bold lg:text-xl` | 700 |
+
+Both measure 20px at `lg`. Only the weight changes.
+
+### 24.3 A card is a Radix accordion
+
+The item is `mt-px overflow-hidden first:mt-0 focus-within:relative focus-within:z-[10] w-full`,
+and the card inside it is `flex w-full flex-col rounded-lg bg-surface-base py-4`: 8px radius,
+padding 16px 0, `#171a1c`.
+
+The trigger is `w-full gap-6 group/accordion flex items-center justify-between px-4`, and it
+carries **no state layer**. The chevron is `size-4 text-white transition-transform
+group-data-[state=open]/accordion:rotate-180`.
+
+The region animates on `--radix-accordion-content-height` over 300ms
+`cubic-bezier(.87,0,.13,1)`, with the opacity held at 0 until half way.
+
+### 24.4 A reward tile
+
+`li.flex flex-col gap-3 w-[calc(50%-0.5rem)] min-w-[120px] sm:w-[120px]`, so it is half the row
+below `sm` and a fixed 120 above it.
+
+| Part | Measured |
+|---|---|
+| tile, inventory | 120 by **244**, gap 12 |
+| tile, all campaigns | 120 by **224**, gap 12 |
+| image | 120 by 120, `rounded-t`, radius 4px 4px 0 0 |
+| name | 120 by 72, padding 8px, 14px/600, `line-clamp-3` |
+| label box, inventory | **`h-10 items-start justify-start`**, so 40 high |
+| label box, all campaigns | no height, so 20 high |
+
+The 20px difference between the two tabs is that `h-10` label box, nothing else.
+
+The progress bar is inventory only: `bg-outline-region absolute bottom-0 left-0 right-0 h-1 w-full
+translate-y-1/2 overflow-hidden rounded-lg` with `role="progressbar"`, and the fill is
+`bg-primary-base h-full w-full origin-left rounded-lg`. It straddles the bottom edge of the plate.
+An expired tile has no bar.
+
+### 24.5 What each state shows
+
+| State | Tiles | Label under a tile | Footer left | Footer buttons |
+|---|---|---|---|---|
+| Inventory, in progress | progress bar | `1 min to unlock` | `End date:` and `To continue progress, go to any participating live channel.` | About this drop, Connect |
+| Inventory, expired | no bar | `This reward is no longer available.` | `End date:` only | About this drop |
+| Campaign, open | no bar | `Watch 10 hr` | | Connect, Participate |
+| Campaign, closed | no bar | `Watch 10 hr` | | **none** |
+
+**A closed campaign has no buttons and no "How to earn & redeem?" box.** The footer div is still
+rendered and empty, so it still costs one 16px gap. An open campaign carries both.
+
+**A section with nothing in it is not rendered.** On 30 July the only in-progress drop expired, and
+the "In progress" heading went with it.
+
+**Every unit is whole.** `1 min to unlock`, `Watch 10 hr`. Never a decimal.
+
+### 24.6 A campaign group holds campaigns
+
+The outer card is the category plus the organization. Inside it, one block per campaign:
+
+```
+div.mt-px overflow-hidden first:mt-0 ...
+  div.bg-surface-base flex w-full flex-col gap-4 rounded
+    div.flex w-full items-center justify-between gap-3 px-4     <- name, pill, date range
+    div.flex flex-wrap justify-start gap-4 px-4                 <- the tiles
+    div.px-3 > div.bg-surface-highest rounded p-4               <- how to earn, open only
+    div.bg-outline-decorative h-px w-full
+```
+
+The group footer with Connect and Participate is a sibling of those blocks, not a child.
+
+| Part | Measured |
+|---|---|
+| category thumb | 50 by 67. `rounded-lg` on inventory, `rounded` on all campaigns |
+| restriction badge | `rounded-full bg-secondary-base px-2 py-1 text-sm !leading-none`, 22 high |
+| `Watch to redeem` pill | `inline-flex rounded-full bg-secondary-base px-2 py-1 text-xs gap-1`, 26 high, 18px eye icon |
+| how-to box | `bg-surface-highest rounded p-4`, 56 high collapsed, `#232629` |
+| how-to heading | `h1 ... text-base font-bold`, 24 high, 16px/700, gap 8 |
+| secondary button | 36 high, padding 0 10px, gap 6, radius 4, 14px/600, `#42474d` |
+| primary button | the same box, `#53fc18` on `#0b0b0c` |
+
+Both buttons are `w-full` below `lg` and `lg:w-fit` above it, in a `flex-col-reverse lg:flex-row`,
+so the primary sits on top on a phone and on the right on a desktop.
+
+### 24.7 The links leave kick.com
+
+`About this drop`, `Connect` and `See more details provided by X` all point at the organization's
+own site with `target="_blank"`. `Learn more` goes to `/settings/connections`. `any participating
+live channel` and `Participate` go to `/category/<slug>/drops`.

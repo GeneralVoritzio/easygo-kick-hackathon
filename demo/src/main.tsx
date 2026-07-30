@@ -11,6 +11,8 @@ import { FollowingChannels } from './kick/pages/FollowingChannels'
 import { Channel } from './kick/pages/Channel'
 import { SettingsProfile } from './kick/pages/SettingsProfile'
 import { SettingsPreferences } from './kick/pages/SettingsPreferences'
+import { DropsInventory } from './kick/pages/DropsInventory'
+import { DropsAllCampaigns } from './kick/pages/DropsAllCampaigns'
 import { CreatorDashboard } from './kick/pages/CreatorDashboard'
 import Demo from './App.tsx'
 
@@ -30,6 +32,8 @@ createRoot(document.getElementById('root')!).render(
           <Route path="/following" element={<Following />} />
           <Route path="/following/categories" element={<FollowingCategories />} />
           <Route path="/following/channels" element={<FollowingChannels />} />
+          <Route path="/drops/inventory" element={<DropsInventory />} />
+          <Route path="/drops/all-campaigns" element={<DropsAllCampaigns />} />
           <Route path="/settings/profile" element={<SettingsProfile />} />
           <Route path="/settings/preferences" element={<SettingsPreferences />} />
           <Route path="/:slug" element={<Channel tab="home" watch />} />

@@ -11,7 +11,7 @@ export type Filter = {
   options: SelectOption[];
 };
 
-function FilterSelect({ id, label, value, onChange, options, align = "left" }: Filter & { align?: "left" | "right" }) {
+export function FilterSelect({ id, label, value, onChange, options, align = "left" }: Filter & { align?: "left" | "right" }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   const selected = options.find((option) => option.value === value);

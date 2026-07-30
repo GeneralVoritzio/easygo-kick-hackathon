@@ -31,7 +31,7 @@ createRoot(document.getElementById('root')!).render(
           <Route path="/browse/categories" element={<Browse tab="categories" />} />
           <Route path="/browse/clips" element={<Browse tab="clips" />} />
           <Route
-            path="/explore"
+            path="/planet"
             element={
               <Suspense fallback={null}>
                 <Explore />

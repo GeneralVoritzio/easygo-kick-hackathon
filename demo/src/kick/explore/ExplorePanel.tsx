@@ -1,5 +1,7 @@
+import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { Icon } from "../Icon";
+import { FilterSelect } from "../components/BrowseFilters";
 import { HeroChatFeed } from "../components/ChannelChat";
 import { formatViewers } from "../mock/api";
 import { INTERACTION_BADGES } from "./badges";
@@ -13,6 +15,25 @@ const STREAMER_CONTROL_SLUG = "ironvow";
 
 const cardClass =
   "flex flex-col gap-1 rounded border border-outline-decorative bg-surface-highest p-3";
+
+// The same three options, and the same meaning, that the Browse page offers.
+const SORT_OPTIONS = [
+  { value: "featured", label: "Featured" },
+  { value: "recommended", label: "Recommended" },
+  { value: "viewers-desc", label: "Viewers (High to Low)" },
+];
+
+function sortChannels(channels: ExploreChannel[], sort: string): ExploreChannel[] {
+  if (sort === "viewers-desc") {
+    return [...channels].sort((a, b) => b.stream.viewer_count - a.stream.viewer_count);
+  }
+  if (sort === "featured") {
+    return [...channels].sort(
+      (a, b) => Date.parse(b.stream.started_at) - Date.parse(a.stream.started_at),
+    );
+  }
+  return channels;
+}
 
 const iconButtonClass =
   "state-layer-surface grid size-8 shrink-0 place-items-center rounded text-surface-onSurfaceSecondary";
@@ -219,6 +240,8 @@ export function ExplorePanel({
 }) {
   const setSelectedCluster = useExplore((s) => s.setSelectedCluster);
   const setSelectedChannel = useExplore((s) => s.setSelectedChannel);
+  const [sort, setSort] = useState("recommended");
+  const rows = useMemo(() => sortChannels(cluster?.channels ?? [], sort), [cluster, sort]);
   const close = () => setSelectedCluster(null);
   const back = () => setSelectedChannel(null);
 
@@ -271,15 +294,27 @@ export function ExplorePanel({
           {channel ? (
             <ChannelDetail channel={channel} cluster={cluster} />
           ) : (
-            <div className="flex flex-col gap-1 p-2">
-              {cluster?.channels.map((row) => (
-                <ChannelRow
-                  key={row.id}
-                  channel={row}
-                  onOpen={() => setSelectedChannel(row.id)}
+            <>
+              <div className="flex shrink-0 justify-end px-3 pt-3">
+                <FilterSelect
+                  id="explore_sort_by"
+                  label="Sort by:"
+                  value={sort}
+                  onChange={setSort}
+                  options={SORT_OPTIONS}
+                  align="right"
                 />
-              ))}
-            </div>
+              </div>
+              <div className="flex flex-col gap-1 p-2">
+                {rows.map((row) => (
+                  <ChannelRow
+                    key={row.id}
+                    channel={row}
+                    onOpen={() => setSelectedChannel(row.id)}
+                  />
+                ))}
+              </div>
+            </>
           )}
         </div>
 

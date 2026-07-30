@@ -8,7 +8,7 @@ const navItems: { to: string; label: string; icon: KickIconName; activeIcon: Kic
   { to: "/browse", label: "Browse", icon: "nav-browse", activeIcon: "nav-browse-active" },
   // KICK has no Planet item, so it has no outline and filled pair either. Both nav rows also mark
   // the active item with a background, so one globe reads correctly in both states.
-  { to: "/explore", label: "Planet", icon: "globe", activeIcon: "globe" },
+  { to: "/planet", label: "Planet", icon: "globe", activeIcon: "globe" },
   { to: "/following", label: "Following", icon: "nav-following", activeIcon: "nav-following-active" },
 ];
 

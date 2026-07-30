@@ -444,8 +444,6 @@ export function buildExploreCatalog(seed = SEED): ExploreCatalog {
       });
     }
 
-    channels.sort((a, b) => b.stream.viewer_count - a.stream.viewer_count);
-
     return {
       id: clusterId,
       place: countryDef.country,

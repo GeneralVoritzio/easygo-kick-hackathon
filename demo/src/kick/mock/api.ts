@@ -38,6 +38,8 @@ const avatar = (slug: string) => {
   return url;
 };
 
+export const avatarFor = avatar;
+
 // ponytail: category tiles and stream stills are still our own art. Replace them with the
 // official kick.com artwork and real frames, captured with kick-page-clone.
 const artUrl = (name: string) => art[`../art/${name}.svg`] ?? "";

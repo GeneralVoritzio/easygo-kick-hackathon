@@ -8,9 +8,10 @@ import {
   type ReactNode,
 } from "react";
 import { Icon, type KickIconName } from "../Icon";
-import { currentUser, type Livestream } from "../mock/api";
+import { TradingPanel, useCardSets } from "../cards/TradingPanel";
+import { avatarFor, currentUser } from "../mock/api";
 import { useRaid } from "../raid/RaidProvider";
-import { RaidBanner, RaidPanel, RaidPreviewAsViewer } from "./RaidChat";
+import { RaidBanner, RaidPanel } from "./RaidChat";
 import identityBadge from "../icons/identity-badge.png";
 
 // Identity colours resolved from assets/reference/kick-neon-tokens.css (--neon-identity-*).
@@ -33,10 +34,14 @@ const identityColors = [
   "#d8a0fe", // violet
 ];
 
-export function colorFor(username: string) {
+function hashOf(username: string) {
   let hash = 0;
   for (let i = 0; i < username.length; i++) hash = (hash * 31 + username.charCodeAt(i)) >>> 0;
-  return identityColors[hash % identityColors.length];
+  return hash;
+}
+
+export function colorFor(username: string) {
+  return identityColors[hashOf(username) % identityColors.length];
 }
 
 type BadgeName =
@@ -148,6 +153,9 @@ export const chatLines = [
   "how many hours in ironman now",
   "sub goal when",
   "run it back",
+  "anyone holding a kraken eye",
+  "wtb kraken eye, paying in wyvern fang",
+  "carl stop hoarding the kraken eyes",
 ];
 
 const pick = <T,>(list: T[]) => list[Math.floor(Math.random() * list.length)];
@@ -234,6 +242,168 @@ function ChatHeader({ onCollapse }: { onCollapse?: () => void }) {
   );
 }
 
+type ChatTab = "chat" | "trading";
+
+type CardUser = { username: string; badges: BadgeName[] };
+
+const monthNames = [
+  "January", "February", "March", "April", "May", "June",
+  "July", "August", "September", "October", "November", "December",
+];
+
+const DAY = 24 * 60 * 60 * 1000;
+const CARD_NOW = new Date("2026-07-26T13:30:00Z").getTime();
+
+function cardDate(daysAgo: number) {
+  const d = new Date(CARD_NOW - daysAgo * DAY);
+  return `${monthNames[d.getUTCMonth()]} ${d.getUTCDate()}, ${d.getUTCFullYear()}`;
+}
+
+// The live card shows real dates. Ours derive from the username, so they hold still
+// between renders without a per-chatter fixture.
+function cardDates(username: string) {
+  const hash = hashOf(username);
+  const followedDaysAgo = 14 + (hash % 320);
+  return {
+    followed: cardDate(followedDaysAgo),
+    joined: cardDate(followedDaysAgo + 60 + ((hash >>> 3) % 600)),
+  };
+}
+
+// Read off the screenshot of the live card: avatar and username on top, followed and
+// joined dates in two columns, the badge row with a tooltip, then the action buttons.
+// Trade is ours, and it is the only new control on the card.
+function ChatUserCard({
+  user,
+  onClose,
+  onTrade,
+}: {
+  user: CardUser;
+  onClose: () => void;
+  onTrade: (username: string) => void;
+}) {
+  const dates = cardDates(user.username);
+  return (
+    <div className="absolute inset-x-2 bottom-[120px] z-popover rounded border border-outline-decorative bg-surface-base p-4">
+      <div className="flex items-start justify-between gap-2">
+        <div className="flex items-center gap-3">
+          <img
+            src={avatarFor(user.username.toLowerCase())}
+            alt=""
+            className="size-12 shrink-0 rounded-full"
+          />
+          <span className="min-w-0 truncate text-base font-bold text-white">{user.username}</span>
+        </div>
+        <button
+          type="button"
+          aria-label="Close user card"
+          onClick={onClose}
+          className="state-layer-surface flex size-8 shrink-0 items-center justify-center rounded text-white"
+        >
+          <Icon name="close" className="size-3.5" />
+        </button>
+      </div>
+
+      <div className="mt-3 grid grid-cols-2 gap-2">
+        <div>
+          <span className="block text-sm font-bold text-white">Followed on</span>
+          <span className="block text-sm text-white">{dates.followed}</span>
+        </div>
+        <div>
+          <span className="block text-sm font-bold text-white">Joined on</span>
+          <span className="block text-sm text-white">{dates.joined}</span>
+        </div>
+      </div>
+
+      {user.badges.length > 0 && (
+        <div className="mt-3 flex items-center gap-2">
+          <span className="text-sm font-bold text-white">Badges</span>
+          {user.badges.map((name) => (
+            <span key={name} className="group/badge relative flex">
+              <Icon name={badges[name].icon} className="size-5" />
+              <span className="pointer-events-none absolute bottom-full left-1/2 mb-1.5 -translate-x-1/2 whitespace-nowrap rounded bg-white px-2 py-1 text-xs font-bold text-black opacity-0 transition-opacity group-hover/badge:opacity-100">
+                {badges[name].label}
+              </span>
+            </span>
+          ))}
+        </div>
+      )}
+
+      <div className="mt-3 flex flex-wrap gap-2">
+        <button
+          type="button"
+          className="flex h-9 items-center gap-1.5 rounded bg-secondary-base px-3 text-sm font-semibold text-secondary-onSecondary betterhover:hover:bg-surface-highest"
+        >
+          <Icon name="heart" className="size-4" />
+          Follow
+        </button>
+        <button
+          type="button"
+          className="flex h-9 items-center gap-1.5 rounded bg-secondary-base px-3 text-sm font-semibold text-secondary-onSecondary betterhover:hover:bg-surface-highest"
+        >
+          <Icon name="gift" className="size-4" />
+          Gift a Sub
+        </button>
+        <button
+          type="button"
+          onClick={() => onTrade(user.username)}
+          className="flex h-9 items-center gap-1.5 rounded bg-secondary-base px-3 text-sm font-semibold text-secondary-onSecondary betterhover:hover:bg-surface-highest"
+        >
+          <Icon name="collectibles" className="size-4" />
+          Trade
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// The strip runs the channel tab metrics one step down: h-10 and text-sm against their
+// h-12 and text-base, with the same active underline.
+function ChatTabs({
+  tab,
+  dot,
+  onSelect,
+}: {
+  tab: ChatTab;
+  dot: boolean;
+  onSelect: (tab: ChatTab) => void;
+}) {
+  const tabs: { id: ChatTab; label: string }[] = [
+    { id: "chat", label: "Chat" },
+    { id: "trading", label: "Trading" },
+  ];
+  return (
+    <nav
+      aria-label="Chat panels"
+      className="relative flex shrink-0 flex-nowrap px-2 shadow-[inset_0px_-2px_0] shadow-outline-decorative"
+    >
+      {tabs.map((entry) => {
+        const isActive = entry.id === tab;
+        return (
+          <button
+            key={entry.id}
+            type="button"
+            onClick={() => onSelect(entry.id)}
+            className={`state-layer-surface relative flex h-10 shrink-0 cursor-pointer items-center gap-1.5 overflow-hidden whitespace-nowrap rounded-t-sm border-b px-2 text-sm font-semibold transition-all ${
+              isActive
+                ? "border-surface-onSurfacePrimary text-surface-onSurfacePrimary"
+                : "border-transparent text-white"
+            }`}
+          >
+            {isActive && (
+              <div className="absolute inset-x-0 bottom-[-2px] h-0.5 rounded-full bg-surface-onSurfacePrimary" />
+            )}
+            {entry.label}
+            {entry.id === "trading" && dot && (
+              <span className="size-1.5 rounded-full bg-primary-base" />
+            )}
+          </button>
+        );
+      })}
+    </nav>
+  );
+}
+
 function GifterEntry({ gifter }: { gifter: (typeof topGifters)[number] }) {
   return (
     <div className="flex shrink-0 flex-row flex-nowrap items-center justify-center gap-1">
@@ -272,7 +442,13 @@ function GifterLeaderboard() {
   );
 }
 
-function ChatMessage({ message }: { message: Message }) {
+function ChatMessage({
+  message,
+  onOpen,
+}: {
+  message: Message;
+  onOpen?: (user: CardUser) => void;
+}) {
   return (
     <div className="group relative px-2 lg:px-3">
       <div className="betterhover:group-hover:bg-surface-highest w-full min-w-0 shrink-0 break-words rounded-lg px-2 py-[var(--chatroom-message-spacing)] text-[length:var(--chatroom-font-size)] leading-[1.5]">
@@ -289,7 +465,12 @@ function ChatMessage({ message }: { message: Message }) {
               ))}
             </div>
           )}
-          <button type="button" className="inline font-bold" style={{ color: message.color }}>
+          <button
+            type="button"
+            onClick={() => onOpen?.({ username: message.username, badges: message.badges })}
+            className="inline font-bold"
+            style={{ color: message.color }}
+          >
             {message.username}
           </button>
         </div>
@@ -302,7 +483,15 @@ function ChatMessage({ message }: { message: Message }) {
   );
 }
 
-function ChatMessages({ messages, surface }: { messages: Message[]; surface: string }) {
+function ChatMessages({
+  messages,
+  surface,
+  onOpen,
+}: {
+  messages: Message[];
+  surface: string;
+  onOpen?: (user: CardUser) => void;
+}) {
   const listRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -314,7 +503,7 @@ function ChatMessages({ messages, surface }: { messages: Message[]; surface: str
     <div className={`relative shrink grow overflow-hidden ${surface}`}>
       <div ref={listRef} id="chatroom-messages" className="relative h-full w-full overflow-y-auto">
         {messages.map((message) => (
-          <ChatMessage key={message.id} message={message} />
+          <ChatMessage key={message.id} message={message} onOpen={onOpen} />
         ))}
       </div>
     </div>
@@ -678,20 +867,22 @@ function ChatFooter({
 
 // The dashboard panels are lighter than the page under them, so the chat runs on surface-base
 // there. On the channel page one surface runs across the whole site, so it runs on surface-lowest.
-export function ChatFeed({
-  header,
-  dashboard,
-  host,
-}: {
-  header?: ReactNode;
-  dashboard?: boolean;
-  host?: Livestream;
-}) {
+export function ChatFeed({ header, dashboard }: { header?: ReactNode; dashboard?: boolean }) {
   const surface = dashboard ? "bg-surface-base" : "bg-surface-lowest";
   const [messages, setMessages] = useFlowingMessages();
   const [draft, setDraft] = useState("");
   const { raid } = useRaid();
   const [panelOpen, setPanelOpen] = useState(true);
+  const [tab, setTab] = useState<ChatTab>("chat");
+  const cards = useCardSets();
+  const [cardUser, setCardUser] = useState<CardUser | null>(null);
+  const [toast, setToast] = useState<string>();
+
+  useEffect(() => {
+    if (!toast) return;
+    const id = setTimeout(() => setToast(undefined), 2500);
+    return () => clearTimeout(id);
+  }, [toast]);
 
   function send(body: string) {
     if (!body) return;
@@ -718,37 +909,57 @@ export function ChatFeed({
       onSubmit={sendDraft}
       // KICK exposes the spacing as a viewer setting. Their default is 4px, we run compact.
       style={{ "--chatroom-message-spacing": "2px" } as CSSProperties}
-      className={`${surface} flex h-full w-full flex-col overflow-hidden`}
+      className={`${surface} relative flex h-full w-full flex-col overflow-hidden`}
     >
       {header}
+      {!dashboard && (
+        <ChatTabs
+          tab={tab}
+          dot={Boolean(cards.state.freshCardId) && tab === "chat"}
+          onSelect={setTab}
+        />
+      )}
       <RaidBanner open={panelOpen} onToggle={() => setPanelOpen((v) => !v)} />
-      <ChatMessages messages={messages} surface={surface} />
-      {raid && panelOpen && <RaidPanel onClose={() => setPanelOpen(false)} />}
-      {!raid && host && <RaidPreviewAsViewer host={host} />}
-      <ChatFooter
-        draft={draft}
-        dashboard={dashboard}
-        onChange={setDraft}
-        onSend={send}
-        onSubmit={() => {
-          send(draft.trim());
-          setDraft("");
-        }}
-      />
+      {tab === "trading" && !dashboard ? (
+        <TradingPanel state={cards.state} act={cards.act} />
+      ) : (
+        <>
+          <ChatMessages messages={messages} surface={surface} onOpen={setCardUser} />
+          {raid && panelOpen && <RaidPanel onClose={() => setPanelOpen(false)} />}
+          <ChatFooter
+            draft={draft}
+            dashboard={dashboard}
+            onChange={setDraft}
+            onSend={send}
+            onSubmit={() => {
+              send(draft.trim());
+              setDraft("");
+            }}
+          />
+        </>
+      )}
+      {cardUser && tab === "chat" && (
+        <ChatUserCard
+          user={cardUser}
+          onClose={() => setCardUser(null)}
+          onTrade={(username) => {
+            setCardUser(null);
+            setToast(`Trade request sent to ${username}`);
+          }}
+        />
+      )}
+      {toast && (
+        <div className="absolute bottom-[130px] left-1/2 z-popover -translate-x-1/2 whitespace-nowrap rounded bg-surface-highest px-3 py-2 text-sm font-semibold text-white">
+          {toast}
+        </div>
+      )}
     </form>
   );
 }
 
-export function ChannelChat({
-  onCollapse,
-  host,
-}: {
-  onCollapse?: () => void;
-  host?: Livestream;
-}) {
+export function ChannelChat({ onCollapse }: { onCollapse?: () => void }) {
   return (
     <ChatFeed
-      host={host}
       header={
         <>
           <ChatHeader onCollapse={onCollapse} />

@@ -145,10 +145,11 @@ Brand Identity Section 5 holds the wordmark rule.
 They show KICK's still-life language (Brand Identity Section 5), but they are KICK photography and
 we cannot use them in the deck. Read them on the site. Do not commit them.
 
-## `demo/src/kick/avatars/`: channel avatars, 16 files
+## `demo/src/kick/avatars/`: channel and viewer avatars, 45 files
 
 **Not KICK's.** These stand in for the profile pictures the API returns, so the demo needs no
-account and no network. Read **27 July 2026**.
+account and no network. Channel files read **27 July 2026**. Viewer files for the chat user
+card (one per chatter username slug) read **30 July 2026**.
 
 | Property | Value |
 |---|---|

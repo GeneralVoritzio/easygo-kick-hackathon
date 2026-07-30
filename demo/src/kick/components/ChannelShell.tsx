@@ -153,7 +153,7 @@ export function ChannelShell({
           style={{ width: chatOpen ? chatWidth : 0, opacity: chatOpen ? 1 : 0 }}
           className="h-full max-h-full min-w-0 shrink-0 grow-0 overflow-hidden transition-[width,opacity] duration-300 ease-out"
         >
-          <ChannelChat onCollapse={() => setChatOpen(false)} host={watch ? stream : undefined} />
+          <ChannelChat onCollapse={() => setChatOpen(false)} />
         </div>
       </div>
     </div>

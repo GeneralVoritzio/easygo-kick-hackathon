@@ -67,17 +67,6 @@ export function clustersForBody(
   return result;
 }
 
-// A cluster dot stands for the whole city. Once clusters expand at near zoom, a dot stands for one
-// channel, so listing its siblings would misrepresent what the pointer is on.
-export function channelsForFocus(
-  cluster: ExploreCluster,
-  focusedChannelId: string | null,
-): ExploreChannel[] {
-  if (!focusedChannelId) return cluster.channels;
-  const one = cluster.channels.find((ch) => ch.id === focusedChannelId);
-  return one ? [one] : cluster.channels;
-}
-
 export function channelCountsByBody(
   clusters: ExploreCluster[],
   overrides: Record<string, boolean> = {},

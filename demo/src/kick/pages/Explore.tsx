@@ -2,12 +2,12 @@ import { useEffect, useMemo } from "react";
 import { formatViewers } from "../mock/api";
 import { DEFAULT_ORIGIN, EXPLORE_CLUSTERS, findExploreChannel } from "../mock/explore";
 import { BODIES, BODY_ORDER } from "../explore/bodies";
-import { channelCountsByBody, clustersForBody, isLocationHidden } from "../explore/bodyView";
+import { channelCountsByBody, clustersForBody } from "../explore/bodyView";
 import { BodySwitcher } from "../explore/BodySwitcher";
 import { ExploreFilterBar } from "../explore/ExploreFilterBar";
 import { ExploreGlobe } from "../explore/ExploreGlobe";
 import { SolarSystemView } from "../explore/SolarSystemView";
-import { StreamPreviewPanel } from "../explore/StreamPreviewPanel";
+import { ExplorePanel } from "../explore/ExplorePanel";
 import { applyExploreFilters } from "../explore/filters";
 import { useExplore } from "../explore/exploreStore";
 import type { BodyId, ExploreCluster } from "../explore/types";
@@ -33,6 +33,7 @@ function BodyChannelList({
   bodies: { id: BodyId; clusters: ExploreCluster[] }[];
   className?: string;
 }) {
+  const setSelectedCluster = useExplore((s) => s.setSelectedCluster);
   const setSelectedChannel = useExplore((s) => s.setSelectedChannel);
 
   return (
@@ -52,7 +53,10 @@ function BodyChannelList({
                   <li key={channel.id}>
                     <button
                       type="button"
-                      onClick={() => setSelectedChannel(channel.id)}
+                      onClick={() => {
+                        setSelectedCluster(cluster.id);
+                        setSelectedChannel(channel.id);
+                      }}
                       className="text-left text-sm text-surface-onSurfaceSecondary transition-colors betterhover:hover:text-primary-base"
                     >
                       {channel.stream.channel.username}, {channel.stream.category.name},{" "}
@@ -78,6 +82,7 @@ export function Explore() {
   const webglOk = useMemo(hasWebGL, []);
   const geoStatus = useExplore((s) => s.geoStatus);
   const origin = useExplore((s) => s.origin);
+  const selectedClusterId = useExplore((s) => s.selectedClusterId);
   const selectedChannelId = useExplore((s) => s.selectedChannelId);
   const filters = useExplore((s) => s.filters);
   const activeBody = useExplore((s) => s.activeBody);
@@ -161,6 +166,7 @@ export function Explore() {
       if (e.key !== "Escape") return;
       const state = useExplore.getState();
       if (state.selectedChannelId) state.setSelectedChannel(null);
+      else if (state.selectedClusterId) state.setSelectedCluster(null);
       else if (state.focusedClusterId) state.setFocusedCluster(null);
       else if (state.viewMode === "system") state.setViewMode("body");
     };
@@ -168,13 +174,13 @@ export function Explore() {
     return () => window.removeEventListener("keydown", onKeyDown);
   }, []);
 
+  // The open country comes from the clusters the map is showing, so the list obeys the filters and
+  // the privacy toggles.
+  const selectedCluster = useMemo(
+    () => (selectedClusterId ? filteredClusters.find((c) => c.id === selectedClusterId) : undefined),
+    [selectedClusterId, filteredClusters],
+  );
   const selectedChannel = selectedChannelId ? findExploreChannel(selectedChannelId) : undefined;
-  // A channel that hides has no location to name, so the panel gets no cluster.
-  const selectedCluster = useMemo(() => {
-    if (!selectedChannel) return undefined;
-    if (isLocationHidden(selectedChannel, hiddenOverrides)) return undefined;
-    return EXPLORE_CLUSTERS.find((c) => c.channels.some((ch) => ch.id === selectedChannel.id));
-  }, [selectedChannel, hiddenOverrides]);
 
   const statusLabel =
     activeBody !== "earth"
@@ -277,9 +283,7 @@ export function Explore() {
         </div>
       )}
 
-      {selectedChannel && (
-        <StreamPreviewPanel channel={selectedChannel} cluster={selectedCluster} />
-      )}
+      {selectedCluster && <ExplorePanel cluster={selectedCluster} channel={selectedChannel} />}
     </div>
   );
 }

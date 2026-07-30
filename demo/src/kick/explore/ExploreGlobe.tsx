@@ -4,11 +4,11 @@ import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { Html, OrbitControls, Stars } from "@react-three/drei";
 import { DEFAULT_ORIGIN, EXPLORE_CLUSTERS } from "../mock/explore";
 import { BODIES } from "./bodies";
-import { channelsForFocus, clustersForBody } from "./bodyView";
+import { clustersForBody } from "./bodyView";
 import { Atmosphere, BodySurface } from "./BodySurface";
 import { BorderLayer } from "./BorderLayer";
 import { CityLabelLayer } from "./CityLabelLayer";
-import { ClusterPopover } from "./ClusterPopover";
+import { ClusterChip } from "./ClusterChip";
 import { useExplore } from "./exploreStore";
 import { applyExploreFilters, hasActiveFilters } from "./filters";
 import {
@@ -26,6 +26,10 @@ import { LivePointLayer } from "./LivePointLayer";
 import type { BodyId, ZoomBand } from "./types";
 
 const IDLE_CAMERA_DISTANCE = 3.4;
+
+// How far east of a country the camera parks when its channel list opens, so the country sits in the
+// half of the map the panel leaves free.
+const PANEL_OFFSET_DEGREES = 26;
 
 // surface-lowest, so the canvas matches the page around it.
 const CANVAS_BACKGROUND = "#0b0b0c";
@@ -227,7 +231,6 @@ function BodyScene({ bodyId }: { bodyId: BodyId }) {
   const [band, setBand] = useState<ZoomBand>("far");
   const focusedClusterId = useExplore((s) => s.focusedClusterId);
   const focusedAnchor = useExplore((s) => s.focusedAnchor);
-  const focusedChannelId = useExplore((s) => s.focusedChannelId);
   const filters = useExplore((s) => s.filters);
   const hiddenOverrides = useExplore((s) => s.hiddenOverrides);
   const setViewMode = useExplore((s) => s.setViewMode);
@@ -241,18 +244,18 @@ function BodyScene({ bodyId }: { bodyId: BodyId }) {
     [bodyClusters, filters],
   );
 
-  // A filter change, or a body change, can empty the cluster whose burst is open.
+  // A filter change, or a body change, can empty the country the pointer was on.
   useEffect(() => {
     if (focusedClusterId && !filteredClusters.some((c) => c.id === focusedClusterId)) {
       useExplore.getState().setFocusedCluster(null);
     }
   }, [filteredClusters, focusedClusterId]);
 
-  // A filter can leave every match on the far hemisphere, for example Portuguese while parked over
-  // the Pacific. An unchanged view would read as "no results", so fly to the busiest match. The
-  // camera is read imperatively on purpose, so this runs on a filter change only.
+  // A filter can leave every match on the far hemisphere, for example Japanese while parked over the
+  // Pacific. An unchanged view would read as "no results", so fly to the busiest match. The camera is
+  // read imperatively on purpose, so this runs on a filter change only.
   const camera = useThree((s) => s.camera);
-  const [filterFlyTarget, setFilterFlyTarget] = useState<THREE.Vector3 | null>(null);
+  const [flyTarget, setFlyTarget] = useState<THREE.Vector3 | null>(null);
   useEffect(() => {
     if (!hasActiveFilters(filters) || filteredClusters.length === 0) return;
     const camDir = camera.position.clone().normalize();
@@ -264,7 +267,7 @@ function BodyScene({ bodyId }: { bodyId: BodyId }) {
     const busiest = filteredClusters.reduce((a, b) =>
       a.total_viewer_count >= b.total_viewer_count ? a : b,
     );
-    setFilterFlyTarget(
+    setFlyTarget(
       new THREE.Vector3(
         ...latLngToVector3(
           busiest.lat,
@@ -284,41 +287,33 @@ function BodyScene({ bodyId }: { bodyId: BodyId }) {
     [cityPoints, band, body.hasVectorBorders],
   );
 
-  // The hover contract between a dot and the popover: moving between them gets a 250 ms grace.
-  const closeTimer = useRef<number | null>(null);
-  const cancelClose = () => {
-    if (closeTimer.current != null) {
-      window.clearTimeout(closeTimer.current);
-      closeTimer.current = null;
-    }
-  };
-  const scheduleClose = () => {
-    cancelClose();
-    closeTimer.current = window.setTimeout(() => {
-      // Never auto close while the confirm layer is up. The expanded hotspot is part of the state
-      // we restore when the user comes back.
-      if (!useExplore.getState().selectedChannelId) {
-        useExplore.getState().setFocusedCluster(null);
-      }
-      closeTimer.current = null;
-    }, 250);
-  };
-  useEffect(() => cancelClose, []);
-
   const focusedCluster = focusedClusterId
     ? filteredClusters.find((c) => c.id === focusedClusterId)
     : undefined;
-  const focusedChannels = useMemo(
-    () => (focusedCluster ? channelsForFocus(focusedCluster, focusedChannelId) : []),
-    [focusedCluster, focusedChannelId],
-  );
-  // The hovered dot when there is one, otherwise the cluster centre, which is the restore path where
-  // nothing was hovered.
-  const popoverAnchor = focusedCluster
-    ? focusedAnchor
-      ? latLngToVector3(focusedAnchor.lat, focusedAnchor.lng, 1.01)
-      : latLngToVector3(focusedCluster.lat, focusedCluster.lng, 1.02)
+  const chipAnchor = focusedCluster
+    ? latLngToVector3(
+        focusedAnchor?.lat ?? focusedCluster.lat,
+        focusedAnchor?.lng ?? focusedCluster.lng,
+        1.02,
+      )
     : null;
+
+  // The panel takes the right of the screen, so a country that opens it flies to the left half. The
+  // camera sits east of the country, which pushes the country left on screen.
+  const openCluster = (clusterId: string) => {
+    const cluster = filteredClusters.find((c) => c.id === clusterId);
+    if (!cluster) return;
+    useExplore.getState().setSelectedCluster(clusterId);
+    setFlyTarget(
+      new THREE.Vector3(
+        ...latLngToVector3(
+          cluster.lat,
+          cluster.lng + PANEL_OFFSET_DEGREES,
+          Math.max(INITIAL_CAMERA_DISTANCE, camera.position.length()),
+        ),
+      ),
+    );
+  };
 
   return (
     <>
@@ -334,46 +329,30 @@ function BodyScene({ bodyId }: { bodyId: BodyId }) {
         points={points}
         style={body.hotspotStyle}
         onPointOver={(point) => {
-          cancelClose();
-          useExplore
-            .getState()
-            .setFocusedCluster(point.clusterId, point.channelId ?? null, {
-              lat: point.lat,
-              lng: point.lng,
-            });
+          useExplore.getState().setFocusedCluster(point.clusterId, {
+            lat: point.lat,
+            lng: point.lng,
+          });
         }}
-        onPointOut={scheduleClose}
-        onPointClick={(point) => {
-          cancelClose();
-          useExplore
-            .getState()
-            .setFocusedCluster(point.clusterId, point.channelId ?? null, {
-              lat: point.lat,
-              lng: point.lng,
-            });
-        }}
+        onPointOut={() => useExplore.getState().setFocusedCluster(null)}
+        onPointClick={(point) => openCluster(point.clusterId)}
       />
 
-      {focusedCluster && popoverAnchor && (
+      {focusedCluster && chipAnchor && (
         <Html
-          position={popoverAnchor}
+          position={chipAnchor}
           occlude={[surfaceRef as RefObject<THREE.Object3D>]}
           zIndexRange={[30, 10]}
           style={{ pointerEvents: "none" }}
         >
-          <ClusterPopover
-            cluster={focusedCluster}
-            channels={focusedChannels}
-            onPointerStay={cancelClose}
-            onPointerAway={scheduleClose}
-          />
+          <ClusterChip cluster={focusedCluster} />
         </Html>
       )}
 
       <CameraRig
         body={bodyId}
         onBandChange={setBand}
-        flyTo={filterFlyTarget}
+        flyTo={flyTarget}
         onZoomOutPastCeiling={() => setViewMode("system")}
       />
     </>

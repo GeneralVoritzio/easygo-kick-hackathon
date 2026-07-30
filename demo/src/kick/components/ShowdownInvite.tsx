@@ -8,6 +8,7 @@ import { inviteIsDecided, type ShowdownInvite as Invite } from "../raid/invite";
 const TOTAL: Record<Invite["phase"], number> = {
   pending: TIMING.accept,
   waiting: TIMING.accept,
+  // The pitch has no card: PitchOverlay takes the whole screen for it.
   pitching: TIMING.pitch,
   won: 10,
   lost: 10,
@@ -63,7 +64,8 @@ function ChannelLine({ slug, note }: { slug: string; note: string }) {
 // else: the host's room runs the vote, this room only answers the invite and hears the result.
 export function ShowdownInvite() {
   const { invite, answerInvite, clearInvite } = useRaid();
-  if (!invite) return null;
+  // The pitch takes the whole screen, so a card repeating it would only be noise.
+  if (!invite || invite.phase === "pitching") return null;
 
   const host = liveStreamFor(invite.hostSlug);
   const hostName = host?.channel.username ?? invite.hostSlug;
@@ -76,15 +78,13 @@ export function ShowdownInvite() {
       ? `${hostName} put you in a showdown`
       : invite.phase === "waiting"
         ? "You are in the showdown"
-        : invite.phase === "pitching"
-          ? "Your pitch is live"
-          : invite.phase === "won"
-            ? "You won the showdown"
-            : invite.phase === "lost"
-              ? `${opponentName} won the showdown`
-              : invite.timedOut
-                ? "The invite ran out"
-                : "You turned it down";
+        : invite.phase === "won"
+          ? "You won the showdown"
+          : invite.phase === "lost"
+            ? `${opponentName} won the showdown`
+            : invite.timedOut
+              ? "The invite ran out"
+              : "You turned it down";
 
   const body =
     invite.phase === "pending" ? (
@@ -99,11 +99,6 @@ export function ShowdownInvite() {
       <>
         {hostName} is lining the pitches up. Keep streaming: their chat is about to meet you, and
         your own room carries on either way.
-      </>
-    ) : invite.phase === "pitching" ? (
-      <>
-        Say why this room should come to you. {hostName} shows you next to their own stream, so talk
-        to their chat, not to yours.
       </>
     ) : invite.phase === "won" ? (
       <>

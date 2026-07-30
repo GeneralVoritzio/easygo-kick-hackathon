@@ -329,6 +329,7 @@ export function CreatorDashboard() {
     <div className="flex h-screen flex-col overflow-hidden bg-surface-lowest">
       <RaidDevControls />
       <ShowdownInvite />
+      <PitchOverlay />
       {showRaidReminder && (
         <RaidReminder
           raidReminder={prefs.raidReminder}
@@ -461,7 +462,6 @@ export function CreatorDashboard() {
                       />
                       {/* Section 5.1: every raid preview plays here, never in the chat column. */}
                       <RaidStage />
-                      <PitchOverlay />
                     </div>
                   </div>
                 </Pane>

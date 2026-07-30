@@ -85,9 +85,8 @@ function ShowdownGrid({ raid }: { raid: Raid }) {
             <button
               key={slug}
               type="button"
-              disabled={raid.viewer}
               onClick={() => act((r) => playTile(r, slug))}
-              className="group relative size-11 overflow-hidden rounded bg-surface-highest disabled:cursor-default sm:size-14"
+              className="group relative size-11 overflow-hidden rounded bg-surface-highest sm:size-14"
             >
               <img
                 src={c.stream.channel.avatar}

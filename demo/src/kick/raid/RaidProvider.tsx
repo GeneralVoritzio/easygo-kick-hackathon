@@ -6,7 +6,6 @@ import {
   addChatVotes,
   advance,
   candidateFor,
-  playTile,
   startRaid,
   type Raid,
   type RaidMode,
@@ -103,19 +102,6 @@ export function RaidProvider({ children }: { children: ReactNode }) {
     );
     return () => timers.forEach(clearTimeout);
   }, [accepting, finalists]);
-
-  // Section 13: on the viewer side the streamer is not in the room, so their decisions are
-  // scripted too. A viewer never sees the controls that make them.
-  const viewerPhase = raid?.viewer ? raid.phase : null;
-  useEffect(() => {
-    if (viewerPhase !== "showdown-browse") return;
-    // The vote itself opens off the real browse timer, same as the streamer's own raid, so
-    // this only simulates the streamer glancing through a couple of tiles while it runs.
-    const tiles = [2000, 4000].map((at, i) =>
-      setTimeout(() => setRaid((r) => (r ? playTile(r, r.candidates[i].stream.channel.slug) : r)), at),
-    );
-    return () => tiles.forEach(clearTimeout);
-  }, [viewerPhase]);
 
   const target = raid?.targetSlug ? candidateFor(raid, raid.targetSlug) : undefined;
   const targetIsHidden = Boolean(target && isHidden(target.stream.category.slug, prefs));

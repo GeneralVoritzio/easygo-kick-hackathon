@@ -78,8 +78,9 @@ function ChannelDetail({
           alt={`${stream.channel.username} stream preview`}
           className="absolute inset-0 h-full w-full object-cover"
         />
-        <span className="absolute bottom-2 left-2 rounded bg-surface-lowest/80 px-2 py-1 text-[11px] text-surface-onSurfaceSecondary backdrop-blur-sm">
-          {formatViewers(stream.viewer_count)} watching
+        <span className="absolute bottom-2 left-2 flex items-center gap-1 rounded bg-surface-lowest/80 px-2 py-1 text-[11px] font-semibold text-white backdrop-blur-sm">
+          <span className="size-1.5 animate-pulse-fast rounded-full bg-red-500" />
+          LIVE
         </span>
       </div>
 
@@ -94,6 +95,15 @@ function ChannelDetail({
             <div className="truncate text-sm text-surface-onSurfaceSecondary">
               {stream.category.name}, {stream.language}
               {hidden ? ", location private" : cluster ? `, ${cluster.place}` : ""}
+            </div>
+            <div className="flex min-h-[1.375rem] items-center gap-1 text-sm font-bold">
+              <Icon name="chatters" className="size-4 shrink-0 fill-white" />
+              <span className="text-subtle">
+                <span className="text-primary-base tabular-nums">
+                  {stream.viewer_count.toLocaleString("en-US")}
+                </span>{" "}
+                watching
+              </span>
             </div>
           </div>
         </div>

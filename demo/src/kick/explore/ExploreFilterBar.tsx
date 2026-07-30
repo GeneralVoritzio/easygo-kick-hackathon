@@ -108,6 +108,7 @@ export function ExploreFilterBar({
   // Where the matches are, when this body has none.
   elsewhere: { body: BodyId; count: number } | null;
 }) {
+  const activeBody = useExplore((s) => s.activeBody);
   const filters = useExplore((s) => s.filters);
   const setFilters = useExplore((s) => s.setFilters);
   const resetFilters = useExplore((s) => s.resetFilters);
@@ -155,6 +156,9 @@ export function ExploreFilterBar({
       ref={rootRef}
       className="pointer-events-auto absolute left-4 top-4 flex flex-wrap items-center gap-2"
     >
+      {/* Only Earth has countries. The Moon and Mars carry relay sites, and the Sun is where a
+          location stops existing. */}
+      {activeBody === "earth" && (
       <FilterMenu
         label="Country"
         summary={filters.country}
@@ -186,6 +190,7 @@ export function ExploreFilterBar({
           ))}
         </div>
       </FilterMenu>
+      )}
 
       <FilterMenu
         label="Language"

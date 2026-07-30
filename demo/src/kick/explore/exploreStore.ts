@@ -52,16 +52,19 @@ export const useExplore = create<ExploreStore>((set) => ({
   filters: EMPTY_FILTERS,
   hiddenOverrides: {},
 
-  // Travel to another body drops an open popover, because it belongs to the world you just left.
+  // Travel drops an open popover and an open panel: both belong to the world you just left. A
+  // country filter goes with them, because only Earth has countries, and a filter with no pill to
+  // clear it would read as an empty map with no cause.
   setActiveBody: (activeBody) =>
-    set({
+    set((s) => ({
       activeBody,
       viewMode: "body",
       focusedClusterId: null,
       focusedAnchor: null,
       selectedClusterId: null,
       selectedChannelId: null,
-    }),
+      filters: activeBody === "earth" ? s.filters : { ...s.filters, country: null },
+    })),
   setViewMode: (viewMode) => set({ viewMode, focusedClusterId: null, focusedAnchor: null }),
   setSavedCamera: (body, camera) =>
     set((s) => ({ savedCameras: { ...s.savedCameras, [body]: camera ?? undefined } })),

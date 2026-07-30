@@ -18,3 +18,6 @@ npx remotion render Teaser out/teaser.mp4
 - `public/clips/` holds copies of the eight "let's trade" clips from Sam's Downloads
   folder, 30 July 2026, apostrophes removed from the names.
 - The trim points in `src/clips.ts` come from whisper (model base, word timestamps).
+- `public/clips/ending.mp4` is a copy of `~/Documents/ending.mp4`, 30 July 2026.
+- `public/music/whats-the-difference-instrumental.mp3` is a copy of "What's The
+  Difference (Instrumental) - Dr. Dre (128k).mp3" from Sam's Downloads folder.

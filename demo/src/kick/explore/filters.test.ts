@@ -22,16 +22,19 @@ describe("applyExploreFilters", () => {
     expect(hasActiveFilters(EMPTY_FILTERS)).toBe(false);
   });
 
-  it("keeps only the chosen category, and drops a cluster left empty", () => {
-    const filtered = applyExploreFilters(EXPLORE_CLUSTERS, f({ category: "Minecraft" }));
-    expect(filtered.length).toBeGreaterThan(0);
-    expect(filtered.length).toBeLessThan(EXPLORE_CLUSTERS.length);
-    for (const cluster of filtered) {
-      expect(cluster.channels.length).toBeGreaterThan(0);
-      expect(cluster.channels.every((ch) => ch.stream.category.name === "Minecraft")).toBe(true);
-      expect(cluster.total_viewer_count).toBe(
-        cluster.channels.reduce((sum, ch) => sum + ch.stream.viewer_count, 0),
-      );
+  it("keeps only the chosen country, and recomputes the total it shows", () => {
+    const filtered = applyExploreFilters(EXPLORE_CLUSTERS, f({ country: "Japan" }));
+    expect(filtered).toHaveLength(1);
+    expect(filtered[0].place).toBe("Japan");
+    expect(filtered[0].total_viewer_count).toBe(
+      filtered[0].channels.reduce((sum, ch) => sum + ch.stream.viewer_count, 0),
+    );
+  });
+
+  it("can never find a streamer who hides, because a Sun pocket has no country", () => {
+    const sun = EXPLORE_CLUSTERS.map((c) => ({ ...c, body: "sun" as const }));
+    for (const country of ["Japan", "United States", "Brazil"]) {
+      expect(applyExploreFilters(sun, f({ country })), country).toEqual([]);
     }
   });
 
@@ -65,10 +68,10 @@ describe("applyExploreFilters", () => {
   });
 
   it("intersects the axes", () => {
-    const combined = f({ category: "Just Chatting", badges: ["responsive"], viewerTier: "mid" });
+    const combined = f({ language: "English", badges: ["responsive"], viewerTier: "mid" });
     for (const ch of applyExploreFilters(EXPLORE_CLUSTERS, combined).flatMap((c) => c.channels)) {
       expect(channelMatchesFilters(ch, combined)).toBe(true);
-      expect(ch.stream.category.name).toBe("Just Chatting");
+      expect(ch.stream.language).toBe("English");
       expect(ch.interaction.badges).toContain("responsive");
       expect(ch.stream.viewer_count).toBeGreaterThanOrEqual(500);
       expect(ch.stream.viewer_count).toBeLessThanOrEqual(1999);

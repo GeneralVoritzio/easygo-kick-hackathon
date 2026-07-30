@@ -230,8 +230,6 @@ const HIDDEN_LOCATION_RATE = 0.12;
 
 const LOCAL_LANGUAGE_RATE = 0.65;
 
-export const EXPLORE_CATEGORIES = categories.map((c) => c.name);
-
 export const EXPLORE_LANGUAGES = [
   "English",
   ...new Set(COUNTRIES.map((c) => c.language).filter((l): l is string => Boolean(l))),

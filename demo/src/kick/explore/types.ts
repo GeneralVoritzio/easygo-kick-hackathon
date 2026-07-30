@@ -80,7 +80,6 @@ export type ViewerTier = "small" | "mid" | "large";
 // because a channel never carries a country of its own.
 export type ExploreFilters = {
   country: string | null;
-  category: string | null;
   language: string | null;
   badges: InteractionBadgeKey[];
   viewerTier: ViewerTier | null;

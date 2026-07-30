@@ -2,7 +2,6 @@ import type { ExploreChannel, ExploreCluster, ExploreFilters, ViewerTier } from 
 
 export const EMPTY_FILTERS: ExploreFilters = {
   country: null,
-  category: null,
   language: null,
   badges: [],
   viewerTier: null,
@@ -17,7 +16,6 @@ export const VIEWER_TIERS: Record<ViewerTier, { label: string; min: number; max:
 export function hasActiveFilters(filters: ExploreFilters): boolean {
   return (
     filters.country !== null ||
-    filters.category !== null ||
     filters.language !== null ||
     filters.badges.length > 0 ||
     filters.viewerTier !== null
@@ -25,7 +23,6 @@ export function hasActiveFilters(filters: ExploreFilters): boolean {
 }
 
 export function channelMatchesFilters(channel: ExploreChannel, filters: ExploreFilters): boolean {
-  if (filters.category && channel.stream.category.name !== filters.category) return false;
   if (filters.language && channel.stream.language !== filters.language) return false;
   // AND semantics: every chosen badge must be present.
   if (filters.badges.some((badge) => !channel.interaction.badges.includes(badge))) return false;

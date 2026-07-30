@@ -1,13 +1,13 @@
 import { useEffect, useRef, useState } from "react";
 import { Icon } from "../Icon";
-import { EXPLORE_CATEGORIES, EXPLORE_COUNTRIES, EXPLORE_LANGUAGES } from "../mock/explore";
+import { EXPLORE_COUNTRIES, EXPLORE_LANGUAGES } from "../mock/explore";
 import { BADGE_KEYS, INTERACTION_BADGES, type InteractionBadgeKey } from "./badges";
 import { BODIES } from "./bodies";
 import { useExplore } from "./exploreStore";
 import { hasActiveFilters, VIEWER_TIERS } from "./filters";
 import type { BodyId, ViewerTier } from "./types";
 
-type MenuKey = "country" | "category" | "language" | "interaction" | "viewers";
+type MenuKey = "country" | "language" | "interaction" | "viewers";
 
 // The country list is long, so its menu scrolls. Every other menu fits.
 const scrollingPanel = "max-h-[52vh] overflow-y-auto";
@@ -182,38 +182,6 @@ export function ExploreFilterBar({
               }}
             >
               {country}
-            </OptionRow>
-          ))}
-        </div>
-      </FilterMenu>
-
-      <FilterMenu
-        label="Category"
-        summary={filters.category}
-        open={openMenu === "category"}
-        onToggle={() => toggleMenu("category")}
-        panelClassName="w-[390px]"
-      >
-        <div className="grid grid-cols-2 gap-x-1">
-          <OptionRow
-            selected={filters.category === null}
-            onClick={() => {
-              setFilters({ category: null });
-              setOpenMenu(null);
-            }}
-          >
-            All categories
-          </OptionRow>
-          {EXPLORE_CATEGORIES.map((category) => (
-            <OptionRow
-              key={category}
-              selected={filters.category === category}
-              onClick={() => {
-                setFilters({ category: filters.category === category ? null : category });
-                setOpenMenu(null);
-              }}
-            >
-              {category}
             </OptionRow>
           ))}
         </div>

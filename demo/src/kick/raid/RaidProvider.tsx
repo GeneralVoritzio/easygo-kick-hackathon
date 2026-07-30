@@ -1,19 +1,13 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import { currentSession, currentUser, type Livestream } from "../mock/api";
-import { recordRaid, type Candidate } from "../mock/raids";
 import { isHidden, usePrefs } from "../prefs";
 import {
   acceptEntry,
   addChatVotes,
   advance,
-  canReroll,
   candidateFor,
-  declineEntry,
-  justRaidThem,
-  openTankVote,
   playTile,
   startRaid,
-  tryAnother,
   type Raid,
   type RaidMode,
 } from "./machine";
@@ -33,7 +27,9 @@ type RaidApi = {
   hostSlug: string;
   openDialog: (kind: DialogKind) => void;
   dismissDialog: () => void;
-  start: (mode: RaidMode, pickedSlug?: string) => void;
+  // Section 4.1: ends the stream. Never starts a raid on its own, it only closes the dialog.
+  endStream: () => void;
+  start: (mode: RaidMode, pickedSlug?: string, pickedSlugs?: string[]) => void;
   startAsViewer: (host: Livestream, mode: RaidMode) => void;
   act: (fn: (raid: Raid) => Raid) => void;
   join: () => void;
@@ -94,20 +90,17 @@ export function RaidProvider({ children }: { children: ReactNode }) {
     return () => clearInterval(id);
   }, [voting, raid?.poll?.round, raid?.poll?.slot]);
 
-  // Section 13: the demo forces the tank acceptances on cue. The logic is real, the timing
-  // is scripted. The first reroll is where the fork is shown, so after it everybody accepts.
-  const accepting = raid?.phase === "tank-accept";
+  // Section 13: the demo forces the showdown acceptances on cue. The logic is real, the timing
+  // is scripted: both finalists accept, staggered, so the invite panel is visible mid-decision
+  // before the accept timer runs out and carries the raid into the pitch.
+  const accepting = raid?.phase === "showdown-accept";
   const finalists = raid?.finalists.join() ?? "";
   useEffect(() => {
-    if (!accepting) return;
-    const [first, second] = finalists.split(",");
-    const timers = [
-      setTimeout(() => setRaid((r) => (r ? acceptEntry(r, first) : r)), 5000),
-      setTimeout(
-        () => setRaid((r) => (r ? (r.rerolls === 0 ? declineEntry : acceptEntry)(r, second) : r)),
-        11000,
-      ),
-    ];
+    if (!accepting || !raid) return;
+    const pending = raid.finalists.filter((s) => !raid.accepted.includes(s));
+    const timers = pending.map((slug, i) =>
+      setTimeout(() => setRaid((r) => (r ? acceptEntry(r, slug) : r)), 3000 + i * 3000),
+    );
     return () => timers.forEach(clearTimeout);
   }, [accepting, finalists]);
 
@@ -115,33 +108,14 @@ export function RaidProvider({ children }: { children: ReactNode }) {
   // scripted too. A viewer never sees the controls that make them.
   const viewerPhase = raid?.viewer ? raid.phase : null;
   useEffect(() => {
-    if (viewerPhase === "tank-browse") {
-      const tiles = [2000, 4000].map((at, i) =>
-        setTimeout(() => setRaid((r) => (r ? playTile(r, r.candidates[i].stream.channel.slug) : r)), at),
-      );
-      const vote = setTimeout(() => setRaid((r) => (r ? openTankVote(r) : r)), 7000);
-      return () => [...tiles, vote].forEach(clearTimeout);
-    }
-    if (viewerPhase === "tank-fork") {
-      const id = setTimeout(
-        () => setRaid((r) => (r ? (canReroll(r) && r.rerolls === 0 ? tryAnother : justRaidThem)(r) : r)),
-        4000,
-      );
-      return () => clearTimeout(id);
-    }
+    if (viewerPhase !== "showdown-browse") return;
+    // The vote itself opens off the real browse timer, same as the streamer's own raid, so
+    // this only simulates the streamer glancing through a couple of tiles while it runs.
+    const tiles = [2000, 4000].map((at, i) =>
+      setTimeout(() => setRaid((r) => (r ? playTile(r, r.candidates[i].stream.channel.slug) : r)), at),
+    );
+    return () => tiles.forEach(clearTimeout);
   }, [viewerPhase]);
-
-  const landed = raid?.phase === "landed";
-  useEffect(() => {
-    if (!landed) return;
-    setRaid((r) => {
-      if (!r?.targetSlug) return r;
-      const winner = candidateFor(r, r.targetSlug);
-      const featured = r.featured.map((s) => candidateFor(r, s)).filter(Boolean) as Candidate[];
-      if (winner) recordRaid(winner, featured, r.hostViewers);
-      return r;
-    });
-  }, [landed]);
 
   const target = raid?.targetSlug ? candidateFor(raid, raid.targetSlug) : undefined;
   const targetIsHidden = Boolean(target && isHidden(target.stream.category.slug, prefs));
@@ -156,21 +130,11 @@ export function RaidProvider({ children }: { children: ReactNode }) {
     hostSlug: currentUser.slug,
     targetIsHidden,
     openDialog: setDialog,
-    dismissDialog: () => {
-      // Section 4.1: Random is the fallback, so a dismissed end-of-stream prompt still
-      // hands the viewers on.
-      if (dialog === "end" && prefs.autoRaid && !raid) {
-        setRaid(
-          startRaid({
-            mode: "random",
-            hostSlug: currentUser.slug,
-            hostViewers: currentSession.viewer_count,
-          }),
-        );
-      }
-      setDialog(null);
-    },
-    start: (mode, pickedSlug) => {
+    // Section 4.1: ending the stream, or dismissing the dialog, never starts a raid on its
+    // own. Both just close whatever raid UI is open.
+    dismissDialog: () => setDialog(null),
+    endStream: () => setDialog(null),
+    start: (mode, pickedSlug, pickedSlugs) => {
       setJoined(null);
       setRaid(
         startRaid({
@@ -178,6 +142,7 @@ export function RaidProvider({ children }: { children: ReactNode }) {
           hostSlug: currentUser.slug,
           hostViewers: currentSession.viewer_count,
           pickedSlug,
+          pickedSlugs,
         }),
       );
       setDialog(null);

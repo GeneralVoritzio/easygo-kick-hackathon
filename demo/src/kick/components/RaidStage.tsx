@@ -57,16 +57,16 @@ function Stage({ caption, children }: { caption: string; children: ReactNode }) 
   );
 }
 
-function TankGrid({ raid }: { raid: Raid }) {
+function ShowdownGrid({ raid }: { raid: Raid }) {
   const { act } = useRaid();
   const caption = raid.viewer
-    ? "The top ten are in the tank. The streamer is looking through them"
-    : `Tap a tile to watch it for up to ${TIMING.tankTile} seconds`;
+    ? "The top six are in the showdown. The streamer is looking through them"
+    : `Tap a tile to watch it for up to ${TIMING.showdownTile} seconds`;
 
   return (
     <Stage caption={caption}>
-      <div className="grid h-full w-full grid-cols-5 grid-rows-2 gap-0.5">
-        {raid.candidates.slice(0, 10).map((c) => {
+      <div className="grid h-full w-full grid-cols-3 grid-rows-2 gap-0.5">
+        {raid.candidates.slice(0, 6).map((c) => {
           const frame = frameFor(raid, c.stream.channel.slug);
           return (
             frame && (
@@ -123,7 +123,7 @@ export function RaidStage() {
     );
   }
 
-  if (raid.phase === "tank-pitch")
+  if (raid.phase === "showdown-pitch")
     return (
       <TwoUp
         raid={raid}
@@ -135,7 +135,7 @@ export function RaidStage() {
   if (raid.phase === "vote" && raid.poll?.round === 2)
     return <TwoUp raid={raid} slugs={raid.finalists} caption="Chat is voting" />;
 
-  if (raid.phase === "tank-browse" && !raid.stage) return <TankGrid raid={raid} />;
+  if (raid.phase === "showdown-browse" && !raid.stage) return <ShowdownGrid raid={raid} />;
 
   const staged = raid.stage ? candidateFor(raid, raid.stage) : undefined;
   if (staged) {

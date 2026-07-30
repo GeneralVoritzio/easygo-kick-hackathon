@@ -4,21 +4,23 @@ export type Prefs = {
   hidePools: boolean;
   hideSlots: boolean;
   hideVrChat: boolean;
-  joinTanks: boolean;
-  autoRaid: boolean;
+  joinShowdowns: boolean;
+  showdownRaids: boolean;
+  raidReminder: boolean;
 };
 
 const KEY = "kick-preferences";
 const CHANGED = "kick-preferences-changed";
 
-// Section 11: the two raid toggles and the three content toggles are all on or off by default,
+// Section 11: the raid toggles and the three content toggles are all on or off by default,
 // and they now persist.
 const defaults: Prefs = {
   hidePools: false,
   hideSlots: false,
   hideVrChat: false,
-  joinTanks: true,
-  autoRaid: true,
+  joinShowdowns: true,
+  showdownRaids: true,
+  raidReminder: true,
 };
 
 export function readPrefs(): Prefs {

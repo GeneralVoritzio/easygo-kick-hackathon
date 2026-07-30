@@ -10,6 +10,8 @@ import { Pill, Section } from "../components/CardBits";
 import { livestreams, categories, formatViewers, streamPills } from "../mock/api";
 import { clips } from "../mock/clips";
 import { HeroChatFeed } from "../components/ChannelChat";
+import { BackFromBreakToast } from "../components/BackFromBreakToast";
+import { announceInChat } from "../announce";
 
 const heroStreams = livestreams.slice(0, 6);
 
@@ -35,13 +37,39 @@ function HeroCarousel() {
   const [index, setIndex] = useState(0);
   const [muted, setMuted] = useState(true);
   const [chatOpen, setChatOpen] = useState(true);
+  const [breakToast, setBreakToast] = useState<string | null>(null);
   const stream = heroStreams[index];
 
   const goPrev = () => setIndex((i) => (i - 1 + heroStreams.length) % heroStreams.length);
   const goNext = () => setIndex((i) => (i + 1) % heroStreams.length);
 
+  // fake-kick POST /public/v1/livestreams/{broadcaster_user_id}/announcements
+  function handleBackFromBreak() {
+    const message = `${stream.channel.username} is back from break!`;
+    announceInChat(message);
+    setBreakToast(message);
+  }
+
   return (
     <div className="relative w-full overflow-hidden">
+      {breakToast && (
+        <BackFromBreakToast
+          message={breakToast}
+          slug={stream.channel.slug}
+          onDone={() => setBreakToast(null)}
+        />
+      )}
+      <div className="z-popover fixed bottom-4 left-4 flex items-center gap-2 rounded-lg bg-surface-highest px-3 py-2 shadow-2xl">
+        <span className="text-xs font-semibold uppercase text-surface-onSurfaceSecondary">Demo</span>
+        <button
+          type="button"
+          onClick={handleBackFromBreak}
+          className="state-layer-base flex items-center gap-1.5 rounded bg-primary-base px-2 py-1 text-xs font-semibold text-primary-onPrimary"
+        >
+          <Icon name="play" className="size-3" />
+          Back from break
+        </button>
+      </div>
       <div
         aria-hidden="true"
         className="invisible aspect-video w-full lg:w-[calc((2*100%-12px)/3)] 3xl:w-[calc((3*100%-12px)/4)]"

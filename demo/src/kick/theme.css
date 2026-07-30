@@ -247,6 +247,9 @@
   .state-layer-base:active::after { background: var(--color-stateLayer-defaultPress) }
 
   .animate-leaderboards-marquee { animation: 9s ease-in-out 2s infinite leaderboards-marquee }
+  .animate-pick-reveal { animation: pick-reveal 420ms ease-out }
+  .animate-pick-glow { animation: pick-glow 2.4s ease-in-out infinite }
+  .animate-toast-in { animation: toast-in 320ms cubic-bezier(0.16, 1, 0.3, 1) }
 
   .animate-emote-picker { animation: emote-picker-open 350ms ease-out }
   .animate-emote-picker-close { animation: emote-picker-close 350ms ease-out forwards }
@@ -320,8 +323,27 @@
   to { transform: translate(-100%) }
 }
 
+@keyframes pick-reveal {
+  from { opacity: 0; transform: scale(0.9) translateY(4px) }
+  to { opacity: 1; transform: scale(1) translateY(0) }
+}
+
+@keyframes pick-glow {
+  0%, 100% { opacity: 0.35 }
+  50% { opacity: 0.7 }
+}
+
+@keyframes toast-in {
+  0% { opacity: 0; transform: translateY(-20px) scale(0.9) }
+  60% { opacity: 1; transform: translateY(3px) scale(1.03) }
+  100% { opacity: 1; transform: translateY(0) scale(1) }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .animate-leaderboards-marquee { animation: none }
+  .animate-pick-reveal { animation: none }
+  .animate-pick-glow { animation: none }
+  .animate-toast-in { animation: none }
 }
 
 button:not(:disabled),

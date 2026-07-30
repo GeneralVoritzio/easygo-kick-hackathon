@@ -1,17 +1,14 @@
-import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { Icon } from "../Icon";
-import { formatViewers, streamPills, type Livestream } from "../mock/api";
+import { Icon, type KickIconName } from "../Icon";
+import { formatViewers, profileFor, streamPills, type Livestream } from "../mock/api";
+import { interactivityPercent, type Candidate } from "../mock/raids";
 import { useRaid } from "../raid/RaidProvider";
+import { RouletteReel } from "./RouletteReel";
 import {
   advance,
-  canReroll,
   candidateFor,
   castVote,
-  channelOffline,
-  justRaidThem,
-  openTankVote,
-  tryAnother,
+  TIMING,
   type Poll,
   type Raid,
   type RaidMode,
@@ -27,96 +24,94 @@ function bannerText(raid: Raid) {
   switch (raid.phase) {
     case "preview":
       return `Previewing ${raid.previewIndex + 1} of 3`;
-    case "tank-browse":
-      return "Raid tank is open";
+    case "showdown-browse":
+      return "Showdown is open";
     case "vote":
-      return raid.poll?.picks === 2 ? "Chat is picking 2 of 10" : "Chat is voting";
-    case "tank-accept":
-      return "Waiting on the creators";
-    case "tank-fork":
-      return "One creator declined";
-    case "tank-pitch":
+      return raid.poll?.picks === 2 ? "Chat is voting for top 2" : "Chat is voting";
+    case "showdown-accept":
+      return "Creators are deciding";
+    case "showdown-pitch":
       return `${nameOf(raid, raid.finalists[raid.pitchIndex])} is pitching`;
     case "reveal":
-      return "And the raid goes to";
+      return "Rolling the raid";
     case "countdown":
       return `Raiding ${target}`;
-    case "landed":
-      return `Raid landed on ${target}`;
     default:
       return "Raid cancelled";
   }
 }
 
-// Section 5.2: the banner carries the persistent state, because KICK's footer panels overlay
-// the chat messages and a permanently open panel would hide chat for the whole raid.
-export function RaidBanner({ open, onToggle }: { open: boolean; onToggle: () => void }) {
-  const { raid } = useRaid();
-  if (!raid) return null;
-
-  return (
-    <div className="flex shrink-0 items-center gap-2 border-b border-outline-decorative bg-surface-highest px-3 py-2">
-      <Icon name="dash-broadcast" className="size-4 shrink-0 text-primary-base" />
-      <span className="min-w-0 flex-1 truncate text-sm font-semibold text-white">
-        {bannerText(raid)}
-      </span>
-      {raid.seconds > 0 && (
-        <span className="shrink-0 text-sm font-bold tabular-nums text-primary-base">
-          {clock(raid.seconds)}
-        </span>
-      )}
-      <button
-        type="button"
-        onClick={onToggle}
-        className="state-layer-surface shrink-0 rounded px-2 py-1 text-sm font-semibold text-white"
-      >
-        {open ? "Hide" : "Open"}
-      </button>
-    </div>
-  );
-}
-
+// A race, not a ballot: candidates re-rank live as votes land, the leader's avatar grows and
+// lights up, so the vote reads as momentum instead of a static list of bars.
 function PollRows({ raid, poll }: { raid: Raid; poll: Poll }) {
   const { act } = useRaid();
   const total = Object.values(poll.votes).reduce((sum, n) => sum + n, 0) || 1;
+  // Section 5.3: the row order stays exactly as the poll opened it. Ranking by live votes
+  // would make cards jump around mid-vote, so "leading" is a badge on the row with the most
+  // votes, never a reshuffle a click could land on the wrong card.
+  const maxVotes = Math.max(0, ...poll.options.map((slug) => poll.votes[slug] ?? 0));
 
   return (
-    <div className="flex flex-col gap-1.5">
-      {poll.options.map((slug) => {
-        const votes = poll.votes[slug] ?? 0;
-        const percent = Math.round((votes / total) * 100);
-        const mine = poll.myVote === slug;
-        return (
-          <button
-            key={slug}
-            type="button"
-            disabled={Boolean(poll.myVote)}
-            onClick={() => act((r) => castVote(r, slug))}
-            className={`relative overflow-hidden rounded border px-2 py-1.5 text-left ${
-              mine ? "border-primary-base" : "border-outline-decorative"
-            } disabled:cursor-default`}
-          >
-            <div
-              className="absolute inset-y-0 left-0 bg-primary-base/20"
-              style={{ width: `${percent}%` }}
-            />
-            <div className="relative flex items-center gap-2">
-              <span className="min-w-0 flex-1 truncate text-sm font-semibold text-white">
-                {nameOf(raid, slug)}
-              </span>
-              <span className="shrink-0 text-sm font-bold tabular-nums text-white">{percent}%</span>
-              <span className="shrink-0 text-xs tabular-nums text-surface-onSurfaceSecondary">
-                {formatViewers(votes)}
-              </span>
-            </div>
-          </button>
-        );
-      })}
-      <span className="text-xs text-surface-onSurfaceSecondary">
+    <div className="flex flex-col gap-2">
+      <div className="flex max-h-40 flex-col gap-1 overflow-y-auto p-1">
+        {poll.options.map((slug) => {
+          const c = candidateFor(raid, slug);
+          const votes = poll.votes[slug] ?? 0;
+          const percent = Math.round((votes / total) * 100);
+          const mine = poll.myVote === slug;
+          const leading = votes > 0 && votes === maxVotes;
+          return (
+            <button
+              key={slug}
+              type="button"
+              disabled={Boolean(poll.myVote)}
+              onClick={() => act((r) => castVote(r, slug))}
+              className={`relative flex shrink-0 items-center gap-2 overflow-hidden rounded-lg bg-surface-lowest p-1 text-left transition-all duration-500 disabled:cursor-default ${
+                mine ? "ring-2 ring-primary-base" : ""
+              }`}
+            >
+              <div
+                className="absolute inset-y-0 left-0 bg-primary-base/20 transition-all duration-700 ease-out"
+                style={{ width: `${percent}%` }}
+              />
+              <div className="relative flex w-full items-center gap-2">
+                {c && (
+                  <img
+                    src={c.stream.channel.avatar}
+                    alt=""
+                    className={`shrink-0 rounded-full ring-2 transition-all duration-300 ${
+                      leading ? "size-7 ring-primary-base" : "size-6 opacity-80 ring-transparent"
+                    }`}
+                  />
+                )}
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-1.5">
+                    <span className="min-w-0 truncate text-xs font-bold text-white">
+                      {nameOf(raid, slug)}
+                    </span>
+                    {leading && (
+                      <span className="shrink-0 rounded-full bg-primary-base px-1 py-0.5 text-[9px] font-bold uppercase leading-none text-primary-onPrimary">
+                        Leading
+                      </span>
+                    )}
+                  </div>
+                  <span className="text-[10px] text-surface-onSurfaceSecondary">
+                    {formatViewers(votes)} votes
+                  </span>
+                </div>
+                <span className="shrink-0 text-sm font-black tabular-nums text-primary-base">
+                  {percent}%
+                </span>
+              </div>
+            </button>
+          );
+        })}
+      </div>
+      <span className="shrink-0 text-xs text-surface-onSurfaceSecondary">
         {poll.myVote
           ? "Your vote is locked."
           : poll.picks === 2
-            ? "Chat picks two. One vote each."
+            ? "One vote each, and it locks. Top 2 will pitch-off"
             : "One vote each, and it locks."}
       </span>
     </div>
@@ -124,60 +119,151 @@ function PollRows({ raid, poll }: { raid: Raid; poll: Poll }) {
 }
 
 // Section 5.3: the winner is revealed by a spin reel inside the chat card, never a takeover.
-function Reel({ raid }: { raid: Raid }) {
-  const names = raid.candidates.slice(0, 8).map((c) => c.stream.channel.username);
-  const [index, setIndex] = useState(0);
-
-  useEffect(() => {
-    const id = setInterval(() => setIndex((i) => i + 1), 90);
-    return () => clearInterval(id);
-  }, []);
-
-  const landed = raid.seconds <= 1;
-  const shown = landed ? nameOf(raid, raid.targetSlug) : names[index % names.length];
-
+// A depleting ring around the target's avatar, so the countdown reads at a glance instead of
+// needing to be read as digits. Same visual language as the dialog roulette's landed ring.
+function CountdownRing({ seconds, total, size = 64 }: { seconds: number; total: number; size?: number }) {
+  const stroke = 3;
+  const radius = (size - stroke) / 2;
+  const circumference = 2 * Math.PI * radius;
+  const progress = Math.max(0, Math.min(1, seconds / total));
+  const offset = circumference * (1 - progress);
   return (
-    <div className="flex h-16 items-center justify-center rounded bg-surface-lowest">
-      <span
-        className={`text-lg font-bold ${landed ? "text-primary-base" : "text-white opacity-60"}`}
-      >
-        {shown}
-      </span>
-    </div>
+    <svg
+      width={size}
+      height={size}
+      viewBox={`0 0 ${size} ${size}`}
+      className="absolute inset-0 -rotate-90"
+      aria-hidden="true"
+    >
+      <circle
+        cx={size / 2}
+        cy={size / 2}
+        r={radius}
+        strokeWidth={stroke}
+        fill="none"
+        className="stroke-surface-highest"
+      />
+      <circle
+        cx={size / 2}
+        cy={size / 2}
+        r={radius}
+        strokeWidth={stroke}
+        fill="none"
+        strokeLinecap="round"
+        strokeDasharray={circumference}
+        strokeDashoffset={offset}
+        className="stroke-primary-base transition-[stroke-dashoffset] duration-1000 ease-linear"
+      />
+    </svg>
   );
 }
 
-function TargetCard({ raid }: { raid: Raid }) {
+// Section 5.2: every mode had its own big moment mid-flight, the roulette reel, the preview
+// race, the VS matchup, except the final handoff, which always fell back to a plain target
+// row. This is that moment staged the same way for all four modes: a spotlight card, badged
+// with how the target got chosen.
+const REVEAL_BADGE: Record<RaidMode, { label: string; icon?: KickIconName }> = {
+  random: { label: "Randomly selected" },
+  pick: { label: "Handpicked by the streamer", icon: "pin" },
+  chat: { label: "Chosen by chat" },
+  showdown: { label: "Won the showdown" },
+};
+
+function RevealSpotlight({ raid }: { raid: Raid }) {
   const target = candidateFor(raid, raid.targetSlug ?? "");
   if (!target) return null;
+  const [category] = streamPills(target.stream);
+  const badge = REVEAL_BADGE[raid.mode];
   return (
-    <div className="flex items-center gap-3">
-      <img src={target.stream.channel.avatar} alt="" className="size-10 shrink-0 rounded-full" />
-      <div className="min-w-0 flex-1">
-        <span className="block truncate text-sm font-bold text-white">
-          {target.stream.channel.username}
-        </span>
-        <span className="block truncate text-xs text-surface-onSurfaceSecondary">
-          {formatViewers(target.stream.viewer_count)} watching
-        </span>
+    <div className="animate-pick-reveal relative flex flex-col gap-1.5 overflow-hidden rounded-lg bg-surface-lowest px-2.5 py-2.5">
+      <div className="animate-pick-glow pointer-events-none absolute inset-x-0 top-0 h-10 bg-[radial-gradient(ellipse_at_top,rgba(83,252,24,0.4),transparent_70%)]" />
+      <span className="relative inline-flex w-fit items-center gap-1 rounded-full bg-primary-base py-0.5 pl-1.5 pr-2 text-[10px] font-bold text-primary-onPrimary">
+        {badge.icon && <Icon name={badge.icon} className="size-2.5" />}
+        {badge.label}
+      </span>
+      <div className="relative flex items-center gap-2.5">
+        <div className="relative flex size-11 shrink-0 items-center justify-center">
+          <img src={target.stream.channel.avatar} alt="" className="size-9 rounded-full" />
+          <CountdownRing seconds={raid.seconds} total={TIMING.countdown} size={44} />
+        </div>
+        <div className="min-w-0 flex-1">
+          <span className="block truncate text-sm font-black text-white">
+            {target.stream.channel.username}
+          </span>
+          <span className="block truncate text-[11px] text-surface-onSurfaceSecondary">
+            {formatViewers(target.stream.viewer_count)} watching{category ? ` · ${category}` : ""}
+          </span>
+        </div>
+        <span className="shrink-0 text-lg font-bold tabular-nums text-primary-base">{raid.seconds}</span>
       </div>
     </div>
   );
 }
 
+// Section 5.2: landed reuses the reveal's own visual language, glow, pop-in, ringed avatar, so
+// the raid's outcome reads as the same kind of moment, not a plain row bolted on at the end.
+function LandedCard({ raid }: { raid: Raid }) {
+  const { joined, targetIsHidden, clear } = useRaid();
+  const target = candidateFor(raid, raid.targetSlug ?? "");
+  if (!target) return null;
+  const [category] = streamPills(target.stream);
+  const swept = joined ?? !targetIsHidden;
+  return (
+    <div className="flex flex-col gap-3">
+      <div className="animate-pick-reveal relative flex items-center gap-2.5 overflow-hidden rounded-lg bg-surface-lowest px-2.5 py-2.5">
+        <div className="animate-pick-glow pointer-events-none absolute inset-x-0 top-0 h-10 bg-[radial-gradient(ellipse_at_top,rgba(83,252,24,0.4),transparent_70%)]" />
+        <div className="relative flex size-11 shrink-0 items-center justify-center">
+          <img
+            src={target.stream.channel.avatar}
+            alt=""
+            className="size-11 rounded-full ring-2 ring-primary-base"
+          />
+          <span className="absolute -bottom-0.5 -right-0.5 flex size-4 items-center justify-center rounded-full bg-primary-base text-[9px] font-bold text-primary-onPrimary">
+            ✓
+          </span>
+        </div>
+        <div className="relative min-w-0 flex-1">
+          <span className="block truncate text-sm font-black text-white">
+            {target.stream.channel.username}
+          </span>
+          <span className="block truncate text-[11px] text-surface-onSurfaceSecondary">
+            {formatViewers(target.stream.viewer_count)} watching{category ? ` · ${category}` : ""}
+          </span>
+        </div>
+      </div>
+      <span className="text-sm text-surface-onSurfaceSecondary">
+        {swept
+          ? "You got swept up with the rest of chat. Enjoy the ride."
+          : "You stayed put. Not even a gentle nudge."}
+      </span>
+      <button
+        type="button"
+        onClick={clear}
+        className="h-9 w-full rounded bg-secondary-base text-sm font-semibold text-secondary-onSecondary"
+      >
+        Nice raid!
+      </button>
+    </div>
+  );
+}
+
 function Countdown({ raid }: { raid: Raid }) {
-  const { targetIsHidden, join, leave, joined, act } = useRaid();
+  const { targetIsHidden, join, leave, joined } = useRaid();
   const target = candidateFor(raid, raid.targetSlug ?? "");
   if (!target) return null;
 
   return (
     <div className="flex flex-col gap-3">
-      <TargetCard raid={raid} />
+      <RevealSpotlight raid={raid} />
       {joined === false ? (
         <span className="text-sm text-surface-onSurfaceSecondary">
-          You are staying here. Chat goes without you.
+          You're staying here. Chat goes without you.
         </span>
-      ) : targetIsHidden && joined !== true ? (
+      ) : joined === true ? (
+        <span className="text-sm font-semibold text-primary-base">
+          You're in. You'll be carried across with chat.
+        </span>
+      ) : targetIsHidden ? (
         <>
           {/* Section 5.4: nobody is auto-carried into a category they hid. */}
           <div className="flex flex-wrap gap-1">
@@ -205,17 +291,17 @@ function Countdown({ raid }: { raid: Raid }) {
         <div className="flex gap-2">
           <button
             type="button"
-            onClick={() => act((r) => advance({ ...r, seconds: 0 }))}
-            className="state-layer-base h-9 flex-1 rounded bg-primary-base text-sm font-semibold text-primary-onPrimary"
-          >
-            Go now
-          </button>
-          <button
-            type="button"
             onClick={leave}
             className="h-9 flex-1 rounded bg-secondary-base text-sm font-semibold text-secondary-onSecondary"
           >
             Leave
+          </button>
+          <button
+            type="button"
+            onClick={join}
+            className="state-layer-base h-9 flex-1 rounded bg-primary-base text-sm font-semibold text-primary-onPrimary"
+          >
+            Enter
           </button>
         </div>
       )}
@@ -223,99 +309,235 @@ function Countdown({ raid }: { raid: Raid }) {
   );
 }
 
-function StreamerControls({ raid }: { raid: Raid }) {
-  const { act } = useRaid();
 
-  if (raid.viewer) return null;
+// Hover card: username, how interactive they run their chat, and what they usually stream,
+// so a curious viewer can size someone up before the vote without leaving the preview.
+const CARD_ALIGN = {
+  start: "left-0",
+  center: "left-1/2 -translate-x-1/2",
+  end: "right-0",
+} as const;
 
-  if (raid.phase === "tank-browse") {
-    return (
-      <button
-        type="button"
-        onClick={() => act(openTankVote)}
-        className="state-layer-base h-9 w-full rounded bg-primary-base text-sm font-semibold text-primary-onPrimary"
-      >
-        Open the vote
-      </button>
-    );
-  }
+const CARD_TAIL_ALIGN = {
+  start: "left-4",
+  center: "left-1/2 -translate-x-1/2",
+  end: "right-4",
+} as const;
 
-  if (raid.phase !== "tank-fork") return null;
+function AvatarInfoCard({
+  candidate,
+  align = "center",
+}: {
+  candidate: Candidate;
+  align?: "start" | "center" | "end";
+}) {
+  const pct = interactivityPercent(candidate);
+  const categories = profileFor(candidate.stream.channel.slug)?.recent_categories ?? [
+    candidate.stream.category,
+  ];
+  return (
+    <div
+      className={`z-popover pointer-events-none absolute bottom-full mb-2 w-52 rounded-lg bg-surface-highest p-3 opacity-0 shadow-xl transition-opacity duration-150 group-hover:opacity-100 ${CARD_ALIGN[align]}`}
+    >
+      <div className="flex items-center gap-2">
+        <img src={candidate.stream.channel.avatar} alt="" className="size-8 shrink-0 rounded-full" />
+        <span className="min-w-0 truncate text-sm font-bold text-white">
+          {candidate.stream.channel.username}
+        </span>
+      </div>
+      <div className="mt-2 flex flex-col gap-1.5">
+        <div className="flex items-center justify-between text-xs text-surface-onSurfaceSecondary">
+          <span>Interactivity</span>
+          <span className="font-semibold text-primary-base">{pct}%</span>
+        </div>
+        <div className="h-1 w-full overflow-hidden rounded-full bg-surface-lowest">
+          <div className="h-full bg-primary-base" style={{ width: `${pct}%` }} />
+        </div>
+        <span className="pt-0.5 text-xs text-surface-onSurfaceSecondary">Usually streams</span>
+        <div className="flex flex-wrap gap-1">
+          {categories.map((cat) => (
+            <span
+              key={cat.slug}
+              className="whitespace-nowrap rounded-full bg-secondary-base px-1.5 py-0.5 text-[11px] leading-none text-secondary-onSecondary"
+            >
+              {cat.name}
+            </span>
+          ))}
+        </div>
+      </div>
+      <div className={`absolute top-full -mt-1 size-2 rotate-45 bg-surface-highest ${CARD_TAIL_ALIGN[align]}`} />
+    </div>
+  );
+}
 
+function PreviewTracker({ raid }: { raid: Raid }) {
   return (
     <div className="flex flex-col gap-2">
-      <span className="text-sm text-surface-onSurfaceSecondary">
-        {nameOf(raid, raid.declined[raid.declined.length - 1])} is out. Refill the slot, or take
-        the raid to the creator who accepted.
+      <div className="flex items-center justify-center gap-3">
+        {raid.featured.map((slug, i) => {
+          const c = candidateFor(raid, slug);
+          if (!c) return null;
+          const active = raid.stage === slug;
+          const align = i === 0 ? "start" : i === raid.featured.length - 1 ? "end" : "center";
+          return (
+            <div key={slug} className="group relative flex flex-col items-center gap-1">
+              <AvatarInfoCard candidate={c} align={align} />
+              {active ? (
+                <div className="relative flex size-16 shrink-0 items-center justify-center">
+                  <img
+                    src={c.stream.channel.avatar}
+                    alt=""
+                    className="size-14 rounded-full object-cover ring-2 ring-primary-base"
+                  />
+                  <CountdownRing seconds={raid.seconds} total={TIMING.chatPreview} />
+                </div>
+              ) : (
+                <img
+                  src={c.stream.channel.avatar}
+                  alt=""
+                  className="size-10 rounded-full object-cover opacity-40"
+                />
+              )}
+              <span
+                className={`max-w-[64px] truncate text-[11px] font-semibold ${
+                  active ? "text-white" : "text-surface-onSurfaceSecondary"
+                }`}
+              >
+                {c.stream.channel.username}
+              </span>
+            </div>
+          );
+        })}
+      </div>
+      <span className="text-center text-xs text-surface-onSurfaceSecondary">
+        Previewing {raid.previewIndex + 1} of 3. Chat votes once all three have played.
       </span>
-      <button
-        type="button"
-        disabled={!canReroll(raid)}
-        onClick={() => act(tryAnother)}
-        className="h-9 w-full rounded bg-secondary-base text-sm font-semibold text-secondary-onSecondary disabled:bg-disabled-base disabled:text-disabled-onSurface"
+    </div>
+  );
+}
+
+// One contender's avatar, ringed and badged by where they stand: pulsing while the invite is
+// out, green and checked once accepted.
+function FinalistBadge({
+  raid,
+  slug,
+  align,
+}: {
+  raid: Raid;
+  slug: string;
+  align: "start" | "end";
+}) {
+  const c = candidateFor(raid, slug);
+  const accepted = raid.accepted.includes(slug);
+  return (
+    <div className="group relative flex flex-1 flex-col items-center gap-1.5">
+      {c && <AvatarInfoCard candidate={c} align={align} />}
+      <div
+        className={`relative flex size-14 shrink-0 items-center justify-center rounded-full ring-2 ${
+          accepted ? "ring-primary-base" : "ring-outline-decorative"
+        }`}
       >
-        Try another ({raid.rerolls} of 3 used)
-      </button>
-      <button
-        type="button"
-        onClick={() => act(justRaidThem)}
-        className="state-layer-base h-9 w-full rounded bg-primary-base text-sm font-semibold text-primary-onPrimary"
+        {c && (
+          <img src={c.stream.channel.avatar} alt="" className="size-full rounded-full object-cover" />
+        )}
+        <span
+          className={`absolute -bottom-1 -right-1 flex size-5 items-center justify-center rounded-full text-[10px] font-bold ${
+            accepted
+              ? "bg-primary-base text-primary-onPrimary"
+              : "animate-pulse bg-surface-highest text-surface-onSurfaceSecondary"
+          }`}
+        >
+          {accepted ? "✓" : "…"}
+        </span>
+      </div>
+      <span className="max-w-[84px] truncate text-xs font-semibold text-white">
+        {nameOf(raid, slug)}
+      </span>
+      <span
+        className={`text-[10px] font-semibold uppercase ${
+          accepted ? "text-primary-base" : "text-surface-onSurfaceSecondary"
+        }`}
       >
-        Just raid {nameOf(raid, raid.accepted[0])}
-      </button>
+        {accepted ? "Accepted" : "Waiting"}
+      </span>
+    </div>
+  );
+}
+
+function Matchup({ raid }: { raid: Raid }) {
+  return (
+    <div className="flex items-center justify-center gap-2">
+      <FinalistBadge raid={raid} slug={raid.finalists[0]} align="start" />
+      <span className="shrink-0 text-xs font-black text-surface-onSurfaceSecondary">VS</span>
+      <FinalistBadge raid={raid} slug={raid.finalists[1]} align="end" />
+    </div>
+  );
+}
+
+// The vote opens on the clock, not on the streamer clicking anything, so the countdown itself
+// is the only thing telling chat how long they have to go watch a tile before it opens.
+// The roster reads as the same zoom-meeting grid the player shows, shrunk to fit the chat
+// card, with the currently-previewed tile ringed. The countdown is a badge, not a bar, so it
+// reads at a glance the same way the reveal's ring does.
+function ShowdownBrowseTimer({ raid }: { raid: Raid }) {
+  const roster = raid.candidates.slice(0, 6);
+  return (
+    <div className="flex flex-col gap-1.5">
+      <div className="mx-auto grid w-full max-w-[186px] grid-cols-3 gap-1">
+        {roster.map((c, i) => {
+          const slug = c.stream.channel.slug;
+          const active = raid.stage === slug;
+          const col = i % 3;
+          const align = col === 0 ? "start" : col === 2 ? "end" : "center";
+          return (
+            <div key={slug} className="group relative">
+              <AvatarInfoCard candidate={c} align={align} />
+              <div
+                className={`relative aspect-square overflow-hidden rounded bg-surface-lowest transition-all duration-300 ${
+                  active ? "ring-2 ring-primary-base" : "ring-1 ring-outline-decorative"
+                }`}
+              >
+                <img
+                  src={c.stream.channel.avatar}
+                  alt=""
+                  className={`h-full w-full object-cover transition-opacity ${active ? "" : "opacity-70"}`}
+                />
+                {active && (
+                  <span className="absolute inset-x-0 bottom-0 h-0.5 animate-pick-glow bg-primary-base" />
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+      <div className="flex items-center gap-2 rounded-lg bg-surface-lowest px-2 py-1.5">
+        <div className="relative flex size-6 shrink-0 items-center justify-center">
+          <CountdownRing seconds={raid.seconds} total={TIMING.showdownBrowse} size={24} />
+          <span className="relative text-[10px] font-black tabular-nums text-primary-base">
+            {raid.seconds}
+          </span>
+        </div>
+        <span className="min-w-0 flex-1 text-xs leading-snug text-surface-onSurfaceSecondary">
+          Voting will begin soon.
+        </span>
+      </div>
     </div>
   );
 }
 
 function Body({ raid }: { raid: Raid }) {
-  const { joined, targetIsHidden, openDialog, clear } = useRaid();
+  const { openDialog, clear } = useRaid();
 
   switch (raid.phase) {
     case "preview":
-      return (
-        <span className="text-sm text-surface-onSurfaceSecondary">
-          The poll is closed while the previews run. Everyone votes on the same information.
-        </span>
-      );
-    case "tank-browse":
-      return (
-        <span className="text-sm text-surface-onSurfaceSecondary">
-          {raid.viewer
-            ? "Ten channels are in the player. The streamer opens the vote when they are ready."
-            : "Ten channels are in the player. Watch any of them, then open the vote and chat picks two."}
-        </span>
-      );
-    case "tank-fork":
-      return raid.viewer ? (
-        <span className="text-sm text-surface-onSurfaceSecondary">
-          {nameOf(raid, raid.declined[raid.declined.length - 1])} is out. The streamer is
-          deciding what happens to the open slot.
-        </span>
-      ) : null;
+      return <PreviewTracker raid={raid} />;
+    case "showdown-browse":
+      return <ShowdownBrowseTimer raid={raid} />;
     case "vote":
       return raid.poll ? <PollRows raid={raid} poll={raid.poll} /> : null;
-    case "tank-accept":
-      return (
-        <div className="flex flex-col gap-1.5">
-          {raid.finalists.map((slug) => (
-            <div key={slug} className="flex items-center gap-2">
-              <span className="min-w-0 flex-1 truncate text-sm font-semibold text-white">
-                {nameOf(raid, slug)}
-              </span>
-              <span
-                className={`shrink-0 text-xs font-semibold uppercase ${
-                  raid.accepted.includes(slug)
-                    ? "text-surface-onSurfacePositive"
-                    : "text-surface-onSurfaceSecondary"
-                }`}
-              >
-                {raid.accepted.includes(slug) ? "Accepted" : "Waiting"}
-              </span>
-            </div>
-          ))}
-        </div>
-      );
-    case "tank-pitch":
+    case "showdown-accept":
+      return <Matchup raid={raid} />;
+    case "showdown-pitch":
       return (
         <span className="text-sm text-surface-onSurfaceSecondary">
           {nameOf(raid, raid.finalists[raid.pitchIndex])} has 60 seconds to say why they deserve
@@ -323,27 +545,11 @@ function Body({ raid }: { raid: Raid }) {
         </span>
       );
     case "reveal":
-      return <Reel raid={raid} />;
+      return <RouletteReel candidates={raid.candidates} commitSlug={raid.targetSlug} />;
     case "countdown":
       return <Countdown raid={raid} />;
     case "landed":
-      return (
-        <div className="flex flex-col gap-3">
-          <TargetCard raid={raid} />
-          <span className="text-sm text-surface-onSurfaceSecondary">
-            {(joined ?? !targetIsHidden)
-              ? "You were carried across with the rest of chat."
-              : "You are still here. Nothing moved you."}
-          </span>
-          <button
-            type="button"
-            onClick={clear}
-            className="h-9 w-full rounded bg-secondary-base text-sm font-semibold text-secondary-onSecondary"
-          >
-            Done
-          </button>
-        </div>
-      );
+      return <LandedCard raid={raid} />;
     default:
       // Section 9: the streamer is told to pick someone else, the viewer is told they are
       // still here.
@@ -380,29 +586,46 @@ function Body({ raid }: { raid: Raid }) {
 
 // Section 13: the demo runs the raid from the viewer's seat. The streamer's decisions are
 // scripted, and the viewer keeps the vote, the join and the leave.
+// Floats in the same bottom-left slot RaidDevControls uses once a raid is running: before
+// one starts there is nothing to skip, so the two never compete for the spot.
 export function RaidPreviewAsViewer({ host }: { host: Livestream }) {
-  const { startAsViewer } = useRaid();
+  const { raid, startAsViewer, act } = useRaid();
   const modes: { id: RaidMode; label: string }[] = [
     { id: "random", label: "Random" },
+    { id: "pick", label: "Streamer pick" },
     { id: "chat", label: "Chat picks" },
-    { id: "tank", label: "Raid tank" },
+    { id: "showdown", label: "Showdown" },
   ];
 
-  return (
-    <div className="shrink-0 border-t border-outline-decorative bg-surface-base px-3 py-2">
-      <div className="mb-1.5 flex items-center gap-2">
-        <span className="text-xs uppercase text-surface-onSurfaceSecondary">Demo</span>
-        <span className="min-w-0 truncate text-sm font-bold text-white">
-          Preview as viewer: {host.channel.username} raids
-        </span>
+  if (raid && raid.seconds > 0) {
+    return (
+      <div className="z-popover fixed bottom-4 left-4 flex items-center gap-2 rounded-lg bg-surface-highest px-3 py-2 shadow-2xl">
+        <span className="text-xs font-semibold uppercase text-surface-onSurfaceSecondary">Demo</span>
+        <button
+          type="button"
+          onClick={() => act((r) => advance({ ...r, seconds: 0 }))}
+          className="state-layer-base rounded bg-primary-base px-2 py-1 text-xs font-semibold text-primary-onPrimary"
+        >
+          Skip timer
+        </button>
       </div>
-      <div className="flex gap-1.5">
+    );
+  }
+
+  if (raid) return null;
+
+  return (
+    <div className="z-popover fixed bottom-4 left-4 flex w-64 flex-col gap-2 rounded-lg bg-surface-highest p-3 shadow-2xl">
+      <span className="text-xs font-semibold uppercase text-surface-onSurfaceSecondary">
+        Demo: preview as viewer
+      </span>
+      <div className="grid grid-cols-2 gap-1.5">
         {modes.map((mode) => (
           <button
             key={mode.id}
             type="button"
             onClick={() => startAsViewer(host, mode.id)}
-            className="h-8 flex-1 rounded bg-secondary-base text-xs font-semibold text-secondary-onSecondary betterhover:hover:bg-surface-highest"
+            className="h-8 rounded bg-secondary-base text-xs font-semibold text-secondary-onSecondary betterhover:hover:bg-surface-lowest"
           >
             {mode.label}
           </button>
@@ -412,55 +635,95 @@ export function RaidPreviewAsViewer({ host }: { host: Livestream }) {
   );
 }
 
-// Section 5.2: the panel above the chat input carries the detail on demand. Closing it never
-// cancels the raid.
-export function RaidPanel({ onClose }: { onClose: () => void }) {
-  const { raid, act } = useRaid();
+const SHOWDOWN_STEPS = ["Browse", "Vote", "Pitch", "Winner", "Go"] as const;
+
+function showdownStepIndex(raid: Raid): number {
+  switch (raid.phase) {
+    case "showdown-browse":
+      return 0;
+    case "vote":
+      return raid.poll?.round === 2 ? 3 : 1;
+    case "showdown-accept":
+      return 1;
+    case "showdown-pitch":
+      return 2;
+    case "countdown":
+    case "landed":
+      return 4;
+    default:
+      return 0;
+  }
+}
+
+// Section 5.2: the showdown is the only mode with enough steps to need a tracker. The other
+// three modes already say where they are in the banner text alone.
+function ShowdownProgress({ raid }: { raid: Raid }) {
+  const index = showdownStepIndex(raid);
+  return (
+    <div className="mb-1.5 flex gap-1" aria-hidden="true">
+      {SHOWDOWN_STEPS.map((step, i) => (
+        <div
+          key={step}
+          className={`h-1 flex-1 rounded-full ${i <= index ? "bg-primary-base" : "bg-surface-highest"}`}
+        />
+      ))}
+    </div>
+  );
+}
+
+// Section 5.2: the panel above the chat input is the only place the raid shows in chat now,
+// so it carries the status, the countdown clock, and the detail together, always visible for
+// as long as a raid is active.
+export function RaidPanel() {
+  const { raid } = useRaid();
   if (!raid) return null;
 
-  const skippable = raid.seconds > 0;
+  // Section 5.2: countdown and landed already name the target in the rich card below, so the
+  // header here stays generic instead of printing the same name twice in one card.
+  const panelHeader =
+    raid.phase === "countdown"
+      ? "Raid incoming"
+      : raid.phase === "landed"
+        ? "Mission accomplished"
+        : bannerText(raid);
 
   return (
-    <div className="shrink-0 border-t border-outline-decorative bg-surface-base px-3 py-3">
-      <div className="mb-2 flex items-center justify-between gap-2">
-        <span className="min-w-0 truncate text-sm font-bold text-white">{bannerText(raid)}</span>
-        <button
-          type="button"
-          aria-label="Close raid panel"
-          onClick={onClose}
-          className="state-layer-surface flex size-6 shrink-0 items-center justify-center rounded text-white"
-        >
-          <Icon name="close" className="size-3" />
-        </button>
+    <div className="shrink-0 border-t border-outline-decorative bg-surface-base px-3 py-2">
+      <div className="mb-1.5 flex items-center justify-between gap-2">
+        <span className="min-w-0 flex-1 truncate text-xs font-bold text-white">{panelHeader}</span>
+        {raid.seconds > 0 && raid.phase !== "countdown" && raid.phase !== "showdown-browse" && (
+          <span className="shrink-0 text-xs font-bold tabular-nums text-primary-base">
+            {clock(raid.seconds)}
+          </span>
+        )}
       </div>
 
-      <div className="flex flex-col gap-3">
+      {raid.mode === "showdown" && <ShowdownProgress raid={raid} />}
+
+      <div className="flex flex-col gap-2">
         <Body raid={raid} />
-        <StreamerControls raid={raid} />
-
-        {/* Section 13: the logic is real, the timing is scripted, and the pitch says so. */}
-        <div className="flex items-center gap-2 border-t border-outline-decorative pt-2">
-          <span className="text-xs uppercase text-surface-onSurfaceSecondary">Demo</span>
-          {skippable && (
-            <button
-              type="button"
-              onClick={() => act((r) => advance({ ...r, seconds: 0 }))}
-              className="rounded bg-secondary-base px-2 py-1 text-xs font-semibold text-secondary-onSecondary"
-            >
-              Skip ahead
-            </button>
-          )}
-          {raid.phase === "countdown" && (
-            <button
-              type="button"
-              onClick={() => act((r) => channelOffline(r, r.targetSlug ?? ""))}
-              className="rounded bg-secondary-base px-2 py-1 text-xs font-semibold text-secondary-onSecondary"
-            >
-              Target goes offline
-            </button>
-          )}
-        </div>
       </div>
+    </div>
+  );
+}
+
+// Section 13: a floating, out-of-the-way way to skip any raid timer, since real countdowns,
+// previews, and pitches run to the real clock. Mounted once at the app root so it works
+// wherever a raid is running, not just inside the chat column.
+export function RaidDevControls() {
+  const { raid, act } = useRaid();
+  if (!raid || raid.seconds <= 0) return null;
+
+  return (
+    <div className="z-popover fixed bottom-4 left-4 flex items-center gap-2 rounded-lg bg-surface-highest px-3 py-2 shadow-2xl">
+      <span className="text-xs font-semibold uppercase text-surface-onSurfaceSecondary">Demo</span>
+      <button
+        type="button"
+        onClick={() => act((r) => advance({ ...r, seconds: 0 }))}
+        className="state-layer-base rounded bg-primary-base px-2 py-1 text-xs font-semibold text-primary-onPrimary"
+      >
+        Skip timer
+      </button>
     </div>
   );
 }

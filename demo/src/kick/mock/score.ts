@@ -44,7 +44,7 @@ const signals: Signal[] = ["participation", "momentum", "retention", "volume"];
 const expected = (signal: keyof typeof BASE, viewers: number) =>
   BASE[signal] * viewers ** EXP[signal];
 
-const squash = (relative: number) => relative / (relative + 1);
+export const squash = (relative: number) => relative / (relative + 1);
 
 export const expectedRetention = (ratio: number) => 1 / (1 + K * ratio ** B);
 

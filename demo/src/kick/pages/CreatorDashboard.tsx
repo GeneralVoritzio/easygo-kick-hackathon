@@ -6,7 +6,11 @@ import kickLogo from "../brand/kick-logo.svg";
 import { categories, currentSession, currentUser, formatFollowers, formatViewers } from "../mock/api";
 import { ChatFeed } from "../components/ChannelChat";
 import { RaidStage } from "../components/RaidStage";
+import { RaidDevControls } from "../components/RaidChat";
+import { BackFromBreakToast } from "../components/BackFromBreakToast";
 import { useRaid } from "../raid/RaidProvider";
+import { usePrefs } from "../prefs";
+import { announceInChat } from "../announce";
 
 const streamItem = "/dashboard/stream";
 
@@ -215,17 +219,135 @@ function ActionGroup({
   );
 }
 
+// Section 4.1: catches a streamer ending without raiding, before the stream actually ends.
+// Raid a channel opens the same picker "End stream" always opened. End without raiding just
+// closes the popup, it never starts a raid on its own. The checkbox reads and writes the live
+// raidReminder pref directly, not a local draft, so checking it here turns the reminder off
+// everywhere, the same instant, same as the dashboard toggle.
+function RaidReminder({
+  raidReminder,
+  onRaidReminderChange,
+  onRaid,
+  onEndAnyway,
+  onClose,
+}: {
+  raidReminder: boolean;
+  onRaidReminderChange: (on: boolean) => void;
+  onRaid: () => void;
+  onEndAnyway: () => void;
+  onClose: () => void;
+}) {
+  return (
+    <div className="z-popover fixed inset-0 flex items-center justify-center bg-surfaceOverlay-base p-4">
+      <div className="animate-pick-reveal relative flex w-full max-w-sm flex-col gap-5 overflow-hidden rounded-xl bg-surface-base p-6 shadow-2xl">
+        <div className="animate-pick-glow pointer-events-none absolute inset-x-0 top-0 h-28 bg-[radial-gradient(ellipse_at_top,rgba(83,252,24,0.35),transparent_70%)]" />
+
+        <div className="absolute right-3 top-3 z-10">
+          <button
+            type="button"
+            aria-label="Close"
+            onClick={onClose}
+            className="state-layer-surface flex size-8 items-center justify-center rounded text-white"
+          >
+            <Icon name="close" className="size-3.5" />
+          </button>
+        </div>
+
+        <div className="relative flex flex-col items-center gap-3 text-center">
+          <div className="flex size-14 shrink-0 items-center justify-center rounded-full bg-primary-base/15 ring-2 ring-primary-base/40">
+            <Icon name="kick-mark" className="size-6 text-primary-base" />
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <h2 className="text-xl font-bold leading-6 text-white">Hold up! You have not raided.</h2>
+            <p className="text-sm leading-5 text-surface-onSurfaceSecondary">
+              Send your viewers to a live creator before you go. It takes a second.
+            </p>
+          </div>
+        </div>
+
+        <div className="relative flex flex-col gap-2">
+          <button
+            type="button"
+            onClick={onRaid}
+            className="state-layer-base h-11 w-full rounded-md bg-primary-base text-base font-semibold text-primary-onPrimary"
+          >
+            Raid a channel
+          </button>
+          <button
+            type="button"
+            onClick={onEndAnyway}
+            className="h-9 w-full rounded-md text-sm font-semibold text-surface-onSurfaceSecondary betterhover:hover:text-white"
+          >
+            End without raiding
+          </button>
+        </div>
+
+        <label className="relative flex w-fit cursor-pointer select-none items-center gap-2 self-center text-xs text-surface-onSurfaceSecondary betterhover:hover:text-white">
+          <input
+            type="checkbox"
+            checked={!raidReminder}
+            onChange={(e) => onRaidReminderChange(!e.target.checked)}
+            className="peer sr-only"
+          />
+          <span className="flex size-4 shrink-0 items-center justify-center rounded border border-outline-decorative bg-surface-lowest text-[10px] font-bold leading-none text-transparent transition-colors peer-checked:border-primary-base peer-checked:bg-primary-base peer-checked:text-primary-onPrimary">
+            &#10003;
+          </span>
+          Do not remind me again
+        </label>
+      </div>
+    </div>
+  );
+}
+
 export function CreatorDashboard() {
   const { section } = useParams();
   const [subsOnly, setSubsOnly] = useState(false);
   const [emotesOnly, setEmotesOnly] = useState(false);
   const [showViewCount, setShowViewCount] = useState(true);
   const [menuOpen, setMenuOpen] = useState(false);
-  const { openDialog } = useRaid();
+  const [showRaidReminder, setShowRaidReminder] = useState(false);
+  const [breakToast, setBreakToast] = useState<string | null>(null);
+  const { openDialog, endStream } = useRaid();
+  const [prefs, updatePrefs] = usePrefs();
   const active = `/dashboard/${section ?? "stream"}`;
+
+  function handleEndStream() {
+    if (prefs.raidReminder) setShowRaidReminder(true);
+    else endStream();
+  }
+
+  // fake-kick POST /public/v1/livestreams/{broadcaster_user_id}/announcements
+  function handleBackFromBreak() {
+    const message = `${currentUser.username} is back from break!`;
+    announceInChat(message);
+    setBreakToast(message);
+  }
 
   return (
     <div className="flex h-screen flex-col overflow-hidden bg-surface-lowest">
+      <RaidDevControls />
+      {showRaidReminder && (
+        <RaidReminder
+          raidReminder={prefs.raidReminder}
+          onRaidReminderChange={(on) => updatePrefs({ raidReminder: on })}
+          onRaid={() => {
+            setShowRaidReminder(false);
+            openDialog("end");
+          }}
+          onEndAnyway={() => {
+            setShowRaidReminder(false);
+            endStream();
+          }}
+          onClose={() => setShowRaidReminder(false)}
+        />
+      )}
+      {breakToast && (
+        <BackFromBreakToast
+          message={breakToast}
+          slug={currentUser.slug}
+          onDone={() => setBreakToast(null)}
+        />
+      )}
       <nav className="flex h-[var(--navbar-height)] shrink-0 items-center justify-between bg-surface-lowest pl-3 pr-10">
         <div className="flex grow-0 items-center gap-2.5">
           <IconButton icon="menu" label="Collapse sidebar" className="size-10 text-base leading-none" />
@@ -234,11 +356,19 @@ export function CreatorDashboard() {
           </Link>
         </div>
         <div className="flex items-center gap-5">
+          <button
+            type="button"
+            onClick={handleBackFromBreak}
+            className="state-layer-surface inline-flex h-9 items-center justify-center gap-1.5 rounded bg-secondary-base px-2 text-sm font-semibold text-secondary-onSecondary"
+          >
+            <Icon name="play" className="size-[1em]" />
+            Back from break
+          </button>
           {/* Section 6: the two entry points open the same dialog. Only the heading and the
               escape wording differ. */}
           <button
             type="button"
-            onClick={() => openDialog("end")}
+            onClick={handleEndStream}
             className="state-layer-base inline-flex h-9 items-center justify-center gap-1.5 rounded bg-primary-base px-2 text-sm font-semibold text-primary-onPrimary"
           >
             <Icon name="kick-mark" className="size-[1em]" />
@@ -404,6 +534,16 @@ export function CreatorDashboard() {
                         </ActionGroup>
                         <ActionGroup title="Channel options">
                           <ToggleRow label="Show view count" on={showViewCount} onChange={setShowViewCount} />
+                          <ToggleRow
+                            label="Showdown raids"
+                            on={prefs.showdownRaids}
+                            onChange={(v) => updatePrefs({ showdownRaids: v })}
+                          />
+                          <ToggleRow
+                            label="Raid reminder"
+                            on={prefs.raidReminder}
+                            onChange={(v) => updatePrefs({ raidReminder: v })}
+                          />
                           <ActionRow label="Raid Channel" onClick={() => openDialog("raid")} />
                           <ActionRow label="Set goals" />
                         </ActionGroup>

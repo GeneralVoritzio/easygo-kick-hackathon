@@ -1,38 +1,39 @@
-import { recommendationsFor, tankCandidates, type Candidate } from "../mock/raids";
+import { recommendationsFor, showdownCandidates, type Candidate } from "../mock/raids";
 
 // Invented surface, named as if KICK's engineers built it. The state below is what these
 // would carry:
 //   fake-kick POST   /public/v1/raids
 //   fake-kick GET    /public/v1/raids/recommendations
 //   fake-kick POST   /public/v1/raids/{raid_id}/votes
-//   fake-kick POST   /public/v1/raids/{raid_id}/tank/entries/{slug}/accept
+//   fake-kick POST   /public/v1/raids/{raid_id}/showdown/entries/{slug}/accept
 //   fake-kick DELETE /public/v1/raids/{raid_id}
-//   fake-kick raid.started, raid.vote.opened, raid.vote.closed, raid.tank.entry.declined,
-//   fake-kick raid.tank.abandoned, raid.completed, raid.cancelled
+//   fake-kick raid.started, raid.vote.opened, raid.vote.closed, raid.showdown.entry.declined,
+//   fake-kick raid.showdown.abandoned, raid.completed, raid.cancelled
 //   scopes raids:read and raids:write
 
 export const TIMING = {
   countdown: 15,
   chatPreview: 30,
-  tankTile: 30,
+  showdownBrowse: 20,
+  showdownTile: 30,
   pitch: 60,
   accept: 20,
   vote: 20,
-  reveal: 4,
+  // The roulette reel's own spin (4.2s) plus its landed hold (0.9s), Section 5.1: long enough
+  // that the reel always finishes landing before this phase's own timer advances it on.
+  rouletteReveal: 6,
 };
 
-export const REROLL_CAP = 3;
 export const MIN_HOST_VIEWERS = 5;
 
-export type RaidMode = "random" | "pick" | "chat" | "tank";
+export type RaidMode = "random" | "pick" | "chat" | "showdown";
 
 export type Phase =
   | "preview"
   | "vote"
-  | "tank-browse"
-  | "tank-accept"
-  | "tank-fork"
-  | "tank-pitch"
+  | "showdown-browse"
+  | "showdown-accept"
+  | "showdown-pitch"
   | "reveal"
   | "countdown"
   | "landed"
@@ -63,8 +64,6 @@ export type Raid = {
   poll?: Poll;
   finalists: string[];
   accepted: string[];
-  declined: string[];
-  rerolls: number;
   pitchIndex: number;
   targetSlug?: string;
   note?: string;
@@ -99,12 +98,22 @@ export type RaidStart = {
   hostSlug: string;
   hostViewers: number;
   pickedSlug?: string;
+  pickedSlugs?: string[];
   viewer?: boolean;
 };
 
-export function startRaid({ mode, hostSlug, hostViewers, pickedSlug, viewer }: RaidStart): Raid {
+// Section 4.4: the streamer curates who is in play for Chat pick (3) and showdown (2) from
+// the browse dialog. That replaces the old auto-top-N selection, it does not add a step.
+export function startRaid({
+  mode,
+  hostSlug,
+  hostViewers,
+  pickedSlug,
+  pickedSlugs,
+  viewer,
+}: RaidStart): Raid {
   const all = recommendationsFor(hostSlug, hostViewers);
-  const candidates = mode === "tank" ? tankCandidates(all) : all;
+  const candidates = mode === "showdown" ? showdownCandidates(all) : all;
   const base: Raid = {
     mode,
     phase: "countdown",
@@ -117,20 +126,37 @@ export function startRaid({ mode, hostSlug, hostViewers, pickedSlug, viewer }: R
     previewIndex: 0,
     finalists: [],
     accepted: [],
-    declined: [],
-    rerolls: 0,
     pitchIndex: 0,
   };
 
   if (mode === "random") {
-    const roll = candidates[Math.floor(Math.random() * Math.min(10, candidates.length))];
-    return { ...base, targetSlug: roll.stream.channel.slug, featured: [roll.stream.channel.slug] };
+    // The dialog's roulette already rolled the winner and animated the reel onto it, so a
+    // pickedSlug here is that same winner, not a second, silent roll. The chat side gets its
+    // own reveal phase so viewers see the same roulette land, not just a done deal.
+    const roll = pickedSlug
+      ? (candidateFor(base, pickedSlug) ?? candidates[0])
+      : candidates[Math.floor(Math.random() * Math.min(10, candidates.length))];
+    return {
+      ...base,
+      phase: "reveal",
+      seconds: TIMING.rouletteReveal,
+      targetSlug: roll.stream.channel.slug,
+      featured: [roll.stream.channel.slug],
+    };
   }
   if (mode === "pick") {
-    return { ...base, targetSlug: pickedSlug, featured: pickedSlug ? [pickedSlug] : [] };
+    // Section 13: on the viewer side nobody is browsing a candidate list to pick from, so the
+    // streamer's choice is simulated the same way their other decisions are, standing in with
+    // their top recommendation rather than leaving the raid with no target at all.
+    const target = pickedSlug ? candidateFor(base, pickedSlug) : candidates[0];
+    return {
+      ...base,
+      targetSlug: target?.stream.channel.slug,
+      featured: target ? [target.stream.channel.slug] : [],
+    };
   }
   if (mode === "chat") {
-    const three = slugsOf(candidates.slice(0, 3));
+    const three = pickedSlugs && pickedSlugs.length === 3 ? pickedSlugs : slugsOf(candidates.slice(0, 3));
     return {
       ...base,
       phase: "preview",
@@ -139,20 +165,35 @@ export function startRaid({ mode, hostSlug, hostViewers, pickedSlug, viewer }: R
       featured: three,
     };
   }
-  return { ...base, phase: "tank-browse", seconds: 0, featured: slugsOf(candidates.slice(0, 10)) };
+  // Section 4.4: the streamer curates the pool of 6 in the dialog. That pool becomes the
+  // raid's whole candidate set, so the player grid, the vote, and the pitch only ever consider
+  // streamers the streamer actually chose, not a wider auto-picked list.
+  const pool =
+    pickedSlugs && pickedSlugs.length === 6
+      ? (pickedSlugs.map((slug) => candidateFor(base, slug)).filter(Boolean) as Candidate[])
+      : candidates.slice(0, 6);
+  return {
+    ...base,
+    candidates: pool,
+    phase: "showdown-browse",
+    seconds: TIMING.showdownBrowse,
+    featured: slugsOf(pool),
+  };
 }
 
 function closeVote(raid: Raid): Raid {
   const poll = raid.poll!;
   const order = ranked(raid, poll);
 
+  // Section 5.3: a vote already is the reveal, so the winner goes straight to the countdown
+  // instead of a second, unneeded random-picker animation on top of a result chat just decided.
   if (poll.round === 2 || raid.mode === "chat") {
-    return { ...raid, phase: "reveal", seconds: TIMING.reveal, targetSlug: order[0], poll };
+    return { ...raid, phase: "countdown", seconds: TIMING.countdown, targetSlug: order[0], poll: undefined };
   }
   if (poll.slot === undefined) {
     return {
       ...raid,
-      phase: "tank-accept",
+      phase: "showdown-accept",
       seconds: TIMING.accept,
       finalists: order.slice(0, poll.picks),
       poll: undefined,
@@ -162,7 +203,7 @@ function closeVote(raid: Raid): Raid {
   finalists[poll.slot] = order[0];
   return {
     ...raid,
-    phase: "tank-accept",
+    phase: "showdown-accept",
     seconds: TIMING.accept,
     finalists,
     featured: feature(raid, [order[0]]),
@@ -170,23 +211,16 @@ function closeVote(raid: Raid): Raid {
   };
 }
 
-// Section 4.4 step 4: a decline creates a fork, not a dead end.
+// Section 4.4 step 4: both finalists always accept, so the accept timer always closes
+// straight into the pitch.
 function closeAccept(raid: Raid): Raid {
-  const missing = raid.finalists.filter((s) => !raid.accepted.includes(s));
-  if (missing.length === 0) {
-    return {
-      ...raid,
-      phase: "tank-pitch",
-      pitchIndex: 0,
-      stage: raid.finalists[0],
-      seconds: TIMING.pitch,
-    };
-  }
-  const declined = [...new Set([...raid.declined, ...missing])];
-  if (raid.accepted.length === 0) {
-    return { ...raid, phase: "cancelled", seconds: 0, declined, note: "Nobody accepted." };
-  }
-  return { ...raid, phase: "tank-fork", seconds: 0, declined };
+  return {
+    ...raid,
+    phase: "showdown-pitch",
+    pitchIndex: 0,
+    stage: raid.finalists[0],
+    seconds: TIMING.pitch,
+  };
 }
 
 export function advance(raid: Raid): Raid {
@@ -204,13 +238,17 @@ export function advance(raid: Raid): Raid {
         poll: openPoll(1, order, 1),
       };
     }
-    case "tank-browse":
-      return { ...raid, stage: undefined, seconds: 0 };
+    case "showdown-browse":
+      // A tile's own preview timer expiring just returns to the grid, with the browse timer
+      // restarted. The browse timer itself expiring opens the vote.
+      return raid.stage
+        ? { ...raid, stage: undefined, seconds: TIMING.showdownBrowse }
+        : openShowdownVote(raid);
     case "vote":
       return closeVote(raid);
-    case "tank-accept":
+    case "showdown-accept":
       return closeAccept(raid);
-    case "tank-pitch": {
+    case "showdown-pitch": {
       const next = raid.pitchIndex + 1;
       if (next < raid.finalists.length)
         return { ...raid, pitchIndex: next, stage: raid.finalists[next], seconds: TIMING.pitch };
@@ -249,8 +287,8 @@ export function addChatVotes(raid: Raid, votes: Record<string, number>): Raid {
   return { ...raid, poll: { ...poll, votes: next } };
 }
 
-export function openTankVote(raid: Raid): Raid {
-  const options = slugsOf(raid.candidates.slice(0, 10));
+export function openShowdownVote(raid: Raid): Raid {
+  const options = slugsOf(raid.candidates.slice(0, 6));
   return {
     ...raid,
     phase: "vote",
@@ -263,46 +301,13 @@ export function openTankVote(raid: Raid): Raid {
 export const playTile = (raid: Raid, slug: string): Raid => ({
   ...raid,
   stage: slug,
-  seconds: TIMING.tankTile,
+  seconds: TIMING.showdownTile,
 });
 
 export function acceptEntry(raid: Raid, slug: string): Raid {
-  if (raid.phase !== "tank-accept" || !raid.finalists.includes(slug)) return raid;
+  if (raid.phase !== "showdown-accept" || !raid.finalists.includes(slug)) return raid;
   return { ...raid, accepted: [...new Set([...raid.accepted, slug])] };
 }
-
-export function declineEntry(raid: Raid, slug: string): Raid {
-  if (raid.phase !== "tank-accept" || !raid.finalists.includes(slug)) return raid;
-  return closeAccept({ ...raid, declined: [...new Set([...raid.declined, slug])] });
-}
-
-export const canReroll = (raid: Raid) => raid.rerolls < REROLL_CAP;
-
-// Section 4.4 step 5: a decliner is out of this tank for good, and anyone already accepted
-// stays locked.
-export function tryAnother(raid: Raid): Raid {
-  const slot = raid.finalists.findIndex((s) => !raid.accepted.includes(s));
-  const taken = new Set([...raid.accepted, ...raid.declined]);
-  const options = slugsOf(raid.candidates).filter((s) => !taken.has(s)).slice(0, 3);
-  if (slot < 0 || options.length === 0 || !canReroll(raid)) return raid;
-  return {
-    ...raid,
-    phase: "vote",
-    seconds: TIMING.vote,
-    rerolls: raid.rerolls + 1,
-    featured: feature(raid, options),
-    poll: openPoll(1, options, 1, slot),
-  };
-}
-
-export const justRaidThem = (raid: Raid): Raid => ({
-  ...raid,
-  phase: "countdown",
-  seconds: TIMING.countdown,
-  targetSlug: raid.accepted[0],
-  finalists: raid.accepted,
-  note: "The battle was abandoned. The raid goes to the creator who accepted.",
-});
 
 // Section 9: never a silent substitution. Offline mid-countdown cancels, offline mid-vote
 // removes the candidate and voids its votes.

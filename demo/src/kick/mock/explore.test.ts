@@ -1,20 +1,39 @@
 import { describe, expect, it } from "vitest";
-import { buildExploreCatalog, EXPLORE_CHANNELS, EXPLORE_CLUSTERS } from "./explore";
+import {
+  buildExploreCatalog,
+  EXPLORE_CHANNELS,
+  EXPLORE_CLUSTERS,
+  EXPLORE_COUNTRIES,
+} from "./explore";
 import { liveStreamFor } from "./api";
 
 const byBody = (body: string) => EXPLORE_CLUSTERS.filter((c) => c.body === body);
 
 describe("explore catalog", () => {
-  it("keeps Earth the bulk of the map, at 200 to 320 channels total", () => {
+  it("holds one cluster per country, and no country swamps the map", () => {
     const earth = byBody("earth");
-    expect(earth.length).toBeGreaterThanOrEqual(50);
-    expect(earth.length).toBeLessThanOrEqual(100);
-    for (const cluster of EXPLORE_CLUSTERS) {
-      expect(cluster.channels.length).toBeGreaterThanOrEqual(1);
-      expect(cluster.channels.length).toBeLessThanOrEqual(5);
+    expect(earth.length).toBe(EXPLORE_COUNTRIES.length);
+    expect(new Set(earth.map((c) => c.place)).size).toBe(earth.length);
+    for (const cluster of earth) {
+      expect(cluster.channels.length, cluster.place).toBeGreaterThanOrEqual(3);
+      expect(cluster.channels.length, cluster.place).toBeLessThanOrEqual(12);
     }
     expect(EXPLORE_CHANNELS.length).toBeGreaterThanOrEqual(200);
-    expect(EXPLORE_CHANNELS.length).toBeLessThanOrEqual(320);
+    expect(EXPLORE_CHANNELS.length).toBeLessThanOrEqual(500);
+  });
+
+  it("never carries a position finer than a country", () => {
+    for (const ch of EXPLORE_CHANNELS) {
+      expect(Object.keys(ch)).not.toContain("lat");
+      expect(Object.keys(ch)).not.toContain("lng");
+    }
+    // Every coordinate on the map belongs to a cluster, and a cluster is a country or a relay site.
+    for (const cluster of EXPLORE_CLUSTERS) {
+      expect(Math.abs(cluster.lat)).toBeLessThanOrEqual(90);
+      expect(Math.abs(cluster.lng)).toBeLessThanOrEqual(180);
+      expect(cluster.place).toBeTruthy();
+      expect(cluster.region).toBeTruthy();
+    }
   });
 
   it("covers the three real bodies, and never seeds the Sun", () => {
@@ -33,7 +52,6 @@ describe("explore catalog", () => {
     const hidden = earth.filter((ch) => ch.location_hidden);
     expect(hidden.length / earth.length).toBeGreaterThan(0.05);
     expect(hidden.length / earth.length).toBeLessThan(0.2);
-    expect(hidden.every((ch) => Number.isFinite(ch.lat) && Number.isFinite(ch.lng))).toBe(true);
     const relays = [...byBody("moon"), ...byBody("mars")].flatMap((c) => c.channels);
     expect(relays.every((ch) => !ch.location_hidden)).toBe(true);
   });
@@ -81,25 +99,8 @@ describe("explore catalog", () => {
     for (const slug of slugs) expect(slug).toMatch(/^[a-z0-9-]+$/);
   });
 
-  it("spreads the channels in a cluster far enough apart to pick one by hover", () => {
-    for (const cluster of EXPLORE_CLUSTERS) {
-      for (let i = 0; i < cluster.channels.length; i++) {
-        for (let j = i + 1; j < cluster.channels.length; j++) {
-          const a = cluster.channels[i];
-          const b = cluster.channels[j];
-          const dLat = a.lat - b.lat;
-          const dLng = (a.lng - b.lng) * Math.cos((cluster.lat * Math.PI) / 180);
-          const label = `${a.stream.channel.username} vs ${b.stream.channel.username} in ${cluster.city}`;
-          expect(Math.hypot(dLat, dLng), label).toBeGreaterThan(0.5);
-        }
-      }
-    }
-  });
-
-  it("keeps every coordinate on the globe", () => {
-    for (const ch of EXPLORE_CHANNELS) {
-      expect(Math.abs(ch.lat)).toBeLessThanOrEqual(90);
-      expect(Math.abs(ch.lng)).toBeLessThanOrEqual(181);
-    }
+  it("puts every country anchor on its own spot", () => {
+    const seats = byBody("earth").map((c) => `${c.lat},${c.lng}`);
+    expect(new Set(seats).size).toBe(seats.length);
   });
 });

@@ -5,11 +5,6 @@ import type { BodyId, ExploreChannel, ExploreCluster } from "./types";
 // something to show.
 export const SUN_GROUP_SIZE = 4;
 
-const SUN_RING_DEGREES = 3.2;
-
-const wrapLng = (lng: number) => ((((lng + 180) % 360) + 360) % 360) - 180;
-const clampLat = (lat: number) => Math.max(-89.5, Math.min(89.5, lat));
-
 // The seeded flag is the default, and a UI toggle can override it either way, which is what makes
 // "hide my location" a live and reversible demo instead of a fixed dataset.
 export function isLocationHidden(
@@ -42,19 +37,11 @@ export function clustersForBody(
     const pockets = Math.ceil(hidden.length / SUN_GROUP_SIZE);
     return Array.from({ length: pockets }, (_, gi) => {
       const seat = sunSpiralPlacement(gi, pockets);
-      const members = hidden.slice(gi * SUN_GROUP_SIZE, (gi + 1) * SUN_GROUP_SIZE);
-      const channels = members.map((ch, i) => {
-        const angle = (i / members.length) * Math.PI * 2;
-        return {
-          ...ch,
-          lat: clampLat(seat.lat + SUN_RING_DEGREES * Math.cos(angle)),
-          lng: wrapLng(seat.lng + SUN_RING_DEGREES * Math.sin(angle)),
-        };
-      });
+      const channels = hidden.slice(gi * SUN_GROUP_SIZE, (gi + 1) * SUN_GROUP_SIZE);
       return {
         id: `sun-pocket-${gi}`,
-        city: "Private",
-        country: "location hidden",
+        place: "Private",
+        region: "location hidden",
         body: "sun" as const,
         lat: seat.lat,
         lng: seat.lng,

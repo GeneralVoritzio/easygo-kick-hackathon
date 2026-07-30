@@ -81,7 +81,7 @@ describe("applyExploreFilters", () => {
     expect(channels.length).toBeGreaterThan(0);
     expect(channels.every((ch) => ch.stream.language === "Portuguese")).toBe(true);
     expect(
-      filtered.every((c) => c.country === "Brazil" || c.country === "Portugal" || c.body === "sun"),
+      filtered.every((c) => c.place === "Brazil" || c.place === "Portugal" || c.body === "sun"),
     ).toBe(true);
     expect(filtered.some((c) => c.body === "earth")).toBe(true);
 

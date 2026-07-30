@@ -43,8 +43,8 @@ describe("clustersForBody", () => {
     expect(sunChannels.length).toBeGreaterThan(10);
     expect(sunChannels.every((ch) => ch.location_hidden)).toBe(true);
     for (const pocket of sun) {
-      expect(pocket.city).toBe("Private");
-      expect(pocket.country).toBe("location hidden");
+      expect(pocket.place).toBe("Private");
+      expect(pocket.region).toBe("location hidden");
       expect(pocket.channels.length).toBeLessThanOrEqual(SUN_GROUP_SIZE);
     }
   });
@@ -52,7 +52,6 @@ describe("clustersForBody", () => {
   it("is reversible, and it never mutates the catalog", () => {
     const earthBefore = clustersForBody(EXPLORE_CLUSTERS, "earth");
     const home = earthBefore.find((c) => c.channels.some((ch) => ch.id === ironvow.id))!;
-    const original = { lat: ironvow.lat, lng: ironvow.lng };
 
     const overrides = { [ironvow.id]: true };
     const earthAfter = clustersForBody(EXPLORE_CLUSTERS, "earth", overrides);
@@ -62,12 +61,11 @@ describe("clustersForBody", () => {
       earthAfter.find((c) => c.id === home.id)!.channels.some((ch) => ch.id === ironvow.id),
     ).toBe(false);
 
+    // The channel itself moves untouched: a Sun pocket carries the position, a channel never does.
     const onSun = sunAfter.flatMap((c) => c.channels).find((ch) => ch.id === ironvow.id)!;
-    expect(onSun).toBeDefined();
-    expect(onSun.lat === original.lat && onSun.lng === original.lng).toBe(false);
+    expect(onSun).toBe(ironvow);
+    expect(sunAfter.some((pocket) => pocket.channels.includes(ironvow))).toBe(true);
 
-    expect(ironvow.lat).toBe(original.lat);
-    expect(ironvow.lng).toBe(original.lng);
     const restored = clustersForBody(EXPLORE_CLUSTERS, "earth", { [ironvow.id]: false });
     expect(restored.find((c) => c.id === home.id)!.channels.some((ch) => ch.id === ironvow.id)).toBe(
       true,

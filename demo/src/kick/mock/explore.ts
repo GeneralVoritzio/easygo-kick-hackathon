@@ -39,108 +39,100 @@ const frame = (categorySlug: string, index: number) => {
   return url;
 };
 
+// The origin only aims the camera. It is a country, like everything else on this map.
 export const DEFAULT_ORIGIN: ExploreOrigin = {
-  lat: 37.7749,
-  lng: -122.4194,
-  label: "San Francisco (default region)",
+  lat: 39.5,
+  lng: -98.35,
+  label: "the United States (default region)",
   isFallback: true,
 };
 
-type City = { city: string; country: string; lat: number; lng: number };
+type Country = { country: string; region: string; lat: number; lng: number; language?: string };
 
-const CITIES: City[] = [
-  { city: "San Francisco", country: "USA", lat: 37.7749, lng: -122.4194 },
-  { city: "Los Angeles", country: "USA", lat: 34.0522, lng: -118.2437 },
-  { city: "San Diego", country: "USA", lat: 32.7157, lng: -117.1611 },
-  { city: "Seattle", country: "USA", lat: 47.6062, lng: -122.3321 },
-  { city: "Portland", country: "USA", lat: 45.5152, lng: -122.6784 },
-  { city: "Las Vegas", country: "USA", lat: 36.1699, lng: -115.1398 },
-  { city: "Phoenix", country: "USA", lat: 33.4484, lng: -112.074 },
-  { city: "Denver", country: "USA", lat: 39.7392, lng: -104.9903 },
-  { city: "Austin", country: "USA", lat: 30.2672, lng: -97.7431 },
-  { city: "Dallas", country: "USA", lat: 32.7767, lng: -96.797 },
-  { city: "Houston", country: "USA", lat: 29.7604, lng: -95.3698 },
-  { city: "Chicago", country: "USA", lat: 41.8781, lng: -87.6298 },
-  { city: "Minneapolis", country: "USA", lat: 44.9778, lng: -93.265 },
-  { city: "Atlanta", country: "USA", lat: 33.749, lng: -84.388 },
-  { city: "Miami", country: "USA", lat: 25.7617, lng: -80.1918 },
-  { city: "New York", country: "USA", lat: 40.7128, lng: -74.006 },
-  { city: "Boston", country: "USA", lat: 42.3601, lng: -71.0589 },
-  { city: "Toronto", country: "Canada", lat: 43.6532, lng: -79.3832 },
-  { city: "Montreal", country: "Canada", lat: 45.5019, lng: -73.5674 },
-  { city: "Vancouver", country: "Canada", lat: 49.2827, lng: -123.1207 },
-  { city: "Mexico City", country: "Mexico", lat: 19.4326, lng: -99.1332 },
-  { city: "Bogota", country: "Colombia", lat: 4.711, lng: -74.0721 },
-  { city: "Lima", country: "Peru", lat: -12.0464, lng: -77.0428 },
-  { city: "Santiago", country: "Chile", lat: -33.4489, lng: -70.6693 },
-  { city: "Buenos Aires", country: "Argentina", lat: -34.6037, lng: -58.3816 },
-  { city: "Sao Paulo", country: "Brazil", lat: -23.5505, lng: -46.6333 },
-  { city: "Rio de Janeiro", country: "Brazil", lat: -22.9068, lng: -43.1729 },
-  { city: "London", country: "UK", lat: 51.5074, lng: -0.1278 },
-  { city: "Dublin", country: "Ireland", lat: 53.3498, lng: -6.2603 },
-  { city: "Paris", country: "France", lat: 48.8566, lng: 2.3522 },
-  { city: "Madrid", country: "Spain", lat: 40.4168, lng: -3.7038 },
-  { city: "Barcelona", country: "Spain", lat: 41.3874, lng: 2.1686 },
-  { city: "Lisbon", country: "Portugal", lat: 38.7223, lng: -9.1393 },
-  { city: "Amsterdam", country: "Netherlands", lat: 52.3676, lng: 4.9041 },
-  { city: "Berlin", country: "Germany", lat: 52.52, lng: 13.405 },
-  { city: "Munich", country: "Germany", lat: 48.1351, lng: 11.582 },
-  { city: "Zurich", country: "Switzerland", lat: 47.3769, lng: 8.5417 },
-  { city: "Milan", country: "Italy", lat: 45.4642, lng: 9.19 },
-  { city: "Rome", country: "Italy", lat: 41.9028, lng: 12.4964 },
-  { city: "Vienna", country: "Austria", lat: 48.2082, lng: 16.3738 },
-  { city: "Prague", country: "Czechia", lat: 50.0755, lng: 14.4378 },
-  { city: "Warsaw", country: "Poland", lat: 52.2297, lng: 21.0122 },
-  { city: "Stockholm", country: "Sweden", lat: 59.3293, lng: 18.0686 },
-  { city: "Oslo", country: "Norway", lat: 59.9139, lng: 10.7522 },
-  { city: "Copenhagen", country: "Denmark", lat: 55.6761, lng: 12.5683 },
-  { city: "Helsinki", country: "Finland", lat: 60.1699, lng: 24.9384 },
-  { city: "Athens", country: "Greece", lat: 37.9838, lng: 23.7275 },
-  { city: "Istanbul", country: "Turkiye", lat: 41.0082, lng: 28.9784 },
-  { city: "Bucharest", country: "Romania", lat: 44.4268, lng: 26.1025 },
-  { city: "Kyiv", country: "Ukraine", lat: 50.4501, lng: 30.5234 },
-  { city: "Dubai", country: "UAE", lat: 25.2048, lng: 55.2708 },
-  { city: "Tel Aviv", country: "Israel", lat: 32.0853, lng: 34.7818 },
-  { city: "Cairo", country: "Egypt", lat: 30.0444, lng: 31.2357 },
-  { city: "Lagos", country: "Nigeria", lat: 6.5244, lng: 3.3792 },
-  { city: "Nairobi", country: "Kenya", lat: -1.2921, lng: 36.8219 },
-  { city: "Johannesburg", country: "South Africa", lat: -26.2041, lng: 28.0473 },
-  { city: "Cape Town", country: "South Africa", lat: -33.9249, lng: 18.4241 },
-  { city: "Mumbai", country: "India", lat: 19.076, lng: 72.8777 },
-  { city: "Delhi", country: "India", lat: 28.7041, lng: 77.1025 },
-  { city: "Bangalore", country: "India", lat: 12.9716, lng: 77.5946 },
-  { city: "Bangkok", country: "Thailand", lat: 13.7563, lng: 100.5018 },
-  { city: "Singapore", country: "Singapore", lat: 1.3521, lng: 103.8198 },
-  { city: "Jakarta", country: "Indonesia", lat: -6.2088, lng: 106.8456 },
-  { city: "Manila", country: "Philippines", lat: 14.5995, lng: 120.9842 },
-  { city: "Hong Kong", country: "China", lat: 22.3193, lng: 114.1694 },
-  { city: "Taipei", country: "Taiwan", lat: 25.033, lng: 121.5654 },
-  { city: "Seoul", country: "South Korea", lat: 37.5665, lng: 126.978 },
-  { city: "Tokyo", country: "Japan", lat: 35.6762, lng: 139.6503 },
-  { city: "Sydney", country: "Australia", lat: -33.8688, lng: 151.2093 },
-  { city: "Melbourne", country: "Australia", lat: -37.8136, lng: 144.9631 },
-  { city: "Auckland", country: "New Zealand", lat: -36.8485, lng: 174.7633 },
+// One anchor per country, chosen by hand to sit on land and to read as that country. An average of
+// city coordinates puts the United States in the sea off Alaska and Russia in the Arctic.
+const COUNTRIES: Country[] = [
+  { country: "United States", region: "North America", lat: 39.5, lng: -98.35 },
+  { country: "Canada", region: "North America", lat: 56.0, lng: -106.0 },
+  { country: "Mexico", region: "North America", lat: 23.6, lng: -102.5, language: "Spanish" },
+  { country: "Brazil", region: "South America", lat: -10.3, lng: -52.0, language: "Portuguese" },
+  { country: "Argentina", region: "South America", lat: -34.6, lng: -64.0, language: "Spanish" },
+  { country: "Chile", region: "South America", lat: -35.0, lng: -71.4, language: "Spanish" },
+  { country: "Peru", region: "South America", lat: -9.2, lng: -75.0, language: "Spanish" },
+  { country: "Colombia", region: "South America", lat: 4.0, lng: -73.0, language: "Spanish" },
+  { country: "Ecuador", region: "South America", lat: -1.4, lng: -78.4, language: "Spanish" },
+  { country: "Uruguay", region: "South America", lat: -32.8, lng: -56.0, language: "Spanish" },
+  { country: "United Kingdom", region: "Western Europe", lat: 53.0, lng: -1.5 },
+  { country: "Ireland", region: "Western Europe", lat: 53.2, lng: -8.0 },
+  { country: "France", region: "Western Europe", lat: 46.6, lng: 2.4, language: "French" },
+  { country: "Spain", region: "Southern Europe", lat: 40.2, lng: -3.6, language: "Spanish" },
+  { country: "Portugal", region: "Southern Europe", lat: 39.6, lng: -8.0, language: "Portuguese" },
+  { country: "Netherlands", region: "Western Europe", lat: 52.2, lng: 5.6, language: "Dutch" },
+  { country: "Belgium", region: "Western Europe", lat: 50.6, lng: 4.6, language: "Dutch" },
+  { country: "Germany", region: "Central Europe", lat: 51.1, lng: 10.4, language: "German" },
+  { country: "Switzerland", region: "Central Europe", lat: 46.8, lng: 8.2, language: "German" },
+  { country: "Austria", region: "Central Europe", lat: 47.6, lng: 14.1, language: "German" },
+  { country: "Italy", region: "Southern Europe", lat: 42.8, lng: 12.6, language: "Italian" },
+  { country: "Poland", region: "Central Europe", lat: 52.1, lng: 19.4, language: "Polish" },
+  { country: "Czechia", region: "Central Europe", lat: 49.8, lng: 15.5, language: "Czech" },
+  { country: "Hungary", region: "Central Europe", lat: 47.2, lng: 19.4, language: "Hungarian" },
+  { country: "Romania", region: "Eastern Europe", lat: 45.9, lng: 25.0, language: "Romanian" },
+  { country: "Bulgaria", region: "Eastern Europe", lat: 42.7, lng: 25.3, language: "Bulgarian" },
+  { country: "Serbia", region: "Eastern Europe", lat: 44.2, lng: 20.9, language: "Serbian" },
+  { country: "Croatia", region: "Southern Europe", lat: 45.1, lng: 15.9, language: "Croatian" },
+  { country: "Greece", region: "Southern Europe", lat: 39.1, lng: 22.0, language: "Greek" },
+  { country: "Sweden", region: "Northern Europe", lat: 62.0, lng: 15.5, language: "Swedish" },
+  { country: "Norway", region: "Northern Europe", lat: 61.5, lng: 9.0, language: "Norwegian" },
+  { country: "Denmark", region: "Northern Europe", lat: 56.0, lng: 9.6, language: "Danish" },
+  { country: "Finland", region: "Northern Europe", lat: 63.5, lng: 26.0, language: "Finnish" },
+  { country: "Ukraine", region: "Eastern Europe", lat: 49.0, lng: 31.5, language: "Ukrainian" },
+  { country: "Turkiye", region: "Middle East", lat: 39.0, lng: 35.2, language: "Turkish" },
+  { country: "Israel", region: "Middle East", lat: 31.4, lng: 35.0, language: "Hebrew" },
+  { country: "United Arab Emirates", region: "Middle East", lat: 24.0, lng: 54.0, language: "Arabic" },
+  { country: "Saudi Arabia", region: "Middle East", lat: 24.0, lng: 45.0, language: "Arabic" },
+  { country: "Egypt", region: "Africa", lat: 26.8, lng: 30.0, language: "Arabic" },
+  { country: "Morocco", region: "Africa", lat: 31.8, lng: -6.5, language: "Arabic" },
+  { country: "Nigeria", region: "Africa", lat: 9.1, lng: 8.7 },
+  { country: "Ghana", region: "Africa", lat: 7.9, lng: -1.0 },
+  { country: "Kenya", region: "Africa", lat: 0.2, lng: 37.8 },
+  { country: "South Africa", region: "Africa", lat: -29.0, lng: 25.0 },
+  { country: "India", region: "South Asia", lat: 22.5, lng: 79.0, language: "Hindi" },
+  { country: "Pakistan", region: "South Asia", lat: 30.2, lng: 69.4, language: "Urdu" },
+  { country: "Bangladesh", region: "South Asia", lat: 23.8, lng: 90.3, language: "Bengali" },
+  { country: "Thailand", region: "Southeast Asia", lat: 15.4, lng: 101.0, language: "Thai" },
+  { country: "Vietnam", region: "Southeast Asia", lat: 16.0, lng: 106.3, language: "Vietnamese" },
+  { country: "Malaysia", region: "Southeast Asia", lat: 4.0, lng: 102.2, language: "Malay" },
+  { country: "Singapore", region: "Southeast Asia", lat: 1.35, lng: 103.82 },
+  { country: "Indonesia", region: "Southeast Asia", lat: -2.5, lng: 117.0, language: "Indonesian" },
+  { country: "Philippines", region: "Southeast Asia", lat: 12.5, lng: 122.0, language: "Filipino" },
+  { country: "China", region: "East Asia", lat: 35.0, lng: 104.0, language: "Chinese" },
+  { country: "Hong Kong", region: "East Asia", lat: 22.35, lng: 114.15, language: "Chinese" },
+  { country: "Taiwan", region: "East Asia", lat: 23.7, lng: 121.0, language: "Chinese" },
+  { country: "South Korea", region: "East Asia", lat: 36.5, lng: 127.9, language: "Korean" },
+  { country: "Japan", region: "East Asia", lat: 36.2, lng: 138.3, language: "Japanese" },
+  { country: "Australia", region: "Oceania", lat: -25.0, lng: 134.0 },
+  { country: "New Zealand", region: "Oceania", lat: -41.0, lng: 173.0 },
 ];
 
-// Demo's own live channels, pinned to a city that agrees with the language each one streams in.
-const PINNED: { city: string; slug: string; interaction: ChannelInteraction }[] = [
-  { city: "San Francisco", slug: "ironvow", interaction: { odds_denominator: 5, badges: ["responsive"] } },
-  { city: "Los Angeles", slug: "nocturnalnorm", interaction: { odds_denominator: 34, badges: [] } },
-  { city: "Sydney", slug: "snoozebaron", interaction: { odds_denominator: 40, badges: [] } },
-  { city: "Amsterdam", slug: "reelgoblin", interaction: { odds_denominator: 12, badges: ["reads_everything"] } },
-  { city: "Dublin", slug: "capequest", interaction: { odds_denominator: 8, badges: ["responsive"] } },
-  { city: "Tokyo", slug: "chartfairy", interaction: { odds_denominator: 4, badges: ["responsive", "reads_everything"] } },
-  { city: "Nairobi", slug: "wanderfuse", interaction: { odds_denominator: 21, badges: ["new_chatter_friendly"] } },
-  { city: "London", slug: "tiltcabinet", interaction: { odds_denominator: 9, badges: ["responsive"] } },
-  { city: "New York", slug: "notadoc", interaction: { odds_denominator: 6, badges: ["responsive", "new_chatter_friendly"] } },
-  { city: "Berlin", slug: "mudbrickmage", interaction: { odds_denominator: 15, badges: ["new_chatter_friendly"] } },
-  { city: "Warsaw", slug: "flickgremlin", interaction: { odds_denominator: 27, badges: [] } },
-  { city: "Paris", slug: "panfriedpaul", interaction: { odds_denominator: 7, badges: ["responsive"] } },
-  { city: "Chicago", slug: "couchsermon", interaction: { odds_denominator: 11, badges: ["reads_everything"] } },
-  { city: "Toronto", slug: "yapmerchant", interaction: { odds_denominator: 3, badges: ["responsive", "new_chatter_friendly"] } },
-  { city: "Las Vegas", slug: "spinvicar", interaction: { odds_denominator: 18, badges: [] } },
-  { city: "Melbourne", slug: "cluecrawler", interaction: { odds_denominator: 13, badges: ["reads_everything"] } },
-  { city: "Cape Town", slug: "vanlifevoid", interaction: { odds_denominator: 24, badges: [] } },
+// Demo's own live channels, one country each, so the map opens on real channels.
+const PINNED: { country: string; slug: string; interaction: ChannelInteraction }[] = [
+  { country: "United States", slug: "ironvow", interaction: { odds_denominator: 5, badges: ["responsive"] } },
+  { country: "Canada", slug: "nocturnalnorm", interaction: { odds_denominator: 34, badges: [] } },
+  { country: "Australia", slug: "snoozebaron", interaction: { odds_denominator: 40, badges: [] } },
+  { country: "Netherlands", slug: "reelgoblin", interaction: { odds_denominator: 12, badges: ["reads_everything"] } },
+  { country: "Ireland", slug: "capequest", interaction: { odds_denominator: 8, badges: ["responsive"] } },
+  { country: "Japan", slug: "chartfairy", interaction: { odds_denominator: 4, badges: ["responsive", "reads_everything"] } },
+  { country: "Kenya", slug: "wanderfuse", interaction: { odds_denominator: 21, badges: ["new_chatter_friendly"] } },
+  { country: "United Kingdom", slug: "tiltcabinet", interaction: { odds_denominator: 9, badges: ["responsive"] } },
+  { country: "United States", slug: "notadoc", interaction: { odds_denominator: 6, badges: ["responsive", "new_chatter_friendly"] } },
+  { country: "Germany", slug: "mudbrickmage", interaction: { odds_denominator: 15, badges: ["new_chatter_friendly"] } },
+  { country: "Poland", slug: "flickgremlin", interaction: { odds_denominator: 27, badges: [] } },
+  { country: "France", slug: "panfriedpaul", interaction: { odds_denominator: 7, badges: ["responsive"] } },
+  { country: "Brazil", slug: "couchsermon", interaction: { odds_denominator: 11, badges: ["reads_everything"] } },
+  { country: "Canada", slug: "yapmerchant", interaction: { odds_denominator: 3, badges: ["responsive", "new_chatter_friendly"] } },
+  { country: "United States", slug: "spinvicar", interaction: { odds_denominator: 18, badges: [] } },
+  { country: "New Zealand", slug: "cluecrawler", interaction: { odds_denominator: 13, badges: ["reads_everything"] } },
+  { country: "South Africa", slug: "vanlifevoid", interaction: { odds_denominator: 24, badges: [] } },
 ];
 
 const NAME_PREFIXES = ["Neon", "Turbo", "Pixel", "Shadow", "Hyper", "Glitch", "Cosmic", "Retro", "Static", "Vapor", "Crimson", "Frost", "Ember", "Volt", "Lunar", "Feral", "Chrome", "Sonic", "Nova", "Drift"];
@@ -236,45 +228,16 @@ const CATEGORY_TITLES: Record<string, string[]> = {
 // Share of Earth streamers who keep their location private, so they show on the Sun.
 const HIDDEN_LOCATION_RATE = 0.12;
 
-// Primary broadcast language per country, in the English exonyms mock/api.ts already uses.
-const COUNTRY_LANGUAGE: Record<string, string> = {
-  Mexico: "Spanish",
-  Colombia: "Spanish",
-  Peru: "Spanish",
-  Chile: "Spanish",
-  Argentina: "Spanish",
-  Spain: "Spanish",
-  Brazil: "Portuguese",
-  Portugal: "Portuguese",
-  France: "French",
-  Germany: "German",
-  Switzerland: "German",
-  Austria: "German",
-  Italy: "Italian",
-  Poland: "Polish",
-  Turkiye: "Turkish",
-  Ukraine: "Ukrainian",
-  UAE: "Arabic",
-  Egypt: "Arabic",
-  Japan: "Japanese",
-  "South Korea": "Korean",
-  China: "Chinese",
-  Taiwan: "Chinese",
-  Thailand: "Thai",
-  Indonesia: "Indonesian",
-};
-
 const LOCAL_LANGUAGE_RATE = 0.65;
 
 export const EXPLORE_CATEGORIES = categories.map((c) => c.name);
 
-export const EXPLORE_LANGUAGES = ["English", ...new Set(Object.values(COUNTRY_LANGUAGE))];
+export const EXPLORE_LANGUAGES = [
+  "English",
+  ...new Set(COUNTRIES.map((c) => c.language).filter((l): l is string => Boolean(l))),
+];
 
-// A ring offset near the antimeridian would otherwise push a dot out of range.
-const wrapLng = (lng: number) => ((((lng + 180) % 360) + 360) % 360) - 180;
-
-// A ring around a polar site (Shackleton sits at -89.9) would otherwise step over the pole.
-const clampLat = (lat: number) => Math.max(-89.5, Math.min(89.5, lat));
+export const EXPLORE_COUNTRIES = COUNTRIES.map((c) => c.country);
 
 type RelaySite = {
   place: string;
@@ -447,26 +410,18 @@ export function buildExploreCatalog(seed = SEED): ExploreCatalog {
     };
   };
 
-  const ringPlace = (cluster: { lat: number; lng: number }, channels: ExploreChannel[]) => {
-    const ringPhase = rng() * Math.PI * 2;
-    const lngStretch = 1 / Math.max(0.35, Math.cos((cluster.lat * Math.PI) / 180));
-    channels.forEach((channel, i) => {
-      const angle = ringPhase + (i / channels.length) * Math.PI * 2;
-      const radius = 0.85 + rng() * 0.25;
-      channel.lat = clampLat(cluster.lat + radius * Math.cos(angle));
-      channel.lng = wrapLng(cluster.lng + radius * Math.sin(angle) * lngStretch);
-    });
-  };
-
   const totalViewers = (channels: ExploreChannel[]) =>
     channels.reduce((sum, ch) => sum + ch.stream.viewer_count, 0);
 
-  const earthClusters: ExploreCluster[] = CITIES.map((cityDef, ci) => {
-    const clusterId = `loc-${ci}-${cityDef.city.toLowerCase().replace(/[^a-z]+/g, "-")}`;
+  // Four to twelve channels per country, weighted small, so no single country swamps the map. The
+  // whole point of the country level map is that every country reads as one dot among many.
+  const countFor = () => 4 + Math.floor(rng() * rng() * 9);
+
+  const earthClusters: ExploreCluster[] = COUNTRIES.map((countryDef, ci) => {
+    const clusterId = `country-${ci}-${countryDef.country.toLowerCase().replace(/[^a-z]+/g, "-")}`;
     const channels: ExploreChannel[] = [];
 
-    const pinned = PINNED.find((p) => p.city === cityDef.city);
-    if (pinned) {
+    for (const pinned of PINNED.filter((p) => p.country === countryDef.country)) {
       const stream = liveStreamFor(pinned.slug);
       if (!stream) throw new Error(`No livestream for ${pinned.slug}. Add it to mock/api.ts.`);
       channels.push({
@@ -474,14 +429,12 @@ export function buildExploreCatalog(seed = SEED): ExploreCatalog {
         stream,
         body: "earth",
         location_hidden: false,
-        lat: 0,
-        lng: 0,
         interaction: pinned.interaction,
       });
     }
 
-    const localLanguage = COUNTRY_LANGUAGE[cityDef.country];
-    const targetCount = 3 + Math.floor(rng() * 3);
+    const localLanguage = countryDef.language;
+    const targetCount = Math.max(channels.length + 1, countFor());
     while (channels.length < targetCount) {
       const language = localLanguage && rng() < LOCAL_LANGUAGE_RATE ? localLanguage : "English";
       channels.push({
@@ -489,22 +442,19 @@ export function buildExploreCatalog(seed = SEED): ExploreCatalog {
         stream: generatedStream(language),
         body: "earth",
         location_hidden: rng() < HIDDEN_LOCATION_RATE,
-        lat: 0,
-        lng: 0,
         interaction: interactionFor(),
       });
     }
 
     channels.sort((a, b) => b.stream.viewer_count - a.stream.viewer_count);
-    ringPlace(cityDef, channels);
 
     return {
       id: clusterId,
-      city: cityDef.city,
-      country: cityDef.country,
+      place: countryDef.country,
+      region: countryDef.region,
       body: "earth" as const,
-      lat: cityDef.lat,
-      lng: cityDef.lng,
+      lat: countryDef.lat,
+      lng: countryDef.lng,
       channels,
       total_viewer_count: totalViewers(channels),
     };
@@ -516,27 +466,21 @@ export function buildExploreCatalog(seed = SEED): ExploreCatalog {
   const relayClusters = (sites: RelaySite[], body: "moon" | "mars"): ExploreCluster[] =>
     sites.map((site, si) => {
       const slug = site.place.toLowerCase().replace(/[^a-z0-9]+/g, "-");
-      const channels: ExploreChannel[] = site.channels.map((def, i) => {
-        const angle = (i / site.channels.length) * Math.PI * 2;
-        const lngStretch = 1 / Math.max(0.3, Math.cos((site.lat * Math.PI) / 180));
-        return {
-          id: `ch-${body}-${si}-${i}`,
-          stream: relayStream(site, def, body),
-          body: body as HomeBody,
-          location_hidden: false,
-          relay: { agency: def.agency, instrument: def.instrument },
-          lat: clampLat(site.lat + 2.4 * Math.cos(angle)),
-          lng: wrapLng(site.lng + 2.4 * Math.sin(angle) * lngStretch),
-          interaction: {
-            odds_denominator: def.odds,
-            badges: def.odds <= 10 ? (["responsive"] as InteractionBadgeKey[]) : [],
-          },
-        };
-      });
+      const channels: ExploreChannel[] = site.channels.map((def, i) => ({
+        id: `ch-${body}-${si}-${i}`,
+        stream: relayStream(site, def, body),
+        body: body as HomeBody,
+        location_hidden: false,
+        relay: { agency: def.agency, instrument: def.instrument },
+        interaction: {
+          odds_denominator: def.odds,
+          badges: def.odds <= 10 ? (["responsive"] as InteractionBadgeKey[]) : [],
+        },
+      }));
       return {
         id: `${body}-${si}-${slug}`,
-        city: site.place,
-        country: site.region,
+        place: site.place,
+        region: site.region,
         body,
         lat: site.lat,
         lng: site.lng,

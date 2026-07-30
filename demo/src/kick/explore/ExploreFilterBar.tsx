@@ -1,13 +1,16 @@
 import { useEffect, useRef, useState } from "react";
 import { Icon } from "../Icon";
-import { EXPLORE_CATEGORIES, EXPLORE_LANGUAGES } from "../mock/explore";
+import { EXPLORE_CATEGORIES, EXPLORE_COUNTRIES, EXPLORE_LANGUAGES } from "../mock/explore";
 import { BADGE_KEYS, INTERACTION_BADGES, type InteractionBadgeKey } from "./badges";
 import { BODIES } from "./bodies";
 import { useExplore } from "./exploreStore";
 import { hasActiveFilters, VIEWER_TIERS } from "./filters";
 import type { BodyId, ViewerTier } from "./types";
 
-type MenuKey = "category" | "language" | "interaction" | "viewers";
+type MenuKey = "country" | "category" | "language" | "interaction" | "viewers";
+
+// The country list is long, so its menu scrolls. Every other menu fits.
+const scrollingPanel = "max-h-[52vh] overflow-y-auto";
 
 const pillClass =
   "flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-xs font-semibold backdrop-blur-sm transition-colors";
@@ -153,6 +156,38 @@ export function ExploreFilterBar({
       className="pointer-events-auto absolute left-4 top-4 flex flex-wrap items-center gap-2"
     >
       <FilterMenu
+        label="Country"
+        summary={filters.country}
+        open={openMenu === "country"}
+        onToggle={() => toggleMenu("country")}
+        panelClassName={`w-[340px] ${scrollingPanel}`}
+      >
+        <div className="grid grid-cols-2 gap-x-1">
+          <OptionRow
+            selected={filters.country === null}
+            onClick={() => {
+              setFilters({ country: null });
+              setOpenMenu(null);
+            }}
+          >
+            Every country
+          </OptionRow>
+          {EXPLORE_COUNTRIES.map((country) => (
+            <OptionRow
+              key={country}
+              selected={filters.country === country}
+              onClick={() => {
+                setFilters({ country: filters.country === country ? null : country });
+                setOpenMenu(null);
+              }}
+            >
+              {country}
+            </OptionRow>
+          ))}
+        </div>
+      </FilterMenu>
+
+      <FilterMenu
         label="Category"
         summary={filters.category}
         open={openMenu === "category"}
@@ -189,7 +224,7 @@ export function ExploreFilterBar({
         summary={filters.language}
         open={openMenu === "language"}
         onToggle={() => toggleMenu("language")}
-        panelClassName="w-[340px]"
+        panelClassName={`w-[340px] ${scrollingPanel}`}
       >
         <div className="grid grid-cols-2 gap-x-1">
           <OptionRow

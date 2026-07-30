@@ -47,24 +47,25 @@ export type ChannelInteraction = {
   badges: InteractionBadgeKey[];
 };
 
-// One live channel plotted on a body. The coordinates place the hotspot. They do not claim the
-// physical location of the streamer, and no KICK endpoint carries them.
+// One live channel on a body. A channel carries no coordinates at all: the map holds a position for
+// a country, never for a person, so the type itself cannot express anything finer.
 export type ExploreChannel = {
   id: string;
   stream: Livestream;
   body: HomeBody;
   location_hidden: boolean;
-  lat: number;
-  lng: number;
   relay?: RelaySource;
   interaction: ChannelInteraction;
 };
 
-// A city aggregation point: one dot at far zoom that expands into its channels at near zoom.
+// One country, and the only place a coordinate lives. On the Moon and Mars a cluster is a relay site,
+// and on the Sun it is a privacy pocket.
 export type ExploreCluster = {
   id: string;
-  city: string;
-  country: string;
+  // "Japan", or the relay site, or "Private" on the Sun.
+  place: string;
+  // "East Asia", or "Mars, Syrtis Major", or "location hidden" on the Sun.
+  region: string;
   // "sun" appears only on the derived privacy pockets, never in the seeded catalog.
   body: BodyId;
   lat: number;
@@ -75,8 +76,10 @@ export type ExploreCluster = {
 
 export type ViewerTier = "small" | "mid" | "large";
 
-// Badge selection is AND: a channel must carry every chosen badge.
+// Badge selection is AND: a channel must carry every chosen badge. Country is matched on the cluster,
+// because a channel never carries a country of its own.
 export type ExploreFilters = {
+  country: string | null;
   category: string | null;
   language: string | null;
   badges: InteractionBadgeKey[];

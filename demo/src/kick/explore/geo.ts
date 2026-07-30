@@ -16,9 +16,6 @@ export const MAX_CAMERA_DISTANCE = 3.4;
 export const NEAR_BAND_MAX = 1.7;
 export const MID_BAND_MAX = 2.9;
 
-// At far zoom only the busiest clusters stay lit.
-export const FAR_CLUSTER_CAP = 48;
-
 const DEG2RAD = Math.PI / 180;
 
 // Matches the three.js SphereGeometry UV layout, so a dot lands on the correct spot of an
@@ -91,36 +88,14 @@ export function nearestCities(
   return scored.slice(0, cap).map((s) => s.city);
 }
 
-// Far: the top clusters by viewers. Mid, the landing zoom: every cluster. Near: every cluster
-// expands into its own channels.
-export function selectVisiblePoints(clusters: ExploreCluster[], distance: number): GlobePoint[] {
-  const band = zoomBandForDistance(distance);
-
-  if (band === "near") {
-    return clusters.flatMap((cluster) =>
-      cluster.channels.map((ch) => ({
-        key: ch.id,
-        clusterId: cluster.id,
-        channelId: ch.id,
-        lat: ch.lat,
-        lng: ch.lng,
-        weight: ch.stream.viewer_count,
-      })),
-    );
-  }
-
-  const asPoint = (c: ExploreCluster): GlobePoint => ({
+// One dot per cluster, at every zoom. A cluster is a whole country, so there is nothing to expand
+// into: the map holds no position for a single channel, and zooming in must not invent one.
+export function selectVisiblePoints(clusters: ExploreCluster[]): GlobePoint[] {
+  return clusters.map((c) => ({
     key: c.id,
     clusterId: c.id,
     lat: c.lat,
     lng: c.lng,
     weight: c.total_viewer_count,
-  });
-
-  if (band === "mid") return clusters.map(asPoint);
-
-  return [...clusters]
-    .sort((a, b) => b.total_viewer_count - a.total_viewer_count)
-    .slice(0, FAR_CLUSTER_CAP)
-    .map(asPoint);
+  }));
 }

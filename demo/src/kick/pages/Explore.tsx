@@ -45,9 +45,7 @@ function BodyChannelList({
           {clusters.map((cluster) => (
             <section key={cluster.id} className="mb-4">
               <h3 className="mb-1.5 text-sm font-bold text-white">
-                {cluster.body === "sun"
-                  ? "Location private"
-                  : `${cluster.city}, ${cluster.country}`}
+                {cluster.body === "sun" ? "Location private" : cluster.place}
               </h3>
               <ul className="space-y-1">
                 {cluster.channels.map((channel) => (

@@ -25,10 +25,6 @@ import { useCityPoints } from "./geoData";
 import { LivePointLayer } from "./LivePointLayer";
 import type { BodyId, ZoomBand } from "./types";
 
-// Hotspot selection depends on the band only, so one representative distance per band stops the
-// points from being picked again on every scroll tick.
-const BAND_DISTANCE: Record<ZoomBand, number> = { near: 1.5, mid: 2.2, far: 3.4 };
-
 const IDLE_CAMERA_DISTANCE = 3.4;
 
 // surface-lowest, so the canvas matches the page around it.
@@ -279,10 +275,7 @@ function BodyScene({ bodyId }: { bodyId: BodyId }) {
     );
   }, [filteredClusters, camera, filters]);
 
-  const points = useMemo(
-    () => selectVisiblePoints(filteredClusters, BAND_DISTANCE[band]),
-    [band, filteredClusters],
-  );
+  const points = useMemo(() => selectVisiblePoints(filteredClusters), [filteredClusters]);
 
   // Geography is Earth's alone, and the city list loads only once it is wanted.
   const cityPoints = useCityPoints(body.hasVectorBorders && band === "near");

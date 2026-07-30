@@ -2,7 +2,6 @@ import { describe, expect, it } from "vitest";
 import {
   bordersForBand,
   citiesForView,
-  FAR_CLUSTER_CAP,
   GLOBE_RADIUS,
   INITIAL_CAMERA_DISTANCE,
   latLngToVector3,
@@ -165,33 +164,25 @@ describe("zoomBandForDistance", () => {
 });
 
 describe("selectVisiblePoints", () => {
-  it("shows one point per cluster at the landing zoom", () => {
-    const points = selectVisiblePoints(earth, INITIAL_CAMERA_DISTANCE);
+  it("gives one point per cluster, and never a point for a single channel", () => {
+    const points = selectVisiblePoints(earth);
     expect(points).toHaveLength(earth.length);
     expect(points.every((p) => p.channelId === undefined)).toBe(true);
+    expect(new Set(points.map((p) => p.clusterId)).size).toBe(earth.length);
   });
 
-  it("caps far zoom to the busiest clusters", () => {
-    const points = selectVisiblePoints(earth, 3.5);
-    expect(points).toHaveLength(FAR_CLUSTER_CAP);
-    const ranked = [...earth].sort((a, b) => b.total_viewer_count - a.total_viewer_count);
-    expect(points.some((p) => p.clusterId === ranked[0].id)).toBe(true);
-    expect(points.some((p) => p.clusterId === ranked[ranked.length - 1].id)).toBe(false);
-  });
-
-  it("expands a cluster into its own channels at near zoom", () => {
-    const points = selectVisiblePoints(earth, 1.4);
-    const expected = earth.reduce((n, c) => n + c.channels.length, 0);
-    expect(points).toHaveLength(expected);
-    expect(points.every((p) => p.channelId !== undefined)).toBe(true);
-  });
-
-  it("never shows fewer points when the camera moves closer", () => {
-    let prev = 0;
-    for (const d of [3.8, 3.0, 2.5, 2.0, 1.6, 1.3]) {
-      const count = selectVisiblePoints(earth, d).length;
-      expect(count).toBeGreaterThanOrEqual(prev);
-      prev = count;
+  it("weights a point by the whole country, so a busy country reads bigger", () => {
+    const points = selectVisiblePoints(earth);
+    for (const point of points) {
+      const cluster = earth.find((c) => c.id === point.clusterId)!;
+      expect(point.weight).toBe(cluster.total_viewer_count);
+      expect(point.lat).toBe(cluster.lat);
+      expect(point.lng).toBe(cluster.lng);
     }
+  });
+
+  it("does not change with the camera distance, because a country cannot expand", () => {
+    const counts = [3.8, 3.0, 2.5, 2.0, 1.6, 1.3].map(() => selectVisiblePoints(earth).length);
+    expect(new Set(counts).size).toBe(1);
   });
 });

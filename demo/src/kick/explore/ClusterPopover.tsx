@@ -82,14 +82,14 @@ export function ClusterPopover({ cluster, channels: source, onPointerStay, onPoi
       </svg>
 
       <div className="pointer-events-auto absolute left-0 top-0 -translate-x-1/2 translate-y-3 whitespace-nowrap rounded-full border border-outline-decorative bg-surface-base/95 px-2.5 py-1 shadow-lg backdrop-blur-sm">
-        <span className="text-xs font-bold text-white">{cluster.city}</span>
+        <span className="text-xs font-bold text-white">{cluster.place}</span>
         {/* A Sun pocket's country is the privacy note, not a place. */}
         <span
           className={`ml-1 text-[11px] text-surface-onSurfaceSecondary ${
             cluster.body === "sun" ? "italic" : ""
           }`}
         >
-          {cluster.country}
+          {cluster.region}
         </span>
         <span className="ml-1.5 inline-flex items-center gap-1 text-[11px] font-semibold text-primary-base">
           <span className="h-1.5 w-1.5 animate-pulse-fast rounded-full bg-primary-base" />

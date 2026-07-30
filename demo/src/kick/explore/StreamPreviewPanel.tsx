@@ -85,16 +85,19 @@ export function StreamPreviewPanel({ channel, cluster }: Props) {
               <div className="truncate text-sm text-surface-onSurfaceSecondary">
                 {stream.category.name}, {stream.language}
                 {/* A private streamer has no place to name, and a relay names its site. */}
-                {hidden
-                  ? ", location private"
-                  : cluster
-                    ? `, ${cluster.city}, ${cluster.country}`
-                    : ""}
+                {hidden ? ", location private" : cluster ? `, ${cluster.place}` : ""}
               </div>
             </div>
           </div>
 
           <p className="text-sm leading-snug text-white">{stream.session_title}</p>
+
+          {!hidden && !channel.relay && (
+            <p className="text-[11px] leading-relaxed text-surface-onSurfaceSecondary">
+              The map holds a country, and nothing finer. KICK never asks a streamer for a city or a
+              coordinate.
+            </p>
+          )}
 
           {channel.relay && (
             <div className={cardClass}>

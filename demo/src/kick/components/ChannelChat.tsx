@@ -8,7 +8,8 @@ import {
   type ReactNode,
 } from "react";
 import { Icon, type KickIconName } from "../Icon";
-import { TradingPanel, useCardSets } from "../cards/TradingPanel";
+import { InventoryPanel, TradingPanel, useCardSets } from "../cards/TradingPanel";
+import { isEligible, partners, requestTrade } from "../cards/sets";
 import { avatarFor, currentUser } from "../mock/api";
 import { useRaid } from "../raid/RaidProvider";
 import { RaidBanner, RaidPanel } from "./RaidChat";
@@ -242,7 +243,7 @@ function ChatHeader({ onCollapse }: { onCollapse?: () => void }) {
   );
 }
 
-type ChatTab = "chat" | "trading";
+type ChatTab = "chat" | "trading" | "inventory";
 
 type CardUser = { username: string; badges: BadgeName[] };
 
@@ -361,16 +362,17 @@ function ChatUserCard({
 // h-12 and text-base, with the same active underline.
 function ChatTabs({
   tab,
-  dot,
+  dots,
   onSelect,
 }: {
   tab: ChatTab;
-  dot: boolean;
+  dots: Partial<Record<ChatTab, boolean>>;
   onSelect: (tab: ChatTab) => void;
 }) {
   const tabs: { id: ChatTab; label: string }[] = [
     { id: "chat", label: "Chat" },
     { id: "trading", label: "Trading" },
+    { id: "inventory", label: "Inventory" },
   ];
   return (
     <nav
@@ -394,7 +396,7 @@ function ChatTabs({
               <div className="absolute inset-x-0 bottom-[-2px] h-0.5 rounded-full bg-surface-onSurfacePrimary" />
             )}
             {entry.label}
-            {entry.id === "trading" && dot && (
+            {!isActive && dots[entry.id] && (
               <span className="size-1.5 rounded-full bg-primary-base" />
             )}
           </button>
@@ -915,13 +917,18 @@ export function ChatFeed({ header, dashboard }: { header?: ReactNode; dashboard?
       {!dashboard && (
         <ChatTabs
           tab={tab}
-          dot={Boolean(cards.state.freshCardId) && tab === "chat"}
+          dots={{
+            trading: cards.state.trade?.status === "open",
+            inventory: Boolean(cards.state.freshCardId),
+          }}
           onSelect={setTab}
         />
       )}
       <RaidBanner open={panelOpen} onToggle={() => setPanelOpen((v) => !v)} />
       {tab === "trading" && !dashboard ? (
-        <TradingPanel state={cards.state} act={cards.act} />
+        <TradingPanel state={cards.state} act={cards.act} onToast={setToast} />
+      ) : tab === "inventory" && !dashboard ? (
+        <InventoryPanel state={cards.state} act={cards.act} />
       ) : (
         <>
           <ChatMessages messages={messages} surface={surface} onOpen={setCardUser} />
@@ -944,12 +951,18 @@ export function ChatFeed({ header, dashboard }: { header?: ReactNode; dashboard?
           onClose={() => setCardUser(null)}
           onTrade={(username) => {
             setCardUser(null);
-            setToast(`Trade request sent to ${username}`);
+            const partner = partners.find((p) => p.username === username);
+            if (partner && isEligible(partner)) {
+              cards.act((s) => requestTrade(s, partner.userId));
+              setToast(`Trade request sent to ${username}`);
+            } else {
+              setToast(`You need 30 minutes of shared watch time with ${username} to trade`);
+            }
           }}
         />
       )}
       {toast && (
-        <div className="absolute bottom-[130px] left-1/2 z-popover -translate-x-1/2 whitespace-nowrap rounded bg-surface-highest px-3 py-2 text-sm font-semibold text-white">
+        <div className="absolute bottom-[130px] left-1/2 z-popover w-max max-w-[85%] -translate-x-1/2 rounded bg-surface-highest px-3 py-2 text-center text-sm font-semibold text-white">
           {toast}
         </div>
       )}

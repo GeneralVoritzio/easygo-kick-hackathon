@@ -96,9 +96,8 @@ const scriptedDrops = ["ashen-grimoire", "serpent-sigil", "obsidian-ward", "wyve
 
 export type Trade = {
   partnerUserId: number;
-  giveCardId: string;
-  getCardId: string;
-  status: "offered" | "accepted";
+  theirOffer: string[];
+  status: "requested" | "open";
 };
 
 export type CardSetsState = {
@@ -146,35 +145,39 @@ export const ownedCount = (inventory: Inventory) =>
 
 export const isSetComplete = (inventory: Inventory) => ownedCount(inventory) === setCards.length;
 
-// Barter is card for card, and only a duplicate leaves your set.
+// Only a duplicate leaves your set.
 export const duplicateIds = (inventory: Inventory) =>
   setCards.filter((card) => (inventory[card.id] ?? 0) > 1).map((card) => card.id);
 
-export function offerTrade(
-  state: CardSetsState,
-  partnerUserId: number,
-  giveCardId: string,
-  getCardId: string,
-): CardSetsState {
-  return { ...state, trade: { partnerUserId, giveCardId, getCardId, status: "offered" } };
+// One tile per copy, in set order, for the trade grids.
+export const instancesOf = (inventory: Inventory) =>
+  setCards.flatMap((card) => Array.from({ length: inventory[card.id] ?? 0 }, () => card.id));
+
+export function requestTrade(state: CardSetsState, partnerUserId: number): CardSetsState {
+  return { ...state, trade: { partnerUserId, theirOffer: [], status: "requested" } };
 }
 
-export function acceptTrade(state: CardSetsState): CardSetsState {
+// The partner puts up the duplicates you still need, or their first duplicate.
+export function acceptRequest(state: CardSetsState): CardSetsState {
   const trade = state.trade;
-  if (!trade || trade.status !== "offered") return state;
-  return {
-    ...state,
-    freshCardId: trade.getCardId,
-    trade: { ...trade, status: "accepted" },
-    inventory: {
-      ...state.inventory,
-      [trade.giveCardId]: (state.inventory[trade.giveCardId] ?? 1) - 1,
-      [trade.getCardId]: (state.inventory[trade.getCardId] ?? 0) + 1,
-    },
-  };
+  if (!trade || trade.status !== "requested") return state;
+  const partner = partnerFor(trade.partnerUserId);
+  if (!partner) return state;
+  const dupes = duplicateIds(partner.inventory);
+  const needed = dupes.filter((id) => (state.inventory[id] ?? 0) === 0);
+  return { ...state, trade: { ...trade, theirOffer: needed.length > 0 ? needed : dupes.slice(0, 1), status: "open" } };
 }
 
-export const clearTrade = (state: CardSetsState): CardSetsState => ({
+export function completeTrade(state: CardSetsState, giveIds: string[]): CardSetsState {
+  const trade = state.trade;
+  if (!trade || trade.status !== "open") return state;
+  const inventory = { ...state.inventory };
+  for (const id of giveIds) inventory[id] = (inventory[id] ?? 1) - 1;
+  for (const id of trade.theirOffer) inventory[id] = (inventory[id] ?? 0) + 1;
+  return { ...state, inventory, trade: undefined, freshCardId: trade.theirOffer[0] };
+}
+
+export const cancelTrade = (state: CardSetsState): CardSetsState => ({
   ...state,
   trade: undefined,
 });

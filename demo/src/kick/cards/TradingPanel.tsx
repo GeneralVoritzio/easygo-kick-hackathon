@@ -1,24 +1,22 @@
 import { useEffect, useState } from "react";
-import { Icon } from "../Icon";
-import { categories } from "../mock/api";
+import { categories, currentUser } from "../mock/api";
 import {
-  acceptTrade,
+  acceptRequest,
   campaign,
+  cancelTrade,
   cardFor,
   claimDrop,
   clearFresh,
-  clearTrade,
-  duplicateIds,
+  completeTrade,
   formatCountdown,
   formatWatch,
-  isEligible,
+  instancesOf,
   isSetComplete,
   MILESTONE_SECONDS,
   nextMilestoneIn,
-  offerTrade,
   ownedCount,
   partnerFor,
-  partners,
+  requestTrade,
   setCards,
   startState,
   tickWatch,
@@ -44,12 +42,12 @@ export function useCardSets(): CardSets {
   }, []);
 
   // The partner's answer arrives on a script, like the streamer's raid decisions do.
-  const offered = state.trade?.status === "offered";
+  const requested = state.trade?.status === "requested";
   useEffect(() => {
-    if (!offered) return;
-    const id = setTimeout(() => setState(acceptTrade), PARTNER_ACCEPT_DELAY);
+    if (!requested) return;
+    const id = setTimeout(() => setState(acceptRequest), PARTNER_ACCEPT_DELAY);
     return () => clearTimeout(id);
-  }, [offered]);
+  }, [requested]);
 
   return { state, act: setState };
 }
@@ -84,15 +82,7 @@ function ItemPlate({ card, size, dim }: { card: SetCard; size: "sm" | "md"; dim?
   );
 }
 
-function CardTile({
-  card,
-  count,
-  fresh,
-}: {
-  card: SetCard;
-  count: number;
-  fresh: boolean;
-}) {
+function CardTile({ card, count, fresh }: { card: SetCard; count: number; fresh: boolean }) {
   const owned = count > 0;
 
   return (
@@ -130,37 +120,178 @@ function CardTile({
   );
 }
 
-function MiniCard({
-  card,
-  count,
+// A trade grid runs on slots like the game inventories it copies: one tile per copy,
+// numbered empty slots to fill the rows.
+function TradeGrid({
+  instances,
   selected,
-  onSelect,
+  onToggle,
 }: {
-  card: SetCard;
-  count?: number;
-  selected: boolean;
-  onSelect: () => void;
+  instances: string[];
+  selected: number[];
+  onToggle?: (index: number) => void;
 }) {
+  const slotCount = Math.max(8, Math.ceil(instances.length / 4) * 4);
+
   return (
-    <button
-      type="button"
-      onClick={onSelect}
-      className={`flex flex-col overflow-hidden rounded-sm text-left ring-1 ${
-        selected ? "ring-primary-base" : "ring-inset ring-outline-decorative"
-      }`}
-    >
-      <div className="relative aspect-square bg-[#101214] p-1.5">
-        <ItemPlate card={card} size="sm" />
-        {count && count > 1 && (
-          <span className="absolute right-2.5 top-2.5 rounded-sm bg-black/70 px-1 text-[10px] font-bold leading-4 text-white">
-            x{count}
+    <div className="grid grid-cols-4 gap-1.5">
+      {Array.from({ length: slotCount }, (_, i) => {
+        const cardId = instances[i];
+        if (!cardId)
+          return (
+            <div
+              key={i}
+              className="flex aspect-square items-center justify-center rounded-sm bg-surface-base"
+            >
+              <span className="text-xl font-bold text-white/10">{i + 1}</span>
+            </div>
+          );
+        const card = cardFor(cardId);
+        const isSelected = selected.includes(i);
+        return (
+          <button
+            key={i}
+            type="button"
+            title={card.name}
+            disabled={!onToggle}
+            onClick={() => onToggle?.(i)}
+            className={`relative aspect-square overflow-hidden rounded-sm bg-[#101214] p-1 ${
+              isSelected ? "ring-2 ring-primary-base" : "ring-1 ring-inset ring-outline-decorative"
+            } ${onToggle ? "" : "cursor-default"}`}
+          >
+            <ItemPlate card={card} size="sm" />
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+function LiveTrade({ state, act, onToast }: CardSets & { onToast: (text: string) => void }) {
+  const [picked, setPicked] = useState<number[]>([]);
+  const trade = state.trade;
+  const partner = trade ? partnerFor(trade.partnerUserId) : undefined;
+  if (!trade || trade.status !== "open" || !partner) return null;
+
+  const mine = instancesOf(state.inventory);
+  const theirs = instancesOf(partner.inventory);
+  const theirSelected = trade.theirOffer.map((id) => theirs.indexOf(id));
+
+  // Only a duplicate leaves your set, so the last copy of a card stays unpickable.
+  function toggle(index: number) {
+    setPicked((prev) => {
+      if (prev.includes(index)) return prev.filter((i) => i !== index);
+      const cardId = mine[index];
+      const pickedOfCard = prev.filter((i) => mine[i] === cardId).length;
+      if (pickedOfCard + 1 >= (state.inventory[cardId] ?? 0)) return prev;
+      return [...prev, index];
+    });
+  }
+
+  function trade_() {
+    const giveIds = picked.map((i) => mine[i]);
+    const gotNames = trade!.theirOffer.map((id) => cardFor(id).name).join(", ");
+    act((s) => completeTrade(s, giveIds));
+    setPicked([]);
+    onToast(`Trade complete. ${gotNames} added to your collectibles.`);
+  }
+
+  return (
+    <div className="flex flex-col gap-3">
+      <div>
+        <span className="block text-base font-bold text-white">{currentUser.username}</span>
+        <span className="block text-xs text-surface-onSurfaceSecondary">
+          Click items you want to trade
+        </span>
+      </div>
+      <TradeGrid instances={mine} selected={picked} onToggle={toggle} />
+      <span className="text-xs text-surface-onSurfaceSecondary">
+        Only duplicates leave your set, so the last copy of a card stays put.
+      </span>
+
+      <div>
+        <span className="block text-base font-bold text-white">{partner.username}</span>
+        <span className="block text-xs text-surface-onSurfacePositive">Trade accepted!</span>
+      </div>
+      <TradeGrid instances={theirs} selected={theirSelected} />
+
+      <div className="flex gap-2">
+        <button
+          type="button"
+          onClick={() => {
+            setPicked([]);
+            act(cancelTrade);
+          }}
+          className="h-9 flex-1 rounded bg-secondary-base text-sm font-semibold text-secondary-onSecondary"
+        >
+          Cancel
+        </button>
+        <button
+          type="button"
+          disabled={picked.length === 0}
+          onClick={trade_}
+          className="state-layer-base h-9 flex-1 rounded bg-primary-base text-sm font-semibold text-primary-onPrimary disabled:bg-disabled-base disabled:text-disabled-onSurface"
+        >
+          Trade
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function TradeDemoRow({ state, act }: CardSets) {
+  if (state.trade?.status === "open") return null;
+  return (
+    <div className="mt-auto flex items-center gap-2 border-t border-outline-decorative pt-2">
+      <span className="text-xs uppercase text-surface-onSurfaceSecondary">Demo</span>
+      {state.trade?.status === "requested" ? (
+        <button
+          type="button"
+          onClick={() => act(acceptRequest)}
+          className="rounded bg-secondary-base px-2 py-1 text-xs font-semibold text-secondary-onSecondary"
+        >
+          Partner accepts now
+        </button>
+      ) : (
+        !state.trade && (
+          <button
+            type="button"
+            onClick={() => act((s) => acceptRequest(requestTrade(s, 4127033)))}
+            className="rounded bg-secondary-base px-2 py-1 text-xs font-semibold text-secondary-onSecondary"
+          >
+            Start trade with ClueScrollCarl
+          </button>
+        )
+      )}
+    </div>
+  );
+}
+
+export function TradingPanel({
+  state,
+  act,
+  onToast,
+}: CardSets & { onToast: (text: string) => void }) {
+  const trade = state.trade;
+  const requestedPartner =
+    trade?.status === "requested" ? partnerFor(trade.partnerUserId) : undefined;
+
+  return (
+    <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-3 py-3">
+      {trade?.status === "open" ? (
+        <LiveTrade state={state} act={act} onToast={onToast} />
+      ) : (
+        <div className="flex flex-1 flex-col items-center justify-center gap-1 text-center">
+          <span className="text-sm font-bold text-white">No live trade</span>
+          <span className="max-w-[260px] text-xs text-surface-onSurfaceSecondary">
+            {requestedPartner
+              ? `Waiting on ${requestedPartner.username} to accept your trade request.`
+              : "Send a trade request from a chatter's card. You can trade after 30 minutes of shared watch time in this campaign."}
           </span>
-        )}
-      </div>
-      <div className="flex-1 border-t border-black/40 bg-surface-base px-1.5 py-1">
-        <span className="block text-[10px] font-bold leading-tight text-white">{card.name}</span>
-      </div>
-    </button>
+        </div>
+      )}
+      <TradeDemoRow state={state} act={act} />
+    </div>
   );
 }
 
@@ -172,7 +303,6 @@ function CampaignHeader({ state }: { state: CardSetsState }) {
 
   return (
     <div className="flex flex-col gap-1.5">
-      <span className="text-xs uppercase text-surface-onSurfaceSecondary">Drops campaign</span>
       <div className="flex items-center gap-2.5">
         <img src={gameArt} alt="" className="size-10 shrink-0 rounded-sm object-cover" />
         <div className="min-w-0 flex-1">
@@ -206,194 +336,7 @@ function CampaignHeader({ state }: { state: CardSetsState }) {
   );
 }
 
-function SetGrid({ state, act }: CardSets) {
-  const complete = isSetComplete(state.inventory);
-
-  return (
-    <div className="flex flex-col gap-2">
-      <div className="flex items-center justify-between">
-        <span className="text-sm font-bold text-white">Your set</span>
-        <span className="text-xs tabular-nums text-surface-onSurfaceSecondary">
-          {ownedCount(state.inventory)} of {setCards.length}
-        </span>
-      </div>
-      <div className="grid grid-cols-3 gap-2">
-        {setCards.map((card) => (
-          <CardTile
-            key={card.id}
-            card={card}
-            count={state.inventory[card.id] ?? 0}
-            fresh={state.freshCardId === card.id}
-          />
-        ))}
-      </div>
-      {complete && !state.claimed && (
-        <button
-          type="button"
-          onClick={() => act(claimDrop)}
-          className="state-layer-base h-9 w-full rounded bg-primary-base text-sm font-semibold text-primary-onPrimary"
-        >
-          Claim the {campaign.reward}
-        </button>
-      )}
-      {state.claimed && (
-        <div className="flex flex-col gap-1 rounded border border-outline-decorative p-3">
-          <span className="text-sm font-bold text-surface-onSurfacePositive">Drop claimed</span>
-          <span className="text-xs text-surface-onSurfaceSecondary">
-            The {campaign.reward} goes to your linked Steam account. The item binds to that
-            account. Nobody can sell it or trade it away.
-          </span>
-        </div>
-      )}
-    </div>
-  );
-}
-
-function TradeBoard({
-  state,
-  act,
-  partnerUserId,
-}: CardSets & { partnerUserId: number }) {
-  const [give, setGive] = useState<string>();
-  const [get, setGet] = useState<string>();
-  const partner = partnerFor(partnerUserId);
-  if (!partner) return null;
-
-  const trade = state.trade;
-
-  if (trade && trade.partnerUserId === partnerUserId) {
-    if (trade.status === "offered")
-      return (
-        <span className="text-sm text-surface-onSurfaceSecondary">
-          Offer sent. Waiting on {partner.username} to accept {cardFor(trade.giveCardId).name}{" "}
-          for {cardFor(trade.getCardId).name}.
-        </span>
-      );
-    return (
-      <div className="flex flex-col gap-2">
-        <span className="text-sm text-surface-onSurfacePositive">
-          {partner.username} accepted. {cardFor(trade.getCardId).name} is yours.
-        </span>
-        <button
-          type="button"
-          onClick={() => act(clearTrade)}
-          className="h-8 w-full rounded bg-secondary-base text-xs font-semibold text-secondary-onSecondary"
-        >
-          Done
-        </button>
-      </div>
-    );
-  }
-
-  const mine = duplicateIds(state.inventory);
-  const theirs = duplicateIds(partner.inventory);
-
-  return (
-    <div className="flex flex-col gap-2">
-      <span className="text-xs text-surface-onSurfaceSecondary">
-        {partner.username} put these cards up in chat.
-      </span>
-      <div className="grid grid-cols-2 gap-2">
-        <div className="flex flex-col gap-1.5">
-          <span className="text-xs font-semibold uppercase text-surface-onSurfaceSecondary">
-            You give
-          </span>
-          {mine.length === 0 && (
-            <span className="text-xs text-surface-onSurfaceSecondary">
-              No duplicates to give yet.
-            </span>
-          )}
-          {mine.map((id) => (
-            <MiniCard
-              key={id}
-              card={cardFor(id)}
-              count={state.inventory[id]}
-              selected={give === id}
-              onSelect={() => setGive(id)}
-            />
-          ))}
-        </div>
-        <div className="flex flex-col gap-1.5">
-          <span className="text-xs font-semibold uppercase text-surface-onSurfaceSecondary">
-            You get
-          </span>
-          {theirs.map((id) => (
-            <MiniCard
-              key={id}
-              card={cardFor(id)}
-              selected={get === id}
-              onSelect={() => setGet(id)}
-            />
-          ))}
-        </div>
-      </div>
-      <span className="text-xs text-surface-onSurfaceSecondary">
-        A trade is one card for one card. Only duplicates leave a set.
-      </span>
-      <button
-        type="button"
-        disabled={!give || !get}
-        onClick={() => give && get && act((s) => offerTrade(s, partnerUserId, give, get))}
-        className="state-layer-base h-9 w-full rounded bg-primary-base text-sm font-semibold text-primary-onPrimary disabled:bg-disabled-base disabled:text-disabled-onSurface"
-      >
-        Offer trade
-      </button>
-    </div>
-  );
-}
-
-function TradeSection({ state, act }: CardSets) {
-  const [partnerUserId, setPartnerUserId] = useState<number>();
-
-  return (
-    <div className="flex flex-col gap-2 border-t border-outline-decorative pt-3">
-      <span className="text-sm font-bold text-white">Trade with chat</span>
-      <span className="text-xs text-surface-onSurfaceSecondary">
-        Ask in chat who holds the card you need. You can trade with a viewer after 30 minutes
-        of shared watch time in this campaign.
-      </span>
-      <div className="flex flex-col gap-1.5">
-        {partners.map((partner) => {
-          const eligible = isEligible(partner);
-          const selected = partnerUserId === partner.userId;
-          return (
-            <button
-              key={partner.userId}
-              type="button"
-              disabled={!eligible}
-              onClick={() => setPartnerUserId(selected ? undefined : partner.userId)}
-              className={`flex items-center gap-2 rounded border px-2 py-1.5 text-left ${
-                selected ? "border-primary-base" : "border-outline-decorative"
-              } disabled:opacity-50`}
-            >
-              <span className="min-w-0 flex-1">
-                <span className="block truncate text-sm font-bold text-white">
-                  {partner.username}
-                </span>
-                <span className="block text-xs text-surface-onSurfaceSecondary">
-                  Watched {formatWatch(partner.coWatchSeconds)} with you
-                </span>
-              </span>
-              {eligible ? (
-                <Icon
-                  name="chevron-right"
-                  className="size-4 shrink-0 text-surface-onSurfaceSecondary"
-                />
-              ) : (
-                <span className="shrink-0 text-xs font-semibold uppercase text-surface-onSurfaceSecondary">
-                  Locked
-                </span>
-              )}
-            </button>
-          );
-        })}
-      </div>
-      {partnerUserId && <TradeBoard state={state} act={act} partnerUserId={partnerUserId} />}
-    </div>
-  );
-}
-
-function DemoRow({ state, act }: CardSets) {
+function InventoryDemoRow({ act }: Pick<CardSets, "act">) {
   return (
     <div className="flex items-center gap-2 border-t border-outline-decorative pt-2">
       <span className="text-xs uppercase text-surface-onSurfaceSecondary">Demo</span>
@@ -404,20 +347,13 @@ function DemoRow({ state, act }: CardSets) {
       >
         Next card now
       </button>
-      {state.trade?.status === "offered" && (
-        <button
-          type="button"
-          onClick={() => act(acceptTrade)}
-          className="rounded bg-secondary-base px-2 py-1 text-xs font-semibold text-secondary-onSecondary"
-        >
-          Partner accepts now
-        </button>
-      )}
     </div>
   );
 }
 
-export function TradingPanel({ state, act }: CardSets) {
+export function InventoryPanel({ state, act }: CardSets) {
+  const complete = isSetComplete(state.inventory);
+
   // The New tag stays up long enough to see, then the tab dot clears with it.
   useEffect(() => {
     if (!state.freshCardId) return;
@@ -427,10 +363,49 @@ export function TradingPanel({ state, act }: CardSets) {
 
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-3 py-3">
-      <CampaignHeader state={state} />
-      <SetGrid state={state} act={act} />
-      <TradeSection state={state} act={act} />
-      <DemoRow state={state} act={act} />
+      <div className="flex flex-col gap-2">
+        <span className="text-sm font-bold text-white">Drops &amp; rewards</span>
+        <CampaignHeader state={state} />
+        {complete && !state.claimed && (
+          <button
+            type="button"
+            onClick={() => act(claimDrop)}
+            className="state-layer-base h-9 w-full rounded bg-primary-base text-sm font-semibold text-primary-onPrimary"
+          >
+            Claim the {campaign.reward}
+          </button>
+        )}
+        {state.claimed && (
+          <div className="flex flex-col gap-1 rounded border border-outline-decorative p-3">
+            <span className="text-sm font-bold text-surface-onSurfacePositive">Drop claimed</span>
+            <span className="text-xs text-surface-onSurfaceSecondary">
+              The {campaign.reward} goes to your linked Steam account. The item binds to that
+              account. Nobody can sell it or trade it away.
+            </span>
+          </div>
+        )}
+      </div>
+
+      <div className="flex flex-col gap-2 border-t border-outline-decorative pt-3">
+        <div className="flex items-center justify-between">
+          <span className="text-sm font-bold text-white">Collectibles</span>
+          <span className="text-xs tabular-nums text-surface-onSurfaceSecondary">
+            {ownedCount(state.inventory)} of {setCards.length}
+          </span>
+        </div>
+        <div className="grid grid-cols-3 gap-2">
+          {setCards.map((card) => (
+            <CardTile
+              key={card.id}
+              card={card}
+              count={state.inventory[card.id] ?? 0}
+              fresh={state.freshCardId === card.id}
+            />
+          ))}
+        </div>
+      </div>
+
+      <InventoryDemoRow act={act} />
     </div>
   );
 }

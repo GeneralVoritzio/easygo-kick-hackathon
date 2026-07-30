@@ -7,6 +7,7 @@ import { categories, currentSession, currentUser, formatFollowers, formatViewers
 import { ChatFeed } from "../components/ChannelChat";
 import { RaidStage } from "../components/RaidStage";
 import { RaidDevControls } from "../components/RaidChat";
+import { PitchOverlay } from "../components/PitchOverlay";
 import { ShowdownInvite } from "../components/ShowdownInvite";
 import { BackFromBreakToast } from "../components/BackFromBreakToast";
 import { useRaid } from "../raid/RaidProvider";
@@ -460,6 +461,7 @@ export function CreatorDashboard() {
                       />
                       {/* Section 5.1: every raid preview plays here, never in the chat column. */}
                       <RaidStage />
+                      <PitchOverlay />
                     </div>
                   </div>
                 </Pane>

@@ -7,6 +7,8 @@ import { categories, currentSession, currentUser, formatFollowers, formatViewers
 import { ChatFeed } from "../components/ChannelChat";
 import { RaidStage } from "../components/RaidStage";
 import { RaidDevControls } from "../components/RaidChat";
+import { PitchOverlay } from "../components/PitchOverlay";
+import { ShowdownInvite } from "../components/ShowdownInvite";
 import { BackFromBreakToast } from "../components/BackFromBreakToast";
 import { useRaid } from "../raid/RaidProvider";
 import { usePrefs } from "../prefs";
@@ -318,7 +320,7 @@ export function CreatorDashboard() {
 
   // fake-kick POST /public/v1/livestreams/{broadcaster_user_id}/announcements
   function handleBackFromBreak() {
-    const message = `${currentUser.username} is back from break!`;
+    const message = `${currentUser.username} is back!`;
     announceInChat(message);
     setBreakToast(message);
   }
@@ -326,6 +328,8 @@ export function CreatorDashboard() {
   return (
     <div className="flex h-screen flex-col overflow-hidden bg-surface-lowest">
       <RaidDevControls />
+      <ShowdownInvite />
+      <PitchOverlay />
       {showRaidReminder && (
         <RaidReminder
           raidReminder={prefs.raidReminder}

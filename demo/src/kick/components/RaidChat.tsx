@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { Icon, type KickIconName } from "../Icon";
 import { formatViewers, profileFor, streamPills, type Livestream } from "../mock/api";
 import { interactivityPercent, type Candidate } from "../mock/raids";
+import { usePrefs } from "../prefs";
 import { useRaid } from "../raid/RaidProvider";
 import { RouletteReel } from "./RouletteReel";
 import {
@@ -711,18 +712,37 @@ export function RaidPanel() {
 // previews, and pitches run to the real clock. Mounted once at the app root so it works
 // wherever a raid is running, not just inside the chat column.
 export function RaidDevControls() {
-  const { raid, act } = useRaid();
-  if (!raid || raid.seconds <= 0) return null;
+  const { raid, act, invite, inviteShowdown, skipInvite } = useRaid();
+  const [prefs] = usePrefs();
+  const running = raid && raid.seconds > 0;
 
   return (
     <div className="z-popover fixed bottom-4 left-4 flex items-center gap-2 rounded-lg bg-surface-highest px-3 py-2 shadow-2xl">
       <span className="text-xs font-semibold uppercase text-surface-onSurfaceSecondary">Demo</span>
+      {(running || invite) && (
+        <button
+          type="button"
+          onClick={() => {
+            if (running) act((r) => advance({ ...r, seconds: 0 }));
+            if (invite) skipInvite();
+          }}
+          className="state-layer-base rounded bg-primary-base px-2 py-1 text-xs font-semibold text-primary-onPrimary"
+        >
+          Skip timer
+        </button>
+      )}
       <button
         type="button"
-        onClick={() => act((r) => advance({ ...r, seconds: 0 }))}
-        className="state-layer-base rounded bg-primary-base px-2 py-1 text-xs font-semibold text-primary-onPrimary"
+        onClick={inviteShowdown}
+        disabled={Boolean(invite) || !prefs.joinShowdowns}
+        title={
+          prefs.joinShowdowns
+            ? "A bigger channel puts you in a showdown"
+            : "Join showdowns is off in Settings, so no invite can arrive"
+        }
+        className="state-layer-surface rounded border border-outline-decorative px-2 py-1 text-xs font-semibold text-white disabled:opacity-40"
       >
-        Skip timer
+        Incoming showdown
       </button>
     </div>
   );

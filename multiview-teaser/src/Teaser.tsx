@@ -2,7 +2,6 @@ import { Audio, Video } from "@remotion/media";
 import { useEffect, useState } from "react";
 import {
   AbsoluteFill,
-  Img,
   Sequence,
   continueRender,
   delayRender,
@@ -22,8 +21,12 @@ const MUSIC_IN = 1 * FPS;
 const TAGLINE_FROM = 10 * FPS;
 
 const CLIP_FRAMES = Math.floor(15.0417 * FPS);
+const ENDING_FRAMES = Math.floor(3.6687 * FPS);
 
-export const TOTAL_FRAMES = CLIP_FRAMES;
+export const TOTAL_FRAMES = CLIP_FRAMES + ENDING_FRAMES;
+
+// One beat of the song at the measured 91.94 bpm.
+const BEAT_FRAMES = Math.round((60 / 91.94) * FPS);
 
 function Title() {
   return (
@@ -47,7 +50,7 @@ function Title() {
   );
 }
 
-function Tagline() {
+function Tagline({ full }: { full: boolean }) {
   return (
     <AbsoluteFill
       style={{
@@ -57,30 +60,25 @@ function Tagline() {
         gap: 42,
       }}
     >
-      <div style={{ display: "flex", alignItems: "center", gap: 36 }}>
-        <Img src={staticFile("kick-logo.svg")} style={{ height: 96 }} />
-        <span
-          style={{
-            fontFamily: "Archivo, sans-serif",
-            fontWeight: 800,
-            fontSize: 126,
-            lineHeight: 1,
-            textTransform: "uppercase",
-            color: "#ffffff",
-          }}
-        >
-          Multiview.
-        </span>
-      </div>
       <span
         style={{
           fontFamily: "Archivo, sans-serif",
           fontWeight: 800,
-          fontSize: 54,
+          fontSize: 84,
           lineHeight: 1,
-          textTransform: "uppercase",
           color: "#ffffff",
-          opacity: 0.9,
+        }}
+      >
+        Multiview.
+      </span>
+      <span
+        style={{
+          fontFamily: "Archivo, sans-serif",
+          fontWeight: 800,
+          fontSize: 84,
+          lineHeight: 1,
+          color: "#ffffff",
+          opacity: full ? 1 : 0,
         }}
       >
         Never miss a moment again.
@@ -100,16 +98,23 @@ export function Teaser() {
 
   return (
     <AbsoluteFill style={{ backgroundColor: "#000" }}>
-      <Video
-        src={staticFile("clip.mp4")}
-        style={{ width: "100%", height: "100%", objectFit: "cover" }}
-      />
+      <Sequence durationInFrames={CLIP_FRAMES}>
+        <Video
+          src={staticFile("clip.mp4")}
+          style={{ width: "100%", height: "100%", objectFit: "cover" }}
+        />
+      </Sequence>
       <Sequence from={MUSIC_IN} durationInFrames={STING_FRAMES}>
         <Title />
         <Audio src={staticFile("music.mp3")} />
       </Sequence>
+      <Sequence from={TAGLINE_FROM} durationInFrames={BEAT_FRAMES}>
+        <Tagline full={false} />
+      </Sequence>
+      <Sequence from={TAGLINE_FROM + BEAT_FRAMES} durationInFrames={tailFrames - BEAT_FRAMES}>
+        <Tagline full />
+      </Sequence>
       <Sequence from={TAGLINE_FROM} durationInFrames={tailFrames}>
-        <Tagline />
         {/* The music returns where it paused, so the line lands on a downbeat. */}
         <Audio
           src={staticFile("music.mp3")}
@@ -121,6 +126,14 @@ export function Teaser() {
             })
           }
         />
+      </Sequence>
+      <Sequence from={CLIP_FRAMES} durationInFrames={ENDING_FRAMES}>
+        <AbsoluteFill style={{ backgroundColor: "#000" }}>
+          <Video
+            src={staticFile("ending.mp4")}
+            style={{ width: "100%", height: "100%", objectFit: "contain" }}
+          />
+        </AbsoluteFill>
       </Sequence>
     </AbsoluteFill>
   );

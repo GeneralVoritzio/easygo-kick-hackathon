@@ -10,6 +10,8 @@ import { ChannelBar } from "./ChannelBar";
 import { ChannelChat } from "./ChannelChat";
 import { ChannelOffline } from "./ChannelOffline";
 import { ChannelAboutCard } from "./ChannelSections";
+import { useEvents } from "../EventsStore";
+import { eventForChannel } from "../mock/events";
 
 const MIN_CHAT_WIDTH = 260;
 const MAX_CHAT_WIDTH = 480;
@@ -74,6 +76,8 @@ export function ChannelShell({
   const [isDragging, setIsDragging] = useState(false);
   const rowRef = useRef<HTMLDivElement>(null);
   const { multiview } = useEvent();
+  const { events } = useEvents();
+  const event = eventForChannel(events, profile.channel.slug);
 
   useEffect(() => {
     if (!isDragging) return;
@@ -131,7 +135,7 @@ export function ChannelShell({
               <ChannelLivePreview stream={stream} />
             )}
             <div className="flex flex-col gap-6 px-4 py-5 lg:px-7">
-              <ChannelBar stream={stream} showFollowers={!watch} />
+              <ChannelBar stream={stream} showFollowers={!watch} event={event} />
               {watch && <ChannelAboutCard profile={profile} />}
             </div>
           </>
@@ -162,7 +166,7 @@ export function ChannelShell({
           style={{ width: chatOpen ? chatWidth : 0, opacity: chatOpen ? 1 : 0 }}
           className="h-full max-h-full min-w-0 shrink-0 grow-0 overflow-hidden transition-[width,opacity] duration-300 ease-out"
         >
-          <ChannelChat onCollapse={() => setChatOpen(false)} stream={stream} />
+          <ChannelChat onCollapse={() => setChatOpen(false)} event={event} />
         </div>
       </div>
     </div>

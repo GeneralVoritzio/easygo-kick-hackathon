@@ -9,8 +9,17 @@ import {
   liveStreamFor,
   type Livestream,
 } from "../mock/api";
-import { eventStreams, formatBoostLeft, ironCup, isInEvent, MULTIVIEW_CAP } from "./events";
+import { formatBoostLeft, MULTIVIEW_CAP } from "./events";
 import { useBoostLeft, useEvent } from "./EventProvider";
+import { useEvents } from "../EventsStore";
+import {
+  eventForChannel,
+  eventStreamers,
+  isLiveWindow,
+  liveSeats,
+  publicUpcoming,
+  type KickEvent,
+} from "../mock/events";
 
 function BoostBadge({ slug }: { slug: string }) {
   const left = useBoostLeft(slug);
@@ -110,6 +119,7 @@ function Section({ label, children }: { label: string; children: ReactNode }) {
 // Livestreams. Events is ours, and it is the only new section.
 function GlobalResults({ query, onOpen }: { query: string; onOpen: (to: string) => void }) {
   const q = query.toLowerCase();
+  const { events: allEvents } = useEvents();
   const channels = channelProfiles
     .filter((p) => p.channel.username.toLowerCase().includes(q))
     .slice(0, 3);
@@ -117,7 +127,9 @@ function GlobalResults({ query, onOpen }: { query: string; onOpen: (to: string) 
   const streams = livestreams
     .filter((s) => s.session_title.toLowerCase().includes(q))
     .slice(0, 3);
-  const events = [ironCup].filter((e) => e.name.toLowerCase().includes(q));
+  const events = publicUpcoming(allEvents)
+    .filter((e) => e.title.toLowerCase().includes(q))
+    .slice(0, 3);
   const empty = !channels.length && !cats.length && !streams.length && !events.length;
 
   return (
@@ -149,9 +161,9 @@ function GlobalResults({ query, onOpen }: { query: string; onOpen: (to: string) 
             <Row key={e.slug} onOpen={() => onOpen(`/events/${e.slug}`)}>
               <Icon name="dash-broadcast" className="size-6 shrink-0 p-0.5 text-primary-base" />
               <span className="min-w-0 flex-1">
-                <span className="block truncate text-sm font-bold text-white">{e.name}</span>
+                <span className="block truncate text-sm font-bold text-white">{e.title}</span>
                 <span className="block truncate text-xs text-surface-onSurfaceSecondary">
-                  {e.participant_slugs.length} streamers
+                  {eventStreamers(e).length} streamers
                 </span>
               </span>
               <LivePill />
@@ -195,6 +207,7 @@ function GlobalResults({ query, onOpen }: { query: string; onOpen: (to: string) 
 // Removing the chip turns it back into a plain search across KICK.
 export function EventSearch() {
   const { multiview, pin, boosts } = useEvent();
+  const { events } = useEvents();
   const location = useLocation();
   const navigate = useNavigate();
   const [query, setQuery] = useState("");
@@ -202,12 +215,16 @@ export function EventSearch() {
   const [focused, setFocused] = useState(false);
 
   const slug = location.pathname.split("/")[1] ?? "";
-  const inEventContext = isInEvent(slug) || multiview.active;
+  // The chip follows the event of the channel you are on. Multiview keeps it while it is open.
+  const onChannelEvent = eventForChannel(events, slug);
+  const contextEvent: KickEvent | undefined =
+    onChannelEvent ?? (multiview.active ? events.find(isLiveWindow) : undefined);
+  const inEventContext = Boolean(contextEvent);
   const chipOn = inEventContext && !chipDismissed;
   const full = multiview.slots.length >= MULTIVIEW_CAP;
 
   const boosted = (slug: string) => (boosts[slug] ?? 0) > Date.now();
-  const pool = eventStreams()
+  const pool = (contextEvent ? liveSeats(contextEvent) : [])
     .filter((s) =>
       query ? s.channel.username.toLowerCase().includes(query.toLowerCase()) : true,
     )
@@ -235,7 +252,7 @@ export function EventSearch() {
               title="Remove the event filter"
               className="flex shrink-0 items-center gap-1 rounded-full bg-secondary-base px-2 py-0.5 text-xs font-semibold leading-4 text-secondary-onSecondary"
             >
-              {ironCup.name}
+              {contextEvent?.title}
               <Icon name="close" className="size-2.5" />
             </button>
           )}

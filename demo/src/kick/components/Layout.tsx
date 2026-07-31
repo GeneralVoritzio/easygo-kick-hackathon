@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Outlet } from "react-router-dom";
+import { Outlet, useLocation } from "react-router-dom";
 import { Navbar } from "./Navbar";
 import { Sidebar } from "./Sidebar";
 
@@ -8,6 +8,13 @@ const WIDE = "(min-width: 1280px)";
 export function Layout() {
   const [collapsed, setCollapsed] = useState(false);
   const [wide, setWide] = useState(() => window.matchMedia(WIDE).matches);
+  const { pathname } = useLocation();
+
+  // The page scrolls inside #main-container, so a route change has to reset that box. Without this
+  // a jump from a row half way down the home page lands half way down the next page.
+  useEffect(() => {
+    document.getElementById("main-container")?.scrollTo(0, 0);
+  }, [pathname]);
 
   useEffect(() => {
     const query = window.matchMedia(WIDE);

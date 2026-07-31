@@ -8,20 +8,24 @@ import { Browse } from './kick/pages/Browse'
 import { Following } from './kick/pages/Following'
 import { FollowingCategories } from './kick/pages/FollowingCategories'
 import { FollowingChannels } from './kick/pages/FollowingChannels'
+import { FollowingEvents } from './kick/pages/FollowingEvents'
 import { Channel } from './kick/pages/Channel'
 import { SettingsProfile } from './kick/pages/SettingsProfile'
 import { SettingsPreferences } from './kick/pages/SettingsPreferences'
 import { DropsInventory } from './kick/pages/DropsInventory'
 import { DropsAllCampaigns } from './kick/pages/DropsAllCampaigns'
 import { CreatorDashboard } from './kick/pages/CreatorDashboard'
+import { EventsProvider } from './kick/EventsStore'
 import { EventProvider } from './kick/events/EventProvider'
 import { RaidProvider } from './kick/raid/RaidProvider'
 import { RaidDialog } from './kick/components/RaidDialog'
+import { EventPage } from './kick/pages/EventPage'
 import Demo from './App.tsx'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <BrowserRouter>
+      <EventsProvider>
       <EventProvider>
       <RaidProvider>
         <RaidDialog />
@@ -35,13 +39,16 @@ createRoot(document.getElementById('root')!).render(
             <Route path="/browse" element={<Browse tab="livestreams" />} />
             <Route path="/browse/categories" element={<Browse tab="categories" />} />
             <Route path="/browse/clips" element={<Browse tab="clips" />} />
+            <Route path="/browse/events" element={<Browse tab="events" />} />
             <Route path="/following" element={<Following />} />
             <Route path="/following/categories" element={<FollowingCategories />} />
             <Route path="/following/channels" element={<FollowingChannels />} />
+            <Route path="/following/events" element={<FollowingEvents />} />
             <Route path="/drops/inventory" element={<DropsInventory />} />
             <Route path="/drops/all-campaigns" element={<DropsAllCampaigns />} />
             <Route path="/settings/profile" element={<SettingsProfile />} />
             <Route path="/settings/preferences" element={<SettingsPreferences />} />
+            <Route path="/events/:slug" element={<EventPage />} />
             <Route path="/:slug" element={<Channel tab="home" watch />} />
             <Route path="/:slug/home" element={<Channel tab="home" />} />
             <Route path="/:slug/about" element={<Channel tab="about" />} />
@@ -51,6 +58,7 @@ createRoot(document.getElementById('root')!).render(
         </Routes>
       </RaidProvider>
       </EventProvider>
+      </EventsProvider>
     </BrowserRouter>
   </StrictMode>,
 )

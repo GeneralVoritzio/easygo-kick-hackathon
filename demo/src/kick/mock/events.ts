@@ -1,4 +1,4 @@
-import { artFor, bannerFor, channelBySlug, type Channel } from "./api";
+import { artFor, bannerFor, channelBySlug, liveStreamFor, type Channel } from "./api";
 
 export const EVENTS_NOW = new Date("2026-07-26T13:30:00Z");
 
@@ -348,6 +348,12 @@ export const invitesFor = (list: KickEvent[], username: string) =>
 
 export const requestsOn = (event: KickEvent) =>
   event.participants.filter((p) => p.invite_status === "requested");
+
+export const hasFinished = (event: KickEvent) => new Date(event.end_at) <= EVENTS_NOW;
+
+// Where Join sends a viewer: the first channel on the running order that is live right now.
+export const liveParticipant = (event: KickEvent) =>
+  eventStreamers(event).find((p) => liveStreamFor(p.channel.slug));
 
 export const isLiveWindow = (event: KickEvent) =>
   new Date(event.start_at) <= EVENTS_NOW && EVENTS_NOW < new Date(event.end_at);

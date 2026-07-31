@@ -27,7 +27,8 @@ const avatarFiles = import.meta.glob("../avatars/*.svg", {
   import: "default",
 }) as Record<string, string>;
 
-const art = import.meta.glob("../art/*.svg", {
+// The plates are SVG and the event posters are JPEG, so the glob has to name both.
+const art = import.meta.glob("../art/*.{svg,jpg}", {
   eager: true,
   query: "?url",
   import: "default",
@@ -41,7 +42,7 @@ const avatar = (slug: string) => {
 
 // ponytail: category tiles and stream stills are still our own art. Replace them with the
 // official kick.com artwork and real frames, captured with kick-page-clone.
-const artUrl = (name: string) => art[`../art/${name}.svg`] ?? "";
+const artUrl = (name: string) => art[`../art/${name}.svg`] ?? art[`../art/${name}.jpg`] ?? "";
 
 export const bannerFor = (seed: string) => artUrl(`banner-${seed}`);
 
@@ -319,6 +320,31 @@ export const livestreams: Livestream[] = [
     language: "English",
     thumbnail: artUrl("thumb-irl-3"),
     started_at: "2026-07-26T12:30:00Z",
+    is_mature: false,
+  },
+  // These two hold a seat on the running order of the event that is on now, so they are live.
+  {
+    id: 18,
+    channel: channel("couchsenate", "CouchSenate", 283204, true),
+    session_title: "SENATE IS IN SESSION, MOTION ONE ON THE FLOOR",
+    category: cat("just-chatting"),
+    viewer_count: 9204,
+    is_live: true,
+    language: "English",
+    thumbnail: artUrl("thumb-just-chatting-2"),
+    started_at: "2026-07-26T12:00:00Z",
+    is_mature: false,
+  },
+  {
+    id: 19,
+    channel: channel("charcoalchef", "CharcoalChef", 30211),
+    session_title: "senate lunch, i am grilling for four channels",
+    category: cat("irl"),
+    viewer_count: 1508,
+    is_live: true,
+    language: "English",
+    thumbnail: artUrl("thumb-irl-2"),
+    started_at: "2026-07-26T13:05:00Z",
     is_mature: false,
   },
 ];

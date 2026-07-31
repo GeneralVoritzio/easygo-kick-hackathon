@@ -1,12 +1,19 @@
 import { createContext, useContext, useState } from "react";
-import { channelByUsername, currentUser, artFor } from "./mock/api";
-import { EVENTS_NOW, events as seedEvents, type KickEvent } from "./mock/events";
+import { channelByUsername, currentUser } from "./mock/api";
+import {
+  EVENTS_NOW,
+  events as seedEvents,
+  type EventVisibility,
+  type KickEvent,
+} from "./mock/events";
 
 export type EventDraft = {
   title: string;
   description: string;
   start_at: string;
   end_at: string;
+  visibility: EventVisibility;
+  poster: string;
 };
 
 export type EventNotification = {
@@ -80,9 +87,8 @@ export function EventsProvider({ children }: { children: React.ReactNode }) {
       host_channel: currentUser,
       start_at: draft.start_at,
       end_at: draft.end_at,
-      poster: artFor("cat-just-chatting"),
-      banner: currentUser.banner,
-      visibility: "private",
+      poster: draft.poster,
+      visibility: draft.visibility,
       is_partner_only: true,
       participants: [
         {

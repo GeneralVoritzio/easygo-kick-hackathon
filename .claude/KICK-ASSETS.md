@@ -151,6 +151,10 @@ as a mock up.
 width follow the image. A card is landscape, so it crops the poster from the top, where the title
 is.
 
+`demo/public/favicon.svg` is KICK's own mark on KICK's green, replacing the Vite lightning bolt the
+template shipped. The path is `kick-mark.svg` verbatim, on a `#53fc18` square with a 6px radius,
+which is what the browser tab shows on kick.com. The page title is Kick for the same reason.
+
 **Three icons in this folder are ours, drawn 31 July 2026 for the events feature.** KICK has none of
 them, so each one is drawn on KICK's 32 grid with a solid fill and `fill="currentColor"`.
 

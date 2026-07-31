@@ -8,6 +8,7 @@ import { Browse } from './kick/pages/Browse'
 import { Following } from './kick/pages/Following'
 import { FollowingCategories } from './kick/pages/FollowingCategories'
 import { FollowingChannels } from './kick/pages/FollowingChannels'
+import { FollowingEvents } from './kick/pages/FollowingEvents'
 import { Channel } from './kick/pages/Channel'
 import { SettingsProfile } from './kick/pages/SettingsProfile'
 import { SettingsPreferences } from './kick/pages/SettingsPreferences'
@@ -42,6 +43,7 @@ createRoot(document.getElementById('root')!).render(
             <Route path="/following" element={<Following />} />
             <Route path="/following/categories" element={<FollowingCategories />} />
             <Route path="/following/channels" element={<FollowingChannels />} />
+            <Route path="/following/events" element={<FollowingEvents />} />
             <Route path="/drops/inventory" element={<DropsInventory />} />
             <Route path="/drops/all-campaigns" element={<DropsAllCampaigns />} />
             <Route path="/settings/profile" element={<SettingsProfile />} />

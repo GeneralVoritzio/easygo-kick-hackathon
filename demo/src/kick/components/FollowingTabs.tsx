@@ -5,6 +5,7 @@ const tabs = [
   { label: "Live Channels", to: "/following" },
   { label: "Categories", to: "/following/categories" },
   { label: "Channels", to: "/following/channels" },
+  { label: "Events", to: "/following/events" },
 ];
 
 export function FollowingTabs() {

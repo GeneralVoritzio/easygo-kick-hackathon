@@ -200,8 +200,9 @@ export function RaidStage() {
 
   // Section 5.2: the handoff itself, the countdown growing into the raid landing, plays as one
   // overlay over the player instead of a caption swap, so it reads as the raid pulling chat
-  // through rather than the page cutting to a new screen.
-  if (raid.phase === "countdown" || raid.phase === "landed") {
+  // through rather than the page cutting to a new screen. The countdown timer keeps running in
+  // chat the whole time, but the portal only takes over the player for its last 5 seconds.
+  if (raid.phase === "landed" || (raid.phase === "countdown" && raid.seconds <= TIMING.portalReveal)) {
     return <RaidPortal raid={raid} />;
   }
 

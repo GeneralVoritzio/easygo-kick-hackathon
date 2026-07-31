@@ -345,10 +345,17 @@ export function RaidPortal({ raid }: { raid: Raid }) {
 
   if (stage === "closed") return null;
 
-  const progress = Math.max(0, Math.min(1, 1 - raid.seconds / TIMING.countdown));
+  // Rebased to the portal's own visible window (its last portalReveal seconds on screen), not
+  // the full countdown, so it always grows from nothing the moment it takes over the player
+  // instead of appearing already most of the way open.
+  const progress = Math.max(0, Math.min(1, 1 - raid.seconds / TIMING.portalReveal));
   const scale = stage === "closing" ? 0 : stage === "sucking" ? 2.6 : 0.18 + progress * 0.82;
   const portalOpacity = stage === "closing" ? 0 : stage === "sucking" ? 0 : 1;
-  const backdropOpacity = stage === "closing" || stage === "sucking" ? 0 : 0.15 + progress * 0.35;
+  // Tied to the same progress clock as the portal's own scale, from 0 at mount, so the dim
+  // and the ambient field grow in at the same pace the portal does instead of snapping to
+  // their target strength faster than the portal reaches full size.
+  const ambientOpacity = stage === "closing" || stage === "sucking" ? 0 : progress;
+  const backdropOpacity = stage === "closing" || stage === "sucking" ? 0 : progress * 0.5;
   const showButtons = stage === "open" && joined === null;
 
   const handleLeave = () => {
@@ -357,18 +364,15 @@ export function RaidPortal({ raid }: { raid: Raid }) {
   };
 
   return (
-    <div className="z-controls absolute inset-0 flex items-center justify-center overflow-hidden">
+    <div className="animate-portal-appear z-controls absolute inset-0 flex items-center justify-center overflow-hidden">
       <div
         className="pointer-events-none absolute inset-0 bg-black transition-opacity duration-1000"
         style={{ opacity: backdropOpacity }}
       />
 
-      <PortalParticles opacity={stage === "closing" || stage === "sucking" ? 0 : 1} />
+      <PortalParticles opacity={ambientOpacity} />
 
-      <div
-        className="transition-opacity duration-1000"
-        style={{ opacity: stage === "closing" || stage === "sucking" ? 0 : 1 }}
-      >
+      <div className="transition-opacity duration-1000" style={{ opacity: ambientOpacity }}>
         <PortalEruption />
       </div>
 
@@ -399,7 +403,7 @@ export function RaidPortal({ raid }: { raid: Raid }) {
         style={{ opacity: stage === "open" ? 1 : 0 }}
       >
         <div className="relative flex size-24 shrink-0 items-center justify-center">
-          <PixelTimerTicks seconds={raid.seconds} total={TIMING.countdown} />
+          <PixelTimerTicks seconds={raid.seconds} total={TIMING.portalReveal} />
           <span className="relative translate-y-1 text-3xl font-black tabular-nums text-white [text-shadow:0_0_16px_rgba(83,252,24,0.9)]">
             {raid.seconds}
           </span>

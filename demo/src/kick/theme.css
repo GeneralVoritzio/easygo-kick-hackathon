@@ -251,6 +251,7 @@
   .animate-pick-glow { animation: pick-glow 2.4s ease-in-out infinite }
   .animate-toast-in { animation: toast-in 320ms cubic-bezier(0.16, 1, 0.3, 1) }
   .animate-portal-flash { animation: portal-flash 700ms ease-out }
+  .animate-portal-appear { animation: portal-appear 700ms cubic-bezier(0.16, 1, 0.3, 1) forwards }
   .animate-portal-drift {
     animation-name: portal-drift;
     animation-timing-function: ease-in-out;
@@ -367,6 +368,16 @@
   100% { opacity: 0 }
 }
 
+/* The backdrop dim, the ambient field and the portal's own size all grow continuously from 0
+   across the same reveal window (RaidPortal ties them to one shared progress value), so this
+   only adds a brief brightness flare for the moment it punches through. Fading the group's
+   opacity here too would race that shared timeline and make the background snap in faster
+   than the portal reaches full size. */
+@keyframes portal-appear {
+  0% { filter: brightness(1.8) }
+  100% { filter: brightness(1) }
+}
+
 @keyframes portal-drift {
   0%, 100% { transform: translate(0, 0); opacity: 0.55 }
   50% { transform: translate(var(--portal-dx), var(--portal-dy)); opacity: 1 }
@@ -410,6 +421,7 @@
   .animate-pick-glow { animation: none }
   .animate-toast-in { animation: none }
   .animate-portal-flash { animation: none }
+  .animate-portal-appear { animation: none; filter: none }
   .animate-portal-drift { animation: none }
   .animate-cta-pulse { animation: none }
   .animate-portal-tunnel { animation: none }

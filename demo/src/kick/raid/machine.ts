@@ -13,6 +13,10 @@ import { recommendationsFor, showdownCandidates, type Candidate } from "../mock/
 
 export const TIMING = {
   countdown: 15,
+  // The countdown keeps running in chat for the full 15s, but the portal only takes over the
+  // player for this last stretch of it, so it always grows from nothing up to full size
+  // instead of popping in already two-thirds grown.
+  portalReveal: 5,
   chatPreview: 30,
   showdownBrowse: 20,
   showdownTile: 30,

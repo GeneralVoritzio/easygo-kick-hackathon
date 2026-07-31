@@ -680,14 +680,21 @@ export const currentSession = {
   thumbnail: artUrl("thumb-just-chatting-1"),
 };
 
+const knownChannels = [
+  superdude,
+  ...channelProfiles.map((p) => p.channel),
+  ...livestreams.map((s) => s.channel),
+];
+
+export const channelBySlug = (slug: string) => {
+  const found = knownChannels.find((c) => c.slug === slug);
+  if (!found) throw new Error(`No channel for ${slug}. Add it to livestreams or channelProfiles.`);
+  return found;
+};
+
 export const channelByUsername = (username: string) => {
   const wanted = username.trim().toLowerCase();
-  const known = [
-    superdude,
-    ...channelProfiles.map((p) => p.channel),
-    ...livestreams.map((s) => s.channel),
-  ];
-  return known.find((c) => c.username.toLowerCase() === wanted);
+  return knownChannels.find((c) => c.username.toLowerCase() === wanted);
 };
 
 export function streamPills(stream: Livestream): string[] {

@@ -5,8 +5,14 @@ import { CategoryGrid } from "../components/CategoryCard";
 import { ClipGrid } from "../components/ClipCard";
 import { BrowseTabs, type BrowseTab } from "../components/BrowseTabs";
 import { BrowseFilters } from "../components/BrowseFilters";
+import { Section } from "../components/CardBits";
+import { EventGrid } from "../components/EventBits";
+import { EventCalendar } from "../components/EventCalendar";
+import { Icon } from "../Icon";
+import { useEvents } from "../EventsStore";
 import { livestreams, categories } from "../mock/api";
 import { CLIPS_NOW, clips } from "../mock/clips";
+import { eventBucket, upcomingEvents, type EventBucket } from "../mock/events";
 
 const streamSortOptions = [
   { value: "featured", label: "Featured" },
@@ -33,6 +39,48 @@ const clipRangeOptions = [
   { value: "30", label: "Last Month" },
   { value: "all", label: "All Time" },
 ];
+
+const eventGroups: { bucket: EventBucket; title: string }[] = [
+  { bucket: "today", title: "Today" },
+  { bucket: "week", title: "This week" },
+  { bucket: "month", title: "This month" },
+];
+
+function BrowseEvents() {
+  const { events } = useEvents();
+  const [calendarOpen, setCalendarOpen] = useState(false);
+  const upcoming = upcomingEvents(events);
+
+  return (
+    <section className="flex w-full flex-col gap-y-5 lg:gap-y-6">
+      <div className="flex items-center justify-between">
+        <p className="text-sm font-normal text-surface-onSurfaceSecondary">
+          Partners run these events. The host invites every channel on the running order.
+        </p>
+        <button
+          type="button"
+          onClick={() => setCalendarOpen(true)}
+          className="flex h-9 shrink-0 items-center gap-1.5 rounded bg-secondary-base px-3 text-sm font-semibold text-white state-layer-surface"
+        >
+          <Icon name="calendar" className="size-4 shrink-0 fill-current" />
+          Calendar
+        </button>
+      </div>
+
+      {eventGroups.map(({ bucket, title }) => {
+        const group = upcoming.filter((e) => eventBucket(e.start_at) === bucket);
+        if (group.length === 0) return null;
+        return (
+          <Section key={bucket} white={title}>
+            <EventGrid events={group} />
+          </Section>
+        );
+      })}
+
+      {calendarOpen && <EventCalendar onClose={() => setCalendarOpen(false)} />}
+    </section>
+  );
+}
 
 export function Browse({ tab }: { tab: BrowseTab }) {
   const [language, setLanguage] = useState("all");
@@ -91,6 +139,8 @@ export function Browse({ tab }: { tab: BrowseTab }) {
         )}
 
         {tab === "categories" && <CategoryGrid categories={categories} />}
+
+        {tab === "events" && <BrowseEvents />}
 
         {tab === "clips" && (
           <section className="flex w-full flex-col gap-y-5 lg:gap-y-4">

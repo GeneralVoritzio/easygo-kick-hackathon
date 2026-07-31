@@ -121,7 +121,10 @@ export function StreamerRow({ participant }: { participant: EventParticipant }) 
 
 function AvatarStack({ participants }: { participants: EventParticipant[] }) {
   return (
-    <div className="absolute bottom-1.5 right-1.5 flex flex-row-reverse items-center">
+    <div
+      title={`${participants.length} streamers`}
+      className="absolute bottom-1.5 right-1.5 flex flex-row-reverse items-center"
+    >
       {participants
         .slice(0, 4)
         .reverse()
@@ -141,8 +144,7 @@ export function EventCard({ event }: { event: KickEvent }) {
   const { reminders } = useEvents();
   const streamers = eventStreamers(event);
   const live = isLiveWindow(event);
-  const pills = [event.category.name, `${streamers.length} streamers`];
-  if (reminders.includes(event.event_id)) pills.push("Reminder set");
+  const reminded = reminders.includes(event.event_id);
 
   return (
     <div className="group/card relative flex w-full shrink-0 grow-0 flex-col gap-2 will-change-transform lg:gap-0">
@@ -162,6 +164,15 @@ export function EventCard({ event }: { event: KickEvent }) {
           {live ? "Live now" : formatEventDay(event.start_at)}
         </ThumbBadge>
         <ThumbBadge corner="bottom-left">{formatEventTime(event.start_at)} UTC</ThumbBadge>
+        {reminded && (
+          <span
+            data-testid="card-reminder"
+            title="Reminder set"
+            className="absolute right-1.5 top-1.5 flex items-center rounded bg-surface-lowest px-1 py-1 text-primary-base"
+          >
+            <Icon name="heart-filled" className="size-3.5 fill-current" />
+          </span>
+        )}
         <AvatarStack participants={streamers} />
       </Link>
 
@@ -183,7 +194,7 @@ export function EventCard({ event }: { event: KickEvent }) {
           <span className="max-w-full truncate text-base font-normal leading-6 text-surface-onSurfaceSecondary">
             Hosted by {event.host_channel.username}
           </span>
-          <PillRow pills={pills} />
+          <PillRow pills={[event.category.name]} />
         </div>
       </div>
       <CornerMarks />

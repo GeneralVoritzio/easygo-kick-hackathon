@@ -3,10 +3,13 @@ import { Link, NavLink, useParams } from "react-router-dom";
 import { Icon, type KickIconName } from "../Icon";
 import { ProfileMenu } from "../components/ProfileMenu";
 import kickLogo from "../brand/kick-logo.svg";
-import { categories, currentUser } from "../mock/api";
+import { currentUser, streamInfo } from "../mock/api";
 import { ChatFeed } from "../components/ChannelChat";
 import { DashboardEvents } from "../components/DashboardEvents";
 import { IconButton, Pane, Panel, PanelHeader } from "../components/DashboardPanel";
+import { Toggle } from "../components/Toggle";
+import { GoLiveDialog } from "../components/GoLiveDialog";
+import { useEvents } from "../EventsStore";
 
 const streamItem = "/dashboard/stream";
 const eventsItem = "/dashboard/events";
@@ -34,8 +37,6 @@ const railTools: { icon: KickIconName; label: string }[] = [
   { icon: "dash-moderation", label: "Settings" },
 ];
 
-const justChatting = categories.find((c) => c.slug === "just-chatting")!;
-
 function Stat({ label, value, badge }: { label: string; value?: string; badge?: string }) {
   return (
     <div className="flex w-full flex-col items-start gap-3 px-3 py-4">
@@ -48,26 +49,6 @@ function Stat({ label, value, badge }: { label: string; value?: string; badge?: 
       )}
       <span className="text-sm font-semibold text-subtle">{label}</span>
     </div>
-  );
-}
-
-function Toggle({ on, onChange, label }: { on: boolean; onChange: (v: boolean) => void; label: string }) {
-  const state = on ? "checked" : "unchecked";
-  return (
-    <button
-      type="button"
-      role="switch"
-      aria-checked={on}
-      aria-label={label}
-      data-state={state}
-      onClick={() => onChange(!on)}
-      className="h-5 w-[2.25rem] shrink-0 cursor-pointer rounded-full bg-secondary-base transition-colors data-[state=checked]:bg-primary-base"
-    >
-      <span
-        data-state={state}
-        className="block h-[0.875rem] w-[0.875rem] translate-x-[0.25rem] rounded-full bg-white transition-transform data-[state=checked]:translate-x-[calc(2.25rem-0.25rem-0.875rem)] data-[state=checked]:bg-surface-base"
-      />
-    </button>
   );
 }
 
@@ -127,7 +108,32 @@ function ActionGroup({
   );
 }
 
-function StreamPanels() {
+function ReadyStrip({ onChange }: { onChange: () => void }) {
+  const { events, goLiveEventId } = useEvents();
+  const picked = events.find((e) => e.event_id === goLiveEventId);
+  if (!picked) return null;
+
+  return (
+    <div
+      data-testid="ready-strip"
+      className="flex w-full items-center gap-2 px-3 py-2 text-sm font-semibold"
+    >
+      <Icon name="event" className="size-4 shrink-0 fill-primary-base" />
+      <span className="min-w-0 truncate text-white">
+        Ready to go live. Event: <span className="text-primary-base">{picked.title}</span>
+      </span>
+      <button
+        type="button"
+        onClick={onChange}
+        className="ml-auto shrink-0 rounded bg-secondary-base px-2 py-1 text-sm font-semibold text-white state-layer-surface"
+      >
+        Change
+      </button>
+    </div>
+  );
+}
+
+function StreamPanels({ onOpenGoLive }: { onOpenGoLive: () => void }) {
   const [subsOnly, setSubsOnly] = useState(false);
   const [emotesOnly, setEmotesOnly] = useState(false);
   const [showViewCount, setShowViewCount] = useState(true);
@@ -149,6 +155,7 @@ function StreamPanels() {
               <Stat label="Time Live" value="-" />
             </div>
             <div className="w-full border-t border-outline-decorative" />
+            <ReadyStrip onChange={onOpenGoLive} />
           </Panel>
         </Pane>
 
@@ -203,18 +210,18 @@ function StreamPanels() {
             actions={<IconButton icon="dash-edit" label="Edit stream info" className="size-8 text-sm leading-none" />}
           >
             <div className="flex w-full max-w-full flex-col gap-2 text-sm">
-              <span className="line-clamp-2 font-semibold text-white">My first stream.</span>
+              <span className="line-clamp-2 font-semibold text-white">{streamInfo.session_title}</span>
               <div className="no-scrollbar flex w-full max-w-full items-center gap-2 overflow-x-auto">
                 <img
-                  src={justChatting.thumbnail}
+                  src={streamInfo.category.thumbnail}
                   alt=""
                   className="aspect-[164/219] h-[46px] shrink-0 overflow-hidden rounded object-cover"
                 />
                 <div className="flex flex-col gap-1">
-                  <span className="text-white">{justChatting.name}</span>
+                  <span className="text-white">{streamInfo.category.name}</span>
                   <div className="flex min-w-0 gap-2">
                     <span className="rounded-full bg-secondary-base px-2 py-1 text-sm leading-none text-secondary-onSecondary">
-                      English
+                      {streamInfo.language}
                     </span>
                   </div>
                 </div>
@@ -255,6 +262,7 @@ function StreamPanels() {
 export function CreatorDashboard() {
   const { section } = useParams();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [goLiveOpen, setGoLiveOpen] = useState(false);
   const active = `/dashboard/${section ?? "stream"}`;
 
   return (
@@ -269,6 +277,7 @@ export function CreatorDashboard() {
         <div className="flex items-center gap-5">
           <button
             type="button"
+            onClick={() => setGoLiveOpen(true)}
             className="state-layer-base inline-flex h-9 items-center justify-center gap-1.5 rounded bg-primary-base px-2 text-sm font-semibold text-primary-onPrimary"
           >
             <Icon name="kick-mark" className="size-[1em]" />
@@ -289,6 +298,7 @@ export function CreatorDashboard() {
             />
           </button>
           {menuOpen && <ProfileMenu dashboard onClose={() => setMenuOpen(false)} />}
+          {goLiveOpen && <GoLiveDialog onClose={() => setGoLiveOpen(false)} />}
         </div>
       </nav>
 
@@ -328,7 +338,11 @@ export function CreatorDashboard() {
 
         <div className="flex w-full min-w-0 max-w-full overflow-hidden">
           <div className="grow overflow-hidden bg-black p-0.5">
-            {section === "events" ? <DashboardEvents /> : <StreamPanels />}
+            {section === "events" ? (
+              <DashboardEvents />
+            ) : (
+              <StreamPanels onOpenGoLive={() => setGoLiveOpen(true)} />
+            )}
           </div>
 
           <div className="flex h-full shrink-0 grow-0 flex-col items-center gap-y-4 rounded-l bg-surface-base px-3 py-2.5">

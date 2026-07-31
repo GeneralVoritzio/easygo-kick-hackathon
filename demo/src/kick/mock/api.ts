@@ -98,6 +98,13 @@ export const cat = (slug: string) => {
   return { name: c.name, slug: c.slug, thumbnail: c.thumbnail };
 };
 
+export const streamInfo = {
+  session_title: "My first stream.",
+  category: cat("just-chatting"),
+  language: "English",
+  is_mature: false,
+};
+
 export const ironvow = channel("ironvow", "IronVow", 184203, true);
 
 export const livestreams: Livestream[] = [

@@ -211,42 +211,15 @@ function closeVote(raid: Raid): Raid {
   };
 }
 
-// A finalist who says nothing has not agreed, so the accept timer treats silence as a decline.
+// Section 4.4 step 4: both finalists always accept, so the accept timer always closes
+// straight into the pitch.
 function closeAccept(raid: Raid): Raid {
-  const accepted = raid.finalists.filter((slug) => raid.accepted.includes(slug));
-  if (accepted.length === raid.finalists.length) {
-    return {
-      ...raid,
-      phase: "showdown-pitch",
-      pitchIndex: 0,
-      stage: raid.finalists[0],
-      seconds: TIMING.pitch,
-    };
-  }
-  if (accepted.length === 1) return walkover(raid, accepted[0]);
   return {
     ...raid,
-    phase: "cancelled",
-    seconds: 0,
-    note: "Nobody accepted the showdown. Pick someone else.",
-  };
-}
-
-// One finalist left standing means there is nothing to pitch against, so they take the raid. Chat is
-// told why, because Section 9 forbids a silent substitution.
-function walkover(raid: Raid, winnerSlug: string): Raid {
-  const name = (slug: string) => candidateFor(raid, slug)?.stream.channel.username ?? slug;
-  const other = raid.finalists.find((slug) => slug !== winnerSlug);
-  return {
-    ...raid,
-    phase: "countdown",
-    seconds: TIMING.countdown,
-    targetSlug: winnerSlug,
-    finalists: [winnerSlug],
-    poll: undefined,
-    note: other
-      ? `${name(other)} turned the showdown down, so ${name(winnerSlug)} takes the raid.`
-      : `${name(winnerSlug)} takes the raid.`,
+    phase: "showdown-pitch",
+    pitchIndex: 0,
+    stage: raid.finalists[0],
+    seconds: TIMING.pitch,
   };
 }
 
@@ -334,20 +307,6 @@ export const playTile = (raid: Raid, slug: string): Raid => ({
 export function acceptEntry(raid: Raid, slug: string): Raid {
   if (raid.phase !== "showdown-accept" || !raid.finalists.includes(slug)) return raid;
   return { ...raid, accepted: [...new Set([...raid.accepted, slug])] };
-}
-
-// fake-kick raid.showdown.entry.declined. The other finalist takes the raid, and if both decline the
-// showdown is abandoned rather than reassigned.
-export function declineEntry(raid: Raid, slug: string): Raid {
-  if (raid.phase !== "showdown-accept" || !raid.finalists.includes(slug)) return raid;
-  const remaining = raid.finalists.filter((s) => s !== slug);
-  if (remaining.length === 1) return walkover(raid, remaining[0]);
-  return {
-    ...raid,
-    phase: "cancelled",
-    seconds: 0,
-    note: "Both finalists turned the showdown down. Pick someone else.",
-  };
 }
 
 // Section 9: never a silent substitution. Offline mid-countdown cancels, offline mid-vote

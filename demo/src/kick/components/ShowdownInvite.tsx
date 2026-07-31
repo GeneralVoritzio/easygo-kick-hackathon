@@ -1,4 +1,3 @@
-import { Link } from "react-router-dom";
 import { Icon } from "../Icon";
 import { currentUser, formatViewers, liveStreamFor } from "../mock/api";
 import { useRaid } from "../raid/RaidProvider";
@@ -12,7 +11,6 @@ const TOTAL: Record<Invite["phase"], number> = {
   pitching: TIMING.pitch,
   won: 10,
   lost: 10,
-  declined: 10,
 };
 
 function Ring({ seconds, total }: { seconds: number; total: number }) {
@@ -64,8 +62,9 @@ function ChannelLine({ slug, note }: { slug: string; note: string }) {
 // else: the host's room runs the vote, this room only answers the invite and hears the result.
 export function ShowdownInvite() {
   const { invite, answerInvite, clearInvite } = useRaid();
-  // The pitch takes the whole screen, so a card repeating it would only be noise.
-  if (!invite || invite.phase === "pitching") return null;
+  // Waiting and pitching take the whole screen instead: PitchOverlay carries the streamer through
+  // both, so a card repeating either would only be noise. A declined or lapsed invite just clears.
+  if (!invite || invite.phase === "waiting" || invite.phase === "pitching") return null;
 
   const host = liveStreamFor(invite.hostSlug);
   const hostName = host?.channel.username ?? invite.hostSlug;
@@ -75,51 +74,22 @@ export function ShowdownInvite() {
 
   const title =
     invite.phase === "pending"
-      ? `${hostName} put you in a showdown`
-      : invite.phase === "waiting"
-        ? "You are in the showdown"
-        : invite.phase === "won"
-          ? "You won the showdown"
-          : invite.phase === "lost"
-            ? `${opponentName} won the showdown`
-            : invite.timedOut
-              ? "The invite ran out"
-              : "You turned it down";
+      ? `${hostName} challenged you!`
+      : invite.phase === "won"
+        ? "Congratulations! You won!"
+        : `${opponentName} won the showdown`;
 
   const body =
     invite.phase === "pending" ? (
       <>
-        Their chat votes between you and {opponentName}. Win it and{" "}
-        <span className="font-semibold text-white">
-          {formatViewers(invite.hostViewers)} viewers
-        </span>{" "}
-        land on {currentUser.username}. You get {TIMING.pitch} seconds to say why you deserve them.
-      </>
-    ) : invite.phase === "waiting" ? (
-      <>
-        {hostName} is lining the pitches up. Keep streaming: their chat is about to meet you, and
-        your own room carries on either way.
+       You have {TIMING.pitch} seconds to outpitch your opponent.
       </>
     ) : invite.phase === "won" ? (
       <>
-        {hostName} is sending {formatViewers(invite.hostViewers)} viewers your way. They arrive when
-        the countdown in their room ends.
-      </>
-    ) : invite.phase === "lost" ? (
-      <>Their chat went with {opponentName}. Nothing changes here, and your stream carries on.</>
-    ) : invite.timedOut ? (
-      <>
-        Nobody was put on the spot: an invite with no answer lapses, so {hostName} carried on without
-        you.
+        {hostName} is raiding you with {formatViewers(invite.hostViewers)} viewers. Get ready!
       </>
     ) : (
-      <>
-        {hostName} carried on without you. Turn showdowns off in{" "}
-        <Link to="/settings/preferences" className="text-primary-base underline-offset-2 hover:underline">
-          Settings
-        </Link>{" "}
-        if you would rather not be asked again.
-      </>
+      <>Their chat went with {opponentName}. Nothing changes here, and your stream carries on.</>
     );
 
   return (
@@ -128,7 +98,7 @@ export function ShowdownInvite() {
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wide text-primary-base">
             <span className="size-1.5 animate-pulse-fast rounded-full bg-primary-base" />
-            Showdown
+            Raid Showdown
           </div>
           <h2 className="truncate text-base font-bold leading-6 text-white">{title}</h2>
         </div>
@@ -150,8 +120,7 @@ export function ShowdownInvite() {
         <div className="flex flex-col gap-2 rounded border border-outline-decorative bg-surface-highest p-3">
           <ChannelLine slug={invite.hostSlug} note={`${formatViewers(invite.hostViewers)} watching`} />
           <div className="flex items-center gap-2 pl-2 text-xs font-semibold text-surface-onSurfaceSecondary">
-            <Icon name="chevron-right" className="size-3 shrink-0 rotate-90" />
-            you against
+            VS
           </div>
           <ChannelLine
             slug={invite.opponentSlug}

@@ -65,13 +65,13 @@ export function PitchOverlay() {
         <div className="flex max-w-[640px] flex-col items-center gap-0.5 rounded-lg bg-surface-lowest/90 px-4 py-2.5 text-center shadow-2xl backdrop-blur-sm">
           <span className="text-sm font-bold text-white">
             {live
-              ? `You are live in ${hostName}'s room, ${formatViewers(invite.hostViewers)} watching`
-              : `${hostName} calls you in a moment, ${formatViewers(invite.hostViewers)} watching`}
+              ? `You are live in ${hostName}'s stream, ${formatViewers(invite.hostViewers)} watching`
+              : `You're next! ${formatViewers(invite.hostViewers)} watching`}
           </span>
           <span className="text-xs text-surface-onSurfaceSecondary">
             {live
-              ? "Say why their chat should come to you. Talk to them, not to your own room."
-              : "Their chat is about to meet you. Your own stream carries on either way."}
+              ? "Tell them why you're raid-worthy"
+              : "Your stream won't be interrupted. Are you ready to pitch off?"}
           </span>
         </div>
       </div>

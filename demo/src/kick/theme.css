@@ -356,6 +356,7 @@
   }
   .tooltip-bottom:hover::before,
   .tooltip-bottom:hover::after { opacity: 1 }
+  .tooltip-bottom.tooltip-end::before { left: auto; right: 0; translate: none }
 }
 
 @keyframes emote-picker-open {

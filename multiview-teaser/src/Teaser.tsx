@@ -28,19 +28,21 @@ export const TOTAL_FRAMES = CLIP_FRAMES;
 function Title() {
   return (
     <AbsoluteFill style={{ alignItems: "center", justifyContent: "center" }}>
-      <span
+      <div
         style={{
           fontFamily: "CSMoza, sans-serif",
-          fontSize: 490,
-          lineHeight: 0.72,
+          fontSize: 500,
+          lineHeight: 0.78,
           letterSpacing: "-0.02em",
           color: "#ffffff",
           whiteSpace: "nowrap",
-          transform: "translateY(40px) scaleY(1.42)",
+          textAlign: "center",
+          transform: "translateY(30px) scaleY(1.18)",
         }}
       >
-        FOMO
-      </span>
+        <span style={{ display: "block" }}>SAME</span>
+        <span style={{ display: "block" }}>STREAM</span>
+      </div>
     </AbsoluteFill>
   );
 }
@@ -52,16 +54,16 @@ function Tagline() {
         backgroundColor: "rgba(0, 0, 0, 0.4)",
         alignItems: "center",
         justifyContent: "center",
-        gap: 28,
+        gap: 42,
       }}
     >
-      <div style={{ display: "flex", alignItems: "center", gap: 24 }}>
-        <Img src={staticFile("kick-logo.svg")} style={{ height: 64 }} />
+      <div style={{ display: "flex", alignItems: "center", gap: 36 }}>
+        <Img src={staticFile("kick-logo.svg")} style={{ height: 96 }} />
         <span
           style={{
             fontFamily: "Archivo, sans-serif",
             fontWeight: 800,
-            fontSize: 84,
+            fontSize: 126,
             lineHeight: 1,
             textTransform: "uppercase",
             color: "#ffffff",
@@ -74,7 +76,7 @@ function Tagline() {
         style={{
           fontFamily: "Archivo, sans-serif",
           fontWeight: 800,
-          fontSize: 36,
+          fontSize: 54,
           lineHeight: 1,
           textTransform: "uppercase",
           color: "#ffffff",

@@ -265,7 +265,9 @@ function ChatHeader({ onCollapse, inEvent }: { onCollapse?: () => void; inEvent?
         <Icon name="collapse-chat" className="size-4" />
       </button>
       {inEvent ? (
-        <div className="absolute left-1/2 -translate-x-1/2">
+        // The translate makes this wrapper a stacking context, so the z-index must
+        // sit here, or the chat messages paint over the open menu.
+        <div className="z-popover absolute left-1/2 -translate-x-1/2">
           <button
             type="button"
             onClick={() => setMenuOpen((v) => !v)}

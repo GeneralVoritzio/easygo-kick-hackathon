@@ -37,6 +37,19 @@ export function useEvent() {
   return value;
 }
 
+// Pins survive a close and a reload, so a viewer's grid is one click away.
+const SLOTS_KEY = "multiview-slots";
+
+function storedSlots(): string[] {
+  try {
+    const raw = JSON.parse(localStorage.getItem(SLOTS_KEY) ?? "[]");
+    if (!Array.isArray(raw)) return [];
+    return raw.filter((slug): slug is string => typeof slug === "string" && Boolean(liveStreamFor(slug)));
+  } catch {
+    return [];
+  }
+}
+
 const pages = new Set([
   "",
   "browse",
@@ -59,8 +72,15 @@ type Guard =
   | { kind: "page"; backTo: string };
 
 export function EventProvider({ children }: { children: ReactNode }) {
-  const [multiview, setMultiview] = useState<Multiview>({ active: false, slots: [] });
+  const [multiview, setMultiview] = useState<Multiview>(() => ({
+    active: false,
+    slots: storedSlots(),
+  }));
   const [chatMode, setChatMode] = useState<ChatMode>("stream");
+
+  useEffect(() => {
+    localStorage.setItem(SLOTS_KEY, JSON.stringify(multiview.slots));
+  }, [multiview.slots]);
   const [guard, setGuard] = useState<Guard | null>(null);
   const location = useLocation();
   const navigate = useNavigate();
@@ -91,8 +111,12 @@ export function EventProvider({ children }: { children: ReactNode }) {
       multiview,
       chatMode,
       setChatMode,
-      openMultiview: (slug) => setMultiview({ active: true, slots: [slug] }),
-      closeMultiview: () => setMultiview({ active: false, slots: [] }),
+      openMultiview: (slug) =>
+        setMultiview((m) => ({
+          active: true,
+          slots: m.slots.includes(slug) ? m.slots : [slug, ...m.slots].slice(0, MULTIVIEW_CAP),
+        })),
+      closeMultiview: () => setMultiview((m) => ({ ...m, active: false })),
       pin: (slug) =>
         setMultiview((m) =>
           m.slots.includes(slug) || m.slots.length >= MULTIVIEW_CAP
@@ -120,7 +144,7 @@ export function EventProvider({ children }: { children: ReactNode }) {
   }
 
   function leaveMultiview() {
-    setMultiview({ active: false, slots: [] });
+    setMultiview((m) => ({ ...m, active: false }));
     setGuard(null);
   }
 

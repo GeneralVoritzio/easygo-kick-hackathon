@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Icon } from "../Icon";
+import { EventSearch } from "../events/EventSearch";
 import { ProfileMenu } from "./ProfileMenu";
 import kickLogo from "../brand/kick-logo.svg";
 import { currentUser } from "../mock/api";
@@ -10,7 +11,6 @@ type NavbarProps = {
 };
 
 export function Navbar({ onToggleSidebar }: NavbarProps) {
-  const [query, setQuery] = useState("");
   const [menuOpen, setMenuOpen] = useState(false);
 
   return (
@@ -35,38 +35,7 @@ export function Navbar({ onToggleSidebar }: NavbarProps) {
 
       <div className="flex grow items-center justify-center lg:absolute lg:inset-x-96 lg:inset-y-0">
         <div className="w-[450px] shrink-0">
-          <form
-            data-testid="search"
-            className="flex items-center gap-2"
-            onSubmit={(e) => e.preventDefault()}
-          >
-            <div className="min-w-0 flex-1">
-              <div className="flex h-8 items-center gap-2 rounded border border-outline-region px-3 transition-colors duration-200 ease-in-out betterhover:hover:border-neutral-300 focus-within:border-white">
-                <Icon name="search" className="size-4 shrink-0 fill-current" />
-                <input
-                  value={query}
-                  onChange={(e) => setQuery(e.target.value)}
-                  placeholder="Search"
-                  aria-label="Search"
-                  className="flex w-full border-solid bg-transparent text-base text-white outline-none placeholder:text-surface-onSurfaceSecondary"
-                />
-                <div
-                  className={`transition-all ease-out ${
-                    query ? "scale-100 opacity-100" : "pointer-events-none scale-95 opacity-0"
-                  }`}
-                >
-                  <button
-                    type="button"
-                    aria-label="Clear search"
-                    onClick={() => setQuery("")}
-                    className="flex size-[13px] items-center justify-center"
-                  >
-                    <Icon name="clear-search" className="size-[13px] fill-current" />
-                  </button>
-                </div>
-              </div>
-            </div>
-          </form>
+          <EventSearch />
         </div>
       </div>
 

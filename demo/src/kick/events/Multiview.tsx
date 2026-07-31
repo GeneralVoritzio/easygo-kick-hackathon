@@ -1,107 +1,16 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Icon } from "../Icon";
-import { formatViewers, livestreams, liveStreamFor, type Livestream } from "../mock/api";
+import { formatViewers, liveStreamFor, type Livestream } from "../mock/api";
 import { useAudibleEmbed, useEmbedTarget } from "./EmbedLayer";
 import { embedUrlFor } from "./embeds";
-import { ironCup, isInEvent, MULTIVIEW_CAP } from "./events";
+import { MULTIVIEW_CAP } from "./events";
 import { useEvent } from "./EventProvider";
 
 function gridCols(count: number) {
   if (count <= 1) return "grid-cols-1";
   if (count <= 4) return "grid-cols-2";
   return "grid-cols-3";
-}
-
-function SearchRow({ stream, onPin, full }: { stream: Livestream; onPin: () => void; full: boolean }) {
-  return (
-    <div className="flex items-center gap-2 rounded px-2 py-1.5 state-layer-surface">
-      <img src={stream.channel.avatar} alt="" className="size-7 shrink-0 rounded-full" />
-      <div className="min-w-0 flex-1">
-        <span className="block truncate text-sm font-bold text-white">
-          {stream.channel.username}
-        </span>
-        <span className="block truncate text-xs text-surface-onSurfaceSecondary">
-          {stream.category.name}
-        </span>
-      </div>
-      <span className="flex shrink-0 items-center gap-1 text-xs font-semibold text-white">
-        <span className="size-1.5 rounded-full bg-green-500" />
-        {formatViewers(stream.viewer_count)}
-      </span>
-      <button
-        type="button"
-        disabled={full}
-        onClick={onPin}
-        className="h-7 shrink-0 rounded bg-secondary-base px-2 text-xs font-semibold text-secondary-onSecondary disabled:bg-disabled-base disabled:text-disabled-onSurface"
-      >
-        Pin
-      </button>
-    </div>
-  );
-}
-
-function MultiviewSearch() {
-  const { multiview, pin } = useEvent();
-  const [query, setQuery] = useState("");
-  const [eventFilter, setEventFilter] = useState(true);
-  const [open, setOpen] = useState(false);
-  const full = multiview.slots.length >= MULTIVIEW_CAP;
-
-  const pool = livestreams
-    .filter((s) => !multiview.slots.includes(s.channel.slug))
-    .filter((s) => (eventFilter ? isInEvent(s.channel.slug) : true))
-    .filter((s) =>
-      query ? s.channel.username.toLowerCase().includes(query.toLowerCase()) : true,
-    );
-
-  return (
-    <div className="relative z-10 flex items-center gap-2 bg-black/80 p-2">
-      <div className="flex h-9 min-w-0 flex-1 items-center gap-2 rounded border border-neutral-700 bg-surface-lowest px-2 focus-within:border-neutral-400">
-        <Icon name="picker-search" className="size-4 shrink-0 text-surface-onSurfaceSecondary" />
-        {eventFilter && (
-          <button
-            type="button"
-            onClick={() => setEventFilter(false)}
-            title="Remove the event filter"
-            className="flex shrink-0 items-center gap-1 rounded-full bg-secondary-base px-2 py-0.5 text-xs font-semibold leading-4 text-secondary-onSecondary"
-          >
-            {ironCup.name}
-            <Icon name="close" className="size-2.5" />
-          </button>
-        )}
-        <input
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          onFocus={() => setOpen(true)}
-          onBlur={() => setTimeout(() => setOpen(false), 150)}
-          placeholder="Search streamers"
-          aria-label="Search streamers"
-          className="h-full w-full min-w-0 bg-transparent text-sm text-white outline-none placeholder:text-surface-onSurfaceSecondary"
-        />
-      </div>
-      <span className="shrink-0 text-xs font-semibold tabular-nums text-surface-onSurfaceSecondary">
-        {multiview.slots.length} of {MULTIVIEW_CAP}
-      </span>
-      {open && (
-        <div className="absolute inset-x-2 top-full max-h-72 overflow-y-auto rounded-b bg-surface-base p-1 shadow-[0_8px_24px_rgba(0,0,0,0.6)]">
-          {pool.length === 0 && (
-            <span className="block px-2 py-2 text-sm text-surface-onSurfaceSecondary">
-              {eventFilter ? "Everyone in the event is in your grid." : "No streamer matches."}
-            </span>
-          )}
-          {pool.map((s) => (
-            <SearchRow
-              key={s.id}
-              stream={s}
-              full={full}
-              onPin={() => pin(s.channel.slug)}
-            />
-          ))}
-        </div>
-      )}
-    </div>
-  );
 }
 
 function Tile({
@@ -201,7 +110,6 @@ export function MultiviewGrid({ stream }: { stream: Livestream }) {
 
   return (
     <div className="relative flex w-full shrink-0 flex-col overflow-hidden bg-black max-h-[calc(100vh-var(--navbar-height)-var(--channel-info-height))] supports-[height:100dvh]:max-h-[calc(100dvh-var(--navbar-height)-var(--channel-info-height))]">
-      <MultiviewSearch />
       <div className={`grid aspect-video min-h-0 w-full gap-0.5 ${gridCols(streams.length)}`}>
         {streams.map((s, i) => (
           <Tile
@@ -222,9 +130,13 @@ export function MultiviewGrid({ stream }: { stream: Livestream }) {
       </div>
       <div className="flex items-center justify-between bg-black/80 px-2 py-1.5">
         <span className="text-xs text-surface-onSurfaceSecondary">
-          Click a stream to watch it. Arrow keys move left and right. Drag tiles to re-order.
+          Pin streams from the search bar up top. Click one to watch it. Arrow keys move left
+          and right. Drag tiles to re-order.
         </span>
         <div className="flex shrink-0 items-center gap-2">
+          <span className="text-xs font-semibold tabular-nums text-surface-onSurfaceSecondary">
+            {multiview.slots.length} of {MULTIVIEW_CAP}
+          </span>
           <button
             type="button"
             onClick={() => setLiveEmbeds(!liveEmbeds)}

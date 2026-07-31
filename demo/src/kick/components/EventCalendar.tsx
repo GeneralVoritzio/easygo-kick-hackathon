@@ -129,7 +129,7 @@ export function EventCalendar({ events }: { events: KickEvent[] }) {
         ) : (
           <ul className="flex flex-row flex-wrap gap-4" data-testid="calendar-day-events">
             {selectedEvents.map((event) => (
-              <li key={event.event_id} className="w-[186px]">
+              <li key={event.event_id} className="w-[268px]">
                 <EventCard event={event} />
               </li>
             ))}

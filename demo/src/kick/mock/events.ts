@@ -1,4 +1,4 @@
-import { bannerFor, channelBySlug, posterFor, type Channel } from "./api";
+import { artFor, bannerFor, channelBySlug, type Channel } from "./api";
 
 export const EVENTS_NOW = new Date("2026-07-26T13:30:00Z");
 
@@ -34,6 +34,9 @@ export type KickEvent = {
   host_channel: Channel;
   start_at: string;
   end_at: string;
+  // poster is the event artwork. The detail page shows it portrait at 9 by 16, and a card crops it
+  // to the landscape box every other card on the site uses. banner is the wide plate behind the
+  // title on the detail page.
   poster: string;
   banner: string;
   visibility: EventVisibility;
@@ -77,7 +80,7 @@ export const events: KickEvent[] = [
     host_channel: channelBySlug("couchsenate"),
     start_at: "2026-07-26T12:00:00Z",
     end_at: "2026-07-26T18:00:00Z",
-    poster: posterFor("cat-just-chatting"),
+    poster: artFor("cat-just-chatting"),
     banner: bannerFor("couchsenate"),
     visibility: "public",
     is_partner_only: true,
@@ -104,7 +107,7 @@ export const events: KickEvent[] = [
     host_channel: channelBySlug("ironvow"),
     start_at: "2026-07-26T20:00:00Z",
     end_at: "2026-07-26T23:30:00Z",
-    poster: posterFor("cat-old-school-runescape"),
+    poster: artFor("cat-old-school-runescape"),
     banner: bannerFor("ironvow"),
     visibility: "public",
     is_partner_only: true,
@@ -130,7 +133,7 @@ export const events: KickEvent[] = [
     host_channel: channelBySlug("midnightden"),
     start_at: "2026-07-29T22:00:00Z",
     end_at: "2026-07-30T02:00:00Z",
-    poster: posterFor("cat-gakuen-idolmaster"),
+    poster: artFor("cat-gakuen-idolmaster"),
     banner: bannerFor("midnightden"),
     visibility: "public",
     is_partner_only: true,
@@ -155,7 +158,7 @@ export const events: KickEvent[] = [
     host_channel: channelBySlug("nocturnalnorm"),
     start_at: "2026-08-02T01:00:00Z",
     end_at: "2026-08-02T09:00:00Z",
-    poster: posterFor("cat-just-sleeping"),
+    poster: artFor("cat-just-sleeping"),
     banner: bannerFor("midnightden"),
     visibility: "public",
     is_partner_only: true,
@@ -180,7 +183,7 @@ export const events: KickEvent[] = [
     host_channel: channelBySlug("superdude1337"),
     start_at: "2026-08-08T17:00:00Z",
     end_at: "2026-08-08T21:00:00Z",
-    poster: posterFor("cat-irl"),
+    poster: artFor("cat-irl"),
     banner: bannerFor("charcoalchef"),
     visibility: "private",
     is_partner_only: true,
@@ -207,7 +210,7 @@ export const events: KickEvent[] = [
     host_channel: channelBySlug("wanderfuse"),
     start_at: "2026-09-05T14:00:00Z",
     end_at: "2026-09-05T20:00:00Z",
-    poster: posterFor("cat-grand-theft-auto-v"),
+    poster: artFor("cat-grand-theft-auto-v"),
     banner: bannerFor("couchsenate"),
     visibility: "public",
     is_partner_only: true,
@@ -232,7 +235,7 @@ export const events: KickEvent[] = [
     host_channel: channelBySlug("charcoalchef"),
     start_at: "2026-08-12T18:00:00Z",
     end_at: "2026-08-12T22:00:00Z",
-    poster: posterFor("cat-music"),
+    poster: artFor("cat-music"),
     banner: bannerFor("charcoalchef"),
     visibility: "public",
     is_partner_only: true,

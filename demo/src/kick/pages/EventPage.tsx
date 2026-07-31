@@ -82,14 +82,16 @@ export function EventPage() {
       <EventBanner event={event} />
 
       <div className="flex w-full flex-row items-start justify-between gap-4 px-4 py-4 lg:px-7">
-        <div className="flex min-w-0 flex-row items-start gap-3 lg:gap-4">
+        <div className="flex min-w-0 flex-row items-center gap-3 lg:gap-4">
           <img
             src={event.poster}
             alt={event.title}
-            className="aspect-[9/16] w-[64px] shrink-0 rounded object-cover lg:w-[84px]"
+            className="aspect-[9/16] w-[104px] shrink-0 rounded-lg object-cover lg:w-[132px]"
           />
-          <div className="flex min-w-0 flex-col gap-0.5">
-            <h1 className="truncate text-xl font-bold leading-[1.4] text-white">{event.title}</h1>
+          <div className="flex min-w-0 flex-col gap-1">
+            <h1 className="truncate text-xl font-bold leading-[1.4] text-white lg:text-2xl">
+              {event.title}
+            </h1>
             <Link
               to={`/${event.host_channel.slug}`}
               className="flex items-center gap-1.5 text-sm font-semibold leading-[1.2] text-white betterhover:hover:underline"

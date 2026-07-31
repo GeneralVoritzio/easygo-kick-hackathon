@@ -233,12 +233,12 @@ export function Home() {
         <HeroCarousel />
       </div>
 
-      <Section cyan="Streams" white="For You" showMore>
-        <StreamGrid streams={livestreams} oneRow />
-      </Section>
-
       <Section cyan="Events" white="For You" viewAllHref="/browse/events">
         <EventGrid events={publicUpcoming(events)} oneRow />
+      </Section>
+
+      <Section cyan="Streams" white="For You" showMore>
+        <StreamGrid streams={livestreams} oneRow />
       </Section>
 
       <Section cyan="Categories" white="For You" viewAllHref="/browse/categories">

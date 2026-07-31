@@ -1,6 +1,6 @@
 import { Link, useParams } from "react-router-dom";
 import { Icon } from "../Icon";
-import { EventAction, StreamerRow } from "../components/EventBits";
+import { BoostBadge, EventAction, StreamerRow } from "../components/EventBits";
 import { useEvents } from "../EventsStore";
 import { currentUser, formatViewers } from "../mock/api";
 import {
@@ -43,13 +43,17 @@ function StreamerAvatars({ participants }: { participants: EventParticipant[] })
         .slice(0, 5)
         .reverse()
         .map((p) => (
-          <img
-            key={p.channel.slug}
-            src={p.channel.avatar}
-            alt={p.channel.username}
-            title={p.channel.username}
-            className="-ml-2 size-7 rounded-full ring-2 ring-surface-lowest"
-          />
+          <div key={p.channel.slug} className="relative -ml-2">
+            <img
+              src={p.channel.avatar}
+              alt={p.channel.username}
+              title={p.channel.username}
+              className="size-7 rounded-full ring-2 ring-surface-lowest"
+            />
+            <span className="absolute -bottom-0.5 -right-0.5 leading-none">
+              <BoostBadge slug={p.channel.slug} />
+            </span>
+          </div>
         ))}
     </div>
   );

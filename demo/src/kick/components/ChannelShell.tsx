@@ -75,9 +75,30 @@ export function ChannelShell({
   const [chatOpen, setChatOpen] = useState(true);
   const [isDragging, setIsDragging] = useState(false);
   const rowRef = useRef<HTMLDivElement>(null);
-  const { multiview } = useEvent();
+  const { multiview, openMultiview } = useEvent();
   const { events } = useEvents();
-  const event = eventForChannel(events, profile.channel.slug);
+  // A channel can hold a seat on more than one live event at once, so eventForChannel can
+  // name a different one on every tile of the same grid. While a multiview session is open,
+  // the event it was opened for wins instead: multiview.eventId is set once, when the grid
+  // opens, and every tile in it defers to that same event for as long as it stays open.
+  const perChannelEvent = eventForChannel(events, profile.channel.slug);
+  const lockedEvent = multiview.eventId
+    ? events.find((e) => e.event_id === multiview.eventId)
+    : undefined;
+  const event = multiview.active && lockedEvent ? lockedEvent : perChannelEvent;
+
+  // M brings the grid back after Escape or Enter closed it. It only fires on a live channel
+  // page, on the same running order Escape just closed, never over chat or a form field.
+  useEffect(() => {
+    if (!watch || !stream || multiview.active || multiview.slots.length === 0) return;
+    function onKey(e: KeyboardEvent) {
+      const target = e.target as HTMLElement;
+      if (target.tagName === "INPUT" || target.tagName === "TEXTAREA") return;
+      if (e.key === "m" || e.key === "M") openMultiview(stream!.channel.slug, event?.event_id);
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [watch, stream, multiview.active, multiview.slots.length, openMultiview, event]);
 
   useEffect(() => {
     if (!isDragging) return;
@@ -130,7 +151,7 @@ export function ChannelShell({
             {watch && multiview.active ? (
               <MultiviewGrid stream={stream} />
             ) : watch ? (
-              <ChannelPlayer stream={stream} />
+              <ChannelPlayer stream={stream} event={event} />
             ) : (
               <ChannelLivePreview stream={stream} />
             )}
@@ -166,7 +187,12 @@ export function ChannelShell({
           style={{ width: chatOpen ? chatWidth : 0, opacity: chatOpen ? 1 : 0 }}
           className="h-full max-h-full min-w-0 shrink-0 grow-0 overflow-hidden transition-[width,opacity] duration-300 ease-out"
         >
-          <ChannelChat onCollapse={() => setChatOpen(false)} event={event} />
+          <ChannelChat
+            onCollapse={() => setChatOpen(false)}
+            event={event}
+            slug={profile.channel.slug}
+            channelName={profile.channel.username}
+          />
         </div>
       </div>
     </div>

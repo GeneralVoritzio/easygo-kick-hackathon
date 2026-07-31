@@ -4,6 +4,7 @@ import { Icon, type KickIconName } from "../Icon";
 import { followedChannels, livestreams, formatViewers } from "../mock/api";
 import { eventForChannel, type KickEvent } from "../mock/events";
 import { useEvents } from "../EventsStore";
+import { BoostBadge } from "./EventBits";
 
 const navItems: { to: string; label: string; icon: KickIconName; activeIcon: KickIconName }[] = [
   { to: "/", label: "Home", icon: "nav-home", activeIcon: "nav-home-active" },
@@ -54,6 +55,7 @@ function ChannelRow({
           }`}
         >
           <span className="truncate">{username}</span>
+          <BoostBadge slug={slug} />
         </span>
         {event ? (
           <Link

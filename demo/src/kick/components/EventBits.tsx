@@ -1,16 +1,18 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Icon } from "../Icon";
 import { CornerMarks, Pill, PillRow, ThumbBadge } from "./CardBits";
 import { oneRowGrid } from "./Layout";
 import { streamColumns } from "./StreamCard";
 import { useEvents } from "../EventsStore";
-import { liveStreamFor } from "../mock/api";
+import { currentUser, liveStreamFor } from "../mock/api";
 import {
   eventStreamers,
   formatEventDay,
   formatEventTime,
   isLiveWindow,
   startsInLabel,
+  statusIn,
   type EventInviteStatus,
   type EventParticipant,
   type KickEvent,
@@ -18,13 +20,15 @@ import {
 
 const statusLabel: Record<EventInviteStatus, string> = {
   accepted: "Accepted",
-  pending: "Pending",
+  pending: "Invited",
+  requested: "Asked to join",
   rejected: "Rejected",
 };
 
 const statusColor: Record<EventInviteStatus, string> = {
   accepted: "text-primary-base",
   pending: "text-surface-onSurfaceSecondary",
+  requested: "text-white",
   rejected: "text-neutral-500",
 };
 
@@ -67,6 +71,63 @@ export function RemindButton({ event, wide }: { event: KickEvent; wide?: boolean
       <Icon name={set ? "heart-filled" : "heart"} className="size-4" />
       {set ? "Reminder set" : "Remind me"}
     </button>
+  );
+}
+
+const joinPill =
+  "flex h-10 shrink-0 items-center justify-center gap-1.5 whitespace-nowrap rounded bg-secondary-base px-3 text-base font-semibold text-white";
+
+export function JoinButton({ event }: { event: KickEvent }) {
+  const { requestToJoin } = useEvents();
+  const [error, setError] = useState<string | null>(null);
+  const status = statusIn(event, currentUser.username);
+
+  if (status === "accepted") {
+    return (
+      <span data-testid="join-state" className={joinPill}>
+        <Icon name="event" className="size-4 fill-primary-base" />
+        You are on the running order
+      </span>
+    );
+  }
+
+  if (status === "requested") {
+    return (
+      <span data-testid="join-state" className={joinPill}>
+        <Icon name="event" className="size-4 fill-current" />
+        Request sent, waiting for {event.host_channel.username}
+      </span>
+    );
+  }
+
+  if (status === "pending") {
+    return (
+      <Link data-testid="join-state" to="/dashboard/events" className={joinPill}>
+        <Icon name="event" className="size-4 fill-current" />
+        Answer your invite
+      </Link>
+    );
+  }
+
+  if (status === "rejected") return null;
+
+  return (
+    <div className="flex flex-col items-end gap-1">
+      <button
+        type="button"
+        data-testid="request-to-join"
+        onClick={() => setError(requestToJoin(event.event_id))}
+        className={`${joinPill} state-layer-surface`}
+      >
+        <Icon name="plus" className="size-4 fill-current" />
+        Request to join
+      </button>
+      {error && (
+        <p data-testid="join-error" className="text-sm font-normal text-red-400">
+          {error}
+        </p>
+      )}
+    </div>
   );
 }
 

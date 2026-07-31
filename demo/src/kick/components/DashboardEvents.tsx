@@ -1,15 +1,17 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Icon } from "../Icon";
 import { Pane, Panel } from "./DashboardPanel";
 import { buttonClass, inputClass, labelClass } from "./FormBits";
 import { InviteStatusPill, PartnerNotice } from "./EventBits";
-import { useEvents } from "../EventsStore";
+import { useEvents, type EventNotification } from "../EventsStore";
 import { categories, currentUser } from "../mock/api";
 import {
   byStartAt,
   formatEventWindow,
   invitesFor,
+  requestsFor,
+  requestsOn,
   isLiveWindow,
   startsInLabel,
   takesPart,
@@ -191,9 +193,10 @@ function InviteForm({ event }: { event: KickEvent }) {
 }
 
 function MyEvent({ event }: { event: KickEvent }) {
-  const { goLiveEventId } = useEvents();
+  const { goLiveEventId, answerRequest } = useEvents();
   const hosting = event.host_channel.username === currentUser.username;
   const mySlot = event.participants.find((p) => p.channel.username === currentUser.username);
+  const requests = requestsOn(event);
 
   return (
     <li
@@ -254,6 +257,39 @@ function MyEvent({ event }: { event: KickEvent }) {
         ))}
       </ul>
 
+      {hosting && requests.length > 0 && (
+        <div className="flex flex-col gap-2 rounded bg-surface-lowest p-3">
+          <span className={labelClass}>
+            Requests to join
+            <span className="pl-1.5 font-normal text-subtle">{requests.length}</span>
+          </span>
+          {requests.map((p) => (
+            <div key={p.channel.slug} className="flex items-center gap-2">
+              <img src={p.channel.avatar} alt="" className="size-7 shrink-0 rounded-full" />
+              <span className="min-w-0 grow truncate text-sm font-semibold text-white">
+                {p.channel.username}
+              </span>
+              <button
+                type="button"
+                data-testid={`approve-${p.channel.slug}`}
+                onClick={() => answerRequest(event.event_id, p.channel.username, "accepted")}
+                className={`${buttonClass.primary} h-8`}
+              >
+                Approve
+              </button>
+              <button
+                type="button"
+                data-testid={`decline-${p.channel.slug}`}
+                onClick={() => answerRequest(event.event_id, p.channel.username, "rejected")}
+                className={`${buttonClass.secondary} h-8`}
+              >
+                Decline
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+
       {hosting && <InviteForm event={event} />}
     </li>
   );
@@ -297,6 +333,48 @@ function ReceivedInvite({ event }: { event: KickEvent }) {
   );
 }
 
+function SentRequest({ event }: { event: KickEvent }) {
+  return (
+    <li
+      data-testid={`sent-request-${event.slug}`}
+      className="flex flex-col gap-1 border-b border-outline-decorative px-4 py-4 last:border-b-0"
+    >
+      <Link
+        to={`/events/${event.slug}`}
+        className="truncate text-sm font-bold text-white betterhover:hover:underline"
+      >
+        {event.title}
+      </Link>
+      <span className="text-sm font-normal text-surface-onSurfaceSecondary">
+        You asked to join. Waiting for {event.host_channel.username} to answer.
+      </span>
+    </li>
+  );
+}
+
+function NotificationRow({ notification }: { notification: EventNotification }) {
+  return (
+    <li
+      data-testid="event-notification"
+      className="flex items-center gap-2 border-b border-outline-decorative px-4 py-3 last:border-b-0"
+    >
+      <Icon
+        name="event"
+        className={`size-4 shrink-0 ${
+          notification.is_read ? "fill-subtle" : "fill-primary-base"
+        }`}
+      />
+      <span className="min-w-0 grow text-sm font-normal text-white">{notification.body}</span>
+      <Link
+        to={`/events/${notification.event_slug}`}
+        className="shrink-0 text-sm font-semibold text-surface-onSurfacePrimary betterhover:hover:underline"
+      >
+        Open
+      </Link>
+    </li>
+  );
+}
+
 function EmptyPane({ message }: { message: string }) {
   return (
     <p className="px-4 py-4 text-sm font-normal text-surface-onSurfaceSecondary">{message}</p>
@@ -304,14 +382,32 @@ function EmptyPane({ message }: { message: string }) {
 }
 
 export function DashboardEvents() {
-  const { events } = useEvents();
+  const { events, notifications, markNotificationsRead } = useEvents();
   const mine = events.filter((e) => takesPart(e, currentUser.username)).sort(byStartAt);
   const invites = invitesFor(events, currentUser.username).sort(byStartAt);
+  const sent = requestsFor(events, currentUser.username).sort(byStartAt);
+
+  useEffect(markNotificationsRead, [notifications, markNotificationsRead]);
 
   return (
     <div className="flex h-full w-full flex-row">
       <div className="flex flex-col" style={{ width: "60%" }}>
-        <Pane style={{ height: "100%" }}>
+        <Pane style={{ height: "24%" }}>
+          <Panel title="Notifications" icon="dash-activity">
+            <div className="no-scrollbar h-full min-h-0 w-full overflow-y-auto">
+              {notifications.length === 0 ? (
+                <EmptyPane message="Nothing new. A host answers your request here." />
+              ) : (
+                <ul className="flex flex-col" data-testid="event-notifications">
+                  {notifications.map((n) => (
+                    <NotificationRow key={n.notification_id} notification={n} />
+                  ))}
+                </ul>
+              )}
+            </div>
+          </Panel>
+        </Pane>
+        <Pane style={{ height: "76%" }}>
           <Panel title="Your events" icon="event" bigPopout>
             <div className="no-scrollbar h-full min-h-0 w-full overflow-y-auto">
               {mine.length === 0 ? (
@@ -335,14 +431,17 @@ export function DashboardEvents() {
           </Panel>
         </Pane>
         <Pane style={{ height: "38%" }}>
-          <Panel title="Invites for you" icon="dash-activity">
+          <Panel title="Invites and requests" icon="dash-mod-actions">
             <div className="no-scrollbar h-full min-h-0 w-full overflow-y-auto">
-              {invites.length === 0 ? (
-                <EmptyPane message="No open invites. A host invites you by username." />
+              {invites.length === 0 && sent.length === 0 ? (
+                <EmptyPane message="Nothing open. A host invites you by username, and you can ask to join any event." />
               ) : (
                 <ul className="flex flex-col" data-testid="my-invites">
                   {invites.map((event) => (
                     <ReceivedInvite key={event.event_id} event={event} />
+                  ))}
+                  {sent.map((event) => (
+                    <SentRequest key={event.event_id} event={event} />
                   ))}
                 </ul>
               )}

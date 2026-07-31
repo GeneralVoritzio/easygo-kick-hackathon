@@ -2,7 +2,9 @@ import { bannerFor, cat, channelBySlug, type Channel } from "./api";
 
 export const EVENTS_NOW = new Date("2026-07-26T13:30:00Z");
 
-export type EventInviteStatus = "pending" | "accepted" | "rejected";
+// pending: the host invited them and they have not answered.
+// requested: they asked to join and the host has not answered.
+export type EventInviteStatus = "pending" | "requested" | "accepted" | "rejected";
 
 export type EventParticipant = {
   channel: Channel;
@@ -56,7 +58,7 @@ const guest = (
   role: "guest",
   invite_status,
   invited_at: INVITED_AT,
-  responded_at: invite_status === "pending" ? null : RESPONDED_AT,
+  responded_at: invite_status === "accepted" || invite_status === "rejected" ? RESPONDED_AT : null,
   slot_title,
 });
 
@@ -177,6 +179,8 @@ export const events: KickEvent[] = [
       guest("charcoalchef", "Round two, the grill round"),
       guest("panfriedpaul", "Round three, plating", "pending"),
       guest("notadoc", "Food safety desk", "rejected"),
+      guest("spinvicar", "Asked to join", "requested"),
+      guest("tiltcabinet", "Asked to join", "requested"),
     ],
     chat: {
       moderators: ["SpatulaSheriff", "MiseEnPlaceMo"],
@@ -227,12 +231,17 @@ export const eventFor = (list: KickEvent[], slug: string) => list.find((e) => e.
 export const hostedBy = (list: KickEvent[], username: string) =>
   list.filter((e) => e.host_channel.username === username);
 
+export const statusIn = (event: KickEvent, username: string) =>
+  event.participants.find((p) => p.channel.username === username)?.invite_status;
+
 export const invitesFor = (list: KickEvent[], username: string) =>
-  list.filter((e) =>
-    e.participants.some(
-      (p) => p.channel.username === username && p.invite_status === "pending" && p.role === "guest",
-    ),
-  );
+  list.filter((e) => statusIn(e, username) === "pending");
+
+export const requestsFor = (list: KickEvent[], username: string) =>
+  list.filter((e) => statusIn(e, username) === "requested");
+
+export const requestsOn = (event: KickEvent) =>
+  event.participants.filter((p) => p.invite_status === "requested");
 
 export const isLiveWindow = (event: KickEvent) =>
   new Date(event.start_at) <= EVENTS_NOW && EVENTS_NOW < new Date(event.end_at);

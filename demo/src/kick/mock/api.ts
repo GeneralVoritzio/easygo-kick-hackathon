@@ -56,6 +56,10 @@ const partnerSlugs = new Set([
   "midnightden",
   "charcoalchef",
   "superdude1337",
+  "panfriedpaul",
+  "notadoc",
+  "snoozebaron",
+  "tiltcabinet",
 ]);
 
 const channel = (

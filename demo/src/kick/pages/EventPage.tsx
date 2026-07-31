@@ -2,7 +2,9 @@ import { Link, useParams } from "react-router-dom";
 import { Icon } from "../Icon";
 import { RemindButton, StreamerRow } from "../components/EventBits";
 import { useEvents } from "../EventsStore";
+import { currentUser } from "../mock/api";
 import {
+  canSee,
   eventFor,
   eventStreamers,
   formatEventTime,
@@ -71,7 +73,7 @@ export function EventPage() {
   const { events } = useEvents();
   const event = eventFor(events, slug);
 
-  if (!event) return <EventNotFound slug={slug} />;
+  if (!event || !canSee(event, currentUser.username)) return <EventNotFound slug={slug} />;
 
   const streamers = eventStreamers(event);
 

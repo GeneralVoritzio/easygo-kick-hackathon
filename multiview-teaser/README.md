@@ -19,4 +19,7 @@ npx remotion render Teaser out/teaser.mp4
 - `public/fonts/kick-font/` is a copy of `pitch/src/assets/fonts/kick-font/`, licence included. Wordmark lockups only.
 - `public/fonts/archivo/` is a copy of `pitch/src/assets/fonts/archivo/`, OFL.txt included.
 - `public/kick-logo.svg` is a copy of `demo/src/kick/brand/kick-logo.svg`.
+- `public/fonts/kindness/` is a copy of `~/Downloads/kindness-font/` (Befonts), licence
+  file included. The licence is personal use only, so a public or judged cut needs a
+  cleared licence or a different face.
 - The tempo is measured, not assumed: 91.94 bpm, first beat at 0.0 s, so four beats end at frame 63 at 24 fps.

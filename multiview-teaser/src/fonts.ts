@@ -6,6 +6,7 @@ import { staticFile } from "remotion";
 export function ensureFonts() {
   return Promise.all([
     loadFont({ family: "KickFont", url: staticFile("fonts/kick-font/kick-font.ttf") }),
+    loadFont({ family: "Kindness", url: staticFile("fonts/kindness/kindness.ttf") }),
     loadFont({
       family: "Archivo",
       url: staticFile("fonts/archivo/archivo-variable-latin.woff2"),

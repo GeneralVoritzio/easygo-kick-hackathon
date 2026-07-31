@@ -25,38 +25,21 @@ const CLIP_FRAMES = Math.floor(15.0417 * FPS);
 
 export const TOTAL_FRAMES = CLIP_FRAMES;
 
-// One beat of the song at the measured 91.94 bpm.
-const BEAT_FRAMES = Math.round((60 / 91.94) * FPS);
-
-function Definition({ full }: { full: boolean }) {
+function Title() {
   return (
-    <AbsoluteFill style={{ backgroundColor: "rgba(0, 0, 0, 0.35)", justifyContent: "center" }}>
-      <div
+    <AbsoluteFill style={{ alignItems: "center", justifyContent: "center" }}>
+      <span
         style={{
-          marginLeft: 140,
-          maxWidth: 780,
-          display: "flex",
-          flexDirection: "column",
-          gap: 20,
-          fontFamily: "Archivo, sans-serif",
+          fontFamily: "Kindness, sans-serif",
+          fontSize: 700,
+          lineHeight: 0.72,
           color: "#ffffff",
+          whiteSpace: "nowrap",
+          transform: "translateY(64px)",
         }}
       >
-        <span style={{ fontSize: 110, fontWeight: 700, lineHeight: 1 }}>FO·MO</span>
-        {full && (
-          <>
-            <span style={{ fontSize: 38, fontWeight: 600 }}>/&#712;f&#333;m&#333;/</span>
-            <span style={{ fontSize: 36, fontStyle: "italic" }}>
-              <span style={{ fontWeight: 700 }}>noun</span>{" "}
-              <span style={{ opacity: 0.6 }}>informal</span>
-            </span>
-            <span style={{ fontSize: 40, lineHeight: 1.35, fontWeight: 400 }}>
-              anxiety that an exciting or interesting event may currently be happening
-              elsewhere, often aroused by posts seen on a social media website.
-            </span>
-          </>
-        )}
-      </div>
+        FOMO
+      </span>
     </AbsoluteFill>
   );
 }
@@ -119,13 +102,8 @@ export function Teaser() {
         style={{ width: "100%", height: "100%", objectFit: "cover" }}
       />
       <Sequence from={MUSIC_IN} durationInFrames={STING_FRAMES}>
+        <Title />
         <Audio src={staticFile("music.mp3")} />
-      </Sequence>
-      <Sequence from={MUSIC_IN} durationInFrames={BEAT_FRAMES}>
-        <Definition full={false} />
-      </Sequence>
-      <Sequence from={MUSIC_IN + BEAT_FRAMES} durationInFrames={STING_FRAMES - BEAT_FRAMES}>
-        <Definition full />
       </Sequence>
       <Sequence from={TAGLINE_FROM} durationInFrames={tailFrames}>
         <Tagline />

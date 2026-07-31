@@ -1,5 +1,6 @@
 import {
   useEffect,
+  useMemo,
   useRef,
   useState,
   type CSSProperties,
@@ -7,10 +8,11 @@ import {
   type KeyboardEvent,
   type ReactNode,
 } from "react";
+import { Link } from "react-router-dom";
 import { Icon, type KickIconName } from "../Icon";
-import { eventChatLines, ironCup, isInEvent, slugByUsername } from "../events/events";
 import { useEvent } from "../events/EventProvider";
-import { avatarFor, currentUser, type Livestream } from "../mock/api";
+import { avatarFor, currentUser } from "../mock/api";
+import { formatSlowMode, slugInEvent, type KickEvent } from "../mock/events";
 import { useRaid } from "../raid/RaidProvider";
 import { RaidBanner, RaidPanel } from "./RaidChat";
 import identityBadge from "../icons/identity-badge.png";
@@ -159,6 +161,66 @@ export const chatLines = [
   "carl stop hoarding the kraken eyes",
 ];
 
+// The event room spans every channel on the running order, so its regulars and its lines are
+// about the running order and not about one stream.
+const eventChatters: { username: string; badges: BadgeName[] }[] = [
+  { username: "GavelGoblin", badges: ["og"] },
+  { username: "MotionToVibe", badges: ["sub_gifter_purple"] },
+  { username: "RunningOrderRhi", badges: [] },
+  { username: "SeatSwapSam", badges: ["sub_gifter"] },
+  { username: "CrossChatCass", badges: [] },
+  { username: "RelayRefLarry", badges: ["og"] },
+  { username: "TinderboxTina", badges: ["sub_gifter_teal"] },
+  { username: "DenMotherDot", badges: [] },
+  { username: "CashoutCarl", badges: [] },
+  { username: "PillowFortPam", badges: ["sub_gifter"] },
+  { username: "QuietHoursQuinn", badges: [] },
+  { username: "SpatulaSheriff", badges: [] },
+  { username: "MiseEnPlaceMo", badges: ["sub_gifter_teal"] },
+  { username: "AwningAndy", badges: [] },
+  { username: "DieselDaphne", badges: ["verified"] },
+  { username: "HandoverHana", badges: ["sub_gifter_purple"] },
+  { username: "BracketBrett", badges: [] },
+  { username: "SlotOneSteve", badges: [] },
+];
+
+const eventChatLines = [
+  "who is up next",
+  "seat two starts in ten",
+  "handing over now, go go go",
+  "following all four of these already",
+  "this running order is stacked",
+  "whoever loses the vote hands it over",
+  "one room for every channel is so good",
+  "someone tell seat three to unmute",
+  "that handover was clean",
+  "the host set slow mode for a reason",
+  "first event chat and i am staying",
+  "seat four is going to win this",
+  "switching over now, brb",
+  "we are all in the same room right now",
+  "vote is in, next seat up",
+  "reminder set for the next one",
+  "half of chat came from the other stream",
+  "the relay rules are chaos and i love it",
+];
+
+type MessagePool = { chatters: typeof chatters; lines: string[] };
+
+const streamPool: MessagePool = { chatters, lines: chatLines };
+
+// The event chat inherits its moderators from the host, so only those names carry the badge.
+export function eventPool(moderators: string[]): MessagePool {
+  return {
+    chatters: eventChatters.map((chatter) =>
+      moderators.includes(chatter.username)
+        ? { ...chatter, badges: ["moderator" as BadgeName, ...chatter.badges] }
+        : chatter,
+    ),
+    lines: eventChatLines,
+  };
+}
+
 const pick = <T,>(list: T[]) => list[Math.floor(Math.random() * list.length)];
 
 type Message = {
@@ -171,10 +233,10 @@ type Message = {
 
 let nextId = 1;
 
-function randomMessage(lines: string[] = chatLines): Message {
-  const chatter = pick(chatters);
+function randomMessage(pool: MessagePool): Message {
+  const chatter = pick(pool.chatters);
   const emote = pick(emotes);
-  const line = pick(lines);
+  const line = pick(pool.lines);
   const roll = Math.random();
   const body =
     roll < 0.2
@@ -185,8 +247,8 @@ function randomMessage(lines: string[] = chatLines): Message {
   return { id: nextId++, ...chatter, color: colorFor(chatter.username), body };
 }
 
-function seedMessages(count: number, lines: string[] = chatLines): Message[] {
-  return Array.from({ length: count }, () => randomMessage(lines));
+function seedMessages(count: number, pool: MessagePool): Message[] {
+  return Array.from({ length: count }, () => randomMessage(pool));
 }
 
 // KICK serves the rank medals from kick.com itself, which blocks any client that is not a
@@ -218,11 +280,11 @@ const topGifters: {
   },
 ];
 
-function ChatModeMenu({ onClose }: { onClose: () => void }) {
+function ChatModeMenu({ onClose, eventName }: { onClose: () => void; eventName: string }) {
   const { chatMode, setChatMode } = useEvent();
   const rows = [
     { mode: "stream" as const, label: "Stream chat", detail: "Chat with this channel" },
-    { mode: "event" as const, label: "Event chat", detail: ironCup.name },
+    { mode: "event" as const, label: "Event chat", detail: eventName },
   ];
   return (
     <div className="absolute left-1/2 top-full z-popover mt-1 w-60 -translate-x-1/2 rounded bg-surface-base p-1 shadow-[0_8px_24px_rgba(0,0,0,0.6)]">
@@ -251,7 +313,13 @@ function ChatModeMenu({ onClose }: { onClose: () => void }) {
   );
 }
 
-function ChatHeader({ onCollapse, inEvent }: { onCollapse?: () => void; inEvent?: boolean }) {
+function ChatHeader({
+  onCollapse,
+  eventName,
+}: {
+  onCollapse?: () => void;
+  eventName?: string;
+}) {
   const { chatMode } = useEvent();
   const [menuOpen, setMenuOpen] = useState(false);
   return (
@@ -264,7 +332,7 @@ function ChatHeader({ onCollapse, inEvent }: { onCollapse?: () => void; inEvent?
       >
         <Icon name="collapse-chat" className="size-4" />
       </button>
-      {inEvent ? (
+      {eventName ? (
         // The translate makes this wrapper a stacking context, so the z-index must
         // sit here, or the chat messages paint over the open menu.
         <div className="z-popover absolute left-1/2 -translate-x-1/2">
@@ -281,7 +349,9 @@ function ChatHeader({ onCollapse, inEvent }: { onCollapse?: () => void; inEvent?
               }`}
             />
           </button>
-          {menuOpen && <ChatModeMenu onClose={() => setMenuOpen(false)} />}
+          {menuOpen && (
+            <ChatModeMenu onClose={() => setMenuOpen(false)} eventName={eventName} />
+          )}
         </div>
       ) : (
         <span className="absolute left-1/2 -translate-x-1/2 text-sm font-bold lg:text-base">
@@ -502,23 +572,20 @@ function ChatMessages({
   );
 }
 
-const linesFor = (eventMode: boolean) =>
-  eventMode ? [...chatLines, ...eventChatLines] : chatLines;
-
-function useFlowingMessages(eventMode = false) {
-  const [messages, setMessages] = useState<Message[]>(() => seedMessages(22));
+function useFlowingMessages(pool: MessagePool = streamPool) {
+  const [messages, setMessages] = useState<Message[]>(() => seedMessages(22, pool));
 
   // A room switch reseeds, because the event chat is a different room.
   useEffect(() => {
-    setMessages(seedMessages(22, linesFor(eventMode)));
-  }, [eventMode]);
+    setMessages(seedMessages(22, pool));
+  }, [pool]);
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setMessages((prev) => [...prev.slice(-149), randomMessage(linesFor(eventMode))]);
+      setMessages((prev) => [...prev.slice(-149), randomMessage(pool)]);
     }, 2200);
     return () => clearInterval(interval);
-  }, [eventMode]);
+  }, [pool]);
 
   return [messages, setMessages] as const;
 }
@@ -870,16 +937,18 @@ function ChatFooter({
 export function ChatFeed({
   header,
   dashboard,
-  inEvent,
+  pool,
+  event,
 }: {
   header?: ReactNode;
   dashboard?: boolean;
-  inEvent?: boolean;
+  pool?: MessagePool;
+  event?: KickEvent;
 }) {
   const surface = dashboard ? "bg-surface-base" : "bg-surface-lowest";
   const { chatMode, boost } = useEvent();
-  const eventMode = Boolean(inEvent) && chatMode === "event";
-  const [messages, setMessages] = useFlowingMessages(eventMode);
+  const eventMode = Boolean(event) && chatMode === "event";
+  const [messages, setMessages] = useFlowingMessages(pool);
   const [draft, setDraft] = useState("");
   const { raid } = useRaid();
   const [panelOpen, setPanelOpen] = useState(true);
@@ -889,8 +958,8 @@ export function ChatFeed({
     if (!body) return;
     // The event chat takes moderator commands, and the demo viewer is always a
     // moderator. A command never echoes into the room.
-    if (eventMode && body.toLowerCase().startsWith("/boost ")) {
-      const slug = slugByUsername(body.slice(7));
+    if (eventMode && event && body.toLowerCase().startsWith("/boost ")) {
+      const slug = slugInEvent(event, body.slice(7));
       if (slug) boost(slug);
       return;
     }
@@ -920,17 +989,6 @@ export function ChatFeed({
       className={`${surface} relative flex h-full w-full flex-col overflow-hidden`}
     >
       {header}
-      {eventMode && (
-        <div className="flex shrink-0 items-center gap-2 border-b border-outline-decorative bg-surface-base px-3 py-2">
-          <Icon name="dash-broadcast" className="size-4 shrink-0 text-primary-base" />
-          <div className="min-w-0 flex-1">
-            <span className="block truncate text-sm font-bold text-white">{ironCup.name}</span>
-            <span className="block truncate text-xs text-surface-onSurfaceSecondary">
-              One chat for the whole event. Moderation follows the host, IronVow.
-            </span>
-          </div>
-        </div>
-      )}
       <RaidBanner open={panelOpen} onToggle={() => setPanelOpen((v) => !v)} />
       <ChatMessages messages={messages} surface={surface} onOpen={setCardUser} />
       {raid && panelOpen && <RaidPanel onClose={() => setPanelOpen(false)} />}
@@ -949,21 +1007,77 @@ export function ChatFeed({
   );
 }
 
+function EventChatStrip({ event }: { event: KickEvent }) {
+  const mods = event.chat.moderators;
+
+  return (
+    <div
+      data-testid="event-chat-strip"
+      className="flex shrink-0 items-center gap-2 border-y border-outline-decorative px-3 py-2"
+    >
+      <img src={event.host_channel.avatar} alt="" className="size-7 shrink-0 rounded-full" />
+      <div className="flex min-w-0 grow flex-col gap-1">
+        <Link
+          to={`/events/${event.slug}`}
+          className="truncate text-sm font-bold text-white betterhover:hover:underline"
+        >
+          Event chat, hosted by {event.host_channel.username}
+        </Link>
+        <div className="flex flex-wrap items-center gap-1">
+          <span
+            title={mods.length > 0 ? `Moderators: ${mods.join(", ")}` : undefined}
+            className="flex items-center gap-1 whitespace-nowrap rounded-full bg-secondary-base px-2 py-0.5 text-xs font-semibold text-secondary-onSecondary"
+          >
+            <Icon name="chat-settings" className="size-3 shrink-0 fill-current" />
+            Moderated by {event.host_channel.username}
+          </span>
+          <span className="whitespace-nowrap rounded-full bg-secondary-base px-2 py-0.5 text-xs font-semibold text-secondary-onSecondary">
+            {formatSlowMode(event.chat.slow_mode_seconds)}
+          </span>
+          {event.chat.is_subscribers_only && (
+            <span className="whitespace-nowrap rounded-full bg-secondary-base px-2 py-0.5 text-xs font-semibold text-secondary-onSecondary">
+              Subscribers only
+            </span>
+          )}
+        </div>
+      </div>
+      <Link
+        to={`/events/${event.slug}`}
+        aria-label="Open the event page"
+        className="flex size-8 shrink-0 items-center justify-center rounded text-white state-layer-surface"
+      >
+        <Icon name="dash-external" className="size-4 fill-current" />
+      </Link>
+    </div>
+  );
+}
+
 export function ChannelChat({
   onCollapse,
-  stream,
+  event,
 }: {
   onCollapse?: () => void;
-  stream?: Livestream;
+  event?: KickEvent;
 }) {
-  const inEvent = stream ? isInEvent(stream.channel.slug) : false;
+  // The room lives in the event provider, because the multiview and the /boost command read it too.
+  const { chatMode } = useEvent();
+  const inEvent = Boolean(event) && chatMode === "event";
+  // A fresh pool object on every render would retrigger the reseed effect, so hold it steady.
+  const pool = useMemo(
+    () => (inEvent && event ? eventPool(event.chat.moderators) : undefined),
+    [inEvent, event],
+  );
+
   return (
     <ChatFeed
-      inEvent={inEvent}
+      // A switch is a different room, so the feed reseeds instead of showing the old room's tail.
+      key={chatMode}
+      pool={pool}
+      event={event}
       header={
         <>
-          <ChatHeader onCollapse={onCollapse} inEvent={inEvent} />
-          <GifterLeaderboard />
+          <ChatHeader onCollapse={onCollapse} eventName={event?.title} />
+          {inEvent && event ? <EventChatStrip event={event} /> : <GifterLeaderboard />}
         </>
       }
     />

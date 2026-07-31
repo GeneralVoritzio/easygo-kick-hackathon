@@ -4,15 +4,18 @@ export function IconButton({
   icon,
   label,
   className,
+  onClick,
 }: {
   icon: KickIconName;
   label: string;
   className?: string;
+  onClick?: () => void;
 }) {
   return (
     <button
       type="button"
       aria-label={label}
+      onClick={onClick}
       className={`state-layer-surface flex shrink-0 items-center justify-center rounded bg-transparent font-semibold text-white [&_svg]:size-[1em] ${className ?? ""}`}
     >
       <Icon name={icon} />

@@ -214,6 +214,14 @@ export const events: KickEvent[] = [
 export const eventStreamers = (event: KickEvent) =>
   event.participants.filter((p) => p.invite_status === "accepted");
 
+// /boost <name> in the event chat resolves the name against this event's running order.
+export const slugInEvent = (event: KickEvent, name: string) => {
+  const wanted = name.trim().replace(/^@/, "").toLowerCase();
+  return eventStreamers(event).find(
+    (p) => p.channel.username.toLowerCase() === wanted || p.channel.slug === wanted,
+  )?.channel.slug;
+};
+
 export const eventFor = (list: KickEvent[], slug: string) => list.find((e) => e.slug === slug);
 
 export const hostedBy = (list: KickEvent[], username: string) =>

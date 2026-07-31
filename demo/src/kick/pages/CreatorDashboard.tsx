@@ -3,7 +3,7 @@ import { Link, NavLink, useParams } from "react-router-dom";
 import { Icon, type KickIconName } from "../Icon";
 import { ProfileMenu } from "../components/ProfileMenu";
 import kickLogo from "../brand/kick-logo.svg";
-import { categories, currentSession, currentUser, formatFollowers, formatViewers } from "../mock/api";
+import { currentSession, currentUser, formatFollowers, formatViewers, streamInfo } from "../mock/api";
 import { ChatFeed } from "../components/ChannelChat";
 import { RaidStage } from "../components/RaidStage";
 import { useRaid } from "../raid/RaidProvider";
@@ -214,7 +214,6 @@ function StreamPanels({ onEditStreamInfo }: { onEditStreamInfo: () => void }) {
               <IconButton
                 icon="dash-edit"
                 label="Edit stream info"
-                testId="edit-stream-info"
                 onClick={onEditStreamInfo}
                 className="size-8 text-sm leading-none"
               />

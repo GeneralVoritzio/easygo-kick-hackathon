@@ -4,13 +4,16 @@ import { Icon } from "../Icon";
 import { ironCup, isInEvent } from "../events/events";
 import { Pill } from "./CardBits";
 import { formatFollowers, type Livestream } from "../mock/api";
+import type { KickEvent } from "../mock/events";
 
 export function ChannelBar({
   stream,
   showFollowers,
+  event,
 }: {
   stream: Livestream;
   showFollowers?: boolean;
+  event?: KickEvent;
 }) {
   const [following, setFollowing] = useState(false);
   const [subscribed, setSubscribed] = useState(false);
@@ -52,6 +55,17 @@ export function ChannelBar({
             </p>
           )}
           <div className="flex min-w-0 max-w-full flex-wrap items-center gap-2 overflow-hidden">
+            {event && (
+              <Link
+                to={`/events/${event.slug}`}
+                data-testid="channel-event-chip"
+                title={event.title}
+                className="flex h-[22px] max-w-full shrink-0 items-center gap-1 truncate whitespace-nowrap rounded-full bg-secondary-base px-2 text-sm font-semibold leading-none text-surface-onSurfacePrimary transition-colors betterhover:hover:bg-neutral-700"
+              >
+                <Icon name="event" className="size-3.5 shrink-0 fill-current" />
+                <span className="truncate">{event.title}</span>
+              </Link>
+            )}
             <button
               type="button"
               className="text-sm font-normal leading-[1.2] text-surface-onSurfacePrimary betterhover:hover:underline"

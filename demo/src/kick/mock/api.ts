@@ -4,6 +4,7 @@ export type Channel = {
   avatar: string;
   verified: boolean;
   followers: number;
+  is_partner: boolean;
 };
 
 export type Livestream = {
@@ -26,7 +27,8 @@ const avatarFiles = import.meta.glob("../avatars/*.svg", {
   import: "default",
 }) as Record<string, string>;
 
-const art = import.meta.glob("../art/*.svg", {
+// The plates are SVG and the event posters are JPEG, so the glob has to name both.
+const art = import.meta.glob("../art/*.{svg,jpg}", {
   eager: true,
   query: "?url",
   import: "default",
@@ -42,16 +44,42 @@ export const avatarFor = avatar;
 
 // ponytail: category tiles and stream stills are still our own art. Replace them with the
 // official kick.com artwork and real frames, captured with kick-page-clone.
-const artUrl = (name: string) => art[`../art/${name}.svg`] ?? "";
+const artUrl = (name: string) => art[`../art/${name}.svg`] ?? art[`../art/${name}.jpg`] ?? "";
 
 export const bannerFor = (seed: string) => artUrl(`banner-${seed}`);
+
+// A real event carries artwork the host uploads, which we cannot invent, so event artwork is one of
+// the committed plates. The plate is named in full, so a reader can see which file it is.
+export const artFor = (plate: string) => artUrl(plate);
+
+const partnerSlugs = new Set([
+  "ironvow",
+  "couchsenate",
+  "wanderfuse",
+  "nocturnalnorm",
+  "spinvicar",
+  "midnightden",
+  "charcoalchef",
+  "superdude1337",
+  "panfriedpaul",
+  "notadoc",
+  "snoozebaron",
+  "tiltcabinet",
+]);
 
 const channel = (
   slug: string,
   username: string,
   followers: number,
   verified = false,
-): Channel => ({ slug, username, avatar: avatar(slug), verified, followers });
+): Channel => ({
+  slug,
+  username,
+  avatar: avatar(slug),
+  verified,
+  followers,
+  is_partner: partnerSlugs.has(slug),
+});
 
 export type Category = {
   name: string;
@@ -79,6 +107,13 @@ export const categories: Category[] = [
 export const cat = (slug: string) => {
   const c = categories.find((x) => x.slug === slug) ?? categories[0];
   return { name: c.name, slug: c.slug, thumbnail: c.thumbnail };
+};
+
+export const streamInfo = {
+  session_title: "My first stream.",
+  category: cat("just-chatting"),
+  language: "English",
+  is_mature: false,
 };
 
 export const ironvow = channel("ironvow", "IronVow", 184203, true);
@@ -287,6 +322,31 @@ export const livestreams: Livestream[] = [
     language: "English",
     thumbnail: artUrl("thumb-irl-3"),
     started_at: "2026-07-26T12:30:00Z",
+    is_mature: false,
+  },
+  // These two hold a seat on the running order of the event that is on now, so they are live.
+  {
+    id: 18,
+    channel: channel("couchsenate", "CouchSenate", 283204, true),
+    session_title: "SENATE IS IN SESSION, MOTION ONE ON THE FLOOR",
+    category: cat("just-chatting"),
+    viewer_count: 9204,
+    is_live: true,
+    language: "English",
+    thumbnail: artUrl("thumb-just-chatting-2"),
+    started_at: "2026-07-26T12:00:00Z",
+    is_mature: false,
+  },
+  {
+    id: 19,
+    channel: channel("charcoalchef", "CharcoalChef", 30211),
+    session_title: "senate lunch, i am grilling for four channels",
+    category: cat("irl"),
+    viewer_count: 1508,
+    is_live: true,
+    language: "English",
+    thumbnail: artUrl("thumb-irl-2"),
+    started_at: "2026-07-26T13:05:00Z",
     is_mature: false,
   },
 ];
@@ -643,11 +703,10 @@ export function timeAgo(iso: string): string {
   return `${years} ${years === 1 ? "year" : "years"} ago`;
 }
 
+export const superdude = channel("superdude1337", "SuperDude1337", 18430);
+
 export const currentUser = {
-  slug: "superdude1337",
-  username: "SuperDude1337",
-  avatar: avatar("superdude1337"),
-  followers: 18430,
+  ...superdude,
   bio: "SuperDude1337's Kick Channel",
   banner: artUrl("banner-midnightden"),
   offlineBanner: artUrl("thumb-just-chatting-1"),
@@ -660,6 +719,23 @@ export const currentSession = {
   subscriber_count: 312,
   time_live: "3:15:22",
   thumbnail: artUrl("thumb-just-chatting-1"),
+};
+
+const knownChannels = [
+  superdude,
+  ...channelProfiles.map((p) => p.channel),
+  ...livestreams.map((s) => s.channel),
+];
+
+export const channelBySlug = (slug: string) => {
+  const found = knownChannels.find((c) => c.slug === slug);
+  if (!found) throw new Error(`No channel for ${slug}. Add it to livestreams or channelProfiles.`);
+  return found;
+};
+
+export const channelByUsername = (username: string) => {
+  const wanted = username.trim().toLowerCase();
+  return knownChannels.find((c) => c.username.toLowerCase() === wanted);
 };
 
 export function streamPills(stream: Livestream): string[] {

@@ -10,6 +10,9 @@ import {
   type ChannelVideo,
 } from "../mock/api";
 import { clips } from "../mock/clips";
+import { EventGrid } from "./EventBits";
+import { useEvents } from "../EventsStore";
+import { eventsWith } from "../mock/events";
 
 function VideoCard({
   video,
@@ -87,9 +90,18 @@ function Heading({ children }: { children: React.ReactNode }) {
 
 export function ChannelHome({ profile }: { profile: ChannelProfile }) {
   const channelClips = clips.filter((c) => c.channel.slug === profile.channel.slug);
+  const { events } = useEvents();
+  const channelEvents = eventsWith(events, profile.channel.slug);
 
   return (
     <div className="flex w-full flex-col gap-8 px-4 pb-20 pt-6">
+      {channelEvents.length > 0 && (
+        <section className="flex w-full flex-col gap-3" data-testid="channel-events">
+          <Heading>Events</Heading>
+          <EventGrid events={channelEvents} />
+        </section>
+      )}
+
       {profile.videos.length > 0 && (
         <section className="flex w-full flex-col gap-3">
           <Heading>Stream Videos</Heading>

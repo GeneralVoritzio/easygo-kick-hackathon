@@ -5,8 +5,14 @@ import { CategoryGrid } from "../components/CategoryCard";
 import { ClipGrid } from "../components/ClipCard";
 import { BrowseTabs, type BrowseTab } from "../components/BrowseTabs";
 import { BrowseFilters } from "../components/BrowseFilters";
+import { Section } from "../components/CardBits";
+import { EventGrid } from "../components/EventBits";
+import { EventCalendar } from "../components/EventCalendar";
+import { Icon } from "../Icon";
+import { useEvents } from "../EventsStore";
 import { livestreams, categories } from "../mock/api";
 import { CLIPS_NOW, clips } from "../mock/clips";
+import { eventBucket, publicUpcoming, type EventBucket } from "../mock/events";
 
 const streamSortOptions = [
   { value: "featured", label: "Featured" },
@@ -33,6 +39,59 @@ const clipRangeOptions = [
   { value: "30", label: "Last Month" },
   { value: "all", label: "All Time" },
 ];
+
+const eventGroups: { bucket: EventBucket; title: string }[] = [
+  { bucket: "today", title: "Today" },
+  { bucket: "week", title: "This week" },
+  { bucket: "month", title: "This month" },
+];
+
+const eventViews = [
+  { view: "upcoming", label: "Upcoming", icon: "event" },
+  { view: "calendar", label: "Calendar", icon: "calendar" },
+] as const;
+
+function BrowseEvents() {
+  const { events } = useEvents();
+  const [view, setView] = useState<"upcoming" | "calendar">("upcoming");
+  const upcoming = publicUpcoming(events);
+
+  return (
+    <section className="flex w-full flex-col gap-y-5 lg:gap-y-6">
+      <div className="flex w-fit gap-0.5 rounded bg-secondary-base p-0.5">
+        {eventViews.map((item) => (
+          <button
+            key={item.view}
+            type="button"
+            aria-pressed={view === item.view}
+            data-testid={`events-view-${item.view}`}
+            onClick={() => setView(item.view)}
+            className={`flex h-9 items-center gap-1.5 rounded px-3 text-sm font-semibold ${
+              view === item.view ? "bg-surface-highest text-white" : "text-subtle"
+            }`}
+          >
+            <Icon name={item.icon} className="size-4 shrink-0 fill-current" />
+            {item.label}
+          </button>
+        ))}
+      </div>
+
+      {view === "upcoming" ? (
+        eventGroups.map(({ bucket, title }) => {
+          const group = upcoming.filter((e) => eventBucket(e.start_at) === bucket);
+          if (group.length === 0) return null;
+          return (
+            <Section key={bucket} white={title}>
+              <EventGrid events={group} />
+            </Section>
+          );
+        })
+      ) : (
+        <EventCalendar events={upcoming} />
+      )}
+    </section>
+  );
+}
 
 export function Browse({ tab }: { tab: BrowseTab }) {
   const [language, setLanguage] = useState("all");
@@ -91,6 +150,8 @@ export function Browse({ tab }: { tab: BrowseTab }) {
         )}
 
         {tab === "categories" && <CategoryGrid categories={categories} />}
+
+        {tab === "events" && <BrowseEvents />}
 
         {tab === "clips" && (
           <section className="flex w-full flex-col gap-y-5 lg:gap-y-4">

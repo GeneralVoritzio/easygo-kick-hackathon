@@ -3,15 +3,23 @@ import { Link, NavLink, useParams } from "react-router-dom";
 import { Icon, type KickIconName } from "../Icon";
 import { ProfileMenu } from "../components/ProfileMenu";
 import kickLogo from "../brand/kick-logo.svg";
-import { categories, currentSession, currentUser, formatFollowers, formatViewers } from "../mock/api";
+import { currentSession, currentUser, formatFollowers, formatViewers, streamInfo } from "../mock/api";
 import { ChatFeed } from "../components/ChannelChat";
 import { RaidStage } from "../components/RaidStage";
 import { useRaid } from "../raid/RaidProvider";
+import { DashboardEvents } from "../components/DashboardEvents";
+import { IconButton, Pane, Panel, PanelHeader } from "../components/DashboardPanel";
+import { Toggle } from "../components/Toggle";
+import { GoLiveDialog } from "../components/GoLiveDialog";
+import { useEvents } from "../EventsStore";
 
 const streamItem = "/dashboard/stream";
+const eventsItem = "/dashboard/events";
+const routedItems = new Set([streamItem, eventsItem]);
 
 const navItems: { label: string; to: string; icon: KickIconName; expandable?: boolean }[] = [
   { label: "Stream", to: streamItem, icon: "dash-stream" },
+  { label: "Events", to: eventsItem, icon: "event" },
   { label: "Stream URL & Key", to: "/dashboard/channel/stream", icon: "dash-stream-key" },
   { label: "Revenue", to: "/dashboard/revenue", icon: "dash-revenue" },
   { label: "Achievements", to: "/dashboard/achievements", icon: "dash-achievements" },
@@ -31,96 +39,6 @@ const railTools: { icon: KickIconName; label: string }[] = [
   { icon: "dash-moderation", label: "Settings" },
 ];
 
-const justChatting = categories.find((c) => c.slug === "just-chatting")!;
-
-function IconButton({
-  icon,
-  label,
-  className,
-}: {
-  icon: KickIconName;
-  label: string;
-  className?: string;
-}) {
-  return (
-    <button
-      type="button"
-      aria-label={label}
-      className={`state-layer-surface flex shrink-0 items-center justify-center rounded bg-transparent font-semibold text-white [&_svg]:size-[1em] ${className ?? ""}`}
-    >
-      <Icon name={icon} />
-    </button>
-  );
-}
-
-function PanelHeader({
-  title,
-  icon,
-  actions,
-}: {
-  title: string;
-  icon: KickIconName;
-  actions?: React.ReactNode;
-}) {
-  return (
-    <div className="flex h-[52px] shrink-0 items-center justify-between rounded-t border-b border-outline-decorative bg-surface-base py-2 pl-6 pr-4 text-sm font-bold">
-      <div className="flex items-center gap-4 text-lg leading-none text-white">
-        <Icon name={icon} className="size-4 shrink-0" />
-        <span>{title}</span>
-      </div>
-      <div className="flex items-center gap-1">{actions}</div>
-    </div>
-  );
-}
-
-function Panel({
-  title,
-  icon,
-  actions,
-  bodyClassName,
-  bigPopout,
-  children,
-}: {
-  title: string;
-  icon: KickIconName;
-  actions?: React.ReactNode;
-  bodyClassName?: string;
-  bigPopout?: boolean;
-  children?: React.ReactNode;
-}) {
-  return (
-    <div className="flex h-full w-full flex-col">
-      <PanelHeader
-        title={title}
-        icon={icon}
-        actions={
-          <>
-            {actions}
-            <IconButton
-              icon="dash-popout"
-              label={`Open ${title} in a new window`}
-              className={`size-8 leading-none ${bigPopout ? "text-base" : "text-sm"}`}
-            />
-          </>
-        }
-      />
-      <div
-        className={`flex min-h-0 flex-1 grow overflow-hidden rounded-b bg-surface-base ${bodyClassName ?? ""}`}
-      >
-        {children}
-      </div>
-    </div>
-  );
-}
-
-function Pane({ style, children }: { style: React.CSSProperties; children: React.ReactNode }) {
-  return (
-    <div className="overflow-hidden p-0.5" style={style}>
-      {children}
-    </div>
-  );
-}
-
 function Stat({ label, value, badge }: { label: string; value?: string; badge?: string }) {
   return (
     <div className="flex w-full flex-col items-start gap-3 px-3 py-4">
@@ -133,26 +51,6 @@ function Stat({ label, value, badge }: { label: string; value?: string; badge?: 
       )}
       <span className="text-sm font-semibold text-subtle">{label}</span>
     </div>
-  );
-}
-
-function Toggle({ on, onChange, label }: { on: boolean; onChange: (v: boolean) => void; label: string }) {
-  const state = on ? "checked" : "unchecked";
-  return (
-    <button
-      type="button"
-      role="switch"
-      aria-checked={on}
-      aria-label={label}
-      data-state={state}
-      onClick={() => onChange(!on)}
-      className="h-5 w-[2.25rem] shrink-0 cursor-pointer rounded-full bg-secondary-base transition-colors data-[state=checked]:bg-primary-base"
-    >
-      <span
-        data-state={state}
-        className="block h-[0.875rem] w-[0.875rem] translate-x-[0.25rem] rounded-full bg-white transition-transform data-[state=checked]:translate-x-[calc(2.25rem-0.25rem-0.875rem)] data-[state=checked]:bg-surface-base"
-      />
-    </button>
   );
 }
 
@@ -215,13 +113,169 @@ function ActionGroup({
   );
 }
 
-export function CreatorDashboard() {
-  const { section } = useParams();
+function EventStrip({ onChange }: { onChange: () => void }) {
+  const { events, goLiveEventId } = useEvents();
+  const picked = events.find((e) => e.event_id === goLiveEventId);
+  if (!picked) return null;
+
+  return (
+    <div
+      data-testid="event-strip"
+      className="flex w-full items-center gap-2 px-3 py-2 text-sm font-semibold"
+    >
+      <Icon name="event" className="size-4 shrink-0 fill-primary-base" />
+      <span className="min-w-0 truncate text-white">
+        Streaming in <span className="text-primary-base">{picked.title}</span>
+      </span>
+      <button
+        type="button"
+        onClick={onChange}
+        className="ml-auto shrink-0 rounded bg-secondary-base px-2 py-1 text-sm font-semibold text-white state-layer-surface"
+      >
+        Change
+      </button>
+    </div>
+  );
+}
+
+function StreamPanels({ onEditStreamInfo }: { onEditStreamInfo: () => void }) {
+  const { openDialog } = useRaid();
   const [subsOnly, setSubsOnly] = useState(false);
   const [emotesOnly, setEmotesOnly] = useState(false);
   const [showViewCount, setShowViewCount] = useState(true);
+
+  return (
+    <div className="flex h-full w-full flex-row">
+      <div className="flex flex-col" style={{ width: "50%" }}>
+        <Pane style={{ height: "22%" }}>
+          <Panel title="Session Info" icon="dash-stream" bodyClassName="flex-col">
+            <div className="flex w-full gap-1">
+              <Stat label="Session" badge="Live" />
+              <div className="h-full w-px shrink-0 bg-outline-decorative" />
+              <Stat label="Viewers" value={formatViewers(currentSession.viewer_count)} />
+              <div className="h-full w-px shrink-0 bg-outline-decorative" />
+              <Stat label="Followers" value={formatFollowers(currentUser.followers)} />
+              <div className="h-full w-px shrink-0 bg-outline-decorative" />
+              <Stat label="Sub Counts" value={String(currentSession.subscriber_count)} />
+              <div className="h-full w-px shrink-0 bg-outline-decorative" />
+              <Stat label="Time Live" value={currentSession.time_live} />
+            </div>
+            <div className="w-full border-t border-outline-decorative" />
+            <EventStrip onChange={onEditStreamInfo} />
+          </Panel>
+        </Pane>
+
+        <Pane style={{ height: "50%" }}>
+          <div className="flex h-full w-full flex-col">
+            <PanelHeader title="Stream Preview" icon="dash-studio" />
+            <div className="relative flex min-h-0 flex-1 grow overflow-hidden rounded-b bg-black">
+              <img
+                src={currentSession.thumbnail}
+                alt={currentSession.title}
+                className="h-full w-full object-contain brightness-125"
+              />
+              {/* Section 5.1: every raid preview plays here, never in the chat column. */}
+              <RaidStage />
+            </div>
+          </div>
+        </Pane>
+
+        <div className="flex flex-row" style={{ height: "28%" }}>
+          <Pane style={{ width: "50%" }}>
+            <Panel
+              title="Activity Feed"
+              icon="dash-activity"
+              actions={<IconButton icon="dash-filter" label="Filter Activity Feed" className="size-8 text-sm leading-none" />}
+            />
+          </Pane>
+          <Pane style={{ width: "50%" }}>
+            <Panel
+              title="Mod Actions"
+              icon="dash-mod-actions"
+              actions={<IconButton icon="dash-filter" label="Filter Mod Actions" className="size-8 text-sm leading-none" />}
+            />
+          </Pane>
+        </div>
+      </div>
+
+      <Pane style={{ width: "30%" }}>
+        <Panel title="Chat" icon="dash-chat">
+          <ChatFeed dashboard />
+        </Panel>
+      </Pane>
+
+      <div className="flex flex-col" style={{ width: "20%" }}>
+        <Pane style={{ height: "30%" }}>
+          <Panel
+            title="Stream info"
+            icon="dash-moderation"
+            bodyClassName="p-4"
+            actions={
+              <IconButton
+                icon="dash-edit"
+                label="Edit stream info"
+                onClick={onEditStreamInfo}
+                className="size-8 text-sm leading-none"
+              />
+            }
+          >
+            <div className="flex w-full max-w-full flex-col gap-2 text-sm">
+              <span className="line-clamp-2 font-semibold text-white">
+                {currentSession.title}
+              </span>
+              <div className="no-scrollbar flex w-full max-w-full items-center gap-2 overflow-x-auto">
+                <img
+                  src={streamInfo.category.thumbnail}
+                  alt=""
+                  className="aspect-[164/219] h-[46px] shrink-0 overflow-hidden rounded object-cover"
+                />
+                <div className="flex flex-col gap-1">
+                  <span className="text-white">{streamInfo.category.name}</span>
+                  <div className="flex min-w-0 gap-2">
+                    <span className="rounded-full bg-secondary-base px-2 py-1 text-sm leading-none text-secondary-onSecondary">
+                      {streamInfo.language}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </Panel>
+        </Pane>
+
+        <Pane style={{ height: "70%" }}>
+          <Panel title="Channel Actions" icon="dash-overlays" bigPopout>
+            <div className="no-scrollbar h-full min-h-0 w-full overflow-y-auto py-2">
+              <div className="flex w-full flex-col gap-4 px-4 pt-2 text-white">
+                <ActionGroup title="Chat access" divider>
+                  <ActionRow label="Account age" value="Off" />
+                  <ActionRow label="Followers only" value="Off" />
+                  <ToggleRow label="Subscribers only" on={subsOnly} onChange={setSubsOnly} />
+                </ActionGroup>
+                <ActionGroup title="Chat options" divider>
+                  <ToggleRow label="Emotes only" on={emotesOnly} onChange={setEmotesOnly} />
+                  <ActionRow label="Slow mode" value="Off" />
+                  <ActionRow label="Banned words" />
+                  <ActionRow label="AI Chat Moderation" external />
+                </ActionGroup>
+                <ActionGroup title="Channel options">
+                  <ToggleRow label="Show view count" on={showViewCount} onChange={setShowViewCount} />
+                  <ActionRow label="Raid Channel" onClick={() => openDialog("raid")} />
+                  <ActionRow label="Set goals" />
+                </ActionGroup>
+              </div>
+            </div>
+          </Panel>
+        </Pane>
+      </div>
+    </div>
+  );
+}
+
+export function CreatorDashboard() {
+  const { section } = useParams();
   const [menuOpen, setMenuOpen] = useState(false);
   const { openDialog } = useRaid();
+  const [streamInfoOpen, setStreamInfoOpen] = useState(false);
   const active = `/dashboard/${section ?? "stream"}`;
 
   return (
@@ -259,6 +313,7 @@ export function CreatorDashboard() {
             />
           </button>
           {menuOpen && <ProfileMenu dashboard onClose={() => setMenuOpen(false)} />}
+          {streamInfoOpen && <GoLiveDialog onClose={() => setStreamInfoOpen(false)} />}
         </div>
       </nav>
 
@@ -277,7 +332,7 @@ export function CreatorDashboard() {
                 "flex h-12 w-full items-center justify-start gap-x-4 rounded px-4 py-1 text-base font-semibold text-white";
               return (
                 <li key={item.to}>
-                  {item.to === streamItem ? (
+                  {routedItems.has(item.to) ? (
                     <NavLink
                       to={item.to}
                       data-state={item.to === active ? "active" : "inactive"}
@@ -298,121 +353,11 @@ export function CreatorDashboard() {
 
         <div className="flex w-full min-w-0 max-w-full overflow-hidden">
           <div className="grow overflow-hidden bg-black p-0.5">
-            <div className="flex h-full w-full flex-row">
-              <div className="flex flex-col" style={{ width: "50%" }}>
-                <Pane style={{ height: "22%" }}>
-                  <Panel title="Session Info" icon="dash-stream" bodyClassName="flex-col">
-                    <div className="flex w-full gap-1">
-                      <Stat label="Session" badge="Live" />
-                      <div className="h-full w-px shrink-0 bg-outline-decorative" />
-                      <Stat label="Viewers" value={formatViewers(currentSession.viewer_count)} />
-                      <div className="h-full w-px shrink-0 bg-outline-decorative" />
-                      <Stat label="Followers" value={formatFollowers(currentUser.followers)} />
-                      <div className="h-full w-px shrink-0 bg-outline-decorative" />
-                      <Stat label="Sub Counts" value={String(currentSession.subscriber_count)} />
-                      <div className="h-full w-px shrink-0 bg-outline-decorative" />
-                      <Stat label="Time Live" value={currentSession.time_live} />
-                    </div>
-                    <div className="w-full border-t border-outline-decorative" />
-                  </Panel>
-                </Pane>
-
-                <Pane style={{ height: "50%" }}>
-                  <div className="flex h-full w-full flex-col">
-                    <PanelHeader title="Stream Preview" icon="dash-studio" />
-                    <div className="relative flex min-h-0 flex-1 grow overflow-hidden rounded-b bg-black">
-                      <img
-                        src={currentSession.thumbnail}
-                        alt={currentSession.title}
-                        className="h-full w-full object-contain brightness-125"
-                      />
-                      {/* Section 5.1: every raid preview plays here, never in the chat column. */}
-                      <RaidStage />
-                    </div>
-                  </div>
-                </Pane>
-
-                <div className="flex flex-row" style={{ height: "28%" }}>
-                  <Pane style={{ width: "50%" }}>
-                    <Panel
-                      title="Activity Feed"
-                      icon="dash-activity"
-                      actions={<IconButton icon="dash-filter" label="Filter Activity Feed" className="size-8 text-sm leading-none" />}
-                    />
-                  </Pane>
-                  <Pane style={{ width: "50%" }}>
-                    <Panel
-                      title="Mod Actions"
-                      icon="dash-mod-actions"
-                      actions={<IconButton icon="dash-filter" label="Filter Mod Actions" className="size-8 text-sm leading-none" />}
-                    />
-                  </Pane>
-                </div>
-              </div>
-
-              <Pane style={{ width: "30%" }}>
-                <Panel title="Chat" icon="dash-chat">
-                  <ChatFeed dashboard />
-                </Panel>
-              </Pane>
-
-              <div className="flex flex-col" style={{ width: "20%" }}>
-                <Pane style={{ height: "30%" }}>
-                  <Panel
-                    title="Stream info"
-                    icon="dash-moderation"
-                    bodyClassName="p-4"
-                    actions={<IconButton icon="dash-edit" label="Edit stream info" className="size-8 text-sm leading-none" />}
-                  >
-                    <div className="flex w-full max-w-full flex-col gap-2 text-sm">
-                      <span className="line-clamp-2 font-semibold text-white">
-                        {currentSession.title}
-                      </span>
-                      <div className="no-scrollbar flex w-full max-w-full items-center gap-2 overflow-x-auto">
-                        <img
-                          src={justChatting.thumbnail}
-                          alt=""
-                          className="aspect-[164/219] h-[46px] shrink-0 overflow-hidden rounded object-cover"
-                        />
-                        <div className="flex flex-col gap-1">
-                          <span className="text-white">{justChatting.name}</span>
-                          <div className="flex min-w-0 gap-2">
-                            <span className="rounded-full bg-secondary-base px-2 py-1 text-sm leading-none text-secondary-onSecondary">
-                              English
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </Panel>
-                </Pane>
-
-                <Pane style={{ height: "70%" }}>
-                  <Panel title="Channel Actions" icon="dash-overlays" bigPopout>
-                    <div className="no-scrollbar h-full min-h-0 w-full overflow-y-auto py-2">
-                      <div className="flex w-full flex-col gap-4 px-4 pt-2 text-white">
-                        <ActionGroup title="Chat access" divider>
-                          <ActionRow label="Account age" value="Off" />
-                          <ActionRow label="Followers only" value="Off" />
-                          <ToggleRow label="Subscribers only" on={subsOnly} onChange={setSubsOnly} />
-                        </ActionGroup>
-                        <ActionGroup title="Chat options" divider>
-                          <ToggleRow label="Emotes only" on={emotesOnly} onChange={setEmotesOnly} />
-                          <ActionRow label="Slow mode" value="Off" />
-                          <ActionRow label="Banned words" />
-                          <ActionRow label="AI Chat Moderation" external />
-                        </ActionGroup>
-                        <ActionGroup title="Channel options">
-                          <ToggleRow label="Show view count" on={showViewCount} onChange={setShowViewCount} />
-                          <ActionRow label="Raid Channel" onClick={() => openDialog("raid")} />
-                          <ActionRow label="Set goals" />
-                        </ActionGroup>
-                      </div>
-                    </div>
-                  </Panel>
-                </Pane>
-              </div>
-            </div>
+            {section === "events" ? (
+              <DashboardEvents />
+            ) : (
+              <StreamPanels onEditStreamInfo={() => setStreamInfoOpen(true)} />
+            )}
           </div>
 
           <div className="flex h-full shrink-0 grow-0 flex-col items-center gap-y-4 rounded-l bg-surface-base px-3 py-2.5">

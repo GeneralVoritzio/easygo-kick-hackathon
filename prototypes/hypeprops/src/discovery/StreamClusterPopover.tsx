@@ -1,13 +1,16 @@
 import { useEffect, useState } from 'react'
 import StreamPreviewCard from './StreamPreviewCard'
 import { useDiscovery } from './discoveryStore'
-import type { DiscoveryCluster } from './types'
+import type { DiscoveryChannel, DiscoveryCluster } from './types'
 
 const MAX_CARDS = 5
 const CARD_WIDTH = 186
 
 type Props = {
   cluster: DiscoveryCluster
+  /** exactly what this hotspot stands for — the whole city at cluster zoom, or
+   * the single channel whose own dot is being hovered at near zoom */
+  channels: DiscoveryChannel[]
   /** pointer is over the popover — keep it open */
   onPointerStay: () => void
   /** pointer left the popover — start the 250ms close countdown */
@@ -21,14 +24,15 @@ type Props = {
  * pointer-transparent so the globe stays draggable between the cards; only
  * the cards and the city chip catch the mouse.
  */
-export default function StreamClusterPopover({ cluster, onPointerStay, onPointerAway }: Props) {
+export default function StreamClusterPopover({ cluster, channels: source, onPointerStay, onPointerAway }: Props) {
   const [previewingId, setPreviewingId] = useState<string | null>(null)
   const setSelectedChannel = useDiscovery((s) => s.setSelectedChannel)
 
   // a new cluster means a fresh burst — don't carry a stale preview across
-  useEffect(() => setPreviewingId(null), [cluster.id])
+  // a different hotspot means a fresh stack — don't carry a stale preview
+  useEffect(() => setPreviewingId(null), [cluster.id, source])
 
-  const channels = cluster.channels.slice(0, MAX_CARDS)
+  const channels = source.slice(0, MAX_CARDS)
   const count = channels.length
 
   // elliptical spread (cards are wide, so give them more room horizontally);
@@ -84,7 +88,10 @@ export default function StreamClusterPopover({ cluster, onPointerStay, onPointer
       {/* city chip tucked under the hotspot */}
       <div className="pointer-events-auto absolute left-0 top-0 -translate-x-1/2 translate-y-3 whitespace-nowrap rounded-full border border-kick-border bg-kick-panel/95 px-2.5 py-1 shadow-lg backdrop-blur-sm">
         <span className="text-[12px] font-bold text-kick-text">{cluster.city}</span>
-        <span className="ml-1 text-[11px] text-kick-muted">{cluster.country}</span>
+        {/* a Sun pocket's "country" is the privacy note, not a place */}
+        <span className={`ml-1 text-[11px] ${cluster.body === 'sun' ? 'italic' : ''} text-kick-muted`}>
+          {cluster.country}
+        </span>
         <span className="ml-1.5 inline-flex items-center gap-1 text-[11px] font-semibold text-kick">
           <span className="h-1.5 w-1.5 animate-pulse-fast rounded-full bg-kick" />
           {count} live

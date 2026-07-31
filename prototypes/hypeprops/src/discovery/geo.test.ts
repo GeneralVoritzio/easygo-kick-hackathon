@@ -7,6 +7,9 @@ import {
   MID_BAND_MAX,
   MIN_CAMERA_DISTANCE,
   NEAR_BAND_MAX,
+  bordersForBand,
+  citiesForView,
+  nearestCities,
   latLngToVector3,
   pointScaleForDistance,
   selectVisiblePoints,
@@ -28,12 +31,15 @@ function mockCluster(id: number, channelCount: number, viewersEach: number): Dis
     lng: lng + i * 0.1,
     thumbnail: { seed: `c${id}-ch${i}`, gradient: 'linear-gradient(135deg,#000,#111)', initials: 'ST' },
     embeddable: false,
+    body: 'earth' as const,
+    location_hidden: false,
     interaction: { oddsDenominator: 10, badges: [] },
   }))
   return {
     id: `c${id}`,
     city: `City ${id}`,
     country: 'Nowhere',
+    body: 'earth',
     lat,
     lng,
     channels,
@@ -86,6 +92,95 @@ describe('pointScaleForDistance', () => {
   it('clamps at both extremes', () => {
     expect(pointScaleForDistance(MIN_CAMERA_DISTANCE)).toBeGreaterThanOrEqual(0.22)
     expect(pointScaleForDistance(100)).toBeLessThanOrEqual(1.4)
+  })
+})
+
+describe('bordersForBand', () => {
+  it('escalates detail as you close in, and only adds admin-1 at near zoom', () => {
+    expect(bordersForBand('far')).toEqual(['countries-coarse'])
+    expect(bordersForBand('mid')).toEqual(['countries-fine'])
+    expect(bordersForBand('near')).toEqual(['countries-fine', 'admin1'])
+    // countries are always drawn first so admin-1 lines sit on top
+    for (const band of ['far', 'mid', 'near'] as const) {
+      expect(bordersForBand(band)[0]).toMatch(/^countries-/)
+    }
+  })
+})
+
+describe('citiesForView', () => {
+  const cities = Array.from({ length: 200 }, (_, i) => ({
+    name: `City ${i}`,
+    lat: 0,
+    lng: 0,
+    pop: 1_000_000 - i * 1000,
+  }))
+
+  it('labels nothing until near zoom', () => {
+    expect(citiesForView(cities, 'far', true)).toEqual([])
+    expect(citiesForView(cities, 'mid', true)).toEqual([])
+  })
+
+  it('labels nothing on a body without geography, however close you get', () => {
+    // the Moon, Mars and the Sun have no cities — Earth's must never leak there
+    for (const band of ['far', 'mid', 'near'] as const) {
+      expect(citiesForView(cities, band, false), band).toEqual([])
+    }
+  })
+
+  it('caps the candidate pool and takes the biggest cities first', () => {
+    const shown = citiesForView(cities, 'near', true, 25)
+    expect(shown).toHaveLength(25)
+    expect(shown[0].name).toBe('City 0')
+    // the dataset arrives pre-sorted, so a prefix is already the biggest N
+    expect(shown.map((c) => c.pop)).toEqual([...shown.map((c) => c.pop)].sort((a, b) => b - a))
+  })
+
+  it('never returns more than it was given', () => {
+    expect(citiesForView(cities.slice(0, 5), 'near', true, 25)).toHaveLength(5)
+  })
+})
+
+describe('nearestCities', () => {
+  // one city per 30° of longitude around the equator
+  const ring = Array.from({ length: 12 }, (_, i) => ({
+    name: `Ring ${i * 30}`,
+    lat: 0,
+    lng: i * 30 - 180,
+    pop: 500_000,
+  }))
+
+  it('only labels the hemisphere facing the camera', () => {
+    // camera over (0°, 0°) → +X
+    const shown = nearestCities(ring, [1, 0, 0])
+    expect(shown.length).toBeGreaterThan(0)
+    expect(shown.length).toBeLessThan(ring.length)
+    for (const c of shown) {
+      // everything shown is within ~72° of the view centre
+      expect(Math.min(Math.abs(c.lng), 360 - Math.abs(c.lng))).toBeLessThan(75)
+    }
+  })
+
+  it('ranks the most centred city first', () => {
+    expect(nearestCities(ring, [1, 0, 0])[0].name).toBe('Ring 180')
+  })
+
+  it('follows the camera: swinging the view changes which cities are labelled', () => {
+    const west = nearestCities(ring, [1, 0, 0]).map((c) => c.name)
+    // 90°E is −Z in this projection
+    const east = nearestCities(ring, [0, 0, -1]).map((c) => c.name)
+    expect(east[0]).not.toBe(west[0])
+  })
+
+  it('breaks ties between equally centred cities by population', () => {
+    const pair = [
+      { name: 'Small', lat: 1, lng: 0, pop: 20_000 },
+      { name: 'Big', lat: -1, lng: 0, pop: 9_000_000 },
+    ]
+    expect(nearestCities(pair, [1, 0, 0])[0].name).toBe('Big')
+  })
+
+  it('respects the render cap', () => {
+    expect(nearestCities(ring, [1, 0, 0], 2)).toHaveLength(2)
   })
 })
 

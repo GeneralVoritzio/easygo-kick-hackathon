@@ -74,7 +74,7 @@ export default function StreamPreviewCard({ channel, previewing, onPreviewStart,
           <div className="bg-gradient-to-t from-black/85 via-black/40 to-transparent px-2 pb-1.5 pt-4 leading-tight">
             <div className="truncate text-[12px] font-bold text-kick-text">{channel.name}</div>
             <div className="truncate text-[10px] text-kick-muted">
-              {channel.category} · replies {oddsLabel}
+              {channel.relay ? `${channel.relay.agency} relay` : channel.category} · replies {oddsLabel}
             </div>
           </div>
         </div>

@@ -1,4 +1,4 @@
-import { StrictMode } from 'react'
+import { lazy, StrictMode, Suspense } from 'react'
 import { createRoot } from 'react-dom/client'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import './kick/theme.css'
@@ -16,6 +16,9 @@ import { DropsAllCampaigns } from './kick/pages/DropsAllCampaigns'
 import { CreatorDashboard } from './kick/pages/CreatorDashboard'
 import Demo from './App.tsx'
 
+// three and drei are 600 KB, and only this page needs them.
+const Explore = lazy(() => import('./kick/pages/Explore').then((m) => ({ default: m.Explore })))
+
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <BrowserRouter>
@@ -29,6 +32,14 @@ createRoot(document.getElementById('root')!).render(
           <Route path="/browse" element={<Browse tab="livestreams" />} />
           <Route path="/browse/categories" element={<Browse tab="categories" />} />
           <Route path="/browse/clips" element={<Browse tab="clips" />} />
+          <Route
+            path="/planet"
+            element={
+              <Suspense fallback={null}>
+                <Explore />
+              </Suspense>
+            }
+          />
           <Route path="/following" element={<Following />} />
           <Route path="/following/categories" element={<FollowingCategories />} />
           <Route path="/following/channels" element={<FollowingChannels />} />

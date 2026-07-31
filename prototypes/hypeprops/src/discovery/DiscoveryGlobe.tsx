@@ -1,23 +1,30 @@
 import { Suspense, useEffect, useMemo, useRef, useState } from 'react'
 import * as THREE from 'three'
-import { Canvas, useThree } from '@react-three/fiber'
-import { useFrame } from '@react-three/fiber'
-import { Html, OrbitControls, Stars, useTexture } from '@react-three/drei'
+import { Canvas, useFrame, useThree } from '@react-three/fiber'
+import { Html, OrbitControls, Stars } from '@react-three/drei'
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib'
 import { DISCOVERY_CLUSTERS, DEFAULT_ORIGIN } from '../data/discoveryChannels'
+import { BODIES } from './bodies'
+import { channelsForFocus, clustersForBody } from './bodyView'
+import BodySurface, { Atmosphere } from './BodySurface'
+import BorderLayer from './BorderLayer'
+import CityLabelLayer from './CityLabelLayer'
 import { applyDiscoveryFilters, hasActiveFilters } from './filters'
 import {
   INITIAL_CAMERA_DISTANCE,
   MAX_CAMERA_DISTANCE,
   MIN_CAMERA_DISTANCE,
+  bordersForBand,
+  citiesForView,
   latLngToVector3,
   selectVisiblePoints,
   zoomBandForDistance,
 } from './geo'
+import { useCityPoints } from './geoData'
 import { useDiscovery } from './discoveryStore'
 import LivePointLayer from './LivePointLayer'
 import StreamClusterPopover from './StreamClusterPopover'
-import type { ZoomBand } from './types'
+import type { BodyId, ZoomBand } from './types'
 
 /** representative camera distance per band — hotspot selection only depends on
  * the band, so re-picking points on every scroll tick would be wasted work */
@@ -26,75 +33,44 @@ const BAND_DISTANCE: Record<ZoomBand, number> = { near: 1.5, mid: 2.2, far: 3.4 
 /** the camera idles far out over the default region until geolocation resolves */
 const IDLE_CAMERA_DISTANCE = 3.4
 
-const ATMOSPHERE_VERTEX = /* glsl */ `
-  varying vec3 vNormal;
-  void main() {
-    vNormal = normalize(normalMatrix * normal);
-    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-  }
-`
-const ATMOSPHERE_FRAGMENT = /* glsl */ `
-  varying vec3 vNormal;
-  void main() {
-    float intensity = pow(0.62 - dot(vNormal, vec3(0.0, 0.0, 1.0)), 4.0);
-    gl_FragColor = vec4(0.24, 0.85, 0.18, 1.0) * intensity;
-  }
-`
-
-/** additive fresnel rim — reads as atmosphere against the pure-black backdrop */
-function Atmosphere() {
-  const material = useMemo(
-    () =>
-      new THREE.ShaderMaterial({
-        vertexShader: ATMOSPHERE_VERTEX,
-        fragmentShader: ATMOSPHERE_FRAGMENT,
-        blending: THREE.AdditiveBlending,
-        side: THREE.BackSide,
-        transparent: true,
-        depthWrite: false,
-      }),
-    [],
-  )
-  return (
-    <mesh scale={1.15} material={material}>
-      <sphereGeometry args={[1, 48, 48]} />
-    </mesh>
-  )
-}
-
 /**
- * Owns the camera: restores a saved pose when returning from /stream, flies to
- * the resolved origin on first visit, feeds zoom-band changes upward, and
- * saves the pose on unmount so "继续探索/back" lands exactly where you left.
+ * Owns the camera for one body: restores that body's saved pose, flies to the
+ * resolved origin on Earth's first visit, feeds zoom-band changes upward, and
+ * hands off to the solar-system view when the user keeps zooming out.
  */
 function CameraRig({
+  body,
   onBandChange,
   flyTo,
+  onZoomOutPastCeiling,
 }: {
+  body: BodyId
   onBandChange: (band: ZoomBand) => void
   /** externally requested destination (e.g. "nearest filter match") */
   flyTo: THREE.Vector3 | null
+  onZoomOutPastCeiling: () => void
 }) {
   const controlsRef = useRef<OrbitControlsImpl>(null)
   const camera = useThree((s) => s.camera)
+  const gl = useThree((s) => s.gl)
   const origin = useDiscovery((s) => s.origin)
   const flight = useRef<THREE.Vector3 | null>(null)
 
-  // restore the pose saved on the last unmount (returning from the stream page)
+  // restore this body's own pose (each keeps its own vantage point)
   useEffect(() => {
-    const saved = useDiscovery.getState().savedCamera
+    const saved = useDiscovery.getState().savedCameras[body]
     if (!saved) return
     camera.position.set(...saved.position)
     controlsRef.current?.target.set(...saved.target)
     controlsRef.current?.update()
-  }, [camera])
+  }, [camera, body])
 
-  // first visit only: swing from the idle view down to the resolved origin
+  // Earth's first visit only: swing from the idle view down to the resolved origin
   useEffect(() => {
     const state = useDiscovery.getState()
-    if (!origin || state.introFlown || state.savedCamera) return
+    if (body !== 'earth' || !origin || state.introFlown || state.savedCameras.earth) return
     flight.current = new THREE.Vector3(...latLngToVector3(origin.lat, origin.lng, INITIAL_CAMERA_DISTANCE))
-  }, [origin])
+  }, [origin, body])
 
   useEffect(() => {
     if (flyTo) flight.current = flyTo.clone()
@@ -118,16 +94,97 @@ function CameraRig({
     return () => controls.removeEventListener('start', onUserGrab)
   }, [])
 
-  // save the pose for restore-on-return
+  /**
+   * Two wheel jobs on one listener.
+   *
+   * 1. OrbitControls clamps at maxDistance, so "keep zooming out" can only be
+   *    detected as an *attempt*: a zoom-out tick while already parked at the
+   *    ceiling. Two consecutive ticks are required so a single overshoot from
+   *    normal zooming doesn't launch you into space.
+   *
+   * 2. R3F only raycasts on pointer events, so a wheel-zoom slides the dots
+   *    around underneath a stationary cursor without any hover being
+   *    re-evaluated — you end up parked on a hotspot with nothing showing until
+   *    you jiggle the mouse. Once the zoom settles we replay a pointermove at
+   *    the last known position so hover reflects what's actually under it.
+   */
+  useEffect(() => {
+    const el = gl.domElement
+    let ticksAtCeiling = 0
+    let resetAt: number | null = null
+    let rehoverAt: number | null = null
+    let pointer: { x: number; y: number } | null = null
+
+    const onPointerMove = (e: PointerEvent) => {
+      pointer = { x: e.clientX, y: e.clientY }
+    }
+    const onPointerLeave = () => {
+      pointer = null
+    }
+
+    const rehover = () => {
+      if (!pointer) return
+      const rect = el.getBoundingClientRect()
+      const event = new PointerEvent('pointermove', {
+        clientX: pointer.x,
+        clientY: pointer.y,
+        bubbles: true,
+        pointerType: 'mouse',
+      })
+      // R3F's default `compute` reads offsetX/offsetY, which a constructed
+      // PointerEvent leaves at 0 — without these the replayed ray would be cast
+      // at the canvas's top-left corner instead of under the cursor
+      Object.defineProperty(event, 'offsetX', { value: pointer.x - rect.left })
+      Object.defineProperty(event, 'offsetY', { value: pointer.y - rect.top })
+      el.dispatchEvent(event)
+    }
+
+    const onWheel = (e: WheelEvent) => {
+      // the camera keeps easing after the last tick, so wait for it to settle
+      if (rehoverAt) window.clearTimeout(rehoverAt)
+      rehoverAt = window.setTimeout(rehover, 220)
+
+      if (e.deltaY <= 0) {
+        ticksAtCeiling = 0
+        return
+      }
+      if (camera.position.length() < MAX_CAMERA_DISTANCE - 0.02) {
+        ticksAtCeiling = 0
+        return
+      }
+      ticksAtCeiling++
+      if (resetAt) window.clearTimeout(resetAt)
+      resetAt = window.setTimeout(() => {
+        ticksAtCeiling = 0
+      }, 600)
+      if (ticksAtCeiling >= 2) {
+        ticksAtCeiling = 0
+        onZoomOutPastCeiling()
+      }
+    }
+
+    el.addEventListener('wheel', onWheel, { passive: true })
+    el.addEventListener('pointermove', onPointerMove)
+    el.addEventListener('pointerleave', onPointerLeave)
+    return () => {
+      el.removeEventListener('wheel', onWheel)
+      el.removeEventListener('pointermove', onPointerMove)
+      el.removeEventListener('pointerleave', onPointerLeave)
+      if (resetAt) window.clearTimeout(resetAt)
+      if (rehoverAt) window.clearTimeout(rehoverAt)
+    }
+  }, [gl, camera, onZoomOutPastCeiling])
+
+  // save this body's pose for restore-on-return
   useEffect(
     () => () => {
       const target = controlsRef.current?.target
-      useDiscovery.getState().setSavedCamera({
+      useDiscovery.getState().setSavedCamera(body, {
         position: [camera.position.x, camera.position.y, camera.position.z],
         target: target ? [target.x, target.y, target.z] : [0, 0, 0],
       })
     },
-    [camera],
+    [camera, body],
   )
 
   const lastBand = useRef<ZoomBand | null>(null)
@@ -179,22 +236,26 @@ function CameraRig({
   )
 }
 
-function GlobeScene() {
-  const texture = useTexture('/textures/earth-dark.jpg')
-  const globeRef = useRef<THREE.Mesh>(null)
+function BodyScene({ bodyId }: { bodyId: BodyId }) {
+  const body = BODIES[bodyId]
+  const surfaceRef = useRef<THREE.Mesh>(null)
   const [band, setBand] = useState<ZoomBand>('far')
-  // where the burst popover is pinned: the actual hovered dot (a channel dot
-  // can sit ~1° off its cluster center at near zoom); null → cluster center,
-  // which covers the restore-on-return path where nothing was hovered
-  const [anchorOverride, setAnchorOverride] = useState<[number, number, number] | null>(null)
   const focusedClusterId = useDiscovery((s) => s.focusedClusterId)
+  const focusedAnchor = useDiscovery((s) => s.focusedAnchor)
+  const focusedChannelId = useDiscovery((s) => s.focusedChannelId)
   const filters = useDiscovery((s) => s.filters)
+  const hiddenOverrides = useDiscovery((s) => s.hiddenOverrides)
+  const setViewMode = useDiscovery((s) => s.setViewMode)
 
-  // the globe only ever sees the filtered catalog — hidden channels drop out
-  // of the hotspot layer, the popover and the counts alike
-  const filteredClusters = useMemo(() => applyDiscoveryFilters(DISCOVERY_CLUSTERS, filters), [filters])
+  // the scene only ever sees this body's clusters, then the active filters
+  const bodyClusters = useMemo(
+    () => clustersForBody(DISCOVERY_CLUSTERS, bodyId, hiddenOverrides),
+    [bodyId, hiddenOverrides],
+  )
+  const filteredClusters = useMemo(() => applyDiscoveryFilters(bodyClusters, filters), [bodyClusters, filters])
 
-  // a filter change can empty the cluster whose burst is open — dismiss it
+  // a filter change (or a body change) can empty the cluster whose burst is
+  // open — dismiss it
   useEffect(() => {
     if (focusedClusterId && !filteredClusters.some((c) => c.id === focusedClusterId)) {
       useDiscovery.getState().setFocusedCluster(null)
@@ -224,11 +285,14 @@ function GlobeScene() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filteredClusters])
 
-  // the texture ships very dark — lift it above the black backdrop (>1 channel
-  // values are legal on Color and simply brighten the sampled texel)
-  const globeTint = useMemo(() => new THREE.Color(1.7, 1.75, 1.7), [])
-
   const points = useMemo(() => selectVisiblePoints(filteredClusters, BAND_DISTANCE[band]), [band, filteredClusters])
+
+  // geography is Earth's alone; the city list is fetched only once it's wanted
+  const cityPoints = useCityPoints(body.hasVectorBorders && band === 'near')
+  const cities = useMemo(
+    () => citiesForView(cityPoints, band, body.hasVectorBorders),
+    [cityPoints, band, body.hasVectorBorders],
+  )
 
   // hotspot → popover hover contract: moving between the dot and the card
   // stack gets a 250ms grace window before the popover closes
@@ -253,68 +317,91 @@ function GlobeScene() {
   useEffect(() => cancelClose, [])
 
   const focusedCluster = focusedClusterId ? filteredClusters.find((c) => c.id === focusedClusterId) : undefined
+  // hovering an expanded child dot must show that one stream, not its siblings
+  const focusedChannels = useMemo(
+    () => (focusedCluster ? channelsForFocus(focusedCluster, focusedChannelId) : []),
+    [focusedCluster, focusedChannelId],
+  )
+  // the hovered dot when we have one, otherwise the cluster centre (the
+  // restore-on-return path, where nothing was hovered)
   const popoverAnchor = focusedCluster
-    ? (anchorOverride ?? latLngToVector3(focusedCluster.lat, focusedCluster.lng, 1.02))
+    ? focusedAnchor
+      ? latLngToVector3(focusedAnchor.lat, focusedAnchor.lng, 1.01)
+      : latLngToVector3(focusedCluster.lat, focusedCluster.lng, 1.02)
     : null
 
   return (
     <>
-      <mesh
-        ref={globeRef}
-        // swallow rays so hotspots on the far hemisphere can't be hovered through the planet
-        onPointerOver={(e) => e.stopPropagation()}
-        onPointerMove={(e) => e.stopPropagation()}
-      >
-        <sphereGeometry args={[1, 64, 64]} />
-        <meshBasicMaterial map={texture} color={globeTint} />
-      </mesh>
-
-      <Atmosphere />
+      <BodySurface body={body} meshRef={surfaceRef} />
+      {body.hasVectorBorders && <BorderLayer sets={bordersForBand(band)} />}
+      {cities.length > 0 && <CityLabelLayer candidates={cities} />}
+      {body.atmosphere && <Atmosphere color={body.atmosphere} scale={body.id === 'sun' ? 1.28 : 1.15} />}
       <Stars radius={10} depth={4} count={1600} factor={1.6} saturation={0} fade speed={0.4} />
 
       <LivePointLayer
         points={points}
+        style={body.hotspotStyle}
         onPointOver={(point) => {
           cancelClose()
-          setAnchorOverride(latLngToVector3(point.lat, point.lng, 1.01))
-          useDiscovery.getState().setFocusedCluster(point.clusterId)
+          // a near-zoom dot is one channel; a cluster dot is the whole city
+          useDiscovery
+            .getState()
+            .setFocusedCluster(point.clusterId, point.channelId ?? null, { lat: point.lat, lng: point.lng })
         }}
         onPointOut={scheduleClose}
         onPointClick={(point) => {
           cancelClose()
-          setAnchorOverride(latLngToVector3(point.lat, point.lng, 1.01))
-          useDiscovery.getState().setFocusedCluster(point.clusterId)
+          useDiscovery
+            .getState()
+            .setFocusedCluster(point.clusterId, point.channelId ?? null, { lat: point.lat, lng: point.lng })
         }}
       />
 
       {focusedCluster && popoverAnchor && (
         <Html
           position={popoverAnchor}
-          occlude={[globeRef as React.RefObject<THREE.Object3D>]}
+          occlude={[surfaceRef as React.RefObject<THREE.Object3D>]}
           zIndexRange={[30, 10]}
           style={{ pointerEvents: 'none' }}
         >
-          <StreamClusterPopover cluster={focusedCluster} onPointerStay={cancelClose} onPointerAway={scheduleClose} />
+          <StreamClusterPopover
+            cluster={focusedCluster}
+            channels={focusedChannels}
+            onPointerStay={cancelClose}
+            onPointerAway={scheduleClose}
+          />
         </Html>
       )}
 
-      <CameraRig onBandChange={setBand} flyTo={filterFlyTarget} />
+      <CameraRig
+        body={bodyId}
+        onBandChange={setBand}
+        flyTo={filterFlyTarget}
+        onZoomOutPastCeiling={() => setViewMode('system')}
+      />
     </>
   )
 }
 
-export default function DiscoveryGlobe() {
+export default function DiscoveryGlobe({ bodyId }: { bodyId: BodyId }) {
+  // the camera starts where this body was last left, or out over the default
+  // region for a first visit
   const initialPosition = useMemo<[number, number, number]>(() => {
-    const saved = useDiscovery.getState().savedCamera
+    const saved = useDiscovery.getState().savedCameras[bodyId]
     if (saved) return saved.position
-    return latLngToVector3(DEFAULT_ORIGIN.lat, DEFAULT_ORIGIN.lng, IDLE_CAMERA_DISTANCE)
-  }, [])
+    if (bodyId === 'earth') return latLngToVector3(DEFAULT_ORIGIN.lat, DEFAULT_ORIGIN.lng, IDLE_CAMERA_DISTANCE)
+    // far enough out that the whole body fits the 40° fov — Earth gets flown in
+    // to a specific place, but the other bodies should read as a whole world first
+    return [0, 0.85, 3.05]
+    // deliberately per-body: remounting the canvas for a new body re-reads this
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [bodyId])
 
   return (
     <Canvas camera={{ fov: 40, near: 0.05, far: 30, position: initialPosition }} gl={{ antialias: true }}>
       <color attach="background" args={['#050505']} />
       <Suspense fallback={null}>
-        <GlobeScene />
+        <BodyScene bodyId={bodyId} />
       </Suspense>
     </Canvas>
   )

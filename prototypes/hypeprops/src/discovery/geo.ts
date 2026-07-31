@@ -1,4 +1,4 @@
-import type { DiscoveryCluster, GlobePoint, ZoomBand } from './types'
+import type { CityPoint, DiscoveryCluster, GlobePoint, ZoomBand } from './types'
 
 /** globe mesh radius — everything else (camera limits, point offsets) is relative to it */
 export const GLOBE_RADIUS = 1
@@ -7,7 +7,10 @@ export const GLOBE_RADIUS = 1
  * first screen shows every cluster (~72 hotspots per the discovery plan) */
 export const INITIAL_CAMERA_DISTANCE = 2.2
 export const MIN_CAMERA_DISTANCE = 1.25
-export const MAX_CAMERA_DISTANCE = 4
+/** zoom ceiling. Sized so the whole body still fits a 40° fov (needs > ~2.9)
+ * while keeping the "keep zooming out to leave orbit" gesture within a single
+ * trackpad flick rather than twenty-odd wheel clicks. */
+export const MAX_CAMERA_DISTANCE = 3.4
 
 /** band edges, as camera distance from globe center */
 export const NEAR_BAND_MAX = 1.7
@@ -47,6 +50,60 @@ export function zoomBandForDistance(distance: number): ZoomBand {
   if (distance < NEAR_BAND_MAX) return 'near'
   if (distance < MID_BAND_MAX) return 'mid'
   return 'far'
+}
+
+/** which border datasets to draw at a zoom band — coarse far out, then the fine
+ * outlines, then state/province lines only once you're close enough to read them */
+export function bordersForBand(band: ZoomBand): ('countries-coarse' | 'countries-fine' | 'admin1')[] {
+  if (band === 'far') return ['countries-coarse']
+  if (band === 'mid') return ['countries-fine']
+  return ['countries-fine', 'admin1']
+}
+
+/**
+ * Candidate pool for city labels: the band gate plus a global population cut.
+ * This is only the *shortlist* — `nearestCities` then picks what's actually in
+ * view, so the DOM stays small while regional coverage stays dense.
+ */
+export const CITY_CANDIDATE_CAP = 400
+
+export function citiesForView(
+  cities: CityPoint[],
+  band: ZoomBand,
+  /** false on the Moon, Mars and the Sun — they have no cities to name */
+  hasGeography: boolean,
+  cap = CITY_CANDIDATE_CAP,
+): CityPoint[] {
+  if (!hasGeography || band !== 'near') return []
+  // the dataset is pre-sorted biggest-population-first by build-geo.mjs
+  return cities.slice(0, cap)
+}
+
+/** how many labels are ever in the DOM at once */
+export const CITY_LABEL_CAP = 44
+
+/**
+ * The cities worth labelling for a given view direction: those on the facing
+ * hemisphere, ranked by how centred they are and how big they are. Without
+ * this, a global top-N leaves whole continents with one label on them.
+ * `viewDir` is the camera's direction from the body's centre (unit length).
+ */
+export function nearestCities(
+  cities: CityPoint[],
+  viewDir: [number, number, number],
+  cap = CITY_LABEL_CAP,
+): CityPoint[] {
+  const scored: { city: CityPoint; score: number }[] = []
+  for (const city of cities) {
+    const [x, y, z] = latLngToVector3(city.lat, city.lng, 1)
+    const facing = viewDir[0] * x + viewDir[1] * y + viewDir[2] * z
+    // behind the limb: never a candidate
+    if (facing <= 0.3) continue
+    // centredness dominates; population only breaks ties between neighbours
+    scored.push({ city, score: facing * 4 + Math.log10(Math.max(10, city.pop)) })
+  }
+  scored.sort((a, b) => b.score - a.score)
+  return scored.slice(0, cap).map((s) => s.city)
 }
 
 /**

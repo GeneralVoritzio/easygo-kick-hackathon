@@ -597,6 +597,19 @@ export const channelProfiles: ChannelProfile[] = [
 export const profileFor = (slug: string) =>
   channelProfiles.find((p) => p.channel.slug === slug);
 
+// A channel that streams but has no profile of its own still needs a page, or its slug is a dead
+// end. Everything here comes from the livestream itself.
+export const profileForStream = (stream: Livestream): ChannelProfile => ({
+  channel: stream.channel,
+  banner: stream.thumbnail,
+  bio: stream.session_title,
+  last_live_at: stream.started_at,
+  socials: [],
+  panels: [],
+  videos: [],
+  recent_categories: [stream.category],
+});
+
 export const liveStreamFor = (slug: string) =>
   livestreams.find((s) => s.channel.slug === slug);
 

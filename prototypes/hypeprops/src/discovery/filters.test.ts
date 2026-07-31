@@ -63,8 +63,10 @@ describe('applyDiscoveryFilters', () => {
     const channels = filtered.flatMap((c) => c.channels)
     expect(channels.length).toBeGreaterThan(0)
     expect(channels.every((ch) => ch.language === 'Português')).toBe(true)
-    // Português only exists where it should: Brazil and Portugal clusters
-    expect(filtered.every((c) => c.country === 'Brazil' || c.country === 'Portugal')).toBe(true)
+    // Português only exists where it should: Brazil/Portugal, or the Sun once a
+    // Brazilian streamer hides their location
+    expect(filtered.every((c) => c.country === 'Brazil' || c.country === 'Portugal' || c.body === 'sun')).toBe(true)
+    expect(filtered.some((c) => c.body === 'earth')).toBe(true)
 
     // every channel's language is a known filter option, and English is global
     for (const ch of DISCOVERY_CLUSTERS.flatMap((c) => c.channels)) {

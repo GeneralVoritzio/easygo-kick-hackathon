@@ -4,7 +4,8 @@ import { INTERACTION_BADGES } from '../engine/ack'
 import type { InteractionBadgeKey } from '../engine/ack'
 import { VIEWER_TIERS, hasActiveFilters } from './filters'
 import { useDiscovery } from './discoveryStore'
-import type { ViewerTier } from './types'
+import { BODIES } from './bodies'
+import type { BodyId, ViewerTier } from './types'
 
 type MenuKey = 'category' | 'language' | 'interaction' | 'viewers'
 
@@ -109,7 +110,17 @@ function OptionRow({
  * count chip shows how many channels survive, and everything restores after
  * a round-trip to /stream because the state lives in the discovery store.
  */
-export default function DiscoveryFilterBar({ matchCount }: { matchCount: number }) {
+export default function DiscoveryFilterBar({
+  matchCount,
+  emptyLabel,
+  elsewhere,
+}: {
+  matchCount: number
+  /** what to say when this body has nothing to show */
+  emptyLabel: string
+  /** where the matches actually are, when this body has none */
+  elsewhere: { body: BodyId; count: number } | null
+}) {
   const filters = useDiscovery((s) => s.filters)
   const setFilters = useDiscovery((s) => s.setFilters)
   const resetFilters = useDiscovery((s) => s.resetFilters)
@@ -248,6 +259,28 @@ export default function DiscoveryFilterBar({ matchCount }: { matchCount: number 
         <span className="h-1.5 w-1.5 animate-pulse-fast rounded-full bg-kick" />
         {matchCount.toLocaleString()} live
       </span>
+
+      {/* an empty body is a dead end unless we say where to look next — this is
+          where filtering and interplanetary travel meet */}
+      {matchCount === 0 &&
+        (elsewhere ? (
+          <button
+            type="button"
+            onClick={() => useDiscovery.getState().setActiveBody(elsewhere.body)}
+            className="flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[12px] font-semibold backdrop-blur-sm transition-colors hover:brightness-125"
+            style={{
+              borderColor: `${BODIES[elsewhere.body].accent}66`,
+              color: BODIES[elsewhere.body].accent,
+              backgroundColor: `${BODIES[elsewhere.body].accent}14`,
+            }}
+          >
+            {BODIES[elsewhere.body].name} has {elsewhere.count} →
+          </button>
+        ) : (
+          <span className="rounded-full border border-kick-border bg-kick-panel/90 px-3 py-1.5 text-[12px] text-kick-muted backdrop-blur-sm">
+            {emptyLabel}
+          </span>
+        ))}
 
       {hasActiveFilters(filters) && (
         <button

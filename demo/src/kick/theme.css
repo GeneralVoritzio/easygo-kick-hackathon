@@ -204,6 +204,14 @@
      these two are derived from real display widths, not read. */
   --breakpoint-fhd: 180rem;
   --breakpoint-tv: 240rem;
+
+  --animate-pulse-fast: pulse-fast 0.6s ease-in-out infinite;
+  --animate-slide-up: slide-up 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+  /* "backwards", not "both": once the entrance finishes the element's own hover
+     transforms must win again, and a filled animation would pin scale(1). */
+  --animate-pop: pop 0.3s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+  --animate-warp-out: warp-out 0.55s cubic-bezier(0.16, 1, 0.3, 1) both;
+  --animate-warp-in: warp-in 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 :root {
@@ -343,8 +351,34 @@
   to { transform: translate(-100%) }
 }
 
+@keyframes pulse-fast {
+  0%, 100% { opacity: 1 }
+  50% { opacity: 0.45 }
+}
+
+@keyframes slide-up {
+  from { opacity: 0; transform: translateY(16px) }
+  to { opacity: 1; transform: translateY(0) }
+}
+
+@keyframes pop {
+  from { opacity: 0; transform: scale(0.4) }
+  to { opacity: 1; transform: scale(1) }
+}
+
+@keyframes warp-out {
+  from { opacity: 0; transform: scale(1.18) }
+  to { opacity: 1; transform: scale(1) }
+}
+
+@keyframes warp-in {
+  from { opacity: 0; transform: scale(0.86) }
+  to { opacity: 1; transform: scale(1) }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .animate-leaderboards-marquee { animation: none }
+  .animate-pulse-fast { animation: none }
 }
 
 button:not(:disabled),

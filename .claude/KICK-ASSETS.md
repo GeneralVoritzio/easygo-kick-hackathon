@@ -24,6 +24,8 @@ Nothing is fetched from the network, at build time or at run time.
 | Channel avatars, 16 files | `demo/src/kick/avatars/` | The demo |
 | KICK's 282 design tokens | `.claude/reference/kick-neon-tokens.css` | Read-only ground truth |
 | The page scrape | `demo/kick-reference/` | The demo |
+| Planet textures, 4 files, with `LICENSE.md` | `demo/src/kick/textures/` | The Explore map |
+| Vector geography, 4 JSON files | `demo/public/geo/` | The Explore map |
 
 The icon set grew from 22 to 67 when we scraped kick.com on 26 July 2026, and to 104 as the
 settings, footer, profile menu and dashboard pages each added their own. See
@@ -169,6 +171,35 @@ BG="264653,2a6f97,5f0f40,6a4c93,3d5a80,7f4f24"
 curl -sS -o "demo/src/kick/avatars/<slug>.svg" \
   "https://api.dicebear.com/9.x/pixel-art/svg?seed=<slug>&backgroundColor=$BG"
 ```
+
+## `demo/src/kick/textures/`: planet textures, 4 files
+
+**Not KICK's.** Equirectangular maps for the Explore globe, the Moon, Mars and the Sun. Read
+**29 July 2026**. `LICENSE.md` sits beside them and holds the MIT text.
+
+| File | Source | Licence |
+|---|---|---|
+| `earth-dark.jpg` | `https://unpkg.com/three-globe@2.31.0/example/img/earth-dark.jpg` | MIT, three-globe |
+| `moon.jpg` `mars.jpg` `sun.jpg` | threex.planets example maps (`moonmap1k.jpg`, `marsmap1k.jpg`, `sunmap.jpg`) | MIT, threex.planets |
+
+They resolve through `demo/src/kick/explore/textures.ts`, which throws on a missing file. A
+replacement must also be equirectangular, or the hotspot maths in `explore/geo.ts` puts every dot in
+the wrong place.
+
+## `demo/public/geo/`: vector geography, 4 files
+
+**Not KICK's.** Country borders, admin1 borders and city points for the Explore globe, read
+**29 July 2026**. They stay in `public/`, not in `src/`, because `borders-countries-fine.json` is
+448 KB and the page fetches it only at the near zoom band.
+
+| File | Source | Licence |
+|---|---|---|
+| `borders-countries-coarse.json` `borders-countries-fine.json` | world-atlas `countries-110m` and `countries-50m` TopoJSON | Public domain, Natural Earth derivative |
+| `borders-admin1.json` | Natural Earth `ne_50m_admin_1_states_provinces_lines` | Public domain |
+| `cities.json` | Natural Earth `ne_50m_populated_places_simple` | Public domain |
+
+Each file is the output of `prototypes/hypeprops/scripts/build-geo.mjs`, which simplifies the source
+with Ramer-Douglas-Peucker at 2 decimal places. Run that script to refresh them.
 
 ## `fonts/`
 

@@ -210,7 +210,7 @@ type MessagePool = { chatters: typeof chatters; lines: string[] };
 const streamPool: MessagePool = { chatters, lines: chatLines };
 
 // The event chat inherits its moderators from the host, so only those names carry the badge.
-export function eventPool(moderators: string[]): MessagePool {
+function eventPool(moderators: string[]): MessagePool {
   return {
     chatters: eventChatters.map((chatter) =>
       moderators.includes(chatter.username)

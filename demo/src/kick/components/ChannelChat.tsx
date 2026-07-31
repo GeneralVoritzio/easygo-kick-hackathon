@@ -287,7 +287,10 @@ function ChatModeMenu({ onClose, eventName }: { onClose: () => void; eventName: 
     { mode: "event" as const, label: "Event chat", detail: eventName },
   ];
   return (
-    <div className="absolute left-1/2 top-full z-popover mt-1 w-60 -translate-x-1/2 rounded bg-surface-base p-1 shadow-[0_8px_24px_rgba(0,0,0,0.6)]">
+    <div
+      data-testid="chat-mode-menu"
+      className="absolute left-1/2 top-full z-popover mt-1 w-60 -translate-x-1/2 rounded bg-surface-base p-1 shadow-[0_8px_24px_rgba(0,0,0,0.6)]"
+    >
       {rows.map((row) => (
         <button
           key={row.mode}
@@ -338,6 +341,7 @@ function ChatHeader({
         <div className="z-popover absolute left-1/2 -translate-x-1/2">
           <button
             type="button"
+            data-testid="chat-mode-button"
             onClick={() => setMenuOpen((v) => !v)}
             className="state-layer-surface flex items-center gap-1.5 rounded px-2 py-1 text-sm font-bold text-white lg:text-base"
           >

@@ -475,7 +475,7 @@ function MyEvent({ event }: { event: KickEvent }) {
         {goLiveEventId === event.event_id && (
           <span className="flex w-fit items-center gap-1.5 rounded-full bg-secondary-base px-2 py-1 text-sm font-semibold leading-none text-primary-base">
             <Icon name="event" className="size-3.5 fill-current" />
-            Selected for your next stream
+            Your stream is in this event
           </span>
         )}
       </div>

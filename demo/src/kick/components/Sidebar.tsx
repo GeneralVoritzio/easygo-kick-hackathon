@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { NavLink, Link } from "react-router-dom";
 import { Icon, type KickIconName } from "../Icon";
-import { isInEvent } from "../events/events";
 import { followedChannels, livestreams, formatViewers } from "../mock/api";
 import { eventForChannel, type KickEvent } from "../mock/events";
 import { useEvents } from "../EventsStore";
@@ -55,13 +54,6 @@ function ChannelRow({
           }`}
         >
           <span className="truncate">{username}</span>
-          {live && isInEvent(slug) && (
-            <Icon
-              name="dash-broadcast"
-              title="In the Iron Cup 2026 event"
-              className="size-3 shrink-0 text-primary-base"
-            />
-          )}
         </span>
         {event ? (
           <Link

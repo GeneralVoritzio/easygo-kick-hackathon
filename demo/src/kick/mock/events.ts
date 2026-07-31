@@ -1,4 +1,4 @@
-import { artFor, channelBySlug, liveStreamFor, type Channel } from "./api";
+import { artFor, channelBySlug, liveStreamFor, type Channel, type Livestream } from "./api";
 
 export const EVENTS_NOW = new Date("2026-07-26T13:30:00Z");
 
@@ -97,7 +97,7 @@ export const events: KickEvent[] = [
     slug: "final-showdown",
     title: "Final Showdown",
     description:
-      "Team Alpha against Team Omega, and four channels carry the same arena feed. Chat picks the map every round, and the losing side hands the show to the next seat.",
+      "Team Alpha against Team Omega, and every channel on the running order carries its own angle of the same arena. Chat picks the map every round, and the losing side hands the show to the next seat.",
     host_channel: channelBySlug("couchsenate"),
     start_at: "2026-07-26T12:00:00Z",
     end_at: "2026-07-26T18:00:00Z",
@@ -106,10 +106,16 @@ export const events: KickEvent[] = [
     reminder_count: 18420,
     is_partner_only: true,
     participants: [
-      host("couchsenate", "Opening game and the first map vote"),
-      guest("ironvow", "Seat two, the Alpha side"),
-      guest("charcoalchef", "Seat three, the Omega side"),
-      guest("superdude1337", "Seat four, the closing game"),
+      host("couchsenate", "The desk and the map vote"),
+      guest("ironvow", "Alpha side, first player"),
+      guest("charcoalchef", "Omega side, first player"),
+      guest("capequest", "Alpha side, second player"),
+      guest("cluecrawler", "Omega side, second player"),
+      guest("flickgremlin", "Alpha side, third player"),
+      guest("mudbrickmage", "Omega side, third player"),
+      guest("notadoc", "The medic desk"),
+      guest("wanderfuse", "The crowd cam"),
+      guest("superdude1337", "The closing game"),
       guest("spinvicar", "Standby seat", "pending"),
     ],
     chat: {
@@ -345,6 +351,13 @@ export const invitesFor = (list: KickEvent[], username: string) =>
 
 export const requestsOn = (event: KickEvent) =>
   event.participants.filter((p) => p.invite_status === "requested");
+
+// The seats that are live right now, as livestreams, which is what multiview pins and what the
+// event filter in the search bar offers.
+export const liveSeats = (event: KickEvent): Livestream[] =>
+  eventStreamers(event)
+    .map((p) => liveStreamFor(p.channel.slug))
+    .filter((s): s is Livestream => Boolean(s));
 
 // A channel that hides its own viewer count stays out of the sum, so the total never reveals it.
 export const watchingNow = (event: KickEvent) =>

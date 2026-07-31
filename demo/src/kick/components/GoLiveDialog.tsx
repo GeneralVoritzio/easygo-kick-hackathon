@@ -39,7 +39,7 @@ export function GoLiveDialog({ onClose }: { onClose: () => void }) {
       onClick={(e) => {
         if (e.target === dialogRef.current) onClose();
       }}
-      aria-label="Check your stream info"
+      aria-label="Stream info"
       className="m-auto w-[calc(100vw-32px)] max-w-[520px] rounded-lg bg-surface-base p-0 text-white backdrop:bg-black/75"
     >
       <form
@@ -51,7 +51,7 @@ export function GoLiveDialog({ onClose }: { onClose: () => void }) {
         }}
       >
         <div className="flex items-center justify-between">
-          <h2 className="text-xl font-bold">Check your stream info</h2>
+          <h2 className="text-xl font-bold">Stream info</h2>
           <button
             type="button"
             aria-label="Close"
@@ -100,7 +100,7 @@ export function GoLiveDialog({ onClose }: { onClose: () => void }) {
         {selectable.length > 0 && (
           <div data-testid="golive-event-field">
             <label className={labelClass} htmlFor="golive-event">
-              Event
+              This stream is in
             </label>
             <select
               id="golive-event"
@@ -129,7 +129,7 @@ export function GoLiveDialog({ onClose }: { onClose: () => void }) {
           </button>
           <button type="submit" className={`${buttonClass.primary} h-9`}>
             <Icon name="kick-mark" className="size-4" />
-            Go live
+            Save
           </button>
         </div>
       </form>

@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Icon } from "../Icon";
-import { ironCup, isInEvent } from "../events/events";
 import { Pill } from "./CardBits";
 import { formatFollowers, type Livestream } from "../mock/api";
 import type { KickEvent } from "../mock/events";
@@ -74,15 +73,6 @@ export function ChannelBar({
             </button>
             <Pill>{stream.language}</Pill>
             {stream.is_mature && <Pill>18+</Pill>}
-            {isInEvent(stream.channel.slug) && (
-              <Link
-                to={`/events/${ironCup.slug}`}
-                className="flex items-center gap-1 rounded-full bg-secondary-base px-2 py-1 text-xs leading-none text-secondary-onSecondary betterhover:hover:bg-surface-highest"
-              >
-                <Icon name="dash-broadcast" className="size-3 shrink-0 text-primary-base" />
-                {ironCup.name}
-              </Link>
-            )}
           </div>
         </div>
       </div>

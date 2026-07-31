@@ -1,8 +1,7 @@
 import { Link } from "react-router-dom";
 import { Icon } from "../Icon";
-import { CornerMarks, Pill, PillRow, ThumbBadge } from "./CardBits";
+import { CornerMarks, Pill, ThumbBadge } from "./CardBits";
 import { oneRowGrid } from "./Layout";
-import { streamColumns } from "./StreamCard";
 import { useEvents } from "../EventsStore";
 import { liveStreamFor } from "../mock/api";
 import {
@@ -10,7 +9,6 @@ import {
   formatEventDay,
   formatEventTime,
   isLiveWindow,
-  startsInLabel,
   type EventInviteStatus,
   type EventParticipant,
   type KickEvent,
@@ -72,18 +70,6 @@ export function RemindButton({ event, wide }: { event: KickEvent; wide?: boolean
   );
 }
 
-export function EventTimeRow({ event }: { event: KickEvent }) {
-  return (
-    <div className="flex items-center gap-2 text-sm font-semibold leading-5">
-      <Icon name="event" className="size-4 shrink-0 fill-current" />
-      <span className={isLiveWindow(event) ? "text-primary-base" : "text-white"}>
-        {startsInLabel(event)}
-      </span>
-      <span className="text-subtle">{formatEventDay(event.start_at)}</span>
-    </div>
-  );
-}
-
 export function StreamerRow({ participant }: { participant: EventParticipant }) {
   const { channel, role, slot_title } = participant;
   const live = liveStreamFor(channel.slug);
@@ -125,7 +111,7 @@ function AvatarStack({ participants }: { participants: EventParticipant[] }) {
   return (
     <div
       title={`${participants.length} streamers`}
-      className="absolute bottom-1.5 right-1.5 flex flex-row-reverse items-center"
+      className="flex flex-row-reverse items-center pr-2"
     >
       {participants
         .slice(0, 4)
@@ -142,6 +128,7 @@ function AvatarStack({ participants }: { participants: EventParticipant[] }) {
   );
 }
 
+// A poster is portrait, so the card is a poster with a caption under it, not a stream card.
 export function EventCard({ event }: { event: KickEvent }) {
   const { reminders } = useEvents();
   const streamers = eventStreamers(event);
@@ -149,15 +136,15 @@ export function EventCard({ event }: { event: KickEvent }) {
   const reminded = reminders.includes(event.event_id);
 
   return (
-    <div className="group/card relative flex w-full shrink-0 grow-0 flex-col gap-2 will-change-transform lg:gap-0">
+    <div className="group/card relative flex w-full shrink-0 grow-0 flex-col items-start will-change-transform">
       <Link
         to={`/events/${event.slug}`}
-        className="relative block aspect-video w-full select-none overflow-hidden rounded"
+        className="relative block aspect-[9/16] w-full select-none overflow-hidden rounded-lg"
       >
         <img
-          src={event.category.thumbnail}
+          src={event.poster}
           alt={event.title}
-          className="aspect-video w-full object-cover brightness-110 contrast-[110%]"
+          className="h-full w-full object-cover brightness-110 contrast-[110%]"
         />
         <ThumbBadge
           corner="top-left"
@@ -165,38 +152,49 @@ export function EventCard({ event }: { event: KickEvent }) {
         >
           {live ? "Live now" : formatEventDay(event.start_at)}
         </ThumbBadge>
-        <ThumbBadge corner="bottom-left">{formatEventTime(event.start_at)} UTC</ThumbBadge>
+        {event.visibility === "private" && (
+          <span
+            data-testid="card-private"
+            className="absolute left-1.5 top-9 rounded bg-surface-lowest px-1 text-sm font-semibold leading-5 text-subtle"
+          >
+            Private
+          </span>
+        )}
         {reminded && (
           <span
             data-testid="card-reminder"
             title="Reminder set"
-            className="absolute right-1.5 top-1.5 flex items-center rounded bg-surface-lowest px-1 py-1 text-primary-base"
+            className="absolute right-1.5 top-1.5 flex items-center rounded bg-surface-lowest p-1 text-primary-base"
           >
             <Icon name="heart-filled" className="size-3.5 fill-current" />
           </span>
         )}
-        <AvatarStack participants={streamers} />
+        <div className="absolute inset-x-0 bottom-0 flex items-center justify-between gap-1 bg-gradient-to-t from-surface-lowest to-transparent pb-1.5 pt-8">
+          <span className="shrink-0 pl-2 text-sm font-semibold leading-5 text-white">
+            {formatEventTime(event.start_at)} UTC
+          </span>
+          <AvatarStack participants={streamers} />
+        </div>
       </Link>
 
-      <div className="flex w-full flex-row flex-nowrap gap-2 lg:px-1.5 lg:py-2">
+      <div className="flex w-full min-w-0 flex-row flex-nowrap gap-2 p-1 pt-2 lg:pb-3">
         <Link to={`/${event.host_channel.slug}`} className="shrink-0">
           <img
             src={event.host_channel.avatar}
             alt={event.host_channel.username}
-            className="size-11 shrink-0 rounded-full"
+            className="size-9 shrink-0 rounded-full"
           />
         </Link>
         <div className="flex w-full min-w-0 flex-col items-start">
           <Link
             to={`/events/${event.slug}`}
-            className="max-w-full truncate text-sm font-semibold leading-5 text-white"
+            className="w-full truncate text-base font-semibold leading-6 text-white"
           >
             {event.title}
           </Link>
-          <span className="max-w-full truncate text-base font-normal leading-6 text-surface-onSurfaceSecondary">
-            Hosted by {event.host_channel.username}
+          <span className="max-w-full truncate text-sm font-normal leading-normal text-surface-onSurfaceSecondary">
+            {event.host_channel.username}
           </span>
-          <PillRow pills={[event.category.name]} />
         </div>
       </div>
       <CornerMarks />
@@ -204,11 +202,15 @@ export function EventCard({ event }: { event: KickEvent }) {
   );
 }
 
+// A poster is narrower than a stream thumbnail, so a row holds one more of them.
+export const eventColumns =
+  "h-full grid-cols-2 gap-x-2 sm:grid-cols-3 lg:grid-cols-5 2xl:grid-cols-6 3xl:grid-cols-7 group-data-[sidebar=false]/main:xl:grid-cols-6 group-data-[sidebar=false]/main:2xl:grid-cols-7";
+
 export function EventGrid({ events, oneRow }: { events: KickEvent[]; oneRow?: boolean }) {
   return (
     <section
-      className={`${streamColumns} ${
-        oneRow ? `${oneRowGrid} [&>div]:w-[268px]` : "grid gap-y-5 lg:gap-y-6"
+      className={`${eventColumns} ${
+        oneRow ? `${oneRowGrid} [&>div]:w-[186px]` : "grid gap-y-3 lg:gap-y-6"
       }`}
     >
       {events.map((event) => (

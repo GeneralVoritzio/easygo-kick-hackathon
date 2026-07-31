@@ -47,6 +47,10 @@ const artUrl = (name: string) => art[`../art/${name}.svg`] ?? "";
 
 export const bannerFor = (seed: string) => artUrl(`banner-${seed}`);
 
+// A real event carries artwork the host uploads, which we cannot invent, so an event poster is one
+// of the committed plates. The plate is named in full, so a reader can see which file it is.
+export const posterFor = (plate: string) => artUrl(plate);
+
 const partnerSlugs = new Set([
   "ironvow",
   "couchsenate",

@@ -1,4 +1,4 @@
-import { bannerFor, cat, channelBySlug, type Channel } from "./api";
+import { bannerFor, channelBySlug, posterFor, type Channel } from "./api";
 
 export const EVENTS_NOW = new Date("2026-07-26T13:30:00Z");
 
@@ -22,16 +22,21 @@ export type EventChatSettings = {
   is_followers_only: boolean;
 };
 
+// An event stays private until the host has an answer from everybody they invited. Only a public
+// event reaches a viewer surface.
+export type EventVisibility = "private" | "public";
+
 export type KickEvent = {
   event_id: string;
   slug: string;
   title: string;
   description: string;
   host_channel: Channel;
-  category: { name: string; slug: string; thumbnail: string };
   start_at: string;
   end_at: string;
+  poster: string;
   banner: string;
+  visibility: EventVisibility;
   is_partner_only: boolean;
   participants: EventParticipant[];
   chat: EventChatSettings;
@@ -70,10 +75,11 @@ export const events: KickEvent[] = [
     description:
       "Six hours, four couches, one running order. The Senate takes a motion from chat every hour and the channel that loses the vote hands the show to the next seat.",
     host_channel: channelBySlug("couchsenate"),
-    category: cat("just-chatting"),
     start_at: "2026-07-26T12:00:00Z",
     end_at: "2026-07-26T18:00:00Z",
+    poster: posterFor("cat-just-chatting"),
     banner: bannerFor("couchsenate"),
+    visibility: "public",
     is_partner_only: true,
     participants: [
       host("couchsenate", "Opening address and the first motion"),
@@ -96,10 +102,11 @@ export const events: KickEvent[] = [
     description:
       "Four ironmen, one shared account rule set. Every death passes the relay to the next channel, and the last one standing keeps the pet.",
     host_channel: channelBySlug("ironvow"),
-    category: cat("old-school-runescape"),
     start_at: "2026-07-26T20:00:00Z",
     end_at: "2026-07-26T23:30:00Z",
+    poster: posterFor("cat-old-school-runescape"),
     banner: bannerFor("ironvow"),
+    visibility: "public",
     is_partner_only: true,
     participants: [
       host("ironvow", "Leg one, Tutorial Island to Lumbridge"),
@@ -121,10 +128,11 @@ export const events: KickEvent[] = [
     description:
       "The Den opens at ten and closes when the last table folds. Three channels, one shared leaderboard, and every bonus round called out in the event chat.",
     host_channel: channelBySlug("midnightden"),
-    category: cat("slots-casino"),
     start_at: "2026-07-29T22:00:00Z",
     end_at: "2026-07-30T02:00:00Z",
+    poster: posterFor("cat-gakuen-idolmaster"),
     banner: bannerFor("midnightden"),
+    visibility: "public",
     is_partner_only: true,
     participants: [
       host("midnightden", "Doors open, first table"),
@@ -145,10 +153,11 @@ export const events: KickEvent[] = [
     description:
       "Eight hours of nothing at all, handed from channel to channel every two hours. Whoever wakes up first loses, and chat keeps the score.",
     host_channel: channelBySlug("nocturnalnorm"),
-    category: cat("just-sleeping"),
     start_at: "2026-08-02T01:00:00Z",
     end_at: "2026-08-02T09:00:00Z",
+    poster: posterFor("cat-just-sleeping"),
     banner: bannerFor("midnightden"),
+    visibility: "public",
     is_partner_only: true,
     participants: [
       host("nocturnalnorm", "First watch"),
@@ -169,15 +178,15 @@ export const events: KickEvent[] = [
     description:
       "One recipe, three kitchens, no measuring cups. Chat sends the ingredient list and nobody is allowed to say no.",
     host_channel: channelBySlug("superdude1337"),
-    category: cat("irl"),
     start_at: "2026-08-08T17:00:00Z",
     end_at: "2026-08-08T21:00:00Z",
+    poster: posterFor("cat-irl"),
     banner: bannerFor("charcoalchef"),
+    visibility: "private",
     is_partner_only: true,
     participants: [
       host("superdude1337", "Round one, the ingredient draw"),
       guest("charcoalchef", "Round two, the grill round"),
-      guest("panfriedpaul", "Round three, plating", "pending"),
       guest("notadoc", "Food safety desk", "rejected"),
       guest("spinvicar", "Asked to join", "requested"),
       guest("tiltcabinet", "Asked to join", "requested"),
@@ -196,10 +205,11 @@ export const events: KickEvent[] = [
     description:
       "Three vans, one car park, and six weeks of driving to explain. The roadshow ends where chat voted to end it.",
     host_channel: channelBySlug("wanderfuse"),
-    category: cat("irl"),
     start_at: "2026-09-05T14:00:00Z",
     end_at: "2026-09-05T20:00:00Z",
+    poster: posterFor("cat-grand-theft-auto-v"),
     banner: bannerFor("couchsenate"),
+    visibility: "public",
     is_partner_only: true,
     participants: [
       host("wanderfuse", "Arrival and the van tour"),
@@ -211,6 +221,31 @@ export const events: KickEvent[] = [
       slow_mode_seconds: 5,
       is_subscribers_only: false,
       is_followers_only: true,
+    },
+  },
+  {
+    event_id: "01k9event0007",
+    slug: "grill-school-graduation",
+    title: "Grill School Graduation",
+    description:
+      "Six weeks of grill school end in one cook off. Every channel plates the same brief, and chat marks the results out of ten.",
+    host_channel: channelBySlug("charcoalchef"),
+    start_at: "2026-08-12T18:00:00Z",
+    end_at: "2026-08-12T22:00:00Z",
+    poster: posterFor("cat-music"),
+    banner: bannerFor("charcoalchef"),
+    visibility: "public",
+    is_partner_only: true,
+    participants: [
+      host("charcoalchef", "The brief and the marking sheet"),
+      guest("panfriedpaul", "Second plate"),
+      guest("notadoc", "Health and safety desk"),
+    ],
+    chat: {
+      moderators: ["SpatulaSheriff", "MiseEnPlaceMo"],
+      slow_mode_seconds: 5,
+      is_subscribers_only: false,
+      is_followers_only: false,
     },
   },
 ];
@@ -228,10 +263,7 @@ export const slugInEvent = (event: KickEvent, name: string) => {
 
 export const eventFor = (list: KickEvent[], slug: string) => list.find((e) => e.slug === slug);
 
-export const hostedBy = (list: KickEvent[], username: string) =>
-  list.filter((e) => e.host_channel.username === username);
-
-export const statusIn = (event: KickEvent, username: string) =>
+const statusIn = (event: KickEvent, username: string) =>
   event.participants.find((p) => p.channel.username === username)?.invite_status;
 
 export const invitesFor = (list: KickEvent[], username: string) =>
@@ -255,8 +287,17 @@ export const eventForChannel = (list: KickEvent[], slug: string) =>
 
 export const byStartAt = (a: KickEvent, b: KickEvent) => a.start_at.localeCompare(b.start_at);
 
-export const upcomingEvents = (list: KickEvent[]) =>
-  list.filter((e) => new Date(e.end_at) > EVENTS_NOW).sort(byStartAt);
+// A private event is only visible to the host and to the channels they invited.
+export const publicUpcoming = (list: KickEvent[]) =>
+  list
+    .filter((e) => new Date(e.end_at) > EVENTS_NOW && e.visibility === "public")
+    .sort(byStartAt);
+
+// The host can publish once nobody is left to answer. A decline does not block the event.
+export const waitingOn = (event: KickEvent) =>
+  event.participants.filter(
+    (p) => p.invite_status === "pending" || p.invite_status === "requested",
+  );
 
 const DAY = 86400000;
 

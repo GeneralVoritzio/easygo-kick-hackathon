@@ -11,7 +11,7 @@ import { EventGrid } from "../components/EventBits";
 import { useEvents } from "../EventsStore";
 import { livestreams, categories, formatViewers, streamPills } from "../mock/api";
 import { clips } from "../mock/clips";
-import { upcomingEvents } from "../mock/events";
+import { publicUpcoming } from "../mock/events";
 import { HeroChatFeed } from "../components/ChannelChat";
 
 const heroStreams = livestreams.slice(0, 6);
@@ -238,7 +238,7 @@ export function Home() {
       </Section>
 
       <Section cyan="Events" white="For You" viewAllHref="/browse/events">
-        <EventGrid events={upcomingEvents(events)} oneRow />
+        <EventGrid events={publicUpcoming(events)} oneRow />
       </Section>
 
       <Section cyan="Categories" white="For You" viewAllHref="/browse/categories">

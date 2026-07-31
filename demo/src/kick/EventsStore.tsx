@@ -1,11 +1,10 @@
 import { createContext, useContext, useState } from "react";
-import { cat, channelByUsername, currentUser } from "./mock/api";
+import { channelByUsername, currentUser, posterFor } from "./mock/api";
 import { EVENTS_NOW, events as seedEvents, type KickEvent } from "./mock/events";
 
 export type EventDraft = {
   title: string;
   description: string;
-  category_slug: string;
   start_at: string;
   end_at: string;
 };
@@ -29,6 +28,7 @@ type EventsValue = {
   inviteStreamer: (event_id: string, username: string) => string | null;
   respondToInvite: (event_id: string, status: "accepted" | "rejected") => void;
   answerRequest: (event_id: string, username: string, status: "accepted" | "rejected") => void;
+  publishEvent: (event_id: string) => void;
   selectGoLiveEvent: (event_id: string | null) => void;
 };
 
@@ -78,10 +78,11 @@ export function EventsProvider({ children }: { children: React.ReactNode }) {
       title: draft.title,
       description: draft.description,
       host_channel: currentUser,
-      category: cat(draft.category_slug),
       start_at: draft.start_at,
       end_at: draft.end_at,
+      poster: posterFor("cat-just-chatting"),
       banner: currentUser.banner,
+      visibility: "private",
       is_partner_only: true,
       participants: [
         {
@@ -178,6 +179,10 @@ export function EventsProvider({ children }: { children: React.ReactNode }) {
     ]);
   };
 
+  // fake-kick PATCH /public/v1/events/{event_id}/visibility
+  const publishEvent = (event_id: string) =>
+    patch(event_id, (e) => ({ ...e, visibility: "public" }));
+
   // fake-kick PATCH /public/v1/channels/livestream/event
   const selectGoLiveEvent = (event_id: string | null) => setGoLiveEventId(event_id);
 
@@ -193,6 +198,7 @@ export function EventsProvider({ children }: { children: React.ReactNode }) {
         inviteStreamer,
         respondToInvite,
         answerRequest,
+        publishEvent,
         selectGoLiveEvent,
       }}
     >

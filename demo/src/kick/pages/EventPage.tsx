@@ -2,7 +2,7 @@ import { Link, useParams } from "react-router-dom";
 import { Icon } from "../Icon";
 import { PageShell } from "../components/Layout";
 import { Divider } from "../components/DropBits";
-import { PartnerNotice, RemindButton, StreamerRow } from "../components/EventBits";
+import { JoinButton, PartnerNotice, RemindButton, StreamerRow } from "../components/EventBits";
 import { useEvents } from "../EventsStore";
 import {
   eventFor,
@@ -83,7 +83,10 @@ function EventHero({ event }: { event: KickEvent }) {
             </Link>
           </div>
         </div>
-        <RemindButton event={event} wide />
+        <div className="flex shrink-0 items-start gap-2">
+          <JoinButton event={event} />
+          <RemindButton event={event} wide />
+        </div>
       </div>
     </div>
   );

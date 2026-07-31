@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Icon } from "../Icon";
 import { formatViewers, livestreams, liveStreamFor, type Livestream } from "../mock/api";
+import { useEmbedTarget } from "./EmbedLayer";
 import { embedUrlFor } from "./embeds";
 import { ironCup, isInEvent, MULTIVIEW_CAP } from "./events";
 import { useEvent } from "./EventProvider";
@@ -119,6 +120,7 @@ function Tile({
   const { unpin, liveEmbeds } = useEvent();
   const navigate = useNavigate();
   const embedUrl = liveEmbeds ? embedUrlFor(stream.channel.slug, true) : undefined;
+  const holderRef = useEmbedTarget(embedUrl ? stream.channel.slug : undefined, !selected);
 
   return (
     <button
@@ -131,19 +133,10 @@ function Tile({
         onDrop(index);
       }}
       onClick={() => !selected && navigate(`/${stream.channel.slug}`)}
-      className={`group/tile relative overflow-hidden bg-black text-left ${
-        selected ? "ring-2 ring-inset ring-primary-base" : ""
-      }`}
+      className="group/tile relative overflow-hidden bg-black text-left"
     >
       {embedUrl ? (
-        // pointer-events-none keeps the tile's click and drag, and the tile is
-        // muted in the URL, so the embed is motion only.
-        <iframe
-          src={embedUrl}
-          title={stream.session_title}
-          allow="autoplay; fullscreen"
-          className="pointer-events-none h-full w-full"
-        />
+        <div ref={holderRef} className="h-full w-full bg-black" />
       ) : (
         <img
           src={stream.thumbnail}
@@ -151,7 +144,10 @@ function Tile({
           className="h-full w-full object-cover brightness-110"
         />
       )}
-      <div className="absolute inset-x-0 bottom-0 flex items-center gap-1.5 bg-gradient-to-t from-black/80 to-transparent p-1.5 pt-4">
+      {selected && (
+        <span className="pointer-events-none absolute inset-0 z-[2] ring-2 ring-inset ring-primary-base" />
+      )}
+      <div className="absolute inset-x-0 bottom-0 z-[2] flex items-center gap-1.5 bg-gradient-to-t from-black/80 to-transparent p-1.5 pt-4">
         <span className="min-w-0 truncate text-xs font-bold text-white">
           {stream.channel.username}
         </span>
@@ -170,7 +166,7 @@ function Tile({
           unpin(stream.channel.slug);
         }}
         title="Remove from multiview"
-        className="absolute right-1 top-1 hidden size-6 cursor-pointer items-center justify-center rounded bg-black/70 text-white group-hover/tile:flex"
+        className="absolute right-1 top-1 z-[2] hidden size-6 cursor-pointer items-center justify-center rounded bg-black/70 text-white group-hover/tile:flex"
       >
         <Icon name="close" className="size-3" />
       </span>

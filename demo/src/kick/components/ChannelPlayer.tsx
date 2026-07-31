@@ -1,6 +1,7 @@
 import { useEffect, useState, type PointerEvent as ReactPointerEvent } from "react";
 import { useSearchParams } from "react-router-dom";
 import { Icon } from "../Icon";
+import { useEmbedTarget } from "../events/EmbedLayer";
 import { embedUrlFor } from "../events/embeds";
 import { useEvent } from "../events/EventProvider";
 import type { Livestream } from "../mock/api";
@@ -41,6 +42,7 @@ function liveSeconds(startedAt: string) {
 export function ChannelPlayer({ stream }: { stream: Livestream }) {
   const { openMultiview, liveEmbeds } = useEvent();
   const embedUrl = liveEmbeds ? embedUrlFor(stream.channel.slug, false) : undefined;
+  const embedRef = useEmbedTarget(embedUrl ? stream.channel.slug : undefined, false);
   const [params] = useSearchParams();
   const startAt = Number(params.get("t"));
   const [playing, setPlaying] = useState(true);
@@ -77,19 +79,15 @@ export function ChannelPlayer({ stream }: { stream: Livestream }) {
 
       <div
         id="injected-channel-player"
-        className="group/player z-player relative m-auto aspect-video max-h-full max-w-full bg-black"
+        className={`group/player z-player relative m-auto aspect-video max-h-full max-w-full ${
+          embedUrl ? "" : "bg-black"
+        }`}
       >
       {embedUrl ? (
         <>
-          {/* KICK's own player carries its own controls, so ours stay off and the
-              multiview entry floats over the frame. */}
-          <iframe
-            src={embedUrl}
-            title={stream.session_title}
-            allow="autoplay; fullscreen"
-            allowFullScreen
-            className="h-full w-full"
-          />
+          {/* The z-player container paints above the embed layer, so the video
+              area stays transparent and the frame shows through it. */}
+          <div ref={embedRef} className="h-full w-full" />
           <RaidStage />
           <div className="z-controls absolute right-3 top-3">
             <button

@@ -207,10 +207,22 @@ export function EventCard({ event }: { event: KickEvent }) {
 export const eventColumns =
   "h-full grid-cols-1 gap-x-4 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4 2xl:grid-cols-5 3xl:grid-cols-6 group-data-[sidebar=false]/main:xl:grid-cols-5 group-data-[sidebar=false]/main:2xl:grid-cols-6 group-data-[sidebar=false]/main:3xl:grid-cols-7";
 
-export function EventGrid({ events, oneRow }: { events: KickEvent[]; oneRow?: boolean }) {
+// A narrower column needs fewer columns, because the breakpoints read the viewport and not the box.
+export const eventColumnsNarrow =
+  "h-full grid-cols-1 gap-x-4 sm:grid-cols-2 xl:grid-cols-3 3xl:grid-cols-4";
+
+export function EventGrid({
+  events,
+  oneRow,
+  columns = eventColumns,
+}: {
+  events: KickEvent[];
+  oneRow?: boolean;
+  columns?: string;
+}) {
   return (
     <section
-      className={`${eventColumns} ${
+      className={`${columns} ${
         oneRow ? `${oneRowGrid} [&>div]:w-[268px]` : "grid gap-y-5 lg:gap-y-6"
       }`}
     >

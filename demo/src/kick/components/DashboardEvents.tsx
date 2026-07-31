@@ -9,10 +9,10 @@ import { categories, currentUser } from "../mock/api";
 import {
   byStartAt,
   formatEventWindow,
-  hostedBy,
   invitesFor,
   isLiveWindow,
   startsInLabel,
+  takesPart,
   type KickEvent,
 } from "../mock/events";
 
@@ -190,11 +190,16 @@ function InviteForm({ event }: { event: KickEvent }) {
   );
 }
 
-function HostedEvent({ event }: { event: KickEvent }) {
+function MyEvent({ event }: { event: KickEvent }) {
   const { goLiveEventId } = useEvents();
+  const hosting = event.host_channel.username === currentUser.username;
+  const mySlot = event.participants.find((p) => p.channel.username === currentUser.username);
 
   return (
-    <li className="flex flex-col gap-3 border-b border-outline-decorative px-4 py-4 last:border-b-0">
+    <li
+      data-testid={`my-event-${event.slug}`}
+      className="flex flex-col gap-3 border-b border-outline-decorative px-4 py-4 last:border-b-0"
+    >
       <div className="flex items-start justify-between gap-3">
         <div className="flex min-w-0 flex-col gap-1">
           <Link
@@ -216,12 +221,23 @@ function HostedEvent({ event }: { event: KickEvent }) {
         </span>
       </div>
 
-      {goLiveEventId === event.event_id && (
-        <span className="flex w-fit items-center gap-1.5 rounded-full bg-secondary-base px-2 py-1 text-sm font-semibold leading-none text-primary-base">
+      <div className="flex flex-wrap items-center gap-2">
+        <span className="flex w-fit items-center gap-1.5 rounded-full bg-secondary-base px-2 py-1 text-sm font-semibold leading-none text-white">
           <Icon name="event" className="size-3.5 fill-current" />
-          Selected for your next stream
+          {hosting ? "You host this event" : `You accepted, ${event.host_channel.username} hosts`}
         </span>
-      )}
+        {!hosting && mySlot && (
+          <span className="text-sm font-normal text-surface-onSurfaceSecondary">
+            {mySlot.slot_title}
+          </span>
+        )}
+        {goLiveEventId === event.event_id && (
+          <span className="flex w-fit items-center gap-1.5 rounded-full bg-secondary-base px-2 py-1 text-sm font-semibold leading-none text-primary-base">
+            <Icon name="event" className="size-3.5 fill-current" />
+            Selected for your next stream
+          </span>
+        )}
+      </div>
 
       <ul className="flex flex-col gap-2">
         {event.participants.map((p) => (
@@ -238,7 +254,7 @@ function HostedEvent({ event }: { event: KickEvent }) {
         ))}
       </ul>
 
-      <InviteForm event={event} />
+      {hosting && <InviteForm event={event} />}
     </li>
   );
 }
@@ -289,7 +305,7 @@ function EmptyPane({ message }: { message: string }) {
 
 export function DashboardEvents() {
   const { events } = useEvents();
-  const mine = hostedBy(events, currentUser.username).sort(byStartAt);
+  const mine = events.filter((e) => takesPart(e, currentUser.username)).sort(byStartAt);
   const invites = invitesFor(events, currentUser.username).sort(byStartAt);
 
   return (
@@ -299,11 +315,11 @@ export function DashboardEvents() {
           <Panel title="Your events" icon="event" bigPopout>
             <div className="no-scrollbar h-full min-h-0 w-full overflow-y-auto">
               {mine.length === 0 ? (
-                <EmptyPane message="You host no events yet. Create one on the right." />
+                <EmptyPane message="You are in no events yet. Create one, or accept an invite below." />
               ) : (
                 <ul className="flex flex-col" data-testid="my-events">
                   {mine.map((event) => (
-                    <HostedEvent key={event.event_id} event={event} />
+                    <MyEvent key={event.event_id} event={event} />
                   ))}
                 </ul>
               )}

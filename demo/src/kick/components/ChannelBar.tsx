@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Icon } from "../Icon";
+import { useEvent } from "../events/EventProvider";
 import { Pill } from "./CardBits";
 import { formatFollowers, type Livestream } from "../mock/api";
 import type { KickEvent } from "../mock/events";
@@ -14,6 +15,8 @@ export function ChannelBar({
   showFollowers?: boolean;
   event?: KickEvent;
 }) {
+  const { hypeTiers } = useEvent();
+  const hypeTier = hypeTiers[stream.channel.slug] ?? 0;
   const [following, setFollowing] = useState(false);
   const [subscribed, setSubscribed] = useState(false);
   const { channel } = stream;
@@ -22,7 +25,11 @@ export function ChannelBar({
     <div className="flex w-full min-w-0 max-w-full flex-col justify-between gap-3 pb-3 pt-2 lg:flex-row lg:gap-12 lg:pb-0 lg:pt-0">
       <div className="flex min-w-0 gap-3 lg:gap-4">
         <Link to={`/${channel.slug}/home`} className="relative flex size-12 shrink-0 items-center lg:size-16">
-          <div className="aspect-square w-full overflow-hidden rounded-full border-2 border-green-500 lg:border-4">
+          <div
+            className={`aspect-square w-full overflow-hidden rounded-full border-2 border-green-500 lg:border-4${
+              hypeTier > 0 ? ` hype-shimmer hype-shimmer-round hype-tier-${hypeTier}` : ""
+            }`}
+          >
             <img
               src={channel.avatar}
               alt={channel.username}

@@ -406,6 +406,7 @@
   background: linear-gradient(115deg, transparent 34%, #ff5050 42%, #ffd700 47%, #4be34b 52%, #58b7ff 58%, transparent 66%);
   background-size: 280% 100%;
 }
+.hype-shimmer-round::after { inset: 0; border-radius: 999px }
 @keyframes hype-shimmer {
   from { background-position: 200% 0 }
   to { background-position: -100% 0 }

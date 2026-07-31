@@ -18,6 +18,7 @@ import { EventsProvider } from './kick/EventsStore'
 import { EventProvider } from './kick/events/EventProvider'
 import { RaidProvider } from './kick/raid/RaidProvider'
 import { RaidDialog } from './kick/components/RaidDialog'
+import { EventPage } from './kick/pages/EventPage'
 import Demo from './App.tsx'
 
 createRoot(document.getElementById('root')!).render(
@@ -44,6 +45,7 @@ createRoot(document.getElementById('root')!).render(
             <Route path="/drops/all-campaigns" element={<DropsAllCampaigns />} />
             <Route path="/settings/profile" element={<SettingsProfile />} />
             <Route path="/settings/preferences" element={<SettingsPreferences />} />
+            <Route path="/events/:slug" element={<EventPage />} />
             <Route path="/:slug" element={<Channel tab="home" watch />} />
             <Route path="/:slug/home" element={<Channel tab="home" />} />
             <Route path="/:slug/about" element={<Channel tab="about" />} />

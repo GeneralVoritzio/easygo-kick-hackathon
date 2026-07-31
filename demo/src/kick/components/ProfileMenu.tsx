@@ -16,7 +16,7 @@ type Row = {
 const accountRows: Row[] = [
   { label: "Creator dashboard", icon: "dash-revenue", to: "/dashboard/stream" },
   { label: "Subscriptions", icon: "subscriptions" },
-  { label: "Drops & rewards", icon: "dash-drops" },
+  { label: "Drops & rewards", icon: "dash-drops", to: "/drops/inventory" },
   { label: "Collectibles", icon: "collectibles", iconClass: "size-5 shrink-0" },
 ];
 

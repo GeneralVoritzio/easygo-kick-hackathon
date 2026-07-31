@@ -313,3 +313,42 @@ a white shield with concentric outlines, 540 by 546. The verbatim SVG is kept at
 
 **Licence:** the medals are ours, no attribution needed. The identity badge is KICK's, used to
 copy their product surface, as with the wordmark and the icon set.
+
+## Drops icons, read from the live markup
+
+Read from `kick.com/drops/inventory` and `kick.com/drops/all-campaigns` on 30 July 2026, logged in.
+They are KICK's own icons, taken from the page, not drawn by us. All are 32 by 32.
+
+| Name in `icons.ts` | Where it sits on kick.com |
+|---|---|
+| `chevron-down` | the accordion trigger on every drops card |
+| `drop-watch` | the eye in the `Watch to redeem` pill |
+| `drop-info` | `About this drop`, and the `How to earn & redeem?` heading |
+| `drop-connect` | `Connect`. An arrow out of a box, and it is **not** `dash-external` |
+| `drop-participate` | `Participate`. A filled screen with a play head, and it is **not** `browse-32` |
+
+KICK uses two info circles on these pages, and they are not the same path. The `About this drop`
+button takes the existing `dash-info`. `drop-info` holds the thinner circle from the
+`How to earn & redeem?` heading. Do not swap them.
+
+## Drops reward plates, ours
+
+`demo/src/kick/art/reward-*.svg`, 240 by 240, eight files. Drawn by us, in the same graded and
+vignetted style as the category tiles.
+
+**KICK's own reward artwork is licensed third party work, so we do not commit it.** A real campaign
+plate is a game publisher's asset (a raffle ticket, a club jersey, a game badge). Ours stand in for
+that slot and read as item art, which is what the slot holds.
+
+| File | Reads as |
+|---|---|
+| `reward-vault-key` | a stamped key on gunmetal |
+| `reward-powder-crate` | a supply crate |
+| `reward-trawl-badge` | a crested badge |
+| `reward-rune-pickaxe` | a pickaxe |
+| `reward-golden-spin` | a spin token |
+| `reward-raffle-ticket` | a torn raffle ticket |
+| `reward-emote-pack` | an emote plate |
+| `reward-club-jersey` | a numbered jersey |
+
+Licence: ours. No attribution needed, and nothing loads from the network.

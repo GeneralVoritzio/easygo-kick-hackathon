@@ -76,7 +76,7 @@ export const categories: Category[] = [
   { name: "VR Chat", slug: "vr-chat", viewers: 6644, thumbnail: artUrl("cat-vr-chat"), tags: ["Simulator", "Casual"] },
 ];
 
-const cat = (slug: string) => {
+export const cat = (slug: string) => {
   const c = categories.find((x) => x.slug === slug) ?? categories[0];
   return { name: c.name, slug: c.slug, thumbnail: c.thumbnail };
 };

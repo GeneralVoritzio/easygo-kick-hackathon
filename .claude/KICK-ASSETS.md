@@ -120,6 +120,25 @@ a badge, but it is not the badge KICK shows.
 194 KB. It is stock artwork, not chrome, so the same rule that keeps the campaign plates out keeps
 it out. The clone shows KICK's own offline card on black instead.
 
+**Three icons in this folder are ours, drawn 31 July 2026 for the events feature.** KICK has none of
+them, so each one is drawn on KICK's 32 grid with a solid fill and `fill="currentColor"`.
+
+| File | What it is | Where it is used |
+|---|---|---|
+| `calendar.svg` | A calendar: two tabs, a solid top bar, a frame and five day squares | The Calendar button on the browse events tab, and that dialog header |
+| `event.svg` | A ticket: a block with a notch on each side | The dashboard Events nav item, the sidebar event chip, the stream title chip, the event chat switch |
+| `plus.svg` | A plus, inset to 3 and 29 so it matches the weight of the set | Create event, and Invite streamer |
+
+`event.svg` is a ticket and not a marker on a rule. A diamond or a pin collapses at 14px, which is
+the size the chips use, and a pin already means a place.
+
+**Do not present these three as KICK's.** They join `pause` and `timeline` as our own drawings.
+
+`demo/src/kick/icons.ts` is generated from this folder by
+`.claude/skills/kick-page-clone/scripts/build-icons.mjs`. Seven entries once lived in the generated
+file with no SVG behind them (`hero-mute`, `hide-chat`, `chevron-down` and the four `drop-*`), so the
+generator deleted them. They are now files, like everything else. **Never hand edit `icons.ts`.**
+
 ### `brand/devices/`: the edge bar
 
 | File | Size |

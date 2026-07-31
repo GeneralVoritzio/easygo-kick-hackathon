@@ -32,8 +32,7 @@ function Tile({
   useAudibleEmbed(embedUrl && selected ? stream.channel.slug : undefined);
 
   return (
-    <button
-      type="button"
+    <div
       draggable
       onDragStart={() => onDragStart(index)}
       onDragOver={(e) => e.preventDefault()}
@@ -41,8 +40,7 @@ function Tile({
         e.preventDefault();
         onDrop(index);
       }}
-      onClick={() => !selected && navigate(`/${stream.channel.slug}`)}
-      className="group/tile relative overflow-hidden bg-black text-left"
+      className="group/tile relative overflow-hidden bg-black"
     >
       {embedUrl ? (
         <div ref={holderRef} className="h-full w-full bg-black" />
@@ -69,17 +67,31 @@ function Tile({
           className="size-3.5 shrink-0 fill-white"
         />
       </div>
-      <span
-        onClick={(e) => {
-          e.stopPropagation();
-          unpin(stream.channel.slug);
-        }}
-        title="Remove from multiview"
-        className="absolute right-1 top-1 z-[2] hidden size-6 cursor-pointer items-center justify-center rounded bg-black/70 text-white group-hover/tile:flex"
-      >
-        <Icon name="close" className="size-3" />
-      </span>
-    </button>
+      {/* The switch lives behind an explicit button, so a stray click on the
+          tile never moves the main stream. */}
+      {!selected && (
+        <div className="absolute inset-0 z-[2] flex items-center justify-center gap-2 opacity-0 transition-opacity duration-150 group-hover/tile:opacity-100">
+          <button
+            type="button"
+            aria-label={`Watch ${stream.channel.username}`}
+            title={`Watch ${stream.channel.username}`}
+            onClick={() => navigate(`/${stream.channel.slug}`)}
+            className="flex size-9 items-center justify-center rounded-full bg-black/60 text-white/80 betterhover:hover:bg-black/85 betterhover:hover:text-white [&_svg]:fill-current"
+          >
+            <Icon name="play" className="size-4" />
+          </button>
+          <button
+            type="button"
+            aria-label="Remove from multiview"
+            title="Remove from multiview"
+            onClick={() => unpin(stream.channel.slug)}
+            className="flex size-9 items-center justify-center rounded-full bg-black/60 text-white/80 betterhover:hover:bg-black/85 betterhover:hover:text-white"
+          >
+            <Icon name="close" className="size-3.5" />
+          </button>
+        </div>
+      )}
+    </div>
   );
 }
 

@@ -1,7 +1,6 @@
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { Icon } from "../Icon";
 import { EventCard } from "./EventBits";
-import { useEvents } from "../EventsStore";
 import { byStartAt, EVENTS_NOW, type KickEvent } from "../mock/events";
 
 const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
@@ -28,22 +27,9 @@ const dayKey = (d: Date) => d.toISOString().slice(0, 10);
 const runsOn = (event: KickEvent, key: string) =>
   event.start_at.slice(0, 10) === key || event.end_at.slice(0, 10) === key;
 
-export function EventCalendar({ onClose }: { onClose: () => void }) {
-  const { events } = useEvents();
-  const dialogRef = useRef<HTMLDialogElement>(null);
+export function EventCalendar({ events }: { events: KickEvent[] }) {
   const [cursor, setCursor] = useState(() => startOfMonth(EVENTS_NOW));
   const [selected, setSelected] = useState(() => dayKey(EVENTS_NOW));
-
-  useEffect(() => {
-    const dialog = dialogRef.current;
-    if (!dialog) return;
-    if (!dialog.open) dialog.showModal();
-    const closeOnEscape = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
-    };
-    document.addEventListener("keydown", closeOnEscape);
-    return () => document.removeEventListener("keydown", closeOnEscape);
-  }, [onClose]);
 
   const shiftMonth = (delta: number) =>
     setCursor((c) => new Date(Date.UTC(c.getUTCFullYear(), c.getUTCMonth() + delta, 1)));
@@ -56,30 +42,8 @@ export function EventCalendar({ onClose }: { onClose: () => void }) {
   const selectedEvents = events.filter((e) => runsOn(e, selected)).sort(byStartAt);
 
   return (
-    <dialog
-      ref={dialogRef}
-      onClick={(e) => {
-        if (e.target === dialogRef.current) onClose();
-      }}
-      aria-label="Events calendar"
-      className="m-auto w-[calc(100vw-32px)] max-w-[720px] rounded-lg bg-surface-base p-0 text-white backdrop:bg-black/75"
-    >
-      <div className="flex flex-col gap-4 p-4 lg:p-6">
-        <div className="flex items-center justify-between">
-          <h2 className="flex items-center gap-2 text-base font-bold lg:text-xl">
-            <Icon name="calendar" className="size-5 shrink-0 fill-current" />
-            All events
-          </h2>
-          <button
-            type="button"
-            aria-label="Close"
-            onClick={onClose}
-            className="flex size-9 items-center justify-center rounded text-white state-layer-surface [&_svg]:size-4 [&_svg]:fill-current"
-          >
-            <Icon name="close" />
-          </button>
-        </div>
-
+    <div className="flex w-full flex-col gap-5 lg:flex-row lg:gap-8">
+      <div className="flex w-full flex-col gap-4 lg:max-w-[560px]">
         <div className="flex items-center justify-between">
           <button
             type="button"
@@ -152,25 +116,26 @@ export function EventCalendar({ onClose }: { onClose: () => void }) {
           })}
         </div>
 
-        <div className="flex flex-col gap-3">
-          <h3 className="text-sm font-semibold text-subtle">
-            {dayFormat.format(new Date(`${selected}T00:00:00Z`))}
-          </h3>
-          {selectedEvents.length === 0 ? (
-            <p className="text-sm font-normal text-surface-onSurfaceSecondary">
-              No events on this day.
-            </p>
-          ) : (
-            <ul className="flex flex-col gap-4 sm:flex-row" data-testid="calendar-day-events">
-              {selectedEvents.map((event) => (
-                <li key={event.event_id} className="w-full sm:w-[268px]">
-                  <EventCard event={event} />
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
       </div>
-    </dialog>
+
+      <div className="flex min-w-0 grow flex-col gap-3">
+        <h3 className="text-base font-bold leading-[1.2] text-white lg:text-xl">
+          {dayFormat.format(new Date(`${selected}T00:00:00Z`))}
+        </h3>
+        {selectedEvents.length === 0 ? (
+          <p className="text-sm font-normal text-surface-onSurfaceSecondary">
+            No events on this day.
+          </p>
+        ) : (
+          <ul className="flex flex-row flex-wrap gap-4" data-testid="calendar-day-events">
+            {selectedEvents.map((event) => (
+              <li key={event.event_id} className="w-[186px]">
+                <EventCard event={event} />
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+    </div>
   );
 }

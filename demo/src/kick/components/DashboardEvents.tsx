@@ -5,7 +5,7 @@ import { Pane, Panel } from "./DashboardPanel";
 import { buttonClass, inputClass, labelClass } from "./FormBits";
 import { InviteStatusPill, PartnerNotice } from "./EventBits";
 import { useEvents, type EventNotification } from "../EventsStore";
-import { categories, currentUser } from "../mock/api";
+import { currentUser } from "../mock/api";
 import {
   byStartAt,
   formatEventWindow,
@@ -13,6 +13,7 @@ import {
   requestsOn,
   isLiveWindow,
   startsInLabel,
+  waitingOn,
   takesPart,
   type KickEvent,
 } from "../mock/events";
@@ -20,7 +21,6 @@ import {
 const blankDraft = {
   title: "",
   description: "",
-  category_slug: categories[0].slug,
   startsAt: "2026-08-15T18:00",
   endsAt: "2026-08-15T22:00",
 };
@@ -45,7 +45,6 @@ function CreateEventForm() {
           createEvent({
             title: draft.title,
             description: draft.description,
-            category_slug: draft.category_slug,
             start_at: asUtc(draft.startsAt),
             end_at: asUtc(draft.endsAt),
           }),
@@ -81,24 +80,6 @@ function CreateEventForm() {
           placeholder="Four channels, one running order."
           className={inputClass}
         />
-      </div>
-
-      <div>
-        <label className={labelClass} htmlFor="event-category">
-          Category
-        </label>
-        <select
-          id="event-category"
-          value={draft.category_slug}
-          onChange={(e) => set("category_slug")(e.target.value)}
-          className={inputClass}
-        >
-          {categories.map((c) => (
-            <option key={c.slug} value={c.slug}>
-              {c.name}
-            </option>
-          ))}
-        </select>
       </div>
 
       <div className="flex gap-3">
@@ -137,11 +118,7 @@ function CreateEventForm() {
 
       {created && (
         <p data-testid="create-result" className="text-sm font-normal text-primary-base">
-          {created.title} is live on{" "}
-          <Link to={`/events/${created.slug}`} className="underline">
-            its event page
-          </Link>
-          . Invite the streamers below.
+          {created.title} is private. Invite your streamers on the left, then switch it to public.
         </p>
       )}
     </form>
@@ -188,6 +165,44 @@ function InviteForm({ event }: { event: KickEvent }) {
         </p>
       )}
     </form>
+  );
+}
+
+function PublishRow({ event }: { event: KickEvent }) {
+  const { publishEvent } = useEvents();
+  const waiting = waitingOn(event);
+
+  if (event.visibility === "public") {
+    return (
+      <span className="flex w-fit items-center gap-1.5 rounded-full bg-secondary-base px-2 py-1 text-sm font-semibold leading-none text-primary-base">
+        <Icon name="event" className="size-3.5 fill-current" />
+        Public
+      </span>
+    );
+  }
+
+  return (
+    <div className="flex flex-wrap items-center gap-2">
+      <span className="flex w-fit items-center gap-1.5 rounded-full bg-secondary-base px-2 py-1 text-sm font-semibold leading-none text-white">
+        <Icon name="event" className="size-3.5 fill-current" />
+        Private
+      </span>
+      <button
+        type="button"
+        disabled={waiting.length > 0}
+        data-testid={`publish-${event.slug}`}
+        onClick={() => publishEvent(event.event_id)}
+        className={`${buttonClass.primary} h-8`}
+      >
+        Switch to public
+      </button>
+      {waiting.length > 0 && (
+        <span data-testid="publish-blocked" className="text-sm font-normal text-subtle">
+          {waiting.length} {waiting.length === 1 ? "streamer has" : "streamers have"} not answered
+          yet.
+        </span>
+      )}
+    </div>
   );
 }
 
@@ -240,6 +255,8 @@ function MyEvent({ event }: { event: KickEvent }) {
           </span>
         )}
       </div>
+
+      {hosting && <PublishRow event={event} />}
 
       <ul className="flex flex-col gap-2">
         {event.participants.map((p) => (

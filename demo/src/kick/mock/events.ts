@@ -229,9 +229,6 @@ export const statusIn = (event: KickEvent, username: string) =>
 export const invitesFor = (list: KickEvent[], username: string) =>
   list.filter((e) => statusIn(e, username) === "pending");
 
-export const requestsFor = (list: KickEvent[], username: string) =>
-  list.filter((e) => statusIn(e, username) === "requested");
-
 export const requestsOn = (event: KickEvent) =>
   event.participants.filter((p) => p.invite_status === "requested");
 

@@ -263,8 +263,6 @@ export function CreatorDashboard() {
   const { section } = useParams();
   const [menuOpen, setMenuOpen] = useState(false);
   const [goLiveOpen, setGoLiveOpen] = useState(false);
-  const { notifications } = useEvents();
-  const unread = notifications.filter((n) => !n.is_read).length;
   const active = `/dashboard/${section ?? "stream"}`;
 
   return (
@@ -312,14 +310,6 @@ export function CreatorDashboard() {
                 <>
                   <Icon name={item.icon} className="size-4 shrink-0" />
                   <span className="grow text-left">{item.label}</span>
-                  {item.to === eventsItem && unread > 0 && (
-                    <span
-                      data-testid="events-nav-badge"
-                      className="flex size-5 shrink-0 items-center justify-center rounded-full bg-primary-base text-xs font-bold text-primary-onPrimary"
-                    >
-                      {unread}
-                    </span>
-                  )}
                   {item.expandable && <Icon name="chevron-right" className="size-3 shrink-0 rotate-90" />}
                 </>
               );

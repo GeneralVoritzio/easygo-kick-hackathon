@@ -4,7 +4,6 @@ import { Icon } from "../Icon";
 import { formatViewers, liveStreamFor, type Livestream } from "../mock/api";
 import { useAudibleEmbed, useEmbedTarget } from "./EmbedLayer";
 import { embedUrlFor } from "./embeds";
-import { MULTIVIEW_CAP } from "./events";
 import { useEvent } from "./EventProvider";
 
 function gridCols(count: number) {
@@ -85,7 +84,7 @@ function Tile({
 }
 
 export function MultiviewGrid({ stream }: { stream: Livestream }) {
-  const { multiview, closeMultiview, reorder, liveEmbeds, setLiveEmbeds } = useEvent();
+  const { multiview, closeMultiview, reorder } = useEvent();
   const navigate = useNavigate();
   const dragFrom = useRef<number | null>(null);
   const currentSlug = stream.channel.slug;
@@ -128,31 +127,14 @@ export function MultiviewGrid({ stream }: { stream: Livestream }) {
           />
         ))}
       </div>
-      <div className="flex items-center justify-between bg-black/80 px-2 py-1.5">
-        <span className="text-xs text-surface-onSurfaceSecondary">
-          Pin streams from the search bar up top. Click one to watch it. Arrow keys move left
-          and right. Drag tiles to re-order.
-        </span>
-        <div className="flex shrink-0 items-center gap-2">
-          <span className="text-xs font-semibold tabular-nums text-surface-onSurfaceSecondary">
-            {multiview.slots.length} of {MULTIVIEW_CAP}
-          </span>
-          <button
-            type="button"
-            onClick={() => setLiveEmbeds(!liveEmbeds)}
-            className="h-7 rounded bg-secondary-base px-2 text-xs font-semibold text-secondary-onSecondary"
-          >
-            Live embeds {liveEmbeds ? "on" : "off"}
-          </button>
-          <button
-            type="button"
-            onClick={closeMultiview}
-            className="h-7 rounded bg-secondary-base px-2 text-xs font-semibold text-secondary-onSecondary"
-          >
-            Close multiview
-          </button>
-        </div>
-      </div>
+      <button
+        type="button"
+        aria-label="Close multiview"
+        onClick={closeMultiview}
+        className="absolute right-2 top-2 z-[2] flex size-8 items-center justify-center rounded bg-black/70 text-white betterhover:hover:bg-surface-highest"
+      >
+        <Icon name="close" className="size-3.5" />
+      </button>
     </div>
   );
 }

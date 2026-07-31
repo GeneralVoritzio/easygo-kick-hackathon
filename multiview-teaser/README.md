@@ -22,4 +22,6 @@ npx remotion render Teaser out/teaser.mp4
 - `public/fonts/kindness/` is a copy of `~/Downloads/kindness-font/` (Befonts), licence
   file included. The licence is personal use only, so a public or judged cut needs a
   cleared licence or a different face.
+- `public/fonts/cs-moza/` is a copy of `~/Downloads/cs-moza-font/` (Befonts demo cut),
+  licence file included. Personal use only, same caveat as Kindness.
 - The tempo is measured, not assumed: 91.94 bpm, first beat at 0.0 s, so four beats end at frame 63 at 24 fps.

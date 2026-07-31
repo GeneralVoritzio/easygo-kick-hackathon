@@ -30,12 +30,13 @@ function Title() {
     <AbsoluteFill style={{ alignItems: "center", justifyContent: "center" }}>
       <span
         style={{
-          fontFamily: "Kindness, sans-serif",
-          fontSize: 700,
+          fontFamily: "CSMoza, sans-serif",
+          fontSize: 490,
           lineHeight: 0.72,
+          letterSpacing: "-0.02em",
           color: "#ffffff",
           whiteSpace: "nowrap",
-          transform: "translateY(64px)",
+          transform: "translateY(40px) scaleY(1.42)",
         }}
       >
         FOMO

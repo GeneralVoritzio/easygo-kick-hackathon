@@ -7,6 +7,7 @@ export function ensureFonts() {
   return Promise.all([
     loadFont({ family: "KickFont", url: staticFile("fonts/kick-font/kick-font.ttf") }),
     loadFont({ family: "Kindness", url: staticFile("fonts/kindness/kindness.ttf") }),
+    loadFont({ family: "CSMoza", url: staticFile("fonts/cs-moza/cs-moza.otf") }),
     loadFont({
       family: "Archivo",
       url: staticFile("fonts/archivo/archivo-variable-latin.woff2"),

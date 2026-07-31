@@ -22,6 +22,8 @@ type EventContextValue = {
   multiview: Multiview;
   chatMode: ChatMode;
   setChatMode: (mode: ChatMode) => void;
+  liveEmbeds: boolean;
+  setLiveEmbeds: (on: boolean) => void;
   openMultiview: (slug: string) => void;
   closeMultiview: () => void;
   pin: (slug: string) => void;
@@ -77,10 +79,17 @@ export function EventProvider({ children }: { children: ReactNode }) {
     slots: storedSlots(),
   }));
   const [chatMode, setChatMode] = useState<ChatMode>("stream");
+  const [liveEmbeds, setLiveEmbeds] = useState(
+    () => localStorage.getItem("multiview-live-embeds") !== "0",
+  );
 
   useEffect(() => {
     localStorage.setItem(SLOTS_KEY, JSON.stringify(multiview.slots));
   }, [multiview.slots]);
+
+  useEffect(() => {
+    localStorage.setItem("multiview-live-embeds", liveEmbeds ? "1" : "0");
+  }, [liveEmbeds]);
   const [guard, setGuard] = useState<Guard | null>(null);
   const location = useLocation();
   const navigate = useNavigate();
@@ -111,6 +120,8 @@ export function EventProvider({ children }: { children: ReactNode }) {
       multiview,
       chatMode,
       setChatMode,
+      liveEmbeds,
+      setLiveEmbeds,
       openMultiview: (slug) =>
         setMultiview((m) => ({
           active: true,
@@ -132,7 +143,7 @@ export function EventProvider({ children }: { children: ReactNode }) {
           return { ...m, slots };
         }),
     }),
-    [multiview, chatMode],
+    [multiview, chatMode, liveEmbeds],
   );
 
   function addAndWatch(slug: string) {

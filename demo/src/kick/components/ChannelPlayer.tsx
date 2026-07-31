@@ -1,6 +1,7 @@
 import { useEffect, useState, type PointerEvent as ReactPointerEvent } from "react";
 import { useSearchParams } from "react-router-dom";
 import { Icon } from "../Icon";
+import { embedUrlFor } from "../events/embeds";
 import { useEvent } from "../events/EventProvider";
 import type { Livestream } from "../mock/api";
 import { RaidStage } from "./RaidStage";
@@ -38,7 +39,8 @@ function liveSeconds(startedAt: string) {
 }
 
 export function ChannelPlayer({ stream }: { stream: Livestream }) {
-  const { openMultiview } = useEvent();
+  const { openMultiview, liveEmbeds } = useEvent();
+  const embedUrl = liveEmbeds ? embedUrlFor(stream.channel.slug, false) : undefined;
   const [params] = useSearchParams();
   const startAt = Number(params.get("t"));
   const [playing, setPlaying] = useState(true);
@@ -77,6 +79,31 @@ export function ChannelPlayer({ stream }: { stream: Livestream }) {
         id="injected-channel-player"
         className="group/player z-player relative m-auto aspect-video max-h-full max-w-full bg-black"
       >
+      {embedUrl ? (
+        <>
+          {/* KICK's own player carries its own controls, so ours stay off and the
+              multiview entry floats over the frame. */}
+          <iframe
+            src={embedUrl}
+            title={stream.session_title}
+            allow="autoplay; fullscreen"
+            allowFullScreen
+            className="h-full w-full"
+          />
+          <RaidStage />
+          <div className="z-controls absolute right-3 top-3">
+            <button
+              type="button"
+              onClick={() => openMultiview(stream.channel.slug)}
+              className="flex items-center gap-1.5 rounded bg-surface-base/90 px-3 py-2 text-sm font-semibold text-white betterhover:hover:bg-surface-highest"
+            >
+              <Icon name="browse" className="size-4 fill-current" />
+              Multiview
+            </button>
+          </div>
+        </>
+      ) : (
+      <>
       <img
         src={stream.thumbnail}
         alt={stream.session_title}
@@ -201,6 +228,8 @@ export function ChannelPlayer({ stream }: { stream: Livestream }) {
           </div>
         </div>
       </div>
+      </>
+      )}
       </div>
     </div>
   );

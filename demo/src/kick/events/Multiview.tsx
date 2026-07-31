@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Icon } from "../Icon";
 import { formatViewers, livestreams, liveStreamFor, type Livestream } from "../mock/api";
+import { embedUrlFor } from "./embeds";
 import { ironCup, isInEvent, MULTIVIEW_CAP } from "./events";
 import { useEvent } from "./EventProvider";
 
@@ -115,8 +116,9 @@ function Tile({
   onDragStart: (index: number) => void;
   onDrop: (index: number) => void;
 }) {
-  const { unpin } = useEvent();
+  const { unpin, liveEmbeds } = useEvent();
   const navigate = useNavigate();
+  const embedUrl = liveEmbeds ? embedUrlFor(stream.channel.slug, true) : undefined;
 
   return (
     <button
@@ -133,11 +135,22 @@ function Tile({
         selected ? "ring-2 ring-inset ring-primary-base" : ""
       }`}
     >
-      <img
-        src={stream.thumbnail}
-        alt={stream.session_title}
-        className="h-full w-full object-cover brightness-110"
-      />
+      {embedUrl ? (
+        // pointer-events-none keeps the tile's click and drag, and the tile is
+        // muted in the URL, so the embed is motion only.
+        <iframe
+          src={embedUrl}
+          title={stream.session_title}
+          allow="autoplay; fullscreen"
+          className="pointer-events-none h-full w-full"
+        />
+      ) : (
+        <img
+          src={stream.thumbnail}
+          alt={stream.session_title}
+          className="h-full w-full object-cover brightness-110"
+        />
+      )}
       <div className="absolute inset-x-0 bottom-0 flex items-center gap-1.5 bg-gradient-to-t from-black/80 to-transparent p-1.5 pt-4">
         <span className="min-w-0 truncate text-xs font-bold text-white">
           {stream.channel.username}
@@ -166,7 +179,7 @@ function Tile({
 }
 
 export function MultiviewGrid({ stream }: { stream: Livestream }) {
-  const { multiview, closeMultiview, reorder } = useEvent();
+  const { multiview, closeMultiview, reorder, liveEmbeds, setLiveEmbeds } = useEvent();
   const navigate = useNavigate();
   const dragFrom = useRef<number | null>(null);
   const currentSlug = stream.channel.slug;
@@ -214,13 +227,22 @@ export function MultiviewGrid({ stream }: { stream: Livestream }) {
         <span className="text-xs text-surface-onSurfaceSecondary">
           Click a stream to watch it. Arrow keys move left and right. Drag tiles to re-order.
         </span>
-        <button
-          type="button"
-          onClick={closeMultiview}
-          className="h-7 shrink-0 rounded bg-secondary-base px-2 text-xs font-semibold text-secondary-onSecondary"
-        >
-          Close multiview
-        </button>
+        <div className="flex shrink-0 items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setLiveEmbeds(!liveEmbeds)}
+            className="h-7 rounded bg-secondary-base px-2 text-xs font-semibold text-secondary-onSecondary"
+          >
+            Live embeds {liveEmbeds ? "on" : "off"}
+          </button>
+          <button
+            type="button"
+            onClick={closeMultiview}
+            className="h-7 rounded bg-secondary-base px-2 text-xs font-semibold text-secondary-onSecondary"
+          >
+            Close multiview
+          </button>
+        </div>
       </div>
     </div>
   );

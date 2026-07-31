@@ -30,6 +30,8 @@ type EventContextValue = {
   claimAudible: (slug: string) => () => void;
   boosts: Record<string, number>;
   boost: (slug: string) => void;
+  hypeTiers: Record<string, number>;
+  setHypeTier: (slug: string, tier: number) => void;
   openMultiview: (slug: string) => void;
   closeMultiview: () => void;
   pin: (slug: string) => void;
@@ -116,6 +118,12 @@ export function EventProvider({ children }: { children: ReactNode }) {
     setBoosts((prev) => ({ ...prev, [slug]: Date.now() + BOOST_MINUTES * 60_000 }));
   }, []);
 
+  const [hypeTiers, setHypeTiers] = useState<Record<string, number>>({});
+
+  const setHypeTier = useCallback((slug: string, tier: number) => {
+    setHypeTiers((prev) => ({ ...prev, [slug]: tier }));
+  }, []);
+
   useEffect(() => {
     const id = setInterval(() => {
       setBoosts((prev) => {
@@ -170,6 +178,8 @@ export function EventProvider({ children }: { children: ReactNode }) {
       claimAudible,
       boosts,
       boost,
+      hypeTiers,
+      setHypeTier,
       openMultiview: (slug) =>
         setMultiview((m) => ({
           active: true,
@@ -191,7 +201,7 @@ export function EventProvider({ children }: { children: ReactNode }) {
           return { ...m, slots };
         }),
     }),
-    [multiview, chatMode, liveEmbeds, registerEmbedTarget, claimAudible, boosts, boost],
+    [multiview, chatMode, liveEmbeds, registerEmbedTarget, claimAudible, boosts, boost, hypeTiers, setHypeTier],
   );
 
   function addAndWatch(slug: string) {

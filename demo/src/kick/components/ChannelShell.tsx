@@ -166,7 +166,11 @@ export function ChannelShell({
           style={{ width: chatOpen ? chatWidth : 0, opacity: chatOpen ? 1 : 0 }}
           className="h-full max-h-full min-w-0 shrink-0 grow-0 overflow-hidden transition-[width,opacity] duration-300 ease-out"
         >
-          <ChannelChat onCollapse={() => setChatOpen(false)} event={event} />
+          <ChannelChat
+            onCollapse={() => setChatOpen(false)}
+            event={event}
+            slug={profile.channel.slug}
+          />
         </div>
       </div>
     </div>

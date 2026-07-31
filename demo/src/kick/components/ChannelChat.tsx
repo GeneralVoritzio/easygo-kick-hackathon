@@ -11,6 +11,7 @@ import {
 import { Link } from "react-router-dom";
 import { Icon, type KickIconName } from "../Icon";
 import { useEvent } from "../events/EventProvider";
+import { HYPE_TIER_MAX } from "../events/events";
 import { avatarFor, currentUser } from "../mock/api";
 import { formatSlowMode, slugInEvent, type KickEvent } from "../mock/events";
 import { useRaid } from "../raid/RaidProvider";
@@ -511,12 +512,21 @@ function GifterLeaderboard() {
 function ChatMessage({
   message,
   onOpen,
+  hypeTier = 0,
 }: {
   message: Message;
   onOpen?: (user: CardUser) => void;
+  hypeTier?: number;
 }) {
   return (
-    <div className="group relative px-2 lg:px-3">
+    <div
+      className={`group relative px-2 lg:px-3${
+        hypeTier > 0 ? ` hype-shimmer hype-tier-${hypeTier}` : ""
+      }`}
+      // The rows shimmer out of phase, so the band ripples down the chat
+      // instead of lighting every line at once.
+      style={{ "--hype-delay": `${(message.id % 8) * -0.45}s` } as CSSProperties}
+    >
       <div className="betterhover:group-hover:bg-surface-highest w-full min-w-0 shrink-0 break-words rounded-lg px-2 py-[var(--chatroom-message-spacing)] text-[length:var(--chatroom-font-size)] leading-[1.5]">
         <div className="inline-flex min-w-0 flex-nowrap items-baseline rounded transition-colors betterhover:hover:bg-[#474f54]">
           {message.badges.length > 0 && (
@@ -553,10 +563,12 @@ function ChatMessages({
   messages,
   surface,
   onOpen,
+  hypeTier,
 }: {
   messages: Message[];
   surface: string;
   onOpen?: (user: CardUser) => void;
+  hypeTier?: number;
 }) {
   const listRef = useRef<HTMLDivElement>(null);
 
@@ -569,7 +581,7 @@ function ChatMessages({
     <div className={`relative shrink grow overflow-hidden ${surface}`}>
       <div ref={listRef} id="chatroom-messages" className="relative h-full w-full overflow-y-auto">
         {messages.map((message) => (
-          <ChatMessage key={message.id} message={message} onOpen={onOpen} />
+          <ChatMessage key={message.id} message={message} onOpen={onOpen} hypeTier={hypeTier} />
         ))}
       </div>
     </div>
@@ -943,14 +955,17 @@ export function ChatFeed({
   dashboard,
   pool,
   event,
+  hypeSlug,
 }: {
   header?: ReactNode;
   dashboard?: boolean;
   pool?: MessagePool;
   event?: KickEvent;
+  hypeSlug?: string;
 }) {
   const surface = dashboard ? "bg-surface-base" : "bg-surface-lowest";
-  const { chatMode, boost } = useEvent();
+  const { chatMode, boost, hypeTiers } = useEvent();
+  const hypeTier = hypeSlug ? (hypeTiers[hypeSlug] ?? 0) : 0;
   const eventMode = Boolean(event) && chatMode === "event";
   const [messages, setMessages] = useFlowingMessages(pool);
   const [draft, setDraft] = useState("");
@@ -994,8 +1009,14 @@ export function ChatFeed({
     >
       {header}
       <RaidBanner open={panelOpen} onToggle={() => setPanelOpen((v) => !v)} />
-      <ChatMessages messages={messages} surface={surface} onOpen={setCardUser} />
+      <ChatMessages
+        messages={messages}
+        surface={surface}
+        onOpen={setCardUser}
+        hypeTier={hypeTier}
+      />
       {raid && panelOpen && <RaidPanel onClose={() => setPanelOpen(false)} />}
+      {hypeSlug && !dashboard && <HypeDemoRow slug={hypeSlug} />}
       <ChatFooter
         draft={draft}
         dashboard={dashboard}
@@ -1008,6 +1029,32 @@ export function ChatFeed({
       />
       {cardUser && <ChatUserCard user={cardUser} onClose={() => setCardUser(null)} />}
     </form>
+  );
+}
+
+function HypeDemoRow({ slug }: { slug: string }) {
+  const { hypeTiers, setHypeTier } = useEvent();
+  const tier = hypeTiers[slug] ?? 0;
+
+  return (
+    <div className="flex shrink-0 items-center gap-2 border-t border-outline-decorative px-3 py-2">
+      <span className="text-xs uppercase text-surface-onSurfaceSecondary">Demo</span>
+      <span className="text-xs text-surface-onSurfaceSecondary">Chat hype</span>
+      {Array.from({ length: HYPE_TIER_MAX + 1 }, (_, t) => (
+        <button
+          key={t}
+          type="button"
+          onClick={() => setHypeTier(slug, t)}
+          className={`h-7 rounded px-2 text-xs font-semibold ${
+            tier === t
+              ? "bg-primary-base text-primary-onPrimary"
+              : "bg-secondary-base text-secondary-onSecondary"
+          }`}
+        >
+          {t === 0 ? "Off" : `Tier ${t}`}
+        </button>
+      ))}
+    </div>
   );
 }
 
@@ -1059,9 +1106,11 @@ function EventChatStrip({ event }: { event: KickEvent }) {
 export function ChannelChat({
   onCollapse,
   event,
+  slug,
 }: {
   onCollapse?: () => void;
   event?: KickEvent;
+  slug?: string;
 }) {
   // The room lives in the event provider, because the multiview and the /boost command read it too.
   const { chatMode } = useEvent();
@@ -1078,6 +1127,7 @@ export function ChannelChat({
       key={chatMode}
       pool={pool}
       event={event}
+      hypeSlug={slug}
       header={
         <>
           <ChatHeader onCollapse={onCollapse} eventName={event?.title} />

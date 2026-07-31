@@ -382,8 +382,38 @@
   to { transform: translate(-100%) }
 }
 
+/* Chat hype: a shimmer band sweeps the whole message row, text, emotes and
+   badges together. The three active tiers step up the colour, the speed and
+   the strength, tier three on the star colours. */
+.hype-shimmer { position: relative }
+.hype-shimmer::after {
+  content: "";
+  position: absolute;
+  inset: 0 6px;
+  pointer-events: none;
+  mix-blend-mode: screen;
+  border-radius: 8px;
+  background: linear-gradient(115deg, transparent 40%, var(--hype-a) 47%, var(--hype-b) 50%, var(--hype-c) 53%, transparent 60%);
+  background-size: 280% 100%;
+  opacity: var(--hype-opacity);
+  animation: hype-shimmer var(--hype-speed) linear infinite;
+  animation-delay: var(--hype-delay, 0s);
+}
+.hype-tier-1 { --hype-a: #ffd700; --hype-b: #ffe89a; --hype-c: #ffd700; --hype-opacity: 0.16; --hype-speed: 3.4s }
+.hype-tier-2 { --hype-a: #ffd700; --hype-b: #ff9a3c; --hype-c: #ff5050; --hype-opacity: 0.26; --hype-speed: 2.2s }
+.hype-tier-3 { --hype-opacity: 0.4; --hype-speed: 1.4s }
+.hype-tier-3::after {
+  background: linear-gradient(115deg, transparent 34%, #ff5050 42%, #ffd700 47%, #4be34b 52%, #58b7ff 58%, transparent 66%);
+  background-size: 280% 100%;
+}
+@keyframes hype-shimmer {
+  from { background-position: 200% 0 }
+  to { background-position: -100% 0 }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .animate-leaderboards-marquee { animation: none }
+  .hype-shimmer::after { animation: none }
 }
 
 button:not(:disabled),

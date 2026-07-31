@@ -2,6 +2,7 @@ import { useRef, useState, type CSSProperties, type MouseEvent as ReactMouseEven
 import { useLocation, useNavigate } from "react-router-dom";
 import { Icon } from "../Icon";
 import { ThumbBadge } from "../components/CardBits";
+import { findHandoffCandidates } from "./data";
 import { useExpeditions } from "./ExpeditionContext";
 
 type Corner = "top-left" | "top-right" | "bottom-left" | "bottom-right";
@@ -25,15 +26,18 @@ function cornerStyle(corner: Corner): CSSProperties {
   Riding an expedition or a Kick Break doesn't end just because you navigate off its page — this
   floating corner player follows you anywhere else in the app, the same "keep watching while you
   browse" a real picture-in-picture player gives you. Clicking it returns to the ride. Its own
-  close button only hides this floating widget, it doesn't end the ride — you're still riding, the
-  widget just stops following you until the next ride starts.
+  close button takes you off the ride entirely, the same as the full page's own leave action:
+  a plain member just hops off, but a leader hands leadership off first (falling back to ending
+  the expedition when nobody's free to take over) so the rest of the ride keeps going without
+  them. A Kick Break you're running has no handoff to reach for — that one only ever ends from
+  the Creator Dashboard — so closing its mini player just hops you off it, same as any member.
 
   Draggable like a real PIP window: grab it anywhere and it follows the pointer, let go and it
   snaps to whichever of the four screen corners its centre ended up closest to — it never rests
   mid-screen, blocking whatever's underneath.
 */
 export function RidingMiniPlayer() {
-  const { expeditions, riderExpeditionId } = useExpeditions();
+  const { expeditions, riderExpeditionId, hopOff, handOffLeadership, endExpedition } = useExpeditions();
   const location = useLocation();
   const navigate = useNavigate();
   const [corner, setCorner] = useState<Corner>("bottom-right");
@@ -104,6 +108,15 @@ export function RidingMiniPlayer() {
   if (!current) return null;
   const isKickBreak = expedition.kind === "kick-break";
 
+  function leaveExpedition() {
+    if (expedition!.createdByViewer && expedition!.kind !== "kick-break") {
+      const candidates = findHandoffCandidates(expeditions, expedition!.id);
+      if (candidates.length > 0) handOffLeadership(expedition!.id, candidates[0]);
+      else endExpedition(expedition!.id);
+    }
+    hopOff();
+  }
+
   return (
     <div
       ref={elRef}
@@ -132,6 +145,7 @@ export function RidingMiniPlayer() {
           type="button"
           onClick={(e) => {
             e.stopPropagation();
+            leaveExpedition();
             setDismissed(true);
           }}
           aria-label="Close mini player"

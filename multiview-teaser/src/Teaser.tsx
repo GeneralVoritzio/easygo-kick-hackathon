@@ -27,6 +27,8 @@ export const TOTAL_FRAMES = CLIP_FRAMES;
 
 const GREEN = "#53fc18";
 
+const TITLE_STRETCH = 1.45;
+
 function KickTitle() {
   return (
     <AbsoluteFill style={{ alignItems: "center", justifyContent: "center" }}>
@@ -37,6 +39,7 @@ function KickTitle() {
           lineHeight: 1,
           color: GREEN,
           whiteSpace: "nowrap",
+          transform: `scaleY(${TITLE_STRETCH})`,
         }}
       >
         KICK

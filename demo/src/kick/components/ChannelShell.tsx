@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Link } from "react-router-dom";
 import { Icon } from "../Icon";
+import { useEvent } from "../events/EventProvider";
+import { MultiviewGrid } from "../events/Multiview";
 import type { ChannelProfile, Livestream } from "../mock/api";
 import { ChannelPlayer } from "./ChannelPlayer";
 import { ChannelLivePreview } from "./ChannelLivePreview";
@@ -71,6 +73,7 @@ export function ChannelShell({
   const [chatOpen, setChatOpen] = useState(true);
   const [isDragging, setIsDragging] = useState(false);
   const rowRef = useRef<HTMLDivElement>(null);
+  const { multiview } = useEvent();
 
   useEffect(() => {
     if (!isDragging) return;
@@ -120,7 +123,13 @@ export function ChannelShell({
         )}
         {stream ? (
           <>
-            {watch ? <ChannelPlayer stream={stream} /> : <ChannelLivePreview stream={stream} />}
+            {watch && multiview.active ? (
+              <MultiviewGrid stream={stream} />
+            ) : watch ? (
+              <ChannelPlayer stream={stream} />
+            ) : (
+              <ChannelLivePreview stream={stream} />
+            )}
             <div className="flex flex-col gap-6 px-4 py-5 lg:px-7">
               <ChannelBar stream={stream} showFollowers={!watch} />
               {watch && <ChannelAboutCard profile={profile} />}
@@ -153,7 +162,7 @@ export function ChannelShell({
           style={{ width: chatOpen ? chatWidth : 0, opacity: chatOpen ? 1 : 0 }}
           className="h-full max-h-full min-w-0 shrink-0 grow-0 overflow-hidden transition-[width,opacity] duration-300 ease-out"
         >
-          <ChannelChat onCollapse={() => setChatOpen(false)} />
+          <ChannelChat onCollapse={() => setChatOpen(false)} stream={stream} />
         </div>
       </div>
     </div>

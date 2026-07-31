@@ -1,6 +1,7 @@
 import { useEffect, useState, type PointerEvent as ReactPointerEvent } from "react";
 import { useSearchParams } from "react-router-dom";
 import { Icon } from "../Icon";
+import { useEvent } from "../events/EventProvider";
 import type { Livestream } from "../mock/api";
 import { RaidStage } from "./RaidStage";
 
@@ -37,6 +38,7 @@ function liveSeconds(startedAt: string) {
 }
 
 export function ChannelPlayer({ stream }: { stream: Livestream }) {
+  const { openMultiview } = useEvent();
   const [params] = useSearchParams();
   const startAt = Number(params.get("t"));
   const [playing, setPlaying] = useState(true);
@@ -165,6 +167,14 @@ export function ChannelPlayer({ stream }: { stream: Livestream }) {
           </div>
 
           <div className="flex shrink-0 items-center">
+            <button
+              type="button"
+              aria-label="Multiview"
+              onClick={() => openMultiview(stream.channel.slug)}
+              className={controlButtonClass}
+            >
+              <Icon name="browse" />
+            </button>
             <button type="button" aria-label="Picture in Picture" className={controlButtonClass}>
               <Icon name="pip" />
             </button>

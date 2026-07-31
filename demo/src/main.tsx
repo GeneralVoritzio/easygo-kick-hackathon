@@ -14,6 +14,7 @@ import { SettingsPreferences } from './kick/pages/SettingsPreferences'
 import { DropsInventory } from './kick/pages/DropsInventory'
 import { DropsAllCampaigns } from './kick/pages/DropsAllCampaigns'
 import { CreatorDashboard } from './kick/pages/CreatorDashboard'
+import { EventProvider } from './kick/events/EventProvider'
 import { RaidProvider } from './kick/raid/RaidProvider'
 import { RaidDialog } from './kick/components/RaidDialog'
 import Demo from './App.tsx'
@@ -21,6 +22,7 @@ import Demo from './App.tsx'
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <BrowserRouter>
+      <EventProvider>
       <RaidProvider>
         <RaidDialog />
         <Routes>
@@ -48,6 +50,7 @@ createRoot(document.getElementById('root')!).render(
           </Route>
         </Routes>
       </RaidProvider>
+      </EventProvider>
     </BrowserRouter>
   </StrictMode>,
 )

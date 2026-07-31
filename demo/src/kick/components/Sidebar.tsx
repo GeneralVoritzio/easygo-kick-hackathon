@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { NavLink, Link } from "react-router-dom";
 import { Icon, type KickIconName } from "../Icon";
+import { isInEvent } from "../events/events";
 import { followedChannels, livestreams, formatViewers } from "../mock/api";
 
 const navItems: { to: string; label: string; icon: KickIconName; activeIcon: KickIconName }[] = [
@@ -46,11 +47,18 @@ function ChannelRow({
       </div>
       <div className="flex min-w-0 max-w-full shrink grow flex-col gap-0.5">
         <span
-          className={`shrink truncate text-sm font-bold leading-[1.2] ${
+          className={`flex min-w-0 items-center gap-1 text-sm font-bold leading-[1.2] ${
             live ? "text-white" : "text-neutral-700"
           }`}
         >
-          {username}
+          <span className="truncate">{username}</span>
+          {live && isInEvent(slug) && (
+            <Icon
+              name="dash-broadcast"
+              title="In the Iron Cup 2026 event"
+              className="size-3 shrink-0 text-primary-base"
+            />
+          )}
         </span>
         {category && (
           <span className="truncate text-xs font-bold leading-normal text-subtle">

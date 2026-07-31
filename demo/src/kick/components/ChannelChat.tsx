@@ -8,9 +8,9 @@ import {
   type ReactNode,
 } from "react";
 import { Icon, type KickIconName } from "../Icon";
-import { InventoryPanel, TradingPanel, useCardSets } from "../cards/TradingPanel";
-import { isEligible, partners, requestTrade } from "../cards/sets";
-import { avatarFor, currentUser } from "../mock/api";
+import { eventChatLines, ironCup, isInEvent } from "../events/events";
+import { useEvent } from "../events/EventProvider";
+import { avatarFor, currentUser, type Livestream } from "../mock/api";
 import { useRaid } from "../raid/RaidProvider";
 import { RaidBanner, RaidPanel } from "./RaidChat";
 import identityBadge from "../icons/identity-badge.png";
@@ -171,10 +171,10 @@ type Message = {
 
 let nextId = 1;
 
-function randomMessage(): Message {
+function randomMessage(lines: string[] = chatLines): Message {
   const chatter = pick(chatters);
   const emote = pick(emotes);
-  const line = pick(chatLines);
+  const line = pick(lines);
   const roll = Math.random();
   const body =
     roll < 0.2
@@ -185,8 +185,8 @@ function randomMessage(): Message {
   return { id: nextId++, ...chatter, color: colorFor(chatter.username), body };
 }
 
-function seedMessages(count: number): Message[] {
-  return Array.from({ length: count }, randomMessage);
+function seedMessages(count: number, lines: string[] = chatLines): Message[] {
+  return Array.from({ length: count }, () => randomMessage(lines));
 }
 
 // KICK serves the rank medals from kick.com itself, which blocks any client that is not a
@@ -218,7 +218,42 @@ const topGifters: {
   },
 ];
 
-function ChatHeader({ onCollapse }: { onCollapse?: () => void }) {
+function ChatModeMenu({ onClose }: { onClose: () => void }) {
+  const { chatMode, setChatMode } = useEvent();
+  const rows = [
+    { mode: "stream" as const, label: "Stream chat", detail: "Chat with this channel" },
+    { mode: "event" as const, label: "Event chat", detail: ironCup.name },
+  ];
+  return (
+    <div className="absolute left-1/2 top-full z-popover mt-1 w-60 -translate-x-1/2 rounded bg-surface-base p-1 shadow-[0_8px_24px_rgba(0,0,0,0.6)]">
+      {rows.map((row) => (
+        <button
+          key={row.mode}
+          type="button"
+          onClick={() => {
+            setChatMode(row.mode);
+            onClose();
+          }}
+          className="flex w-full items-center gap-2 rounded px-2 py-1.5 text-left state-layer-surface"
+        >
+          <div className="min-w-0 flex-1">
+            <span className="block text-sm font-bold text-white">{row.label}</span>
+            <span className="block truncate text-xs text-surface-onSurfaceSecondary">
+              {row.detail}
+            </span>
+          </div>
+          {chatMode === row.mode && (
+            <span className="size-1.5 shrink-0 rounded-full bg-primary-base" />
+          )}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function ChatHeader({ onCollapse, inEvent }: { onCollapse?: () => void; inEvent?: boolean }) {
+  const { chatMode } = useEvent();
+  const [menuOpen, setMenuOpen] = useState(false);
   return (
     <div className="relative flex min-h-[38px] shrink-0 items-center justify-between border-b-2 border-[#24272c] px-3 py-1.5">
       <button
@@ -229,9 +264,28 @@ function ChatHeader({ onCollapse }: { onCollapse?: () => void }) {
       >
         <Icon name="collapse-chat" className="size-4" />
       </button>
-      <span className="absolute left-1/2 -translate-x-1/2 text-sm font-bold lg:text-base">
-        Chat
-      </span>
+      {inEvent ? (
+        <div className="absolute left-1/2 -translate-x-1/2">
+          <button
+            type="button"
+            onClick={() => setMenuOpen((v) => !v)}
+            className="state-layer-surface flex items-center gap-1.5 rounded px-2 py-1 text-sm font-bold text-white lg:text-base"
+          >
+            {chatMode === "event" ? "Event chat" : "Chat"}
+            <Icon
+              name="chevron-right"
+              className={`size-3 shrink-0 transition-transform ${
+                menuOpen ? "-rotate-90" : "rotate-90"
+              }`}
+            />
+          </button>
+          {menuOpen && <ChatModeMenu onClose={() => setMenuOpen(false)} />}
+        </div>
+      ) : (
+        <span className="absolute left-1/2 -translate-x-1/2 text-sm font-bold lg:text-base">
+          Chat
+        </span>
+      )}
       <button
         type="button"
         aria-label="Viewer list"
@@ -242,8 +296,6 @@ function ChatHeader({ onCollapse }: { onCollapse?: () => void }) {
     </div>
   );
 }
-
-type ChatTab = "chat" | "trading" | "inventory";
 
 type CardUser = { username: string; badges: BadgeName[] };
 
@@ -274,15 +326,7 @@ function cardDates(username: string) {
 // Read off the screenshot of the live card: avatar and username on top, followed and
 // joined dates in two columns, the badge row with a tooltip, then the action buttons.
 // Trade is ours, and it is the only new control on the card.
-function ChatUserCard({
-  user,
-  onClose,
-  onTrade,
-}: {
-  user: CardUser;
-  onClose: () => void;
-  onTrade: (username: string) => void;
-}) {
+function ChatUserCard({ user, onClose }: { user: CardUser; onClose: () => void }) {
   const dates = cardDates(user.username);
   return (
     <div className="absolute inset-x-2 bottom-[120px] z-popover rounded border border-outline-decorative bg-surface-base p-4">
@@ -345,64 +389,8 @@ function ChatUserCard({
           <Icon name="gift" className="size-4" />
           Gift a Sub
         </button>
-        <button
-          type="button"
-          onClick={() => onTrade(user.username)}
-          className="flex h-9 items-center gap-1.5 rounded bg-secondary-base px-3 text-sm font-semibold text-secondary-onSecondary betterhover:hover:bg-surface-highest"
-        >
-          <Icon name="collectibles" className="size-4" />
-          Trade
-        </button>
       </div>
     </div>
-  );
-}
-
-// The strip runs the channel tab metrics one step down: h-10 and text-sm against their
-// h-12 and text-base, with the same active underline.
-function ChatTabs({
-  tab,
-  dots,
-  onSelect,
-}: {
-  tab: ChatTab;
-  dots: Partial<Record<ChatTab, boolean>>;
-  onSelect: (tab: ChatTab) => void;
-}) {
-  const tabs: { id: ChatTab; label: string }[] = [
-    { id: "chat", label: "Chat" },
-    { id: "trading", label: "Trading" },
-    { id: "inventory", label: "Inventory" },
-  ];
-  return (
-    <nav
-      aria-label="Chat panels"
-      className="relative flex shrink-0 flex-nowrap px-2 shadow-[inset_0px_-2px_0] shadow-outline-decorative"
-    >
-      {tabs.map((entry) => {
-        const isActive = entry.id === tab;
-        return (
-          <button
-            key={entry.id}
-            type="button"
-            onClick={() => onSelect(entry.id)}
-            className={`state-layer-surface relative flex h-10 shrink-0 cursor-pointer items-center gap-1.5 overflow-hidden whitespace-nowrap rounded-t-sm border-b px-2 text-sm font-semibold transition-all ${
-              isActive
-                ? "border-surface-onSurfacePrimary text-surface-onSurfacePrimary"
-                : "border-transparent text-white"
-            }`}
-          >
-            {isActive && (
-              <div className="absolute inset-x-0 bottom-[-2px] h-0.5 rounded-full bg-surface-onSurfacePrimary" />
-            )}
-            {entry.label}
-            {!isActive && dots[entry.id] && (
-              <span className="size-1.5 rounded-full bg-primary-base" />
-            )}
-          </button>
-        );
-      })}
-    </nav>
   );
 }
 
@@ -512,15 +500,23 @@ function ChatMessages({
   );
 }
 
-function useFlowingMessages() {
+const linesFor = (eventMode: boolean) =>
+  eventMode ? [...chatLines, ...eventChatLines] : chatLines;
+
+function useFlowingMessages(eventMode = false) {
   const [messages, setMessages] = useState<Message[]>(() => seedMessages(22));
+
+  // A room switch reseeds, because the event chat is a different room.
+  useEffect(() => {
+    setMessages(seedMessages(22, linesFor(eventMode)));
+  }, [eventMode]);
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setMessages((prev) => [...prev.slice(-149), randomMessage()]);
+      setMessages((prev) => [...prev.slice(-149), randomMessage(linesFor(eventMode))]);
     }, 2200);
     return () => clearInterval(interval);
-  }, []);
+  }, [eventMode]);
 
   return [messages, setMessages] as const;
 }
@@ -869,22 +865,23 @@ function ChatFooter({
 
 // The dashboard panels are lighter than the page under them, so the chat runs on surface-base
 // there. On the channel page one surface runs across the whole site, so it runs on surface-lowest.
-export function ChatFeed({ header, dashboard }: { header?: ReactNode; dashboard?: boolean }) {
+export function ChatFeed({
+  header,
+  dashboard,
+  inEvent,
+}: {
+  header?: ReactNode;
+  dashboard?: boolean;
+  inEvent?: boolean;
+}) {
   const surface = dashboard ? "bg-surface-base" : "bg-surface-lowest";
-  const [messages, setMessages] = useFlowingMessages();
+  const { chatMode } = useEvent();
+  const eventMode = Boolean(inEvent) && chatMode === "event";
+  const [messages, setMessages] = useFlowingMessages(eventMode);
   const [draft, setDraft] = useState("");
   const { raid } = useRaid();
   const [panelOpen, setPanelOpen] = useState(true);
-  const [tab, setTab] = useState<ChatTab>("chat");
-  const cards = useCardSets();
   const [cardUser, setCardUser] = useState<CardUser | null>(null);
-  const [toast, setToast] = useState<string>();
-
-  useEffect(() => {
-    if (!toast) return;
-    const id = setTimeout(() => setToast(undefined), 2500);
-    return () => clearTimeout(id);
-  }, [toast]);
 
   function send(body: string) {
     if (!body) return;
@@ -914,68 +911,49 @@ export function ChatFeed({ header, dashboard }: { header?: ReactNode; dashboard?
       className={`${surface} relative flex h-full w-full flex-col overflow-hidden`}
     >
       {header}
-      {!dashboard && (
-        <ChatTabs
-          tab={tab}
-          dots={{
-            trading: cards.state.trade?.status === "open",
-            inventory: Boolean(cards.state.freshCardId),
-          }}
-          onSelect={setTab}
-        />
-      )}
-      <RaidBanner open={panelOpen} onToggle={() => setPanelOpen((v) => !v)} />
-      {tab === "trading" && !dashboard ? (
-        <TradingPanel state={cards.state} act={cards.act} onToast={setToast} />
-      ) : tab === "inventory" && !dashboard ? (
-        <InventoryPanel state={cards.state} act={cards.act} />
-      ) : (
-        <>
-          <ChatMessages messages={messages} surface={surface} onOpen={setCardUser} />
-          {raid && panelOpen && <RaidPanel onClose={() => setPanelOpen(false)} />}
-          <ChatFooter
-            draft={draft}
-            dashboard={dashboard}
-            onChange={setDraft}
-            onSend={send}
-            onSubmit={() => {
-              send(draft.trim());
-              setDraft("");
-            }}
-          />
-        </>
-      )}
-      {cardUser && tab === "chat" && (
-        <ChatUserCard
-          user={cardUser}
-          onClose={() => setCardUser(null)}
-          onTrade={(username) => {
-            setCardUser(null);
-            const partner = partners.find((p) => p.username === username);
-            if (partner && isEligible(partner)) {
-              cards.act((s) => requestTrade(s, partner.userId));
-              setToast(`Trade request sent to ${username}`);
-            } else {
-              setToast(`You need 30 minutes of shared watch time with ${username} to trade`);
-            }
-          }}
-        />
-      )}
-      {toast && (
-        <div className="absolute bottom-[130px] left-1/2 z-popover w-max max-w-[85%] -translate-x-1/2 rounded bg-surface-highest px-3 py-2 text-center text-sm font-semibold text-white">
-          {toast}
+      {eventMode && (
+        <div className="flex shrink-0 items-center gap-2 border-b border-outline-decorative bg-surface-base px-3 py-2">
+          <Icon name="dash-broadcast" className="size-4 shrink-0 text-primary-base" />
+          <div className="min-w-0 flex-1">
+            <span className="block truncate text-sm font-bold text-white">{ironCup.name}</span>
+            <span className="block truncate text-xs text-surface-onSurfaceSecondary">
+              One chat for the whole event. Moderation follows the host, IronVow.
+            </span>
+          </div>
         </div>
       )}
+      <RaidBanner open={panelOpen} onToggle={() => setPanelOpen((v) => !v)} />
+      <ChatMessages messages={messages} surface={surface} onOpen={setCardUser} />
+      {raid && panelOpen && <RaidPanel onClose={() => setPanelOpen(false)} />}
+      <ChatFooter
+        draft={draft}
+        dashboard={dashboard}
+        onChange={setDraft}
+        onSend={send}
+        onSubmit={() => {
+          send(draft.trim());
+          setDraft("");
+        }}
+      />
+      {cardUser && <ChatUserCard user={cardUser} onClose={() => setCardUser(null)} />}
     </form>
   );
 }
 
-export function ChannelChat({ onCollapse }: { onCollapse?: () => void }) {
+export function ChannelChat({
+  onCollapse,
+  stream,
+}: {
+  onCollapse?: () => void;
+  stream?: Livestream;
+}) {
+  const inEvent = stream ? isInEvent(stream.channel.slug) : false;
   return (
     <ChatFeed
+      inEvent={inEvent}
       header={
         <>
-          <ChatHeader onCollapse={onCollapse} />
+          <ChatHeader onCollapse={onCollapse} inEvent={inEvent} />
           <GifterLeaderboard />
         </>
       }

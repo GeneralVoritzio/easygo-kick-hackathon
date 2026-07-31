@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { Icon } from "../Icon";
-import { Pane, Panel } from "./DashboardPanel";
+import { IconButton, Pane, Panel } from "./DashboardPanel";
 import { buttonClass, inputClass, labelClass } from "./FormBits";
 import { InviteStatusPill, PartnerNotice } from "./EventBits";
 import { useEvents, type EventNotification } from "../EventsStore";
@@ -10,11 +10,13 @@ import {
   byStartAt,
   formatEventWindow,
   invitesFor,
-  requestsOn,
   isLiveWindow,
+  randomPoster,
+  requestsOn,
   startsInLabel,
-  waitingOn,
   takesPart,
+  waitingOn,
+  type EventVisibility,
   type KickEvent,
 } from "../mock/events";
 
@@ -23,22 +25,44 @@ const blankDraft = {
   description: "",
   startsAt: "2026-08-15T18:00",
   endsAt: "2026-08-15T22:00",
+  visibility: "private" as EventVisibility,
 };
 
 // A datetime-local field reads as local time, and every fixture time is UTC.
 const asUtc = (local: string) => `${local}:00Z`;
 
-function CreateEventForm() {
+const visibilityChoices: { value: EventVisibility; label: string }[] = [
+  { value: "private", label: "Private" },
+  { value: "public", label: "Public" },
+];
+
+function CreateEventForm({ wide }: { wide?: boolean }) {
   const { createEvent } = useEvents();
   const [draft, setDraft] = useState(blankDraft);
   const [created, setCreated] = useState<KickEvent | null>(null);
+  // An upload stays in the page as an object URL. Nothing is sent anywhere, and nothing is fetched.
+  const [upload, setUpload] = useState<string | null>(null);
+  const [fallback, setFallback] = useState(randomPoster);
 
   const set = (key: keyof typeof blankDraft) => (value: string) =>
     setDraft((d) => ({ ...d, [key]: value }));
 
+  const takeFile = (file: File | undefined) => {
+    if (!file) return;
+    if (upload) URL.revokeObjectURL(upload);
+    setUpload(URL.createObjectURL(file));
+  };
+
+  const dropUpload = () => {
+    if (upload) URL.revokeObjectURL(upload);
+    setUpload(null);
+  };
+
   return (
     <form
-      className="no-scrollbar flex h-full w-full flex-col gap-3 overflow-y-auto p-4 text-white"
+      className={`no-scrollbar flex h-full w-full flex-col gap-3 overflow-y-auto text-white ${
+        wide ? "" : "p-4"
+      }`}
       onSubmit={(e) => {
         e.preventDefault();
         setCreated(
@@ -47,9 +71,13 @@ function CreateEventForm() {
             description: draft.description,
             start_at: asUtc(draft.startsAt),
             end_at: asUtc(draft.endsAt),
+            visibility: draft.visibility,
+            poster: upload ?? fallback,
           }),
         );
         setDraft(blankDraft);
+        setUpload(null);
+        setFallback(randomPoster());
       }}
     >
       <PartnerNotice />
@@ -111,6 +139,86 @@ function CreateEventForm() {
         </div>
       </div>
 
+      <div className="flex flex-col gap-2">
+        <span className={labelClass}>Poster</span>
+        <div className="flex items-start gap-3">
+          <img
+            src={upload ?? fallback}
+            alt=""
+            data-testid="poster-preview"
+            className="aspect-[9/16] w-[72px] shrink-0 rounded object-cover ring-1 ring-outline-decorative"
+          />
+          <div className="flex min-w-0 flex-col items-start gap-2">
+            <input
+              id="event-poster"
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={(e) => takeFile(e.target.files?.[0])}
+            />
+            <label
+              htmlFor="event-poster"
+              data-testid="poster-pick"
+              className={`${buttonClass.secondary} h-9 cursor-pointer`}
+            >
+              <Icon name="plus" className="size-4" />
+              {upload ? "Replace the poster" : "Upload a poster"}
+            </label>
+            <p className="text-sm font-normal text-surface-onSurfaceSecondary">
+              {upload
+                ? "This is your poster."
+                : "Portrait, 9 by 16. Upload nothing and this one comes with it."}
+            </p>
+            {upload ? (
+              <button
+                type="button"
+                data-testid="poster-drop"
+                onClick={dropUpload}
+                className="text-sm font-semibold text-subtle betterhover:hover:text-white"
+              >
+                Remove
+              </button>
+            ) : (
+              <button
+                type="button"
+                data-testid="poster-shuffle"
+                onClick={() => setFallback(randomPoster())}
+                className="text-sm font-semibold text-subtle betterhover:hover:text-white"
+              >
+                Pick another one
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+
+      <div className="flex flex-col gap-2">
+        <span className={labelClass}>Who can see it</span>
+        <div className="flex w-fit gap-0.5 rounded bg-secondary-base p-0.5">
+          {visibilityChoices.map((choice) => (
+            <button
+              key={choice.value}
+              type="button"
+              aria-pressed={draft.visibility === choice.value}
+              data-testid={`visibility-${choice.value}`}
+              onClick={() => set("visibility")(choice.value)}
+              className={`flex h-8 items-center rounded px-3 text-sm font-semibold ${
+                draft.visibility === choice.value
+                  ? "bg-surface-highest text-white"
+                  : "text-subtle"
+              }`}
+            >
+              {choice.label}
+            </button>
+          ))}
+        </div>
+        <p className="text-sm font-normal text-surface-onSurfaceSecondary">
+          {draft.visibility === "private"
+            ? "Only the channels you invite can see it. Switch it to public when they have all answered."
+            : "Everybody can see it as soon as you create it."}
+        </p>
+      </div>
+
       <button type="submit" className={`${buttonClass.primary} mt-1 h-9 w-full`}>
         <Icon name="plus" className="size-4" />
         Create event
@@ -118,10 +226,116 @@ function CreateEventForm() {
 
       {created && (
         <p data-testid="create-result" className="text-sm font-normal text-primary-base">
-          {created.title} is private. Invite your streamers on the left, then switch it to public.
+          {created.visibility === "private"
+            ? `${created.title} is private. Invite your streamers, then switch it to public.`
+            : `${created.title} is public. Invite your streamers on the running order.`}
         </p>
       )}
     </form>
+  );
+}
+
+// KICK pops a dashboard panel into its own window. We open it as a dialog, and the panel behind it
+// says where it went, so the form is never mounted twice and no field id is duplicated.
+function PopoutWindow({ title, onClose, children }: { title: string; onClose: () => void; children: React.ReactNode }) {
+  const dialogRef = useRef<HTMLDialogElement>(null);
+
+  useEffect(() => {
+    const dialog = dialogRef.current;
+    if (!dialog) return;
+    if (!dialog.open) dialog.showModal();
+    const closeOnEscape = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    document.addEventListener("keydown", closeOnEscape);
+    return () => document.removeEventListener("keydown", closeOnEscape);
+  }, [onClose]);
+
+  return (
+    <dialog
+      ref={dialogRef}
+      onClick={(e) => {
+        if (e.target === dialogRef.current) onClose();
+      }}
+      aria-label={title}
+      data-testid="popout-window"
+      className="m-auto w-[calc(100vw-64px)] max-w-[620px] rounded-lg bg-surface-base p-0 text-white backdrop:bg-black/75"
+    >
+      <div className="flex items-center justify-between border-b border-outline-decorative py-2 pl-6 pr-4">
+        <div className="flex items-center gap-4 text-lg font-bold leading-none text-white">
+          <Icon name="plus" className="size-4 shrink-0" />
+          <span>{title}</span>
+        </div>
+        <IconButton
+          icon="close"
+          label="Close the window"
+          testId="popout-close"
+          onClick={onClose}
+          className="size-8 text-sm leading-none"
+        />
+      </div>
+      <div className="max-h-[70vh] overflow-y-auto p-6">{children}</div>
+    </dialog>
+  );
+}
+
+function ConfirmDialog({
+  title,
+  body,
+  confirmLabel,
+  onConfirm,
+  onClose,
+}: {
+  title: string;
+  body: string;
+  confirmLabel: string;
+  onConfirm: () => void;
+  onClose: () => void;
+}) {
+  const dialogRef = useRef<HTMLDialogElement>(null);
+
+  useEffect(() => {
+    const dialog = dialogRef.current;
+    if (!dialog) return;
+    if (!dialog.open) dialog.showModal();
+    const closeOnEscape = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    document.addEventListener("keydown", closeOnEscape);
+    return () => document.removeEventListener("keydown", closeOnEscape);
+  }, [onClose]);
+
+  return (
+    <dialog
+      ref={dialogRef}
+      onClick={(e) => {
+        if (e.target === dialogRef.current) onClose();
+      }}
+      aria-label={title}
+      data-testid="confirm-dialog"
+      className="m-auto w-[calc(100vw-64px)] max-w-[420px] rounded-lg bg-surface-base p-0 text-white backdrop:bg-black/75"
+    >
+      <div className="flex flex-col gap-4 p-6">
+        <h2 className="text-xl font-bold leading-[1.2]">{title}</h2>
+        <p className="text-sm font-normal leading-6 text-surface-onSurfaceSecondary">{body}</p>
+        <div className="flex justify-end gap-2">
+          <button type="button" onClick={onClose} className={`${buttonClass.ghost} h-9`}>
+            Cancel
+          </button>
+          <button
+            type="button"
+            data-testid="confirm-yes"
+            onClick={() => {
+              onConfirm();
+              onClose();
+            }}
+            className={`${buttonClass.primary} h-9`}
+          >
+            {confirmLabel}
+          </button>
+        </div>
+      </div>
+    </dialog>
   );
 }
 
@@ -170,6 +384,7 @@ function InviteForm({ event }: { event: KickEvent }) {
 
 function PublishRow({ event }: { event: KickEvent }) {
   const { publishEvent } = useEvents();
+  const [asking, setAsking] = useState(false);
   const waiting = waitingOn(event);
 
   if (event.visibility === "public") {
@@ -191,11 +406,20 @@ function PublishRow({ event }: { event: KickEvent }) {
         type="button"
         disabled={waiting.length > 0}
         data-testid={`publish-${event.slug}`}
-        onClick={() => publishEvent(event.event_id)}
+        onClick={() => setAsking(true)}
         className={`${buttonClass.primary} h-8`}
       >
         Switch to public
       </button>
+      {asking && (
+        <ConfirmDialog
+          title={`Make ${event.title} public?`}
+          body="Everybody can see a public event, and it shows up in browse and on the home page. You cannot make it private again."
+          confirmLabel="Make it public"
+          onConfirm={() => publishEvent(event.event_id)}
+          onClose={() => setAsking(false)}
+        />
+      )}
       {waiting.length > 0 && (
         <span data-testid="publish-blocked" className="text-sm font-normal text-subtle">
           {waiting.length} {waiting.length === 1 ? "streamer has" : "streamers have"} not answered
@@ -375,6 +599,7 @@ function EmptyPane({ message }: { message: string }) {
 
 export function DashboardEvents() {
   const { events, notifications } = useEvents();
+  const [popout, setPopout] = useState(false);
   const mine = events.filter((e) => takesPart(e, currentUser.username)).sort(byStartAt);
   const invites = invitesFor(events, currentUser.username).sort(byStartAt);
 
@@ -415,8 +640,14 @@ export function DashboardEvents() {
 
       <div className="flex flex-col" style={{ width: "40%" }}>
         <Pane style={{ height: "62%" }}>
-          <Panel title="Create an event" icon="plus">
-            <CreateEventForm />
+          <Panel title="Create an event" icon="plus" onPopout={() => setPopout(true)}>
+            {popout ? (
+              <p className="p-4 text-sm font-normal text-surface-onSurfaceSecondary">
+                Create an event is open in a window.
+              </p>
+            ) : (
+              <CreateEventForm />
+            )}
           </Panel>
         </Pane>
         <Pane style={{ height: "38%" }}>
@@ -435,6 +666,12 @@ export function DashboardEvents() {
           </Panel>
         </Pane>
       </div>
+
+      {popout && (
+        <PopoutWindow title="Create an event" onClose={() => setPopout(false)}>
+          <CreateEventForm wide />
+        </PopoutWindow>
+      )}
     </div>
   );
 }

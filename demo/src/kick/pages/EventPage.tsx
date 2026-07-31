@@ -54,18 +54,23 @@ function StreamerAvatars({ participants }: { participants: EventParticipant[] })
   );
 }
 
-// The poster is the page. The banner runs behind it under a scrim, the way the home hero puts a
-// gradient over a still, so the poster and the title are the only things a reader lands on.
+// The poster is the page, and the background is the same poster blown up and blurred. A separate
+// plate behind it never matched the artwork, so the colour of the hero now comes from the poster.
 function EventHero({ event }: { event: KickEvent }) {
   const live = isLiveWindow(event);
   const streamers = eventStreamers(event);
 
   return (
     <div className="relative w-full overflow-hidden">
-      <img src={event.banner} alt="" className="absolute inset-0 h-full w-full object-cover" />
+      <img
+        src={event.poster}
+        alt=""
+        aria-hidden="true"
+        className="absolute inset-0 h-full w-full scale-125 object-cover opacity-60 blur-3xl"
+      />
       <div
         aria-hidden="true"
-        className="absolute inset-0 bg-[linear-gradient(90deg,#0B0B0C_0%,rgba(11,11,12,0.88)_38%,rgba(11,11,12,0.45)_72%,rgba(11,11,12,0.15)_100%)]"
+        className="absolute inset-0 bg-[linear-gradient(90deg,#0B0B0C_0%,rgba(11,11,12,0.86)_34%,rgba(11,11,12,0.62)_70%,rgba(11,11,12,0.5)_100%)]"
       />
       <div
         aria-hidden="true"
@@ -76,7 +81,8 @@ function EventHero({ event }: { event: KickEvent }) {
         <img
           src={event.poster}
           alt={event.title}
-          className="aspect-[9/16] w-[132px] shrink-0 rounded-lg object-cover shadow-[0_18px_40px_-12px_rgba(0,0,0,0.9)] ring-1 ring-white/10 sm:w-[168px] lg:w-[228px]"
+          // A poster is shown at its own ratio. Cropping one to a fixed box cuts its title off.
+          className="h-[208px] w-auto shrink-0 rounded-lg shadow-[0_18px_40px_-12px_rgba(0,0,0,0.9)] ring-1 ring-white/10 sm:h-[280px] lg:h-[400px]"
         />
 
         <div className="flex min-w-0 flex-col gap-2 pb-1 lg:gap-3">
@@ -170,7 +176,7 @@ export function EventPage() {
           </h2>
           <ul className="flex max-w-[640px] flex-col" data-testid="event-streamers">
             {streamers.map((p) => (
-              <StreamerRow key={p.channel.slug} participant={p} />
+              <StreamerRow key={p.channel.slug} participant={p} eventLive={isLiveWindow(event)} />
             ))}
           </ul>
         </section>

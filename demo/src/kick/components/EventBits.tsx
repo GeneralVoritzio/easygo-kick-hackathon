@@ -102,7 +102,13 @@ export function RemindButton({ event, wide }: { event: KickEvent; wide?: boolean
   );
 }
 
-export function StreamerRow({ participant }: { participant: EventParticipant }) {
+export function StreamerRow({
+  participant,
+  eventLive,
+}: {
+  participant: EventParticipant;
+  eventLive?: boolean;
+}) {
   const { channel, role, slot_title } = participant;
   const live = liveStreamFor(channel.slug);
 
@@ -126,14 +132,21 @@ export function StreamerRow({ participant }: { participant: EventParticipant }) 
           {slot_title}
         </span>
       </div>
-      {live && (
+      {live ? (
         <Link
           to={`/${channel.slug}`}
+          data-testid={`watch-${channel.slug}`}
           className="flex h-9 shrink-0 items-center gap-1.5 rounded bg-secondary-base px-3 text-sm font-semibold text-white state-layer-surface"
         >
           <span className="size-2 rounded-full bg-primary-base" />
           Watch
         </Link>
+      ) : (
+        eventLive && (
+          <span className="shrink-0 whitespace-nowrap px-1 text-sm font-semibold text-subtle">
+            Not live yet
+          </span>
+        )
       )}
     </li>
   );
@@ -177,7 +190,8 @@ export function EventCard({ event }: { event: KickEvent }) {
         <img
           src={event.poster}
           alt={event.title}
-          className="h-full w-full object-cover brightness-110 contrast-[110%]"
+          // A poster carries its title at the top, so a landscape crop keeps the top.
+          className="h-full w-full object-cover object-top"
         />
         <ThumbBadge
           corner="top-left"

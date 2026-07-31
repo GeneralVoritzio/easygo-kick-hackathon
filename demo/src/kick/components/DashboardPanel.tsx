@@ -5,16 +5,19 @@ export function IconButton({
   label,
   className,
   onClick,
+  testId,
 }: {
   icon: KickIconName;
   label: string;
   className?: string;
   onClick?: () => void;
+  testId?: string;
 }) {
   return (
     <button
       type="button"
       aria-label={label}
+      data-testid={testId}
       onClick={onClick}
       className={`state-layer-surface flex shrink-0 items-center justify-center rounded bg-transparent font-semibold text-white [&_svg]:size-[1em] ${className ?? ""}`}
     >
@@ -49,6 +52,7 @@ export function Panel({
   actions,
   bodyClassName,
   bigPopout,
+  onPopout,
   children,
 }: {
   title: string;
@@ -56,6 +60,7 @@ export function Panel({
   actions?: React.ReactNode;
   bodyClassName?: string;
   bigPopout?: boolean;
+  onPopout?: () => void;
   children?: React.ReactNode;
 }) {
   return (
@@ -68,7 +73,9 @@ export function Panel({
             {actions}
             <IconButton
               icon="dash-popout"
-              label={`Open ${title} in a new window`}
+              label={`Open ${title} in a window`}
+              testId={onPopout ? "popout" : undefined}
+              onClick={onPopout}
               className={`size-8 leading-none ${bigPopout ? "text-base" : "text-sm"}`}
             />
           </>

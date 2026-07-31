@@ -1,4 +1,4 @@
-import { artFor, bannerFor, channelBySlug, liveStreamFor, type Channel } from "./api";
+import { artFor, channelBySlug, liveStreamFor, type Channel } from "./api";
 
 export const EVENTS_NOW = new Date("2026-07-26T13:30:00Z");
 
@@ -34,16 +34,30 @@ export type KickEvent = {
   host_channel: Channel;
   start_at: string;
   end_at: string;
-  // poster is the event artwork. The detail page shows it portrait at 9 by 16, and a card crops it
-  // to the landscape box every other card on the site uses. banner is the wide plate behind the
-  // title on the detail page.
+  // The event artwork. The detail page shows it at its own ratio and uses a blurred copy as the
+  // background. A card crops it to the landscape box every other card on the site uses.
   poster: string;
-  banner: string;
   visibility: EventVisibility;
   is_partner_only: boolean;
   participants: EventParticipant[];
   chat: EventChatSettings;
 };
+
+// A host who uploads nothing gets one of the committed posters, picked at random.
+const POSTER_PLATES = [
+  "poster-final-showdown",
+  "poster-power-play-arena",
+  "poster-arena-clash",
+  "poster-squad-rush",
+  "poster-battle-night-live",
+  "poster-cyber-warfare",
+  "poster-arena-champions",
+  "poster-fps-ultimate",
+  "poster-legends-awaken",
+];
+
+export const randomPoster = () =>
+  artFor(POSTER_PLATES[Math.floor(Math.random() * POSTER_PLATES.length)]);
 
 const INVITED_AT = "2026-07-18T09:00:00Z";
 const RESPONDED_AT = "2026-07-19T21:00:00Z";
@@ -73,22 +87,21 @@ const guest = (
 export const events: KickEvent[] = [
   {
     event_id: "01k9event0001",
-    slug: "couch-senate-summer-sessions",
-    title: "Couch Senate Summer Sessions",
+    slug: "final-showdown",
+    title: "Final Showdown",
     description:
-      "Six hours, four couches, one running order. The Senate takes a motion from chat every hour and the channel that loses the vote hands the show to the next seat.",
+      "Team Alpha against Team Omega, and four channels carry the same arena feed. Chat picks the map every round, and the losing side hands the show to the next seat.",
     host_channel: channelBySlug("couchsenate"),
     start_at: "2026-07-26T12:00:00Z",
     end_at: "2026-07-26T18:00:00Z",
-    poster: artFor("cat-just-chatting"),
-    banner: bannerFor("couchsenate"),
+    poster: artFor("poster-final-showdown"),
     visibility: "public",
     is_partner_only: true,
     participants: [
-      host("couchsenate", "Opening address and the first motion"),
-      guest("ironvow", "Seat two, hardcore run with chat picking the target"),
-      guest("charcoalchef", "Seat three, the Senate lunch"),
-      guest("superdude1337", "Seat four, closing remarks"),
+      host("couchsenate", "Opening game and the first map vote"),
+      guest("ironvow", "Seat two, the Alpha side"),
+      guest("charcoalchef", "Seat three, the Omega side"),
+      guest("superdude1337", "Seat four, the closing game"),
       guest("spinvicar", "Standby seat", "pending"),
     ],
     chat: {
@@ -100,22 +113,45 @@ export const events: KickEvent[] = [
   },
   {
     event_id: "01k9event0002",
-    slug: "ironman-relay-night",
-    title: "Ironman Relay Night",
+    slug: "power-play-arena",
+    title: "Power Play Arena",
     description:
-      "Four ironmen, one shared account rule set. Every death passes the relay to the next channel, and the last one standing keeps the pet.",
-    host_channel: channelBySlug("ironvow"),
-    start_at: "2026-07-26T20:00:00Z",
+      "Nightfury against Valor Prime for the last spot in the final. One arena, one goal, and the crowd cam runs on every channel.",
+    host_channel: channelBySlug("nocturnalnorm"),
+    start_at: "2026-07-26T20:30:00Z",
     end_at: "2026-07-26T23:30:00Z",
-    poster: artFor("cat-old-school-runescape"),
-    banner: bannerFor("ironvow"),
+    poster: artFor("poster-power-play-arena"),
     visibility: "public",
     is_partner_only: true,
     participants: [
-      host("ironvow", "Leg one, Tutorial Island to Lumbridge"),
-      guest("cluecrawler", "Leg two, clue scroll gauntlet"),
-      guest("capequest", "Leg three, the cape run"),
-      guest("mudbrickmage", "Leg four, boss finish", "pending"),
+      host("nocturnalnorm", "Desk and the coin toss"),
+      guest("snoozebaron", "Nightfury side"),
+      guest("superdude1337", "Valor Prime side", "pending"),
+    ],
+    chat: {
+      moderators: ["PillowFortPam", "QuietHoursQuinn"],
+      slow_mode_seconds: 10,
+      is_subscribers_only: false,
+      is_followers_only: true,
+    },
+  },
+  {
+    event_id: "01k9event0003",
+    slug: "arena-clash",
+    title: "Arena Clash",
+    description:
+      "Friday night, three channels, one bracket. Every match runs to two wins and the winner picks the next opponent live on stream.",
+    host_channel: channelBySlug("ironvow"),
+    start_at: "2026-07-31T21:00:00Z",
+    end_at: "2026-08-01T00:30:00Z",
+    poster: artFor("poster-arena-clash"),
+    visibility: "public",
+    is_partner_only: true,
+    participants: [
+      host("ironvow", "Round one and the bracket draw"),
+      guest("cluecrawler", "Round two"),
+      guest("capequest", "The final"),
+      guest("mudbrickmage", "Reserve", "pending"),
     ],
     chat: {
       moderators: ["TinderboxTina", "RelayRefLarry"],
@@ -125,72 +161,21 @@ export const events: KickEvent[] = [
     },
   },
   {
-    event_id: "01k9event0003",
-    slug: "midnight-den-highroller-hours",
-    title: "Midnight Den Highroller Hours",
-    description:
-      "The Den opens at ten and closes when the last table folds. Three channels, one shared leaderboard, and every bonus round called out in the event chat.",
-    host_channel: channelBySlug("midnightden"),
-    start_at: "2026-07-29T22:00:00Z",
-    end_at: "2026-07-30T02:00:00Z",
-    poster: artFor("cat-gakuen-idolmaster"),
-    banner: bannerFor("midnightden"),
-    visibility: "public",
-    is_partner_only: true,
-    participants: [
-      host("midnightden", "Doors open, first table"),
-      guest("spinvicar", "The midnight sermon"),
-      guest("tiltcabinet", "Last table standing"),
-    ],
-    chat: {
-      moderators: ["DenMotherDot", "CashoutCarl"],
-      slow_mode_seconds: 10,
-      is_subscribers_only: true,
-      is_followers_only: true,
-    },
-  },
-  {
     event_id: "01k9event0004",
-    slug: "the-sleep-marathon-handover",
-    title: "The Sleep Marathon Handover",
+    slug: "squad-rush",
+    title: "Squad Rush",
     description:
-      "Eight hours of nothing at all, handed from channel to channel every two hours. Whoever wakes up first loses, and chat keeps the score.",
-    host_channel: channelBySlug("nocturnalnorm"),
-    start_at: "2026-08-02T01:00:00Z",
-    end_at: "2026-08-02T09:00:00Z",
-    poster: artFor("cat-just-sleeping"),
-    banner: bannerFor("midnightden"),
-    visibility: "public",
-    is_partner_only: true,
-    participants: [
-      host("nocturnalnorm", "First watch"),
-      guest("snoozebaron", "Second watch"),
-      guest("superdude1337", "Third watch", "pending"),
-    ],
-    chat: {
-      moderators: ["PillowFortPam", "QuietHoursQuinn"],
-      slow_mode_seconds: 30,
-      is_subscribers_only: false,
-      is_followers_only: true,
-    },
-  },
-  {
-    event_id: "01k9event0005",
-    slug: "kitchen-disasters-cook-off",
-    title: "Kitchen Disasters Cook Off",
-    description:
-      "One recipe, three kitchens, no measuring cups. Chat sends the ingredient list and nobody is allowed to say no.",
+      "Four squads drop on the same island and every channel holds one squad cam. Falcon, Viper, Shadow and Reaper, and chat calls the rotations.",
     host_channel: channelBySlug("superdude1337"),
-    start_at: "2026-08-08T17:00:00Z",
-    end_at: "2026-08-08T21:00:00Z",
-    poster: artFor("cat-irl"),
-    banner: bannerFor("charcoalchef"),
+    start_at: "2026-08-08T19:00:00Z",
+    end_at: "2026-08-08T23:00:00Z",
+    poster: artFor("poster-squad-rush"),
     visibility: "private",
     is_partner_only: true,
     participants: [
-      host("superdude1337", "Round one, the ingredient draw"),
-      guest("charcoalchef", "Round two, the grill round"),
-      guest("notadoc", "Food safety desk", "rejected"),
+      host("superdude1337", "Falcon squad and the drop call"),
+      guest("charcoalchef", "Viper squad"),
+      guest("notadoc", "Shadow squad", "rejected"),
       guest("spinvicar", "Asked to join", "requested"),
       guest("tiltcabinet", "Asked to join", "requested"),
     ],
@@ -202,22 +187,69 @@ export const events: KickEvent[] = [
     },
   },
   {
-    event_id: "01k9event0006",
-    slug: "vanlife-roadshow-finale",
-    title: "Vanlife Roadshow Finale",
+    event_id: "01k9event0005",
+    slug: "battle-night-live",
+    title: "Battle Night Live",
     description:
-      "Three vans, one car park, and six weeks of driving to explain. The roadshow ends where chat voted to end it.",
-    host_channel: channelBySlug("wanderfuse"),
-    start_at: "2026-09-05T14:00:00Z",
-    end_at: "2026-09-05T20:00:00Z",
-    poster: artFor("cat-grand-theft-auto-v"),
-    banner: bannerFor("couchsenate"),
+      "Saturday night and the whole roster is on. Every channel runs a different lane of the same match, so pick a seat and stay there.",
+    host_channel: channelBySlug("midnightden"),
+    start_at: "2026-08-22T20:00:00Z",
+    end_at: "2026-08-22T23:59:00Z",
+    poster: artFor("poster-battle-night-live"),
     visibility: "public",
     is_partner_only: true,
     participants: [
-      host("wanderfuse", "Arrival and the van tour"),
-      guest("vanlifevoid", "The breakdown story"),
-      guest("flickgremlin", "Roadshow recap reel"),
+      host("midnightden", "Main stage"),
+      guest("spinvicar", "Second lane"),
+      guest("tiltcabinet", "Third lane"),
+    ],
+    chat: {
+      moderators: ["DenMotherDot", "CashoutCarl"],
+      slow_mode_seconds: 10,
+      is_subscribers_only: true,
+      is_followers_only: true,
+    },
+  },
+  {
+    event_id: "01k9event0006",
+    slug: "cyber-warfare",
+    title: "Cyber Warfare",
+    description:
+      "The tournament final, blue side against red side, and each channel carries one team's comms. Nobody knows the map until the drop.",
+    host_channel: channelBySlug("tiltcabinet"),
+    start_at: "2026-10-12T20:00:00Z",
+    end_at: "2026-10-12T23:00:00Z",
+    poster: artFor("poster-cyber-warfare"),
+    visibility: "public",
+    is_partner_only: true,
+    participants: [
+      host("tiltcabinet", "Blue side comms"),
+      guest("spinvicar", "Red side comms"),
+      guest("reelgoblin", "The desk"),
+    ],
+    chat: {
+      moderators: ["CashoutCarl", "DenMotherDot"],
+      slow_mode_seconds: 5,
+      is_subscribers_only: false,
+      is_followers_only: true,
+    },
+  },
+  {
+    event_id: "01k9event0007",
+    slug: "arena-champions",
+    title: "Arena Champions",
+    description:
+      "The grand final of the season, live on every channel on the running order. One million on the line and chat votes the most valuable player.",
+    host_channel: channelBySlug("wanderfuse"),
+    start_at: "2026-10-20T19:30:00Z",
+    end_at: "2026-10-20T23:00:00Z",
+    poster: artFor("poster-arena-champions"),
+    visibility: "public",
+    is_partner_only: true,
+    participants: [
+      host("wanderfuse", "The grand final"),
+      guest("vanlifevoid", "Second seat"),
+      guest("flickgremlin", "The recap reel"),
     ],
     chat: {
       moderators: ["AwningAndy", "DieselDaphne"],
@@ -227,50 +259,24 @@ export const events: KickEvent[] = [
     },
   },
   {
-    event_id: "01k9event0007",
-    slug: "grill-school-graduation",
-    title: "Grill School Graduation",
-    description:
-      "Six weeks of grill school end in one cook off. Every channel plates the same brief, and chat marks the results out of ten.",
-    host_channel: channelBySlug("charcoalchef"),
-    start_at: "2026-08-22T18:00:00Z",
-    end_at: "2026-08-22T22:00:00Z",
-    poster: artFor("cat-music"),
-    banner: bannerFor("charcoalchef"),
-    visibility: "public",
-    is_partner_only: true,
-    participants: [
-      host("charcoalchef", "The brief and the marking sheet"),
-      guest("panfriedpaul", "Second plate"),
-      guest("notadoc", "Health and safety desk"),
-    ],
-    chat: {
-      moderators: ["SpatulaSheriff", "MiseEnPlaceMo"],
-      slow_mode_seconds: 5,
-      is_subscribers_only: false,
-      is_followers_only: false,
-    },
-  },
-  {
     event_id: "01k9event0008",
-    slug: "spin-vicar-charity-reel-off",
-    title: "Spin Vicar Charity Reel Off",
+    slug: "fps-ultimate",
+    title: "FPS Ultimate",
     description:
-      "Four channels spin the same reel for the same charity. Every bonus round is matched, and the total goes up on the event page.",
+      "The pro showdown. Three channels, one lobby, and the last squad standing takes the night. Special guests join between rounds.",
     host_channel: channelBySlug("spinvicar"),
-    start_at: "2026-08-22T12:00:00Z",
-    end_at: "2026-08-22T16:00:00Z",
-    poster: artFor("cat-slots-casino"),
-    banner: bannerFor("midnightden"),
+    start_at: "2026-10-28T21:00:00Z",
+    end_at: "2026-10-29T01:00:00Z",
+    poster: artFor("poster-fps-ultimate"),
     visibility: "public",
     is_partner_only: true,
     participants: [
-      host("spinvicar", "Opening reel"),
-      guest("tiltcabinet", "The matched round"),
-      guest("midnightden", "Closing reel"),
+      host("spinvicar", "The pro lobby"),
+      guest("tiltcabinet", "Second lobby"),
+      guest("notadoc", "The medic desk"),
     ],
     chat: {
-      moderators: ["CashoutCarl", "DenMotherDot"],
+      moderators: ["CashoutCarl", "RelayRefLarry"],
       slow_mode_seconds: 5,
       is_subscribers_only: false,
       is_followers_only: true,
@@ -278,51 +284,26 @@ export const events: KickEvent[] = [
   },
   {
     event_id: "01k9event0009",
-    slug: "the-long-nap-relay",
-    title: "The Long Nap Relay",
+    slug: "legends-awaken",
+    title: "Legends Awaken",
     description:
-      "A second sleep relay, because the first one worked. Two channels, four hours, and chat counts the snores.",
-    host_channel: channelBySlug("snoozebaron"),
-    start_at: "2026-08-22T17:00:00Z",
-    end_at: "2026-08-22T21:00:00Z",
-    poster: artFor("cat-just-sleeping"),
-    banner: bannerFor("midnightden"),
+      "The raid night that closes the season. Two channels ride in, one holds the wall, and chat calls the boss timers.",
+    host_channel: channelBySlug("charcoalchef"),
+    start_at: "2026-11-01T19:00:00Z",
+    end_at: "2026-11-01T23:00:00Z",
+    poster: artFor("poster-legends-awaken"),
     visibility: "public",
     is_partner_only: true,
     participants: [
-      host("snoozebaron", "First nap"),
-      guest("nocturnalnorm", "Second nap"),
+      host("charcoalchef", "The gate"),
+      guest("panfriedpaul", "The wall"),
+      guest("notadoc", "The healer cam"),
     ],
     chat: {
-      moderators: ["PillowFortPam", "QuietHoursQuinn"],
-      slow_mode_seconds: 15,
+      moderators: ["SpatulaSheriff", "MiseEnPlaceMo"],
+      slow_mode_seconds: 5,
       is_subscribers_only: false,
       is_followers_only: false,
-    },
-  },
-  {
-    event_id: "01k9event0010",
-    slug: "tilt-cabinet-late-tables",
-    title: "Tilt Cabinet Late Tables",
-    description:
-      "The tables that open when the Reel Off closes. One shared leaderboard, and the last channel standing calls the night.",
-    host_channel: channelBySlug("tiltcabinet"),
-    start_at: "2026-08-22T22:00:00Z",
-    end_at: "2026-08-23T02:00:00Z",
-    poster: artFor("cat-league-of-legends"),
-    banner: bannerFor("ironvow"),
-    visibility: "public",
-    is_partner_only: true,
-    participants: [
-      host("tiltcabinet", "Doors open"),
-      guest("spinvicar", "The late sermon"),
-      guest("reelgoblin", "Last table standing"),
-    ],
-    chat: {
-      moderators: ["CashoutCarl", "DenMotherDot"],
-      slow_mode_seconds: 10,
-      is_subscribers_only: true,
-      is_followers_only: true,
     },
   },
 ];
@@ -375,6 +356,18 @@ export const canSee = (event: KickEvent, username: string) =>
   event.participants.some((p) => p.channel.username === username);
 
 export const byStartAt = (a: KickEvent, b: KickEvent) => a.start_at.localeCompare(b.start_at);
+
+// Every public event this channel is on the running order for, soonest first. The channel page
+// shows these, so a viewer who lands on a channel can see what it takes part in.
+export const eventsWith = (list: KickEvent[], slug: string) =>
+  list
+    .filter(
+      (e) =>
+        e.visibility === "public" &&
+        new Date(e.end_at) > EVENTS_NOW &&
+        e.participants.some((p) => p.channel.slug === slug && p.invite_status === "accepted"),
+    )
+    .sort(byStartAt);
 
 // A private event is only visible to the host and to the channels they invited.
 export const publicUpcoming = (list: KickEvent[]) =>

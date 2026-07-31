@@ -128,7 +128,8 @@ function AvatarStack({ participants }: { participants: EventParticipant[] }) {
   );
 }
 
-// A poster is portrait, so the card is a poster with a caption under it, not a stream card.
+// The card is landscape like every other card on the site. The portrait poster belongs to the
+// detail page. The card is still its own component: no tags, a host line, and the running order.
 export function EventCard({ event }: { event: KickEvent }) {
   const { reminders } = useEvents();
   const streamers = eventStreamers(event);
@@ -136,10 +137,10 @@ export function EventCard({ event }: { event: KickEvent }) {
   const reminded = reminders.includes(event.event_id);
 
   return (
-    <div className="group/card relative flex w-full shrink-0 grow-0 flex-col items-start will-change-transform">
+    <div className="group/card relative flex w-full shrink-0 grow-0 flex-col gap-2 will-change-transform lg:gap-0">
       <Link
         to={`/events/${event.slug}`}
-        className="relative block aspect-[9/16] w-full select-none overflow-hidden rounded-lg"
+        className="relative block aspect-video w-full select-none overflow-hidden rounded"
       >
         <img
           src={event.poster}
@@ -177,22 +178,22 @@ export function EventCard({ event }: { event: KickEvent }) {
         </div>
       </Link>
 
-      <div className="flex w-full min-w-0 flex-row flex-nowrap gap-2 p-1 pt-2 lg:pb-3">
+      <div className="flex w-full min-w-0 flex-row flex-nowrap gap-2 lg:px-1.5 lg:py-2">
         <Link to={`/${event.host_channel.slug}`} className="shrink-0">
           <img
             src={event.host_channel.avatar}
             alt={event.host_channel.username}
-            className="size-9 shrink-0 rounded-full"
+            className="size-11 shrink-0 rounded-full"
           />
         </Link>
         <div className="flex w-full min-w-0 flex-col items-start">
           <Link
             to={`/events/${event.slug}`}
-            className="w-full truncate text-base font-semibold leading-6 text-white"
+            className="w-full truncate text-sm font-semibold leading-5 text-white"
           >
             {event.title}
           </Link>
-          <span className="max-w-full truncate text-sm font-normal leading-normal text-surface-onSurfaceSecondary">
+          <span className="max-w-full truncate text-base font-normal leading-6 text-surface-onSurfaceSecondary">
             {event.host_channel.username}
           </span>
         </div>
@@ -202,15 +203,15 @@ export function EventCard({ event }: { event: KickEvent }) {
   );
 }
 
-// A poster is narrower than a stream thumbnail, so a row holds one more of them.
+// The same columns as a stream row, so an events row lines up with the row above it.
 export const eventColumns =
-  "h-full grid-cols-2 gap-x-2 sm:grid-cols-3 lg:grid-cols-5 2xl:grid-cols-6 3xl:grid-cols-7 group-data-[sidebar=false]/main:xl:grid-cols-6 group-data-[sidebar=false]/main:2xl:grid-cols-7";
+  "h-full grid-cols-1 gap-x-4 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4 2xl:grid-cols-5 3xl:grid-cols-6 group-data-[sidebar=false]/main:xl:grid-cols-5 group-data-[sidebar=false]/main:2xl:grid-cols-6 group-data-[sidebar=false]/main:3xl:grid-cols-7";
 
 export function EventGrid({ events, oneRow }: { events: KickEvent[]; oneRow?: boolean }) {
   return (
     <section
       className={`${eventColumns} ${
-        oneRow ? `${oneRowGrid} [&>div]:w-[186px]` : "grid gap-y-3 lg:gap-y-6"
+        oneRow ? `${oneRowGrid} [&>div]:w-[268px]` : "grid gap-y-5 lg:gap-y-6"
       }`}
     >
       {events.map((event) => (

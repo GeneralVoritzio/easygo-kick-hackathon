@@ -1,5 +1,5 @@
 import { createContext, useContext, useState } from "react";
-import { channelByUsername, currentUser, posterFor } from "./mock/api";
+import { channelByUsername, currentUser, artFor } from "./mock/api";
 import { EVENTS_NOW, events as seedEvents, type KickEvent } from "./mock/events";
 
 export type EventDraft = {
@@ -80,7 +80,7 @@ export function EventsProvider({ children }: { children: React.ReactNode }) {
       host_channel: currentUser,
       start_at: draft.start_at,
       end_at: draft.end_at,
-      poster: posterFor("cat-just-chatting"),
+      poster: artFor("cat-just-chatting"),
       banner: currentUser.banner,
       visibility: "private",
       is_partner_only: true,

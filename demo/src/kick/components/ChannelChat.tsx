@@ -7,8 +7,10 @@ import {
   type KeyboardEvent,
   type ReactNode,
 } from "react";
+import { Link } from "react-router-dom";
 import { Icon, type KickIconName } from "../Icon";
 import { currentUser } from "../mock/api";
+import { formatSlowMode, type KickEvent } from "../mock/events";
 import identityBadge from "../icons/identity-badge.png";
 
 // Identity colours resolved from assets/reference/kick-neon-tokens.css (--neon-identity-*).
@@ -148,6 +150,66 @@ export const chatLines = [
   "run it back",
 ];
 
+// The event room spans every channel on the running order, so its regulars and its lines are
+// about the running order and not about one stream.
+const eventChatters: { username: string; badges: BadgeName[] }[] = [
+  { username: "GavelGoblin", badges: ["og"] },
+  { username: "MotionToVibe", badges: ["sub_gifter_purple"] },
+  { username: "RunningOrderRhi", badges: [] },
+  { username: "SeatSwapSam", badges: ["sub_gifter"] },
+  { username: "CrossChatCass", badges: [] },
+  { username: "RelayRefLarry", badges: ["og"] },
+  { username: "TinderboxTina", badges: ["sub_gifter_teal"] },
+  { username: "DenMotherDot", badges: [] },
+  { username: "CashoutCarl", badges: [] },
+  { username: "PillowFortPam", badges: ["sub_gifter"] },
+  { username: "QuietHoursQuinn", badges: [] },
+  { username: "SpatulaSheriff", badges: [] },
+  { username: "MiseEnPlaceMo", badges: ["sub_gifter_teal"] },
+  { username: "AwningAndy", badges: [] },
+  { username: "DieselDaphne", badges: ["verified"] },
+  { username: "HandoverHana", badges: ["sub_gifter_purple"] },
+  { username: "BracketBrett", badges: [] },
+  { username: "SlotOneSteve", badges: [] },
+];
+
+const eventChatLines = [
+  "who is up next",
+  "seat two starts in ten",
+  "handing over now, go go go",
+  "following all four of these already",
+  "this running order is stacked",
+  "whoever loses the vote hands it over",
+  "one room for every channel is so good",
+  "someone tell seat three to unmute",
+  "that handover was clean",
+  "the host set slow mode for a reason",
+  "first event chat and i am staying",
+  "seat four is going to win this",
+  "switching over now, brb",
+  "we are all in the same room right now",
+  "vote is in, next seat up",
+  "reminder set for the next one",
+  "half of chat came from the other stream",
+  "the relay rules are chaos and i love it",
+];
+
+type MessagePool = { chatters: typeof chatters; lines: string[] };
+
+const streamPool: MessagePool = { chatters, lines: chatLines };
+
+// The event chat inherits its moderators from the host, so only those names carry the badge.
+export function eventPool(moderators: string[]): MessagePool {
+  return {
+    chatters: eventChatters.map((chatter) =>
+      moderators.includes(chatter.username)
+        ? { ...chatter, badges: ["moderator" as BadgeName, ...chatter.badges] }
+        : chatter,
+    ),
+    lines: eventChatLines,
+  };
+}
+
 const pick = <T,>(list: T[]) => list[Math.floor(Math.random() * list.length)];
 
 type Message = {
@@ -160,10 +222,10 @@ type Message = {
 
 let nextId = 1;
 
-function randomMessage(): Message {
-  const chatter = pick(chatters);
+function randomMessage(pool: MessagePool): Message {
+  const chatter = pick(pool.chatters);
   const emote = pick(emotes);
-  const line = pick(chatLines);
+  const line = pick(pool.lines);
   const roll = Math.random();
   const body =
     roll < 0.2
@@ -174,8 +236,8 @@ function randomMessage(): Message {
   return { id: nextId++, ...chatter, color: colorFor(chatter.username), body };
 }
 
-function seedMessages(count: number): Message[] {
-  return Array.from({ length: count }, randomMessage);
+function seedMessages(count: number, pool: MessagePool): Message[] {
+  return Array.from({ length: count }, () => randomMessage(pool));
 }
 
 // KICK serves the rank medals from kick.com itself, which blocks any client that is not a
@@ -207,7 +269,59 @@ const topGifters: {
   },
 ];
 
-function ChatHeader({ onCollapse }: { onCollapse?: () => void }) {
+type ChatRoom = "stream" | "event";
+
+function RoomSwitch({
+  room,
+  onRoom,
+  eventTitle,
+}: {
+  room: ChatRoom;
+  onRoom: (room: ChatRoom) => void;
+  eventTitle: string;
+}) {
+  const segment = (active: boolean) =>
+    `max-w-[120px] truncate rounded px-2 py-1 text-sm font-semibold ${
+      active ? "bg-surface-highest text-white" : "text-subtle"
+    }`;
+
+  return (
+    <div
+      data-testid="chat-room-switch"
+      className="absolute left-1/2 flex -translate-x-1/2 gap-0.5 rounded bg-secondary-base p-0.5"
+    >
+      <button
+        type="button"
+        aria-pressed={room === "stream"}
+        onClick={() => onRoom("stream")}
+        className={segment(room === "stream")}
+      >
+        Stream
+      </button>
+      <button
+        type="button"
+        aria-pressed={room === "event"}
+        title={eventTitle}
+        onClick={() => onRoom("event")}
+        className={segment(room === "event")}
+      >
+        {eventTitle}
+      </button>
+    </div>
+  );
+}
+
+function ChatHeader({
+  onCollapse,
+  room,
+  onRoom,
+  eventTitle,
+}: {
+  onCollapse?: () => void;
+  room?: ChatRoom;
+  onRoom?: (room: ChatRoom) => void;
+  eventTitle?: string;
+}) {
   return (
     <div className="relative flex min-h-[38px] shrink-0 items-center justify-between border-b-2 border-[#24272c] px-3 py-1.5">
       <button
@@ -218,9 +332,13 @@ function ChatHeader({ onCollapse }: { onCollapse?: () => void }) {
       >
         <Icon name="collapse-chat" className="size-4" />
       </button>
-      <span className="absolute left-1/2 -translate-x-1/2 text-sm font-bold lg:text-base">
-        Chat
-      </span>
+      {room && onRoom && eventTitle ? (
+        <RoomSwitch room={room} onRoom={onRoom} eventTitle={eventTitle} />
+      ) : (
+        <span className="absolute left-1/2 -translate-x-1/2 text-sm font-bold lg:text-base">
+          Chat
+        </span>
+      )}
       <button
         type="button"
         aria-label="Viewer list"
@@ -319,15 +437,15 @@ function ChatMessages({ messages, surface }: { messages: Message[]; surface: str
   );
 }
 
-function useFlowingMessages() {
-  const [messages, setMessages] = useState<Message[]>(() => seedMessages(22));
+function useFlowingMessages(pool: MessagePool = streamPool) {
+  const [messages, setMessages] = useState<Message[]>(() => seedMessages(22, pool));
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setMessages((prev) => [...prev.slice(-149), randomMessage()]);
+      setMessages((prev) => [...prev.slice(-149), randomMessage(pool)]);
     }, 2200);
     return () => clearInterval(interval);
-  }, []);
+  }, [pool]);
 
   return [messages, setMessages] as const;
 }
@@ -676,9 +794,17 @@ function ChatFooter({
 
 // The dashboard panels are lighter than the page under them, so the chat runs on surface-base
 // there. On the channel page one surface runs across the whole site, so it runs on surface-lowest.
-export function ChatFeed({ header, dashboard }: { header?: ReactNode; dashboard?: boolean }) {
+export function ChatFeed({
+  header,
+  dashboard,
+  pool,
+}: {
+  header?: ReactNode;
+  dashboard?: boolean;
+  pool?: MessagePool;
+}) {
   const surface = dashboard ? "bg-surface-base" : "bg-surface-lowest";
-  const [messages, setMessages] = useFlowingMessages();
+  const [messages, setMessages] = useFlowingMessages(pool);
   const [draft, setDraft] = useState("");
 
   function send(body: string) {
@@ -724,13 +850,75 @@ export function ChatFeed({ header, dashboard }: { header?: ReactNode; dashboard?
   );
 }
 
-export function ChannelChat({ onCollapse }: { onCollapse?: () => void }) {
+function EventChatStrip({ event }: { event: KickEvent }) {
+  const mods = event.chat.moderators;
+
+  return (
+    <div
+      data-testid="event-chat-strip"
+      className="flex shrink-0 items-center gap-2 border-y border-outline-decorative px-3 py-2"
+    >
+      <img src={event.host_channel.avatar} alt="" className="size-7 shrink-0 rounded-full" />
+      <div className="flex min-w-0 grow flex-col gap-1">
+        <Link
+          to={`/events/${event.slug}`}
+          className="truncate text-sm font-bold text-white betterhover:hover:underline"
+        >
+          Event chat, hosted by {event.host_channel.username}
+        </Link>
+        <div className="flex flex-wrap items-center gap-1">
+          <span
+            title={mods.length > 0 ? `Moderators: ${mods.join(", ")}` : undefined}
+            className="flex items-center gap-1 whitespace-nowrap rounded-full bg-secondary-base px-2 py-0.5 text-xs font-semibold text-secondary-onSecondary"
+          >
+            <Icon name="chat-settings" className="size-3 shrink-0 fill-current" />
+            Moderated by {event.host_channel.username}
+          </span>
+          <span className="whitespace-nowrap rounded-full bg-secondary-base px-2 py-0.5 text-xs font-semibold text-secondary-onSecondary">
+            {formatSlowMode(event.chat.slow_mode_seconds)}
+          </span>
+          {event.chat.is_subscribers_only && (
+            <span className="whitespace-nowrap rounded-full bg-secondary-base px-2 py-0.5 text-xs font-semibold text-secondary-onSecondary">
+              Subscribers only
+            </span>
+          )}
+        </div>
+      </div>
+      <Link
+        to={`/events/${event.slug}`}
+        aria-label="Open the event page"
+        className="flex size-8 shrink-0 items-center justify-center rounded text-white state-layer-surface"
+      >
+        <Icon name="dash-external" className="size-4 fill-current" />
+      </Link>
+    </div>
+  );
+}
+
+export function ChannelChat({
+  onCollapse,
+  event,
+}: {
+  onCollapse?: () => void;
+  event?: KickEvent;
+}) {
+  const [room, setRoom] = useState<ChatRoom>("stream");
+  const inEvent = Boolean(event) && room === "event";
+
   return (
     <ChatFeed
+      // A switch is a different room, so the feed reseeds instead of showing the old room's tail.
+      key={room}
+      pool={inEvent && event ? eventPool(event.chat.moderators) : undefined}
       header={
         <>
-          <ChatHeader onCollapse={onCollapse} />
-          <GifterLeaderboard />
+          <ChatHeader
+            onCollapse={onCollapse}
+            room={event ? room : undefined}
+            onRoom={event ? setRoom : undefined}
+            eventTitle={event?.title}
+          />
+          {inEvent && event ? <EventChatStrip event={event} /> : <GifterLeaderboard />}
         </>
       }
     />

@@ -7,11 +7,14 @@ import {
   canSee,
   eventFor,
   eventStreamers,
+  formatEventDay,
   formatEventTime,
   formatEventWindow,
   formatSlowMode,
   isLiveWindow,
+  runsFor,
   startsInLabel,
+  type EventParticipant,
   type KickEvent,
 } from "../mock/events";
 
@@ -32,28 +35,107 @@ function EventNotFound({ slug }: { slug: string }) {
   );
 }
 
-// The banner block copies the offline page: a full width banner with one card over it, top left.
-function EventBanner({ event }: { event: KickEvent }) {
+function StreamerAvatars({ participants }: { participants: EventParticipant[] }) {
+  return (
+    <div className="flex flex-row-reverse items-center">
+      {participants
+        .slice(0, 5)
+        .reverse()
+        .map((p) => (
+          <img
+            key={p.channel.slug}
+            src={p.channel.avatar}
+            alt={p.channel.username}
+            title={p.channel.username}
+            className="-ml-2 size-7 rounded-full ring-2 ring-surface-lowest"
+          />
+        ))}
+    </div>
+  );
+}
+
+// The poster is the page. The banner runs behind it under a scrim, the way the home hero puts a
+// gradient over a still, so the poster and the title are the only things a reader lands on.
+function EventHero({ event }: { event: KickEvent }) {
   const live = isLiveWindow(event);
+  const streamers = eventStreamers(event);
 
   return (
-    <div className="relative block h-[var(--channel-desktop-banner-height)] w-full shrink-0 overflow-hidden bg-black">
-      <img
-        src={event.banner}
-        alt=""
-        className="absolute inset-x-0 top-0 h-full w-full object-cover"
+    <div className="relative w-full overflow-hidden">
+      <img src={event.banner} alt="" className="absolute inset-0 h-full w-full object-cover" />
+      <div
+        aria-hidden="true"
+        className="absolute inset-0 bg-[linear-gradient(90deg,#0B0B0C_0%,rgba(11,11,12,0.88)_38%,rgba(11,11,12,0.45)_72%,rgba(11,11,12,0.15)_100%)]"
       />
-      <div className="z-player absolute left-7 top-7 flex h-fit w-fit items-center gap-4 rounded bg-surface-base p-5 font-bold leading-[1.2]">
-        <span
-          className={`rounded-[2px] p-1 text-sm font-bold uppercase leading-5 ${
-            live ? "bg-green-500 text-surface-lowest" : "bg-white text-surface-lowest"
-          }`}
-        >
-          {live ? "Live" : "Event"}
-        </span>
-        <h2 className="text-2xl font-bold leading-8 text-white">
-          {live ? `Runs until ${formatEventTime(event.end_at)} UTC` : startsInLabel(event)}
-        </h2>
+      <div
+        aria-hidden="true"
+        className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-surface-lowest to-transparent"
+      />
+
+      <div className="relative flex flex-row items-end gap-4 px-4 py-5 lg:gap-6 lg:px-7 lg:py-7">
+        <img
+          src={event.poster}
+          alt={event.title}
+          className="aspect-[9/16] w-[132px] shrink-0 rounded-lg object-cover shadow-[0_18px_40px_-12px_rgba(0,0,0,0.9)] ring-1 ring-white/10 sm:w-[168px] lg:w-[228px]"
+        />
+
+        <div className="flex min-w-0 flex-col gap-2 pb-1 lg:gap-3">
+          <div className="flex items-center gap-2">
+            <span
+              className={`rounded-[2px] px-1.5 py-1 text-[10px] font-bold uppercase leading-3 ${
+                live ? "bg-green-500 text-[#171A1C]" : "bg-white text-surface-lowest"
+              }`}
+            >
+              {live ? "Live" : "Event"}
+            </span>
+            <span className="truncate text-sm font-semibold leading-[1.2] text-surface-onSurfacePrimary lg:text-base">
+              {live
+                ? `Runs until ${formatEventTime(event.end_at)} UTC`
+                : `${startsInLabel(event)}, ${formatEventDay(event.start_at)}`}
+            </span>
+          </div>
+
+          <h1 className="truncate text-2xl font-bold leading-[1.1] text-white lg:text-4xl">
+            {event.title}
+          </h1>
+
+          <div className="flex min-w-0 flex-wrap items-center gap-x-4 gap-y-2">
+            <Link
+              to={`/${event.host_channel.slug}`}
+              className="flex min-w-0 items-center gap-2 text-sm font-bold leading-[1.2] text-white betterhover:hover:underline lg:text-base"
+            >
+              <img
+                src={event.host_channel.avatar}
+                alt=""
+                className="size-7 shrink-0 rounded-full lg:size-8"
+              />
+              <span className="truncate">{event.host_channel.username}</span>
+              {event.host_channel.verified && <Icon name="verified" className="size-4 shrink-0" />}
+            </Link>
+
+            <div className="flex items-center gap-2">
+              <StreamerAvatars participants={streamers} />
+              <span className="whitespace-nowrap text-sm font-semibold leading-[1.2] text-subtle">
+                <span className="text-white">{streamers.length}</span> streamers
+              </span>
+            </div>
+          </div>
+
+          <p className="line-clamp-2 max-w-[68ch] text-sm font-normal leading-6 text-surface-onSurfaceSecondary lg:text-base">
+            {event.description}
+          </p>
+
+          <div className="flex flex-row items-center gap-2 pt-1">
+            <RemindButton event={event} />
+            <button
+              type="button"
+              aria-label="Share"
+              className="flex size-10 shrink-0 items-center justify-center rounded bg-secondary-base text-white state-layer-surface"
+            >
+              <Icon name="share" className="size-4 fill-current" />
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -79,45 +161,14 @@ export function EventPage() {
 
   return (
     <div className="flex w-full flex-col">
-      <EventBanner event={event} />
+      <EventHero event={event} />
 
-      <div className="flex w-full flex-row items-start justify-between gap-4 px-4 py-4 lg:px-7">
-        <div className="flex min-w-0 flex-row items-center gap-3 lg:gap-4">
-          <img
-            src={event.poster}
-            alt={event.title}
-            className="aspect-[9/16] w-[104px] shrink-0 rounded-lg object-cover lg:w-[132px]"
-          />
-          <div className="flex min-w-0 flex-col gap-1">
-            <h1 className="truncate text-xl font-bold leading-[1.4] text-white lg:text-2xl">
-              {event.title}
-            </h1>
-            <Link
-              to={`/${event.host_channel.slug}`}
-              className="flex items-center gap-1.5 text-sm font-semibold leading-[1.2] text-white betterhover:hover:underline"
-            >
-              <img src={event.host_channel.avatar} alt="" className="size-5 shrink-0 rounded-full" />
-              {event.host_channel.username}
-              {event.host_channel.verified && <Icon name="verified" className="size-4 shrink-0" />}
-            </Link>
-            <span className="flex items-center gap-1 text-sm font-bold leading-[1.2] text-white">
-              <Icon name="chatters" className="size-4 shrink-0 fill-white" />
-              <span className="text-primary-base">{streamers.length}</span> streamers
-            </span>
-          </div>
-        </div>
-
-        <div className="flex shrink-0 flex-col items-end gap-2">
-          <RemindButton event={event} />
-        </div>
-      </div>
-
-      <div className="flex w-full flex-col gap-6 px-4 pb-6 lg:flex-row lg:gap-8 lg:px-7">
+      <div className="flex w-full flex-col gap-6 px-4 py-6 lg:flex-row lg:gap-8 lg:px-7">
         <section className="flex min-w-0 grow flex-col gap-3">
           <h2 className="text-base font-bold leading-[1.2] text-white lg:text-xl">
             Streamers in this event
           </h2>
-          <ul className="flex flex-col" data-testid="event-streamers">
+          <ul className="flex max-w-[640px] flex-col" data-testid="event-streamers">
             {streamers.map((p) => (
               <StreamerRow key={p.channel.slug} participant={p} />
             ))}
@@ -125,20 +176,12 @@ export function EventPage() {
         </section>
 
         <aside className="flex shrink-0 flex-col gap-4 lg:w-[320px]">
-          <section className="flex flex-col gap-2">
-            <h2 className="text-base font-bold leading-[1.2] text-white lg:text-xl">Description</h2>
-            <p className="text-sm font-normal leading-6 text-surface-onSurfaceSecondary">
-              {event.description}
-            </p>
-          </section>
-
-          <div className="h-px w-full bg-outline-decorative" />
-
           <section className="flex flex-col gap-3">
             <h2 className="text-base font-bold leading-[1.2] text-white lg:text-xl">
               Event details
             </h2>
             <DetailRow label="When">{formatEventWindow(event.start_at, event.end_at)}</DetailRow>
+            <DetailRow label="Runs for">{runsFor(event.start_at, event.end_at)}</DetailRow>
             <DetailRow label="Event chat">
               Hosted by {event.host_channel.username}.{" "}
               {formatSlowMode(event.chat.slow_mode_seconds)}.

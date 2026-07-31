@@ -423,6 +423,16 @@ export function startsInLabel(event: KickEvent): string {
   return `In ${days} ${days === 1 ? "day" : "days"}`;
 }
 
+export function runsFor(start_at: string, end_at: string): string {
+  const minutes = Math.round(
+    (new Date(end_at).getTime() - new Date(start_at).getTime()) / 60000,
+  );
+  const hours = Math.floor(minutes / 60);
+  const rest = minutes % 60;
+  if (hours === 0) return `${rest} minutes`;
+  return rest === 0 ? `${hours} hours` : `${hours} hours ${rest} minutes`;
+}
+
 export function formatSlowMode(seconds: number): string {
   if (seconds === 0) return "Slow mode off";
   return `Slow mode ${seconds}s`;

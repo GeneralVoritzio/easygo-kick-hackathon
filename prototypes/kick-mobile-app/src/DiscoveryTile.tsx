@@ -2,11 +2,12 @@ import { useRef } from 'react';
 import { motion } from 'framer-motion';
 import type { LiveStream } from '@shared/types';
 import { ChannelBadge } from '@shared/components';
-import { StreamSurface } from './StreamSurface';
 import { AudioFocusButton } from './AudioFocusButton';
 import { StreamSignalLabel } from './StreamSignalLabel';
 import { StreamTagPills } from './StreamTagPills';
 import { useLongPress } from './useLongPress';
+import { useHypeMeter } from './useHypeMeter';
+import { HypeIndicator } from './HypeIndicator';
 
 const SWIPE_THRESHOLD = 70;
 const PIN_HOLD_MS = 500;
@@ -30,6 +31,12 @@ interface DiscoveryTileProps {
  *  fresh tile (and fresh drag/hold state) mounts on every swipe/pin rather
  *  than reusing stale gesture state for a new stream.
  *
+ *  Chrome only — no video. The actual `StreamSurface` lives in
+ *  `DiscoveryVideoRing`, a sibling that stays mounted across swipes so the
+ *  next/previous stream can already be loaded by the time this tile remounts
+ *  for them; owning the surface here would throw that preload away on every
+ *  swipe along with the rest of this tile's gesture state.
+ *
  *  Framer's `onTap` doesn't automatically get cancelled by a `drag` gesture
  *  on the same element — a swipe that ends near the release point can still
  *  register as a tap. `draggedRef` tracks whether *any* drag happened during
@@ -46,10 +53,11 @@ export function DiscoveryTile({ stream, isAudioActive, canPin, onPin, onNext, on
   const { holding, cancel, handlers } = useLongPress(() => {
     if (canPin) onPin();
   }, PIN_HOLD_MS);
+  const isHyping = useHypeMeter(stream.id);
 
   return (
     <motion.div
-      className="relative h-full w-full touch-pan-x overflow-hidden rounded-lg border border-line"
+      className="relative h-full w-full touch-pan-x no-touch-callout overflow-hidden rounded-lg border border-line"
       drag="y"
       dragElastic={0.5}
       dragSnapToOrigin
@@ -65,6 +73,7 @@ export function DiscoveryTile({ stream, isAudioActive, canPin, onPin, onNext, on
       onTap={() => {
         if (!draggedRef.current) onOpen();
       }}
+      onContextMenu={(e) => e.preventDefault()}
       onPointerDown={(e) => {
         draggedRef.current = false;
         handlers.onPointerDown(e);
@@ -74,8 +83,6 @@ export function DiscoveryTile({ stream, isAudioActive, canPin, onPin, onNext, on
       onPointerLeave={handlers.onPointerLeave}
       onPointerCancel={handlers.onPointerCancel}
     >
-      <StreamSurface stream={stream} muted={!isAudioActive} />
-
       <motion.div
         className="pointer-events-none absolute inset-0 rounded-lg ring-4 ring-kick"
         initial={{ opacity: 0 }}
@@ -92,12 +99,15 @@ export function DiscoveryTile({ stream, isAudioActive, canPin, onPin, onNext, on
 
       <div className="pointer-events-none absolute inset-x-0 top-0 flex items-start justify-between gap-2 bg-gradient-to-b from-page/80 to-transparent p-3">
         <ChannelBadge channel={stream} />
-        <AudioFocusButton
-          isAudioActive={isAudioActive}
-          streamName={stream.name}
-          onFocus={onTapAudio}
-          className="pointer-events-auto"
-        />
+        <div className="flex shrink-0 flex-col items-end gap-1.5">
+          {!isAudioActive && isHyping && <HypeIndicator className="pointer-events-none" />}
+          <AudioFocusButton
+            isAudioActive={isAudioActive}
+            streamName={stream.name}
+            onFocus={onTapAudio}
+            className="pointer-events-auto"
+          />
+        </div>
       </div>
 
       <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-page/85 to-transparent p-3">

@@ -7,109 +7,6 @@ export interface ChannelInfo {
   viewerCount?: number;
 }
 
-// --- Kick Communities -------------------------------------------------------
-
-export type ThreadKind = 'discussion' | 'meme' | 'fan_art' | 'announcement';
-
-/** One post in a creator's community feed — a discussion thread, a shared
- *  meme/fan art, or an announcement, all in the same feed rather than split
- *  across Reddit/Discord/X. */
-export interface CommunityThread {
-  id: string;
-  authorName: string;
-  authorAvatarUrl?: string;
-  kind: ThreadKind;
-  title: string;
-  bodyPreview: string;
-  replyCount: number;
-  reactionCount: number;
-  createdAt: string;
-  pinned?: boolean;
-}
-
-export type CommunityEventKind = 'convention' | 'charity_stream' | 'community_week' | 'live_event' | 'quest';
-
-/** A scheduled or in-progress community happening — a convention, a charity
- *  marathon, a live-event moment fans help drive (vote/solve/contribute),
- *  or a running quest. */
-export interface CommunityEvent {
-  id: string;
-  title: string;
-  kind: CommunityEventKind;
-  startsAt: string;
-  isLive?: boolean;
-}
-
-export interface CommunityPollOption {
-  id: string;
-  label: string;
-  votes: number;
-}
-
-/** A live vote fans can help decide — "vote on strategies" from the
- *  pitch, e.g. which boss/route/decision the streamer takes next. */
-export interface CommunityPoll {
-  id: string;
-  question: string;
-  options: CommunityPollOption[];
-  endsAt: string;
-}
-
-/** A community-wide progress goal fans contribute to live — covers both
- *  "solve puzzles" (progress toward clues found) and "contribute to a
- *  battle or goal" from the pitch, rather than modeling each as its own
- *  bespoke mechanic. */
-export interface CommunityGoal {
-  id: string;
-  title: string;
-  current: number;
-  target: number;
-  unit: string;
-}
-
-/** The community a feed/event belongs to — one dedicated space per creator
- *  (or interest) rather than one generic Kick-wide forum. */
-export interface Community {
-  id: string;
-  name: string;
-  creatorName: string;
-  iconEmoji: string;
-  memberCount: number;
-}
-
-export type CommunityCardRarity = 'common' | 'rare' | 'legendary';
-
-export type CommunityCardRevealKind = 'video' | 'voice_note' | 'message' | 'clip' | 'animation' | 'image';
-
-/** A collectible earned by completing a community quest/event — face-down
- *  by default. Only its owner can flip it to reveal the creator's private
- *  message underneath, so the card is a memory, not just a badge. */
-export interface CommunityCard {
-  id: string;
-  communityName: string;
-  creatorName: string;
-  iconEmoji: string;
-  /** What was done to earn it, e.g. "First Charity Marathon". */
-  title: string;
-  earnedAt: string;
-  rarity: CommunityCardRarity;
-  revealKind: CommunityCardRevealKind;
-  /** The secret behind the card — the creator's private message/clip/etc. */
-  revealMessage: string;
-  revealAuthor: string;
-  /** An embed URL (for `revealKind: 'video'`) or image URL (for
-   *  `revealKind: 'image'`). Falls back to a placeholder when unset. */
-  revealMediaUrl?: string;
-}
-
-/** A user's profile as a record of the communities they've been part of and
- *  the moments they've collected — a passport, not just a follow list. */
-export interface KickPassport {
-  handle: string;
-  communitiesJoined: number;
-  cards: CommunityCard[];
-}
-
 // --- Multiview grid (Home tab) -----------------------------------------------
 
 export type StreamPlatform = 'kick';
@@ -131,16 +28,16 @@ export interface LiveStream extends ChannelInfo {
    *  file's mock data. */
   tags: string[];
   /** Why this specific stream is worth tapping into *right now* — social
-   *  proof (friends/community members already there) or something live
-   *  wrapping up soon. Not every stream has one. */
+   *  proof (community members already there) or something live wrapping up
+   *  soon. Not every stream has one. */
   signal?: StreamSignal;
 }
 
-export type StreamSignalKind = 'friends_watching' | 'community_members' | 'poll_ending' | 'battle_ending' | 'event_starting';
+export type StreamSignalKind = 'community_members' | 'poll_ending' | 'battle_ending' | 'event_starting';
 
-/** The social/event line shown on a stream card. `count` drives the two
- *  headcount kinds (`friends_watching`, `community_members`); `endsAt` (plus
- *  `label` for `event_starting`) drives the three countdown kinds. */
+/** The social/event line shown on a stream card. `count` drives
+ *  `community_members`; `endsAt` (plus `label` for `event_starting`) drives
+ *  the three countdown kinds. */
 export interface StreamSignal {
   kind: StreamSignalKind;
   count?: number;
@@ -157,4 +54,44 @@ export interface ChatMessage {
   viewerName: string;
   text: string;
   createdAt: string;
+}
+
+// --- Discover tab -------------------------------------------------------
+
+export type DiscoverEventKind = 'tournament' | 'charity_stream' | 'collab' | 'irl_meetup' | 'launch';
+
+/** A streamer credited on a `DiscoverEvent` card. Carries its own avatar
+ *  rather than a bare name so the card can always show one, even for a
+ *  streamer with no live embed backing this particular event yet. */
+export interface DiscoverEventStreamer {
+  name: string;
+  avatarUrl: string;
+}
+
+/** A platform-wide happening worth discovering — spans multiple streamers
+ *  and categories rather than one creator's own calendar. `streamIds` is
+ *  only set once it's actually live, and only ever points at real embedded
+ *  channels in `createMockLiveStreams` — there's nothing to embed for a
+ *  happening that hasn't started. A collab spanning several streamers opens
+ *  as a multiview (same flow as `TrendingMultiview`), not a single stream. */
+export interface DiscoverEvent {
+  id: string;
+  title: string;
+  kind: DiscoverEventKind;
+  category: string;
+  streamers: DiscoverEventStreamer[];
+  streamIds?: string[];
+  startsAt: string;
+  isLive?: boolean;
+}
+
+/** A multiview combo other viewers are currently watching together, ranked
+ *  by how many people have that exact combo open right now. `watching` is
+ *  our own invented signal (fake-kick): no real API exposes multiview
+ *  popularity, so this doesn't pretend to be sourced from one. */
+export interface TrendingMultiview {
+  id: string;
+  title: string;
+  streamIds: string[];
+  watching: number;
 }

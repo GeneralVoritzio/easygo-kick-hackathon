@@ -58,6 +58,12 @@ body {
   font-variant-numeric: tabular-nums;
 }
 
+.no-touch-callout {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
 @media (prefers-reduced-motion: reduce) {
   * {
     animation: none !important;

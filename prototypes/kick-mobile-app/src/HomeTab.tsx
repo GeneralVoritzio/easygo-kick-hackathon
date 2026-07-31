@@ -1,14 +1,17 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Maximize2, Minimize2 } from 'lucide-react';
 import { useLiveStreams } from '@shared/hooks/useLiveStreams';
 import type { LiveStream } from '@shared/types';
 import { DiscoveryTile } from './DiscoveryTile';
+import { DiscoveryVideoRing } from './DiscoveryVideoRing';
 import { PinnedDock } from './PinnedDock';
 import { MosaicGrid } from './MosaicGrid';
 import { StreamSurface } from './StreamSurface';
 import { AudioFocusButton } from './AudioFocusButton';
 import { usePinchGesture } from './usePinchGesture';
+import { useHypeMeter } from './useHypeMeter';
+import { HypeIndicator } from './HypeIndicator';
 
 const MAX_PINS = 4;
 const MIN_PINS_FOR_FOCUS = 2;
@@ -17,6 +20,18 @@ type Mode = 'discovery' | 'focus';
 
 interface HomeTabProps {
   onOpenStream: (stream: LiveStream) => void;
+  /** Whether the Home tab is actually the one on screen — false while
+   *  scrolled to a different tab or behind a fullscreen Stream View. Gates
+   *  every stream tile's `<iframe>` so up to five real Kick embeds aren't
+   *  all decoding video somewhere the viewer can't even see. */
+  active: boolean;
+  /** Set by the Discover tab when a trending multiview is tapped: pins that
+   *  exact combo and jumps to the focus mosaic. `nonce` forces the effect to
+   *  re-run even if the same combo is tapped twice in a row. */
+  presetFocus?: { streamIds: string[]; nonce: number } | null;
+  /** Bumped by the app shell when the Home tab bar icon is tapped while
+   *  already on Home — backs out of the focus mosaic to discovery. */
+  exitFocusSignal?: number;
 }
 
 /** Progressive Mosaic Discovery, the Home tab: start in a full-screen
@@ -35,12 +50,33 @@ interface HomeTabProps {
  *  Tapping a stream card always opens it fullscreen with chat, everywhere
  *  (discovery, dock, focus mosaic) — audio focus is always the separate
  *  🔊/🔇 button, never the card tap itself. */
-export function HomeTab({ onOpenStream }: HomeTabProps) {
+export function HomeTab({ onOpenStream, active, presetFocus, exitFocusSignal }: HomeTabProps) {
   const { streams, loading } = useLiveStreams();
   const [pinnedIds, setPinnedIds] = useState<string[]>([]);
   const [discoveryIndex, setDiscoveryIndex] = useState(0);
   const [pinnedAudioId, setPinnedAudioId] = useState<string | null>(null);
   const [mode, setMode] = useState<Mode>('discovery');
+  const appliedFocusNonceRef = useRef<number | null>(null);
+  const lastExitSignalRef = useRef(exitFocusSignal);
+
+  useEffect(() => {
+    if (exitFocusSignal === undefined || exitFocusSignal === lastExitSignalRef.current) return;
+    lastExitSignalRef.current = exitFocusSignal;
+    setMode('discovery');
+  }, [exitFocusSignal]);
+
+  useEffect(() => {
+    if (!presetFocus || streams.length === 0) return;
+    if (appliedFocusNonceRef.current === presetFocus.nonce) return;
+    appliedFocusNonceRef.current = presetFocus.nonce;
+
+    const validIds = presetFocus.streamIds.filter((id) => streams.some((s) => s.id === id)).slice(0, MAX_PINS);
+    if (validIds.length === 0) return;
+
+    setPinnedIds(validIds);
+    setPinnedAudioId(null);
+    setMode(validIds.length >= MIN_PINS_FOR_FOCUS ? 'focus' : 'discovery');
+  }, [presetFocus, streams]);
 
   const discoveryQueue = useMemo(() => streams.filter((s) => !pinnedIds.includes(s.id)), [streams, pinnedIds]);
   const currentDiscoveryStream: LiveStream | null =
@@ -116,28 +152,16 @@ export function HomeTab({ onOpenStream }: HomeTabProps) {
                 transition={{ duration: 0.25 }}
               >
                 <MosaicGrid
-                  tiles={pinnedStreams.map((s) => {
-                    const isAudioActive = audioActiveId === s.id;
-                    return (
-                      <motion.div
-                        key={s.id}
-                        whileTap={{ scale: 0.97 }}
-                        className="relative h-full w-full overflow-hidden rounded-lg border border-line"
-                        onTap={() => handleOpen(s)}
-                      >
-                        <StreamSurface stream={s} muted={!isAudioActive} />
-                        <div className="pointer-events-none absolute inset-x-0 bottom-0 flex items-center justify-between gap-2 bg-gradient-to-t from-page/85 to-transparent p-2">
-                          <span className="truncate text-xs font-bold text-ink-bright">{s.name}</span>
-                        </div>
-                        <AudioFocusButton
-                          isAudioActive={isAudioActive}
-                          streamName={s.name}
-                          onFocus={() => focusAudio(s.id)}
-                          className="absolute right-1 top-1"
-                        />
-                      </motion.div>
-                    );
-                  })}
+                  tiles={pinnedStreams.map((s) => (
+                    <FocusTile
+                      key={s.id}
+                      stream={s}
+                      isAudioActive={audioActiveId === s.id}
+                      active={active}
+                      onOpen={() => handleOpen(s)}
+                      onTapAudio={() => focusAudio(s.id)}
+                    />
+                  ))}
                 />
               </motion.div>
             ) : (
@@ -149,7 +173,13 @@ export function HomeTab({ onOpenStream }: HomeTabProps) {
                 exit={{ opacity: 0, scale: 0.96 }}
                 transition={{ duration: 0.25 }}
               >
-                <div className="min-w-0 flex-1">
+                <div className="relative min-w-0 flex-1">
+                  <DiscoveryVideoRing
+                    streams={discoveryQueue}
+                    currentStreamId={currentDiscoveryStream.id}
+                    audioActiveId={audioActiveId}
+                    active={active}
+                  />
                   <DiscoveryTile
                     key={currentDiscoveryStream.id}
                     stream={currentDiscoveryStream}
@@ -165,6 +195,7 @@ export function HomeTab({ onOpenStream }: HomeTabProps) {
                 <PinnedDock
                   streams={pinnedStreams}
                   audioActiveId={audioActiveId}
+                  active={active}
                   onTapAudio={focusAudio}
                   onOpen={handleOpen}
                   onUnpin={handleUnpin}
@@ -188,5 +219,41 @@ export function HomeTab({ onOpenStream }: HomeTabProps) {
         </button>
       )}
     </div>
+  );
+}
+
+interface FocusTileProps {
+  stream: LiveStream;
+  isAudioActive: boolean;
+  active: boolean;
+  onOpen: () => void;
+  onTapAudio: () => void;
+}
+
+function FocusTile({ stream, isAudioActive, active, onOpen, onTapAudio }: FocusTileProps) {
+  const isHyping = useHypeMeter(stream.id);
+
+  return (
+    <motion.div
+      whileTap={{ scale: 0.97 }}
+      className="relative h-full w-full overflow-hidden rounded-lg border border-line"
+      onTap={onOpen}
+    >
+      <StreamSurface stream={stream} muted={!isAudioActive} active={active} />
+      <img
+        src={stream.avatarUrl}
+        alt={stream.name}
+        className="pointer-events-none absolute bottom-1 left-1 h-7 w-7 rounded-full border-2 border-page/70 object-cover"
+      />
+      {!isAudioActive && isHyping && (
+        <HypeIndicator className="pointer-events-none absolute left-1 top-1" />
+      )}
+      <AudioFocusButton
+        isAudioActive={isAudioActive}
+        streamName={stream.name}
+        onFocus={onTapAudio}
+        className="absolute right-1 top-1"
+      />
+    </motion.div>
   );
 }

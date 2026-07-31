@@ -1,2 +1,2 @@
-export const TABS = ['community', 'home', 'profile'] as const;
+export const TABS = ['discover', 'home', 'profile'] as const;
 export type Tab = (typeof TABS)[number];

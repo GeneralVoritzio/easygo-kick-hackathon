@@ -9,7 +9,7 @@ interface UseLiveStreamsResult {
 
 /**
  * The roster itself (which real streams are offered) is mock-only, same as
- * useCommunityFeed/useBounties — no backend contract yet. The video is
+ * useDiscoverFeed/useBounties — no backend contract yet. The video is
  * real: each `LiveStream.embedId` is embedded live by `StreamSurface` via
  * the platform's own player, so there's nothing here to poll/tick — the
  * embed reflects actual live state on its own.

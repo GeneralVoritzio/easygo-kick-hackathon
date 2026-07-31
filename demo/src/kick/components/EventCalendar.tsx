@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Icon } from "../Icon";
+import { Section } from "./CardBits";
 import { EventGrid } from "./EventBits";
 import { byStartAt, EVENTS_NOW, type KickEvent } from "../mock/events";
 
@@ -45,22 +46,20 @@ export function EventCalendar({ events }: { events: KickEvent[] }) {
     // The month is the picker, so it sits in the aside on the right and the day fills the page.
     // On a small screen the picker comes first, which is why the column reverses.
     <div className="flex w-full flex-col-reverse gap-6 lg:flex-row lg:gap-8">
-      <div className="flex min-w-0 grow flex-col gap-3">
-        <h3 className="text-base font-bold leading-[1.2] text-white lg:text-xl">
-          {dayFormat.format(new Date(`${selected}T00:00:00Z`))}
-          <span className="pl-2 text-sm font-semibold text-subtle">
-            {selectedEvents.length} {selectedEvents.length === 1 ? "event" : "events"}
-          </span>
-        </h3>
-        {selectedEvents.length === 0 ? (
-          <p className="text-sm font-normal text-surface-onSurfaceSecondary">
-            No events on this day.
-          </p>
-        ) : (
-          <div data-testid="calendar-day-events">
-            <EventGrid events={selectedEvents} />
-          </div>
-        )}
+      {/* The same Section the Upcoming view uses, so a heading is the same height in both views
+          and switching between them does not move the page. */}
+      <div className="flex min-w-0 grow flex-col">
+        <Section white={dayFormat.format(new Date(`${selected}T00:00:00Z`))}>
+          {selectedEvents.length === 0 ? (
+            <p className="text-sm font-normal text-surface-onSurfaceSecondary">
+              No events on this day.
+            </p>
+          ) : (
+            <div data-testid="calendar-day-events">
+              <EventGrid events={selectedEvents} />
+            </div>
+          )}
+        </Section>
       </div>
 
       <aside className="flex w-full shrink-0 flex-col gap-4 lg:w-[340px]">

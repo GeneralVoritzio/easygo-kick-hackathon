@@ -281,9 +281,15 @@ export const takesPart = (event: KickEvent, username: string) =>
 export const eventForChannel = (list: KickEvent[], slug: string) =>
   list.find(
     (e) =>
+      e.visibility === "public" &&
       isLiveWindow(e) &&
       e.participants.some((p) => p.channel.slug === slug && p.invite_status === "accepted"),
   );
+
+// A private event is only for the host and the channels on its running order.
+export const canSee = (event: KickEvent, username: string) =>
+  event.visibility === "public" ||
+  event.participants.some((p) => p.channel.username === username);
 
 export const byStartAt = (a: KickEvent, b: KickEvent) => a.start_at.localeCompare(b.start_at);
 

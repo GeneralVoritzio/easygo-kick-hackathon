@@ -35,14 +35,14 @@ function KickTitle() {
       <span
         style={{
           fontFamily: "KickFont, sans-serif",
-          fontSize: 500,
+          fontSize: 410,
           lineHeight: 1,
           color: GREEN,
           whiteSpace: "nowrap",
           transform: `scaleY(${TITLE_STRETCH})`,
         }}
       >
-        KICK
+        FOMO
       </span>
     </AbsoluteFill>
   );

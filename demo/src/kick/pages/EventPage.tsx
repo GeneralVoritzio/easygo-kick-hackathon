@@ -2,8 +2,9 @@ import { Link, useParams } from "react-router-dom";
 import { Icon } from "../Icon";
 import { EventAction, StreamerRow } from "../components/EventBits";
 import { useEvents } from "../EventsStore";
-import { currentUser } from "../mock/api";
+import { currentUser, formatViewers } from "../mock/api";
 import {
+  attendance,
   canSee,
   eventFor,
   eventStreamers,
@@ -57,8 +58,10 @@ function StreamerAvatars({ participants }: { participants: EventParticipant[] })
 // The poster is the page, and the background is the same poster blown up and blurred. A separate
 // plate behind it never matched the artwork, so the colour of the hero now comes from the poster.
 function EventHero({ event }: { event: KickEvent }) {
+  const { reminders } = useEvents();
   const live = isLiveWindow(event);
   const streamers = eventStreamers(event);
+  const going = attendance(event, reminders.includes(event.event_id));
 
   return (
     <div className="relative w-full overflow-hidden">
@@ -125,6 +128,17 @@ function EventHero({ event }: { event: KickEvent }) {
                 <span className="text-white">{streamers.length}</span> streamers
               </span>
             </div>
+
+            <span
+              data-testid="event-attendance"
+              className="flex items-center gap-1.5 whitespace-nowrap text-sm font-semibold leading-[1.2] text-subtle lg:text-base"
+            >
+              <Icon name="chatters" className="size-4 shrink-0 fill-white" />
+              <span className={live ? "text-primary-base" : "text-white"}>
+                {formatViewers(going.count)}
+              </span>
+              {going.label}
+            </span>
           </div>
 
           <p className="line-clamp-2 max-w-[68ch] text-sm font-normal leading-6 text-surface-onSurfaceSecondary lg:text-base">

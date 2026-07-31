@@ -3,8 +3,9 @@ import { Icon } from "../Icon";
 import { CornerMarks, Pill, ThumbBadge } from "./CardBits";
 import { oneRowGrid } from "./Layout";
 import { useEvents } from "../EventsStore";
-import { liveStreamFor } from "../mock/api";
+import { formatViewers, liveStreamFor } from "../mock/api";
 import {
+  attendance,
   eventStreamers,
   formatEventDay,
   formatEventTime,
@@ -198,6 +199,7 @@ export function EventCard({ event }: { event: KickEvent }) {
   const streamers = eventStreamers(event);
   const live = isLiveWindow(event);
   const reminded = reminders.includes(event.event_id);
+  const going = attendance(event, reminded);
 
   return (
     <div className="group/card relative flex w-full shrink-0 grow-0 flex-col gap-2 will-change-transform lg:gap-0">
@@ -234,10 +236,23 @@ export function EventCard({ event }: { event: KickEvent }) {
             <Icon name="heart-filled" className="size-3.5 fill-current" />
           </span>
         )}
-        <div className="absolute inset-x-0 bottom-0 flex items-center justify-between gap-1 bg-gradient-to-t from-surface-lowest to-transparent pb-1.5 pt-8">
-          <span className="shrink-0 pl-2 text-sm font-semibold leading-5 text-white">
-            {formatEventTime(event.start_at)} UTC
-          </span>
+        <div className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-1 bg-gradient-to-t from-surface-lowest to-transparent pb-1.5 pt-10">
+          <div className="flex min-w-0 flex-col pl-2">
+            <span className="truncate text-sm font-semibold leading-5 text-white">
+              {formatEventTime(event.start_at)} UTC
+            </span>
+            {going.count > 0 && (
+              <span
+                data-testid="card-attendance"
+                className="truncate text-sm font-semibold leading-5 text-subtle"
+              >
+                <span className={live ? "text-primary-base" : "text-white"}>
+                  {formatViewers(going.count)}
+                </span>{" "}
+                {going.label}
+              </span>
+            )}
+          </div>
           <AvatarStack participants={streamers} />
         </div>
       </Link>

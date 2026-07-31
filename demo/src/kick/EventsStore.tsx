@@ -89,6 +89,7 @@ export function EventsProvider({ children }: { children: React.ReactNode }) {
       end_at: draft.end_at,
       poster: draft.poster,
       visibility: draft.visibility,
+      reminder_count: 0,
       is_partner_only: true,
       participants: [
         {

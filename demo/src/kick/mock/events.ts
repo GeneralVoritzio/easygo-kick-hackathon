@@ -38,6 +38,9 @@ export type KickEvent = {
   // background. A card crops it to the landscape box every other card on the site uses.
   poster: string;
   visibility: EventVisibility;
+  // How many viewers set a reminder. A live event counts heads instead, off the channels on the
+  // running order, so this is the number an event carries before it starts.
+  reminder_count: number;
   is_partner_only: boolean;
   participants: EventParticipant[];
   chat: EventChatSettings;
@@ -100,6 +103,7 @@ export const events: KickEvent[] = [
     end_at: "2026-07-26T18:00:00Z",
     poster: artFor("poster-final-showdown"),
     visibility: "public",
+    reminder_count: 18420,
     is_partner_only: true,
     participants: [
       host("couchsenate", "Opening game and the first map vote"),
@@ -126,6 +130,7 @@ export const events: KickEvent[] = [
     end_at: "2026-07-26T23:30:00Z",
     poster: artFor("poster-power-play-arena"),
     visibility: "public",
+    reminder_count: 9130,
     is_partner_only: true,
     participants: [
       host("nocturnalnorm", "Desk and the coin toss"),
@@ -150,6 +155,7 @@ export const events: KickEvent[] = [
     end_at: "2026-08-01T00:30:00Z",
     poster: artFor("poster-arena-clash"),
     visibility: "public",
+    reminder_count: 4207,
     is_partner_only: true,
     participants: [
       host("ironvow", "Round one and the bracket draw"),
@@ -175,6 +181,7 @@ export const events: KickEvent[] = [
     end_at: "2026-08-08T23:00:00Z",
     poster: artFor("poster-squad-rush"),
     visibility: "private",
+    reminder_count: 312,
     is_partner_only: true,
     participants: [
       host("superdude1337", "Falcon squad and the drop call"),
@@ -201,6 +208,7 @@ export const events: KickEvent[] = [
     end_at: "2026-08-22T23:59:00Z",
     poster: artFor("poster-battle-night-live"),
     visibility: "public",
+    reminder_count: 6640,
     is_partner_only: true,
     participants: [
       host("midnightden", "Main stage"),
@@ -225,6 +233,7 @@ export const events: KickEvent[] = [
     end_at: "2026-10-12T23:00:00Z",
     poster: artFor("poster-cyber-warfare"),
     visibility: "public",
+    reminder_count: 22140,
     is_partner_only: true,
     participants: [
       host("tiltcabinet", "Blue side comms"),
@@ -249,6 +258,7 @@ export const events: KickEvent[] = [
     end_at: "2026-10-20T23:00:00Z",
     poster: artFor("poster-arena-champions"),
     visibility: "public",
+    reminder_count: 41380,
     is_partner_only: true,
     participants: [
       host("wanderfuse", "The grand final"),
@@ -273,6 +283,7 @@ export const events: KickEvent[] = [
     end_at: "2026-10-29T01:00:00Z",
     poster: artFor("poster-fps-ultimate"),
     visibility: "public",
+    reminder_count: 15720,
     is_partner_only: true,
     participants: [
       host("spinvicar", "The pro lobby"),
@@ -297,6 +308,7 @@ export const events: KickEvent[] = [
     end_at: "2026-11-01T23:00:00Z",
     poster: artFor("poster-legends-awaken"),
     visibility: "public",
+    reminder_count: 8890,
     is_partner_only: true,
     participants: [
       host("charcoalchef", "The gate"),
@@ -333,6 +345,13 @@ export const invitesFor = (list: KickEvent[], username: string) =>
 
 export const requestsOn = (event: KickEvent) =>
   event.participants.filter((p) => p.invite_status === "requested");
+
+// A channel that hides its own viewer count stays out of the sum, so the total never reveals it.
+export const watchingNow = (event: KickEvent) =>
+  eventStreamers(event).reduce((total, p) => {
+    const stream = liveStreamFor(p.channel.slug);
+    return total + (stream && !stream.hide_viewer_count ? stream.viewer_count : 0);
+  }, 0);
 
 export const hasFinished = (event: KickEvent) => new Date(event.end_at) <= EVENTS_NOW;
 
@@ -442,6 +461,15 @@ export function runsFor(start_at: string, end_at: string): string {
   const rest = minutes % 60;
   if (hours === 0) return `${rest} minutes`;
   return rest === 0 ? `${hours} hours` : `${hours} hours ${rest} minutes`;
+}
+
+// One line for how many people the event has. Live counts heads, upcoming counts reminders, and
+// your own reminder counts towards it.
+export function attendance(event: KickEvent, remindedByMe: boolean) {
+  if (isLiveWindow(event)) {
+    return { count: watchingNow(event), label: "watching" };
+  }
+  return { count: event.reminder_count + (remindedByMe ? 1 : 0), label: "going" };
 }
 
 export function formatSlowMode(seconds: number): string {

@@ -16,28 +16,43 @@ export function EmbedLayer({
   liveEmbeds: boolean;
 }) {
   const wrappers = useRef(new Map<string, HTMLDivElement>());
+  const audioRef = useRef<HTMLIFrameElement>(null);
   const slugs = liveEmbeds
     ? [...new Set([...slots, ...targets.keys()])].filter((slug) => embedUrlFor(slug, true))
     : [];
 
   useEffect(() => {
+    // Chrome pauses media in iframes that leave the viewport, and a paused kick
+    // player stays frozen behind our pointer-events-none layer. So a frame with
+    // no place on screen parks as a 2px sliver at the left edge, in the
+    // viewport but behind the sidebar, and playback never stops.
+    const park = (el: HTMLElement) => {
+      el.style.left = "-158px";
+      el.style.top = `${window.innerHeight - 92}px`;
+      el.style.width = "160px";
+      el.style.height = "90px";
+    };
+    const place = (el: HTMLElement, target: EmbedTarget) => {
+      const r = target.el.getBoundingClientRect();
+      el.style.left = `${r.left}px`;
+      el.style.top = `${r.top}px`;
+      el.style.width = `${r.width}px`;
+      el.style.height = `${r.height}px`;
+    };
+
     let raf = 0;
     const tick = () => {
       for (const [slug, wrapper] of wrappers.current) {
         const target = targets.get(slug);
-        if (target && target.el.isConnected) {
-          const r = target.el.getBoundingClientRect();
-          wrapper.style.left = `${r.left}px`;
-          wrapper.style.top = `${r.top}px`;
-          wrapper.style.width = `${r.width}px`;
-          wrapper.style.height = `${r.height}px`;
-        } else {
-          // Off screen, never display none, so a warm frame keeps playing.
-          wrapper.style.left = "-10000px";
-          wrapper.style.top = "0px";
-          wrapper.style.width = "320px";
-          wrapper.style.height = "180px";
-        }
+        if (target && target.el.isConnected) place(wrapper, target);
+        else park(wrapper);
+      }
+      if (audioRef.current) {
+        // The audio frame sits exactly under the audible video frame, on screen
+        // so autoplay is allowed, and occluded so nobody sees it.
+        const audible = [...targets.values()].find((t) => !t.muted);
+        if (audible && audible.el.isConnected) place(audioRef.current, audible);
+        else park(audioRef.current);
       }
       raf = requestAnimationFrame(tick);
     };
@@ -52,6 +67,17 @@ export function EmbedLayer({
 
   return (
     <div className="pointer-events-none fixed inset-0 z-[1]">
+      {audible && (
+        <iframe
+          key="audio"
+          ref={audioRef}
+          src={embedUrlFor(audible, false)}
+          title="Stream audio"
+          allow="autoplay"
+          className="absolute"
+          style={{ left: -158, top: 0, width: 160, height: 90 }}
+        />
+      )}
       {slugs.map((slug) => (
         <div
           key={slug}
@@ -60,7 +86,7 @@ export function EmbedLayer({
             else wrappers.current.delete(slug);
           }}
           className="absolute"
-          style={{ left: -10000, top: 0, width: 320, height: 180 }}
+          style={{ left: -158, top: 0, width: 160, height: 90 }}
         >
           <iframe
             src={embedUrlFor(slug, true)}
@@ -71,16 +97,6 @@ export function EmbedLayer({
           />
         </div>
       ))}
-      {audible && (
-        <iframe
-          key="audio"
-          src={embedUrlFor(audible, false)}
-          title="Stream audio"
-          allow="autoplay"
-          className="absolute"
-          style={{ left: -10000, top: 200, width: 320, height: 180 }}
-        />
-      )}
     </div>
   );
 }

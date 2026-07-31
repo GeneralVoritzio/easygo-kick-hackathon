@@ -19,5 +19,5 @@ const embedChannels: Record<string, string> = {
 export function embedUrlFor(slug: string, muted: boolean): string | undefined {
   const channel = embedChannels[slug];
   if (!channel) return undefined;
-  return `https://player.kick.com/${channel}?autoplay=true&muted=${muted}`;
+  return `https://player.kick.com/${channel}?autoplay=true${muted ? "&muted=true" : ""}`;
 }

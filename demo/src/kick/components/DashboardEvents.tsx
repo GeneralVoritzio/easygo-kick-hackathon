@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Icon } from "../Icon";
 import { Pane, Panel } from "./DashboardPanel";
@@ -10,7 +10,6 @@ import {
   byStartAt,
   formatEventWindow,
   invitesFor,
-  requestsFor,
   requestsOn,
   isLiveWindow,
   startsInLabel,
@@ -333,37 +332,13 @@ function ReceivedInvite({ event }: { event: KickEvent }) {
   );
 }
 
-function SentRequest({ event }: { event: KickEvent }) {
-  return (
-    <li
-      data-testid={`sent-request-${event.slug}`}
-      className="flex flex-col gap-1 border-b border-outline-decorative px-4 py-4 last:border-b-0"
-    >
-      <Link
-        to={`/events/${event.slug}`}
-        className="truncate text-sm font-bold text-white betterhover:hover:underline"
-      >
-        {event.title}
-      </Link>
-      <span className="text-sm font-normal text-surface-onSurfaceSecondary">
-        You asked to join. Waiting for {event.host_channel.username} to answer.
-      </span>
-    </li>
-  );
-}
-
 function NotificationRow({ notification }: { notification: EventNotification }) {
   return (
     <li
       data-testid="event-notification"
       className="flex items-center gap-2 border-b border-outline-decorative px-4 py-3 last:border-b-0"
     >
-      <Icon
-        name="event"
-        className={`size-4 shrink-0 ${
-          notification.is_read ? "fill-subtle" : "fill-primary-base"
-        }`}
-      />
+      <Icon name="event" className="size-4 shrink-0 fill-primary-base" />
       <span className="min-w-0 grow text-sm font-normal text-white">{notification.body}</span>
       <Link
         to={`/events/${notification.event_slug}`}
@@ -382,12 +357,9 @@ function EmptyPane({ message }: { message: string }) {
 }
 
 export function DashboardEvents() {
-  const { events, notifications, markNotificationsRead } = useEvents();
+  const { events, notifications } = useEvents();
   const mine = events.filter((e) => takesPart(e, currentUser.username)).sort(byStartAt);
   const invites = invitesFor(events, currentUser.username).sort(byStartAt);
-  const sent = requestsFor(events, currentUser.username).sort(byStartAt);
-
-  useEffect(markNotificationsRead, [notifications, markNotificationsRead]);
 
   return (
     <div className="flex h-full w-full flex-row">
@@ -396,7 +368,7 @@ export function DashboardEvents() {
           <Panel title="Notifications" icon="dash-activity">
             <div className="no-scrollbar h-full min-h-0 w-full overflow-y-auto">
               {notifications.length === 0 ? (
-                <EmptyPane message="Nothing new. A host answers your request here." />
+                <EmptyPane message="Nothing new. Your answer to a request shows up here." />
               ) : (
                 <ul className="flex flex-col" data-testid="event-notifications">
                   {notifications.map((n) => (
@@ -431,17 +403,14 @@ export function DashboardEvents() {
           </Panel>
         </Pane>
         <Pane style={{ height: "38%" }}>
-          <Panel title="Invites and requests" icon="dash-mod-actions">
+          <Panel title="Invites for you" icon="dash-mod-actions">
             <div className="no-scrollbar h-full min-h-0 w-full overflow-y-auto">
-              {invites.length === 0 && sent.length === 0 ? (
-                <EmptyPane message="Nothing open. A host invites you by username, and you can ask to join any event." />
+              {invites.length === 0 ? (
+                <EmptyPane message="No open invites. A host invites you by username." />
               ) : (
                 <ul className="flex flex-col" data-testid="my-invites">
                   {invites.map((event) => (
                     <ReceivedInvite key={event.event_id} event={event} />
-                  ))}
-                  {sent.map((event) => (
-                    <SentRequest key={event.event_id} event={event} />
                   ))}
                 </ul>
               )}

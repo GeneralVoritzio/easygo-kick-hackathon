@@ -4,7 +4,8 @@ import { Icon } from "../Icon";
 import { formatViewers, liveStreamFor, type Livestream } from "../mock/api";
 import { useAudibleEmbed, useEmbedTarget } from "./EmbedLayer";
 import { embedUrlFor } from "./embeds";
-import { useEvent } from "./EventProvider";
+import { formatBoostLeft } from "./events";
+import { useBoostLeft, useEvent } from "./EventProvider";
 
 function gridCols(count: number) {
   if (count <= 1) return "grid-cols-1";
@@ -27,6 +28,7 @@ function Tile({
 }) {
   const { unpin, closeMultiview, liveEmbeds } = useEvent();
   const navigate = useNavigate();
+  const boostLeft = useBoostLeft(stream.channel.slug);
   const embedUrl = liveEmbeds ? embedUrlFor(stream.channel.slug, true) : undefined;
   const holderRef = useEmbedTarget(embedUrl ? stream.channel.slug : undefined);
   useAudibleEmbed(embedUrl && selected ? stream.channel.slug : undefined);
@@ -58,6 +60,14 @@ function Tile({
         <span className="size-1.5 rounded-full bg-green-500" />
         {formatViewers(stream.viewer_count)}
         <Icon name={selected ? "volume" : "mute"} className="size-3 shrink-0 fill-white/70" />
+        {boostLeft !== null && (
+          <span
+            aria-label={`Streamer is Boosted, ${formatBoostLeft(boostLeft)} left`}
+            className="tooltip-bottom tooltip-start cursor-default text-[11px] leading-none"
+          >
+            🔥
+          </span>
+        )}
       </div>
       <div className="absolute inset-x-0 bottom-0 z-[2] flex items-center bg-gradient-to-t from-black/80 to-transparent p-1.5 pt-4">
         <span className="min-w-0 truncate text-xs font-bold text-white">

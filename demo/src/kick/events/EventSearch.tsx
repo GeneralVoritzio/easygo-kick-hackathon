@@ -9,8 +9,21 @@ import {
   liveStreamFor,
   type Livestream,
 } from "../mock/api";
-import { eventStreams, ironCup, isInEvent, MULTIVIEW_CAP } from "./events";
-import { useEvent } from "./EventProvider";
+import { eventStreams, formatBoostLeft, ironCup, isInEvent, MULTIVIEW_CAP } from "./events";
+import { useBoostLeft, useEvent } from "./EventProvider";
+
+function BoostBadge({ slug }: { slug: string }) {
+  const left = useBoostLeft(slug);
+  if (left === null) return null;
+  return (
+    <span
+      aria-label={`Streamer is Boosted, ${formatBoostLeft(left)} left`}
+      className="tooltip-top flex shrink-0 cursor-default items-center rounded bg-surface-highest px-1.5 py-1 text-xs leading-none"
+    >
+      🔥
+    </span>
+  );
+}
 
 function ResultRow({
   stream,
@@ -42,6 +55,7 @@ function ResultRow({
           {stream.category.name}
         </span>
       </div>
+      <BoostBadge slug={stream.channel.slug} />
       <span className="flex shrink-0 items-center gap-1 text-xs font-semibold text-white">
         <span className="size-1.5 rounded-full bg-green-500" />
         {formatViewers(stream.viewer_count)}
@@ -180,7 +194,7 @@ function GlobalResults({ query, onOpen }: { query: string; onOpen: (to: string) 
 // The global search carries the event filter while the viewer sits in the event.
 // Removing the chip turns it back into a plain search across KICK.
 export function EventSearch() {
-  const { multiview, pin } = useEvent();
+  const { multiview, pin, boosts } = useEvent();
   const location = useLocation();
   const navigate = useNavigate();
   const [query, setQuery] = useState("");
@@ -192,9 +206,12 @@ export function EventSearch() {
   const chipOn = inEventContext && !chipDismissed;
   const full = multiview.slots.length >= MULTIVIEW_CAP;
 
-  const pool = eventStreams().filter((s) =>
-    query ? s.channel.username.toLowerCase().includes(query.toLowerCase()) : true,
-  );
+  const boosted = (slug: string) => (boosts[slug] ?? 0) > Date.now();
+  const pool = eventStreams()
+    .filter((s) =>
+      query ? s.channel.username.toLowerCase().includes(query.toLowerCase()) : true,
+    )
+    .sort((a, b) => Number(boosted(b.channel.slug)) - Number(boosted(a.channel.slug)));
   const open = focused && (chipOn || query.trim().length > 0);
 
   function openResult(to: string) {

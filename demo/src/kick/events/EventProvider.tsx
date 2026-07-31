@@ -11,7 +11,7 @@ import {
 import { useLocation, useNavigate } from "react-router-dom";
 import { profileFor, liveStreamFor } from "../mock/api";
 import { EmbedLayer } from "./EmbedLayer";
-import { MULTIVIEW_CAP } from "./events";
+import { BOOST_MINUTES, MULTIVIEW_CAP } from "./events";
 
 export type ChatMode = "stream" | "event";
 
@@ -28,6 +28,8 @@ type EventContextValue = {
   setLiveEmbeds: (on: boolean) => void;
   registerEmbedTarget: (slug: string, el: HTMLElement) => () => void;
   claimAudible: (slug: string) => () => void;
+  boosts: Record<string, number>;
+  boost: (slug: string) => void;
   openMultiview: (slug: string) => void;
   closeMultiview: () => void;
   pin: (slug: string) => void;
@@ -106,6 +108,23 @@ export function EventProvider({ children }: { children: ReactNode }) {
     return () => setAudibleSlug((current) => (current === slug ? undefined : current));
   }, []);
 
+  const [boosts, setBoosts] = useState<Record<string, number>>({});
+
+  const boost = useCallback((slug: string) => {
+    setBoosts((prev) => ({ ...prev, [slug]: Date.now() + BOOST_MINUTES * 60_000 }));
+  }, []);
+
+  useEffect(() => {
+    const id = setInterval(() => {
+      setBoosts((prev) => {
+        const now = Date.now();
+        const live = Object.entries(prev).filter(([, until]) => until > now);
+        return live.length === Object.keys(prev).length ? prev : Object.fromEntries(live);
+      });
+    }, 5000);
+    return () => clearInterval(id);
+  }, []);
+
   useEffect(() => {
     localStorage.setItem(SLOTS_KEY, JSON.stringify(multiview.slots));
   }, [multiview.slots]);
@@ -147,6 +166,8 @@ export function EventProvider({ children }: { children: ReactNode }) {
       setLiveEmbeds,
       registerEmbedTarget,
       claimAudible,
+      boosts,
+      boost,
       openMultiview: (slug) =>
         setMultiview((m) => ({
           active: true,
@@ -168,7 +189,7 @@ export function EventProvider({ children }: { children: ReactNode }) {
           return { ...m, slots };
         }),
     }),
-    [multiview, chatMode, liveEmbeds, registerEmbedTarget, claimAudible],
+    [multiview, chatMode, liveEmbeds, registerEmbedTarget, claimAudible, boosts, boost],
   );
 
   function addAndWatch(slug: string) {
@@ -252,4 +273,20 @@ export function EventProvider({ children }: { children: ReactNode }) {
       )}
     </EventContext.Provider>
   );
+}
+
+export function useBoostLeft(slug: string): number | null {
+  const { boosts } = useEvent();
+  const until = boosts[slug];
+  const [, tick] = useState(0);
+
+  useEffect(() => {
+    if (!until) return;
+    const id = setInterval(() => tick((n) => n + 1), 1000);
+    return () => clearInterval(id);
+  }, [until]);
+
+  if (!until) return null;
+  const left = Math.floor((until - Date.now()) / 1000);
+  return left > 0 ? left : null;
 }

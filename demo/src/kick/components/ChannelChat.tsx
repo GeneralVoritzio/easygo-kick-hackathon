@@ -8,7 +8,7 @@ import {
   type ReactNode,
 } from "react";
 import { Icon, type KickIconName } from "../Icon";
-import { eventChatLines, ironCup, isInEvent } from "../events/events";
+import { eventChatLines, ironCup, isInEvent, slugByUsername } from "../events/events";
 import { useEvent } from "../events/EventProvider";
 import { avatarFor, currentUser, type Livestream } from "../mock/api";
 import { useRaid } from "../raid/RaidProvider";
@@ -877,7 +877,7 @@ export function ChatFeed({
   inEvent?: boolean;
 }) {
   const surface = dashboard ? "bg-surface-base" : "bg-surface-lowest";
-  const { chatMode } = useEvent();
+  const { chatMode, boost } = useEvent();
   const eventMode = Boolean(inEvent) && chatMode === "event";
   const [messages, setMessages] = useFlowingMessages(eventMode);
   const [draft, setDraft] = useState("");
@@ -887,6 +887,13 @@ export function ChatFeed({
 
   function send(body: string) {
     if (!body) return;
+    // The event chat takes moderator commands, and the demo viewer is always a
+    // moderator. A command never echoes into the room.
+    if (eventMode && body.toLowerCase().startsWith("/boost ")) {
+      const slug = slugByUsername(body.slice(7));
+      if (slug) boost(slug);
+      return;
+    }
     setMessages((prev) => [
       ...prev.slice(-149),
       {

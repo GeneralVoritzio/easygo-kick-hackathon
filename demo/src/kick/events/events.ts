@@ -5,7 +5,9 @@ import { liveStreamFor, type Livestream } from "../mock/api";
 //   fake-kick GET   /public/v1/events/{event_id}
 //   fake-kick POST  /public/v1/events/{event_id}/invites
 //   fake-kick PATCH /public/v1/events/{event_id}/invites/{invite_id}
+//   fake-kick POST  /public/v1/events/{event_id}/boosts
 //   fake-kick events.started, events.ended, events.invite.created, events.invite.updated
+//   fake-kick events.boost.created, events.boost.expired
 //   scopes events:read and events:write
 // The discovery and detail pages consume the same fixture, so the shape lives here.
 
@@ -42,6 +44,19 @@ export const ironCup: KickEvent = {
 };
 
 export const MULTIVIEW_CAP = 9;
+export const BOOST_MINUTES = 10;
+
+export function slugByUsername(name: string): string | undefined {
+  const q = name.trim().replace(/^@/, "").toLowerCase();
+  const hit = eventStreams().find(
+    (s) => s.channel.username.toLowerCase() === q || s.channel.slug === q,
+  );
+  return hit?.channel.slug;
+}
+
+export function formatBoostLeft(seconds: number): string {
+  return `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")}`;
+}
 
 export const isInEvent = (slug: string) => ironCup.participant_slugs.includes(slug);
 

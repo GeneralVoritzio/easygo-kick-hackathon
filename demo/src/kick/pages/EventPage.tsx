@@ -1,6 +1,6 @@
 import { Link, useParams } from "react-router-dom";
 import { Icon } from "../Icon";
-import { RemindButton, StreamerRow } from "../components/EventBits";
+import { EventAction, StreamerRow } from "../components/EventBits";
 import { useEvents } from "../EventsStore";
 import { currentUser } from "../mock/api";
 import {
@@ -126,7 +126,7 @@ function EventHero({ event }: { event: KickEvent }) {
           </p>
 
           <div className="flex flex-row items-center gap-2 pt-1">
-            <RemindButton event={event} />
+            <EventAction event={event} />
             <button
               type="button"
               aria-label="Share"

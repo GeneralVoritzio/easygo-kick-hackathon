@@ -8,7 +8,9 @@ import {
   eventStreamers,
   formatEventDay,
   formatEventTime,
+  hasFinished,
   isLiveWindow,
+  liveParticipant,
   type EventInviteStatus,
   type EventParticipant,
   type KickEvent,
@@ -48,6 +50,36 @@ export function PartnerNotice() {
       </span>
     </p>
   );
+}
+
+// A live event does not need a reminder, it needs a way in. A finished one needs neither.
+export function EventAction({ event }: { event: KickEvent }) {
+  const live = isLiveWindow(event);
+  const joinable = live ? liveParticipant(event) : undefined;
+
+  if (hasFinished(event)) return null;
+
+  if (live) {
+    return joinable ? (
+      <Link
+        to={`/${joinable.channel.slug}`}
+        data-testid="join-event"
+        className="flex h-10 shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded bg-primary-base px-3 py-2 text-base font-semibold text-primary-onPrimary transition-all select-none state-layer-base betterhover:active:scale-[0.98]"
+      >
+        <span className="size-2 shrink-0 rounded-full bg-primary-onPrimary" />
+        Join event
+      </Link>
+    ) : (
+      <span
+        data-testid="join-event-waiting"
+        className="flex h-10 shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded bg-secondary-base px-3 py-2 text-base font-semibold text-subtle"
+      >
+        Nobody is live yet
+      </span>
+    );
+  }
+
+  return <RemindButton event={event} />;
 }
 
 export function RemindButton({ event, wide }: { event: KickEvent; wide?: boolean }) {
@@ -161,7 +193,7 @@ export function EventCard({ event }: { event: KickEvent }) {
             Private
           </span>
         )}
-        {reminded && (
+        {reminded && !live && (
           <span
             data-testid="card-reminder"
             title="Reminder set"

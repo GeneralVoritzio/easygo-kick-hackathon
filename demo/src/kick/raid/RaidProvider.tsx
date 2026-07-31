@@ -2,13 +2,7 @@ import { createContext, useContext, useEffect, useState, type ReactNode } from "
 import { currentSession, currentUser, type Livestream } from "../mock/api";
 import { joinsShowdowns } from "../mock/raids";
 import { isHidden, usePrefs } from "../prefs";
-import {
-  acceptInvite,
-  declineInvite,
-  openInvite,
-  tickInvite,
-  type ShowdownInvite,
-} from "./invite";
+import { acceptInvite, openInvite, tickInvite, type ShowdownInvite } from "./invite";
 import {
   acceptEntry,
   addChatVotes,
@@ -153,7 +147,8 @@ export function RaidProvider({ children }: { children: ReactNode }) {
       if (!joinsShowdowns(currentUser.slug)) return;
       setInvite(openInvite(INVITE_HOST_SLUG, INVITE_OPPONENT_SLUG));
     },
-    answerInvite: (accepted) => setInvite((i) => (i ? (accepted ? acceptInvite(i) : declineInvite(i)) : i)),
+    // Declining just dismisses the invite, same as the timeout that lapses it.
+    answerInvite: (accepted) => setInvite((i) => (i ? (accepted ? acceptInvite(i) : null) : i)),
     clearInvite: () => setInvite(null),
     skipInvite: () => setInvite((i) => (i ? { ...i, seconds: 1 } : i)),
     dialog,

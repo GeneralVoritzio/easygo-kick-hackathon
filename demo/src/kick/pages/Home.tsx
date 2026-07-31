@@ -45,7 +45,7 @@ function HeroCarousel() {
 
   // fake-kick POST /public/v1/livestreams/{broadcaster_user_id}/announcements
   function handleBackFromBreak() {
-    const message = `${stream.channel.username} is back from break!`;
+    const message = `${stream.channel.username} is back!`;
     announceInChat(message);
     setBreakToast(message);
   }

@@ -1,4 +1,4 @@
-import { Home, User, Users, type LucideIcon } from 'lucide-react';
+import { Compass, Home, User, type LucideIcon } from 'lucide-react';
 import type { Tab } from './tabs';
 
 interface BottomTabBarProps {
@@ -7,7 +7,7 @@ interface BottomTabBarProps {
 }
 
 const TAB_CONFIG: { id: Tab; label: string; Icon: LucideIcon }[] = [
-  { id: 'community', label: 'Community', Icon: Users },
+  { id: 'discover', label: 'Discover', Icon: Compass },
   { id: 'home', label: 'Home', Icon: Home },
   { id: 'profile', label: 'Profile', Icon: User },
 ];

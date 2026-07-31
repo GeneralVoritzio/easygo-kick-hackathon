@@ -14,6 +14,17 @@ function embedSrc(stream: LiveStream, muted: boolean): string {
 interface StreamSurfaceProps {
   stream: LiveStream;
   muted: boolean;
+  /** Whether this surface's screen is actually the one on show right now —
+   *  e.g. the Home tab is scrolled into view, no fullscreen Stream View is
+   *  covering it. Defaults to true for callers that are always the visible
+   *  surface (`StreamView`). When false, no `<iframe>` mounts at all: a real
+   *  Kick embed keeps decoding video the whole time it's mounted regardless
+   *  of mute state, so an off-screen tab or a tile behind a fullscreen
+   *  overlay was burning GPU/CPU on streams nobody could see — the same
+   *  waste TikTok-style feeds avoid by only ever decoding the active item.
+   *  Unmounting is a full teardown of that iframe's browsing context, not a
+   *  pause, so reactivating always reloads from scratch. */
+  active?: boolean;
 }
 
 /** A real, live Kick embed — the one place video actually renders, reused
@@ -32,26 +43,30 @@ interface StreamSurfaceProps {
  *  iframe means every gesture (swipe, hold, tap, pinch) always reaches our
  *  own handlers on the surrounding tile instead of being captured by the
  *  cross-origin embed. */
-export function StreamSurface({ stream, muted }: StreamSurfaceProps) {
+export function StreamSurface({ stream, muted, active = true }: StreamSurfaceProps) {
   const [loaded, setLoaded] = useState(false);
-  useEffect(() => setLoaded(false), [stream.embedId, muted]);
+  useEffect(() => {
+    if (active) setLoaded(false);
+  }, [stream.embedId, active]);
 
   return (
     <div className="absolute inset-0 h-full w-full overflow-hidden">
-      {!loaded && (
+      {(!loaded || !active) && (
         <div
           className="animate-bg-pan absolute inset-0 bg-[length:200%_200%]"
           style={{ backgroundImage: streamGradient(stream.id) }}
         />
       )}
-      <iframe
-        key={`${stream.embedId}-${muted}`}
-        src={embedSrc(stream, muted)}
-        title={`${stream.name} live`}
-        allow="autoplay; fullscreen; encrypted-media"
-        className="pointer-events-none absolute inset-0 h-full w-full border-0"
-        onLoad={() => setLoaded(true)}
-      />
+      {active && (
+        <iframe
+          key={stream.embedId}
+          src={embedSrc(stream, muted)}
+          title={`${stream.name} live`}
+          allow="autoplay; fullscreen; encrypted-media"
+          className="pointer-events-none absolute inset-0 h-full w-full border-0"
+          onLoad={() => setLoaded(true)}
+        />
+      )}
     </div>
   );
 }

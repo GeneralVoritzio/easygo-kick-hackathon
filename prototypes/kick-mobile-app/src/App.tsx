@@ -1,22 +1,25 @@
 import { useEffect, useRef, useState } from 'react';
 import { AnimatePresence } from 'framer-motion';
 import type { LiveStream } from '@shared/types';
-import { CommunityFeed } from './community/feed/CommunityFeed';
-import { ProfilePage } from './community/passport/ProfilePage';
+import { DiscoverPage } from './discover/DiscoverPage';
+import { SettingsPage } from './settings/SettingsPage';
 import { HomeTab } from './HomeTab';
 import { StreamView } from './StreamView';
 import { BottomTabBar } from './BottomTabBar';
 import { TABS, type Tab } from './tabs';
 
-/** The mobile app shell: three pages — Community, Home (Progressive Mosaic
+/** The mobile app shell: three pages — Discover, Home (Progressive Mosaic
  *  Discovery), Profile — behind a bottom tab bar, swipeable horizontally via
  *  native CSS scroll-snap. No header: on mobile that's what the footer nav
  *  is for. Tapping any stream card in Home opens it fullscreen with chat;
  *  that fullscreen view is a single app-level overlay (not scoped to the
- *  Home tab) so it covers the tab bar too. */
+ *  Home tab) so it covers the tab bar too. Tapping a trending multiview on
+ *  Discover jumps to Home already pinned into that combo's focus mosaic. */
 export function App() {
   const [activeTab, setActiveTab] = useState<Tab>('home');
   const [openStream, setOpenStream] = useState<LiveStream | null>(null);
+  const [presetFocus, setPresetFocus] = useState<{ streamIds: string[]; nonce: number } | null>(null);
+  const [exitFocusSignal, setExitFocusSignal] = useState(0);
   const pagerRef = useRef<HTMLDivElement>(null);
 
   // Land on Home by default (index 1) without an animated scroll on mount.
@@ -40,6 +43,19 @@ export function App() {
     if (tab !== activeTab) setActiveTab(tab);
   };
 
+  const handleOpenMultiview = (streamIds: string[]) => {
+    setPresetFocus({ streamIds, nonce: Date.now() });
+    scrollToTab('home');
+  };
+
+  // Tapping Home again while already on it backs out of the focus mosaic
+  // rather than doing nothing (the pager's already there, so scrollToTab
+  // alone wouldn't do anything).
+  const handleSelectTab = (tab: Tab) => {
+    if (tab === 'home' && activeTab === 'home') setExitFocusSignal((n) => n + 1);
+    scrollToTab(tab);
+  };
+
   return (
     <div className="flex h-[100dvh] flex-col overflow-hidden font-display">
       <div
@@ -48,17 +64,22 @@ export function App() {
         className="flex flex-1 snap-x snap-mandatory overflow-x-auto overscroll-x-contain"
       >
         <section className="h-full w-full shrink-0 snap-center overflow-y-auto p-4">
-          <CommunityFeed />
+          <DiscoverPage active={activeTab === 'discover' && !openStream} onOpenMultiview={handleOpenMultiview} />
         </section>
         <section className="h-full w-full shrink-0 snap-center overflow-hidden">
-          <HomeTab onOpenStream={setOpenStream} />
+          <HomeTab
+            onOpenStream={setOpenStream}
+            active={activeTab === 'home' && !openStream}
+            presetFocus={presetFocus}
+            exitFocusSignal={exitFocusSignal}
+          />
         </section>
         <section className="h-full w-full shrink-0 snap-center overflow-y-auto p-4">
-          <ProfilePage />
+          <SettingsPage />
         </section>
       </div>
 
-      <BottomTabBar active={activeTab} onSelect={scrollToTab} />
+      <BottomTabBar active={activeTab} onSelect={handleSelectTab} />
 
       <AnimatePresence>
         {openStream && <StreamView key={openStream.id} stream={openStream} onClose={() => setOpenStream(null)} />}

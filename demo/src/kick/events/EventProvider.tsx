@@ -86,7 +86,9 @@ export function EventProvider({ children }: { children: ReactNode }) {
   }));
   const [chatMode, setChatMode] = useState<ChatMode>("stream");
   const [liveEmbeds, setLiveEmbeds] = useState(
-    () => localStorage.getItem("multiview-live-embeds") !== "0",
+    // Off unless somebody turns it on by hand: the demo runs on the mock
+    // stills, and the live embeds stay behind this flag as a fallback.
+    () => localStorage.getItem("multiview-live-embeds") === "1",
   );
   const [embedTargets, setEmbedTargets] = useState<Map<string, HTMLElement>>(new Map());
   const [audibleSlug, setAudibleSlug] = useState<string>();

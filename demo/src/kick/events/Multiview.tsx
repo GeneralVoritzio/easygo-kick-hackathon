@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Icon } from "../Icon";
 import { formatViewers, livestreams, liveStreamFor, type Livestream } from "../mock/api";
-import { useEmbedTarget } from "./EmbedLayer";
+import { useAudibleEmbed, useEmbedTarget } from "./EmbedLayer";
 import { embedUrlFor } from "./embeds";
 import { ironCup, isInEvent, MULTIVIEW_CAP } from "./events";
 import { useEvent } from "./EventProvider";
@@ -120,7 +120,8 @@ function Tile({
   const { unpin, liveEmbeds } = useEvent();
   const navigate = useNavigate();
   const embedUrl = liveEmbeds ? embedUrlFor(stream.channel.slug, true) : undefined;
-  const holderRef = useEmbedTarget(embedUrl ? stream.channel.slug : undefined, !selected);
+  const holderRef = useEmbedTarget(embedUrl ? stream.channel.slug : undefined);
+  useAudibleEmbed(embedUrl && selected ? stream.channel.slug : undefined);
 
   return (
     <button

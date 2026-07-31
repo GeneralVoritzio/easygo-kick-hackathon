@@ -1,39 +1,43 @@
 import { useEffect, useRef } from "react";
 import { embedUrlFor } from "./embeds";
-import { useEvent, type EmbedTarget } from "./EventProvider";
+import { useEvent } from "./EventProvider";
 
 // The embeds live in one fixed layer that never unmounts, and the player and the
-// tiles only mark where a frame should sit. A remount reloads an iframe, so the
-// frames move by position only, and the sound never cuts on open or close. The
-// mute flag sits in the URL, so only a stream switch reloads its two frames.
+// tiles only mark where a frame should sit. Every slot keeps an always muted
+// frame whose URL never changes, so nothing visible reloads on open, close or
+// switch. One unmuted main frame overlays the selected stream and carries the
+// audio. It is visible and interactive, so the sound survives autoplay rules,
+// and it is the only frame that reloads when the selection changes.
 export function EmbedLayer({
   targets,
   slots,
+  audible,
   liveEmbeds,
 }: {
-  targets: Map<string, EmbedTarget>;
+  targets: Map<string, HTMLElement>;
   slots: string[];
+  audible?: string;
   liveEmbeds: boolean;
 }) {
   const wrappers = useRef(new Map<string, HTMLDivElement>());
-  const audioRef = useRef<HTMLIFrameElement>(null);
+  const mainRef = useRef<HTMLDivElement>(null);
   const slugs = liveEmbeds
     ? [...new Set([...slots, ...targets.keys()])].filter((slug) => embedUrlFor(slug, true))
     : [];
+  const mainSlug = liveEmbeds && audible && embedUrlFor(audible, false) ? audible : undefined;
 
   useEffect(() => {
-    // Chrome pauses media in iframes that leave the viewport, and a paused kick
-    // player stays frozen behind our pointer-events-none layer. So a frame with
-    // no place on screen parks as a 2px sliver at the left edge, in the
-    // viewport but behind the sidebar, and playback never stops.
+    // A frame with no place on screen parks inside the sidebar's footprint:
+    // still in the viewport, so Chrome and the player keep it playing, and
+    // covered by the sidebar, so nobody sees it.
     const park = (el: HTMLElement) => {
-      el.style.left = "-158px";
-      el.style.top = `${window.innerHeight - 92}px`;
+      el.style.left = "8px";
+      el.style.top = `${window.innerHeight - 98}px`;
       el.style.width = "160px";
       el.style.height = "90px";
     };
-    const place = (el: HTMLElement, target: EmbedTarget) => {
-      const r = target.el.getBoundingClientRect();
+    const placeAt = (el: HTMLElement, anchor: HTMLElement) => {
+      const r = anchor.getBoundingClientRect();
       el.style.left = `${r.left}px`;
       el.style.top = `${r.top}px`;
       el.style.width = `${r.width}px`;
@@ -43,41 +47,23 @@ export function EmbedLayer({
     let raf = 0;
     const tick = () => {
       for (const [slug, wrapper] of wrappers.current) {
-        const target = targets.get(slug);
-        if (target && target.el.isConnected) place(wrapper, target);
+        const anchor = targets.get(slug);
+        if (anchor && anchor.isConnected) placeAt(wrapper, anchor);
         else park(wrapper);
       }
-      if (audioRef.current) {
-        // The audio frame sits exactly under the audible video frame, on screen
-        // so autoplay is allowed, and occluded so nobody sees it.
-        const audible = [...targets.values()].find((t) => !t.muted);
-        if (audible && audible.el.isConnected) place(audioRef.current, audible);
-        else park(audioRef.current);
+      if (mainRef.current) {
+        const anchor = audible ? targets.get(audible) : undefined;
+        if (anchor && anchor.isConnected) placeAt(mainRef.current, anchor);
+        else park(mainRef.current);
       }
       raf = requestAnimationFrame(tick);
     };
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
-  }, [targets]);
-
-  // The video frames stay muted forever, so their URLs never change and a
-  // stream switch reloads nothing on screen. One hidden frame carries the
-  // audio, and only that frame reloads when the selected stream changes.
-  const audible = [...targets.entries()].find(([, t]) => !t.muted)?.[0];
+  }, [targets, audible]);
 
   return (
     <div className="pointer-events-none fixed inset-0 z-[1]">
-      {audible && (
-        <iframe
-          key="audio"
-          ref={audioRef}
-          src={embedUrlFor(audible, false)}
-          title="Stream audio"
-          allow="autoplay"
-          className="absolute"
-          style={{ left: -158, top: 0, width: 160, height: 90 }}
-        />
-      )}
       {slugs.map((slug) => (
         <div
           key={slug}
@@ -86,7 +72,7 @@ export function EmbedLayer({
             else wrappers.current.delete(slug);
           }}
           className="absolute"
-          style={{ left: -158, top: 0, width: 160, height: 90 }}
+          style={{ left: 8, top: 0, width: 160, height: 90 }}
         >
           <iframe
             src={embedUrlFor(slug, true)}
@@ -97,18 +83,43 @@ export function EmbedLayer({
           />
         </div>
       ))}
+      {mainSlug && (
+        <div
+          key="main"
+          ref={mainRef}
+          className="pointer-events-auto absolute"
+          style={{ left: 8, top: 0, width: 160, height: 90 }}
+        >
+          <iframe
+            src={embedUrlFor(mainSlug, false)}
+            title="Selected stream"
+            allow="autoplay; fullscreen"
+            allowFullScreen
+            className="h-full w-full bg-black"
+          />
+        </div>
+      )}
     </div>
   );
 }
 
-export function useEmbedTarget(slug: string | undefined, muted: boolean) {
+export function useEmbedTarget(slug: string | undefined) {
   const { registerEmbedTarget } = useEvent();
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!slug || !ref.current) return;
-    return registerEmbedTarget(slug, ref.current, muted);
-  }, [slug, muted, registerEmbedTarget]);
+    return registerEmbedTarget(slug, ref.current);
+  }, [slug, registerEmbedTarget]);
 
   return ref;
+}
+
+export function useAudibleEmbed(slug: string | undefined) {
+  const { claimAudible } = useEvent();
+
+  useEffect(() => {
+    if (!slug) return;
+    return claimAudible(slug);
+  }, [slug, claimAudible]);
 }

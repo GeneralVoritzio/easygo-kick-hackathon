@@ -15,8 +15,6 @@ import { MULTIVIEW_CAP } from "./events";
 
 export type ChatMode = "stream" | "event";
 
-export type EmbedTarget = { el: HTMLElement; muted: boolean };
-
 type Multiview = {
   active: boolean;
   slots: string[];
@@ -28,7 +26,8 @@ type EventContextValue = {
   setChatMode: (mode: ChatMode) => void;
   liveEmbeds: boolean;
   setLiveEmbeds: (on: boolean) => void;
-  registerEmbedTarget: (slug: string, el: HTMLElement, muted: boolean) => () => void;
+  registerEmbedTarget: (slug: string, el: HTMLElement) => () => void;
+  claimAudible: (slug: string) => () => void;
   openMultiview: (slug: string) => void;
   closeMultiview: () => void;
   pin: (slug: string) => void;
@@ -87,18 +86,24 @@ export function EventProvider({ children }: { children: ReactNode }) {
   const [liveEmbeds, setLiveEmbeds] = useState(
     () => localStorage.getItem("multiview-live-embeds") !== "0",
   );
-  const [embedTargets, setEmbedTargets] = useState<Map<string, EmbedTarget>>(new Map());
+  const [embedTargets, setEmbedTargets] = useState<Map<string, HTMLElement>>(new Map());
+  const [audibleSlug, setAudibleSlug] = useState<string>();
 
-  const registerEmbedTarget = useCallback((slug: string, el: HTMLElement, muted: boolean) => {
-    setEmbedTargets((prev) => new Map(prev).set(slug, { el, muted }));
+  const registerEmbedTarget = useCallback((slug: string, el: HTMLElement) => {
+    setEmbedTargets((prev) => new Map(prev).set(slug, el));
     return () => {
       setEmbedTargets((prev) => {
-        if (prev.get(slug)?.el !== el) return prev;
+        if (prev.get(slug) !== el) return prev;
         const next = new Map(prev);
         next.delete(slug);
         return next;
       });
     };
+  }, []);
+
+  const claimAudible = useCallback((slug: string) => {
+    setAudibleSlug(slug);
+    return () => setAudibleSlug((current) => (current === slug ? undefined : current));
   }, []);
 
   useEffect(() => {
@@ -141,6 +146,7 @@ export function EventProvider({ children }: { children: ReactNode }) {
       liveEmbeds,
       setLiveEmbeds,
       registerEmbedTarget,
+      claimAudible,
       openMultiview: (slug) =>
         setMultiview((m) => ({
           active: true,
@@ -162,7 +168,7 @@ export function EventProvider({ children }: { children: ReactNode }) {
           return { ...m, slots };
         }),
     }),
-    [multiview, chatMode, liveEmbeds, registerEmbedTarget],
+    [multiview, chatMode, liveEmbeds, registerEmbedTarget, claimAudible],
   );
 
   function addAndWatch(slug: string) {
@@ -181,7 +187,12 @@ export function EventProvider({ children }: { children: ReactNode }) {
   return (
     <EventContext.Provider value={value}>
       {children}
-      <EmbedLayer targets={embedTargets} slots={multiview.slots} liveEmbeds={liveEmbeds} />
+      <EmbedLayer
+        targets={embedTargets}
+        slots={multiview.slots}
+        audible={audibleSlug}
+        liveEmbeds={liveEmbeds}
+      />
       {guard && (
         <div className="z-popover fixed inset-0 flex items-center justify-center bg-surfaceOverlay-base p-4">
           <div className="w-full max-w-sm rounded bg-surface-base p-4">

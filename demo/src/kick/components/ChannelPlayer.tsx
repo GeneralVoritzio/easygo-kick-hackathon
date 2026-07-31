@@ -1,7 +1,7 @@
 import { useEffect, useState, type PointerEvent as ReactPointerEvent } from "react";
 import { useSearchParams } from "react-router-dom";
 import { Icon } from "../Icon";
-import { useEmbedTarget } from "../events/EmbedLayer";
+import { useAudibleEmbed, useEmbedTarget } from "../events/EmbedLayer";
 import { embedUrlFor } from "../events/embeds";
 import { useEvent } from "../events/EventProvider";
 import type { Livestream } from "../mock/api";
@@ -42,7 +42,8 @@ function liveSeconds(startedAt: string) {
 export function ChannelPlayer({ stream }: { stream: Livestream }) {
   const { openMultiview, liveEmbeds } = useEvent();
   const embedUrl = liveEmbeds ? embedUrlFor(stream.channel.slug, false) : undefined;
-  const embedRef = useEmbedTarget(embedUrl ? stream.channel.slug : undefined, false);
+  const embedRef = useEmbedTarget(embedUrl ? stream.channel.slug : undefined);
+  useAudibleEmbed(embedUrl ? stream.channel.slug : undefined);
   const [params] = useSearchParams();
   const startAt = Number(params.get("t"));
   const [playing, setPlaying] = useState(true);

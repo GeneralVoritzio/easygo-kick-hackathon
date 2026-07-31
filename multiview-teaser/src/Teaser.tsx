@@ -14,49 +14,42 @@ import { ensureFonts } from "./fonts";
 export const FPS = 24;
 
 // Measured from the track on 31 July 2026: 91.94 bpm, first beat at 0.0 s, no
-// lead silence to trim. Four beats end at 2.610 s, frame 63.
+// lead silence to trim. Four beats run 63 frames at 24 fps.
 const STING_FRAMES = 63;
 
-const CLIP_FRAMES = Math.floor(10.0417 * FPS);
-const END_FRAMES = 96;
+// One second of the clip's own sound, then the beat and the title land together.
+const MUSIC_IN = 1 * FPS;
+const TAGLINE_FROM = 10 * FPS;
 
-export const TOTAL_FRAMES = CLIP_FRAMES + END_FRAMES;
+const CLIP_FRAMES = Math.floor(15.0417 * FPS);
 
-const INK = "#0b0b0c";
+export const TOTAL_FRAMES = CLIP_FRAMES;
+
 const GREEN = "#53fc18";
 
-function TitleShot() {
+function KickTitle() {
   return (
-    <AbsoluteFill style={{ backgroundColor: "#000" }}>
-      <Video
-        src={staticFile("clip.mp4")}
-        style={{ width: "100%", height: "100%", objectFit: "cover" }}
-      />
-      <Sequence durationInFrames={STING_FRAMES}>
-        <AbsoluteFill style={{ alignItems: "center", justifyContent: "center" }}>
-          <span
-            style={{
-              fontFamily: "KickFont, sans-serif",
-              fontSize: 500,
-              lineHeight: 1,
-              color: GREEN,
-              opacity: 0.88,
-              whiteSpace: "nowrap",
-            }}
-          >
-            KICK
-          </span>
-        </AbsoluteFill>
-      </Sequence>
+    <AbsoluteFill style={{ alignItems: "center", justifyContent: "center" }}>
+      <span
+        style={{
+          fontFamily: "KickFont, sans-serif",
+          fontSize: 500,
+          lineHeight: 1,
+          color: GREEN,
+          whiteSpace: "nowrap",
+        }}
+      >
+        KICK
+      </span>
     </AbsoluteFill>
   );
 }
 
-function EndCard() {
+function Tagline() {
   return (
     <AbsoluteFill
       style={{
-        backgroundColor: INK,
+        backgroundColor: "rgba(0, 0, 0, 0.4)",
         alignItems: "center",
         justifyContent: "center",
         gap: 28,
@@ -85,7 +78,7 @@ function EndCard() {
           lineHeight: 1,
           textTransform: "uppercase",
           color: "#ffffff",
-          opacity: 0.85,
+          opacity: 0.9,
         }}
       >
         Never miss a moment again.
@@ -101,23 +94,26 @@ export function Teaser() {
     ensureFonts().finally(() => continueRender(fontsHandle));
   }, [fontsHandle]);
 
+  const tailFrames = CLIP_FRAMES - TAGLINE_FROM;
+
   return (
-    <AbsoluteFill style={{ backgroundColor: INK }}>
-      <Sequence durationInFrames={CLIP_FRAMES}>
-        <TitleShot />
-      </Sequence>
-      <Sequence durationInFrames={STING_FRAMES}>
+    <AbsoluteFill style={{ backgroundColor: "#000" }}>
+      <Video
+        src={staticFile("clip.mp4")}
+        style={{ width: "100%", height: "100%", objectFit: "cover" }}
+      />
+      <Sequence from={MUSIC_IN} durationInFrames={STING_FRAMES}>
+        <KickTitle />
         <Audio src={staticFile("music.mp3")} />
       </Sequence>
-      <Sequence from={CLIP_FRAMES} durationInFrames={END_FRAMES}>
-        <EndCard />
-        {/* The music returns where it paused, so the line lands on the next
-            downbeat. */}
+      <Sequence from={TAGLINE_FROM} durationInFrames={tailFrames}>
+        <Tagline />
+        {/* The music returns where it paused, so the line lands on a downbeat. */}
         <Audio
           src={staticFile("music.mp3")}
           trimBefore={STING_FRAMES}
           volume={(f) =>
-            interpolate(f, [END_FRAMES - 16, END_FRAMES - 2], [1, 0], {
+            interpolate(f, [tailFrames - 14, tailFrames - 2], [1, 0], {
               extrapolateLeft: "clamp",
               extrapolateRight: "clamp",
             })

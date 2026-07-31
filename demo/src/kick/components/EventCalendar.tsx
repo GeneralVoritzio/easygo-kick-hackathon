@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Icon } from "../Icon";
-import { EventGrid, eventColumnsNarrow } from "./EventBits";
+import { EventGrid } from "./EventBits";
 import { byStartAt, EVENTS_NOW, type KickEvent } from "../mock/events";
 
 const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
@@ -58,7 +58,7 @@ export function EventCalendar({ events }: { events: KickEvent[] }) {
           </p>
         ) : (
           <div data-testid="calendar-day-events">
-            <EventGrid events={selectedEvents} columns={eventColumnsNarrow} />
+            <EventGrid events={selectedEvents} />
           </div>
         )}
       </div>

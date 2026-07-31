@@ -203,28 +203,23 @@ export function EventCard({ event }: { event: KickEvent }) {
   );
 }
 
-// The same columns as a stream row, so an events row lines up with the row above it.
-export const eventColumns =
+const EVENT_CARD_WIDTH = "[&>div]:w-[248px] [&>div]:max-w-full";
+
+// A stretching grid gave a card one size in the full width Upcoming view and another in the
+// narrower Calendar column, because a column count reads the viewport and not the box. A wrapping
+// row of fixed width cards is one size everywhere, and RewardGrid already does this.
+const eventWrap = `flex flex-wrap gap-x-4 gap-y-5 lg:gap-y-6 ${EVENT_CARD_WIDTH}`;
+
+// A one row scroller turns into a grid at lg, so that path still needs a column count.
+const eventRowColumns =
   "h-full grid-cols-1 gap-x-4 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4 2xl:grid-cols-5 3xl:grid-cols-6 group-data-[sidebar=false]/main:xl:grid-cols-5 group-data-[sidebar=false]/main:2xl:grid-cols-6 group-data-[sidebar=false]/main:3xl:grid-cols-7";
 
-// A narrower column needs fewer columns, because the breakpoints read the viewport and not the box.
-export const eventColumnsNarrow =
-  "h-full grid-cols-1 gap-x-4 sm:grid-cols-2 xl:grid-cols-3 3xl:grid-cols-4";
-
-export function EventGrid({
-  events,
-  oneRow,
-  columns = eventColumns,
-}: {
-  events: KickEvent[];
-  oneRow?: boolean;
-  columns?: string;
-}) {
+export function EventGrid({ events, oneRow }: { events: KickEvent[]; oneRow?: boolean }) {
   return (
     <section
-      className={`${columns} ${
-        oneRow ? `${oneRowGrid} [&>div]:w-[268px]` : "grid gap-y-5 lg:gap-y-6"
-      }`}
+      className={
+        oneRow ? `${eventRowColumns} ${oneRowGrid} ${EVENT_CARD_WIDTH}` : eventWrap
+      }
     >
       {events.map((event) => (
         <EventCard key={event.event_id} event={event} />

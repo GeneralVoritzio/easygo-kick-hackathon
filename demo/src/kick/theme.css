@@ -8,6 +8,7 @@
   grid-template-columns: repeat(auto-fill, minmax(139px, 1fr));
 }
 
+
 /* Must be @utility, not a class in @layer utilities. A plain class gets no variants, so
    md:no-scrollbar compiled to nothing and the tab bar showed a scrollbar KICK hides. */
 @utility no-scrollbar {

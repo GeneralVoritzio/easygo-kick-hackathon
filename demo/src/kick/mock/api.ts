@@ -4,6 +4,7 @@ export type Channel = {
   avatar: string;
   verified: boolean;
   followers: number;
+  is_partner: boolean;
 };
 
 export type Livestream = {
@@ -46,12 +47,30 @@ const artUrl = (name: string) => art[`../art/${name}.svg`] ?? "";
 
 export const bannerFor = (seed: string) => artUrl(`banner-${seed}`);
 
+const partnerSlugs = new Set([
+  "ironvow",
+  "couchsenate",
+  "wanderfuse",
+  "nocturnalnorm",
+  "spinvicar",
+  "midnightden",
+  "charcoalchef",
+  "superdude1337",
+]);
+
 const channel = (
   slug: string,
   username: string,
   followers: number,
   verified = false,
-): Channel => ({ slug, username, avatar: avatar(slug), verified, followers });
+): Channel => ({
+  slug,
+  username,
+  avatar: avatar(slug),
+  verified,
+  followers,
+  is_partner: partnerSlugs.has(slug),
+});
 
 export type Category = {
   name: string;
@@ -643,11 +662,10 @@ export function timeAgo(iso: string): string {
   return `${years} ${years === 1 ? "year" : "years"} ago`;
 }
 
+export const superdude = channel("superdude1337", "SuperDude1337", 18430);
+
 export const currentUser = {
-  slug: "superdude1337",
-  username: "SuperDude1337",
-  avatar: avatar("superdude1337"),
-  followers: 18430,
+  ...superdude,
   bio: "SuperDude1337's Kick Channel",
   banner: artUrl("banner-midnightden"),
   offlineBanner: artUrl("thumb-just-chatting-1"),
@@ -660,6 +678,16 @@ export const currentSession = {
   subscriber_count: 312,
   time_live: "3:15:22",
   thumbnail: artUrl("thumb-just-chatting-1"),
+};
+
+export const channelByUsername = (username: string) => {
+  const wanted = username.trim().toLowerCase();
+  const known = [
+    superdude,
+    ...channelProfiles.map((p) => p.channel),
+    ...livestreams.map((s) => s.channel),
+  ];
+  return known.find((c) => c.username.toLowerCase() === wanted);
 };
 
 export function streamPills(stream: Livestream): string[] {

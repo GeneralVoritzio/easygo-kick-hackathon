@@ -320,6 +320,42 @@
   .tooltip-top:hover::after { opacity: 1 }
   .tooltip-start::before { left: 0; translate: none }
   .tooltip-end::before { left: auto; right: 0; translate: none }
+  .tooltip-bottom { position: relative }
+  .tooltip-bottom::before {
+    content: attr(aria-label);
+    position: absolute;
+    top: calc(100% + 2px);
+    left: 50%;
+    translate: -50%;
+    z-index: 801;
+    padding: 5px;
+    border-radius: 6px;
+    background: #fff;
+    color: #000;
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 20px;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+  }
+  .tooltip-bottom::after {
+    content: "";
+    position: absolute;
+    inset: calc(100% - 3px) auto auto 50%;
+    translate: -50%;
+    z-index: 801;
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-bottom: 5px solid #fff;
+    border-radius: 0;
+    background: none;
+    transition: none;
+    opacity: 0;
+    pointer-events: none;
+  }
+  .tooltip-bottom:hover::before,
+  .tooltip-bottom:hover::after { opacity: 1 }
 }
 
 @keyframes emote-picker-open {

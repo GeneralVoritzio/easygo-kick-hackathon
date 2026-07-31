@@ -54,18 +54,15 @@ function Tile({
       {selected && (
         <span className="pointer-events-none absolute inset-0 z-[2] ring-2 ring-inset ring-primary-base" />
       )}
-      <div className="absolute inset-x-0 bottom-0 z-[2] flex items-center gap-1.5 bg-gradient-to-t from-black/80 to-transparent p-1.5 pt-4">
+      <div className="absolute left-1.5 top-1.5 z-[2] flex items-center gap-1 rounded bg-black/60 px-1.5 py-1 text-xs font-semibold leading-none text-white/90">
+        <span className="size-1.5 rounded-full bg-green-500" />
+        {formatViewers(stream.viewer_count)}
+        <Icon name={selected ? "volume" : "mute"} className="size-3 shrink-0 fill-white/70" />
+      </div>
+      <div className="absolute inset-x-0 bottom-0 z-[2] flex items-center bg-gradient-to-t from-black/80 to-transparent p-1.5 pt-4">
         <span className="min-w-0 truncate text-xs font-bold text-white">
           {stream.channel.username}
         </span>
-        <span className="ml-auto flex shrink-0 items-center gap-1 text-xs font-semibold text-white">
-          <span className="size-1.5 rounded-full bg-green-500" />
-          {formatViewers(stream.viewer_count)}
-        </span>
-        <Icon
-          name={selected ? "volume" : "mute"}
-          className="size-3.5 shrink-0 fill-white"
-        />
       </div>
       {/* The switch lives behind an explicit button, so a stray click on the
           tile never moves the main stream. */}
@@ -74,21 +71,19 @@ function Tile({
           <button
             type="button"
             aria-label={`Watch ${stream.channel.username}`}
-            title={`Watch ${stream.channel.username}`}
             onClick={() => {
               closeMultiview();
               navigate(`/${stream.channel.slug}`);
             }}
-            className="flex size-9 items-center justify-center rounded-full bg-black/60 text-white/80 betterhover:hover:bg-black/85 betterhover:hover:text-white [&_svg]:fill-current"
+            className="tooltip-top flex size-8 items-center justify-center rounded bg-black/70 text-white/80 betterhover:hover:bg-black/90 betterhover:hover:text-white [&_svg]:fill-current"
           >
             <Icon name="play" className="size-4" />
           </button>
           <button
             type="button"
             aria-label="Remove from multiview"
-            title="Remove from multiview"
             onClick={() => unpin(stream.channel.slug)}
-            className="flex size-9 items-center justify-center rounded-full bg-black/60 text-white/80 betterhover:hover:bg-black/85 betterhover:hover:text-white"
+            className="tooltip-top flex size-8 items-center justify-center rounded bg-black/70 text-white/80 betterhover:hover:bg-black/90 betterhover:hover:text-white"
           >
             <Icon name="close" className="size-3.5" />
           </button>
@@ -142,14 +137,18 @@ export function MultiviewGrid({ stream }: { stream: Livestream }) {
           />
         ))}
       </div>
-      <button
-        type="button"
-        aria-label="Close multiview"
-        onClick={closeMultiview}
-        className="absolute right-2 top-2 z-[2] flex size-8 items-center justify-center rounded bg-black/70 text-white betterhover:hover:bg-surface-highest"
-      >
-        <Icon name="close" className="size-3.5" />
-      </button>
+      {/* The tooltip class carries position relative, so the placement lives on
+          a wrapper and never fights it. */}
+      <div className="absolute right-2 top-2 z-[2]">
+        <button
+          type="button"
+          aria-label="Close multiview"
+          onClick={closeMultiview}
+          className="tooltip-bottom tooltip-end flex size-8 items-center justify-center rounded bg-black/70 text-white betterhover:hover:bg-surface-highest"
+        >
+          <Icon name="close" className="size-3.5" />
+        </button>
+      </div>
     </div>
   );
 }

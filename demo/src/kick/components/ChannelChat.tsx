@@ -1188,7 +1188,7 @@ function EventChatStrip({ event }: { event: KickEvent }) {
         className="pointer-events-none absolute -left-8 -top-8 size-28 rounded-full bg-primary-base/25 blur-2xl"
       />
 
-      <Link to={`/${event.host_channel.slug}`} className="relative shrink-0">
+      <Link to={`/${event.host_channel.slug}/home`} className="relative shrink-0">
         <img
           src={event.host_channel.avatar}
           alt={event.host_channel.username}
@@ -1228,13 +1228,6 @@ function EventChatStrip({ event }: { event: KickEvent }) {
           )}
         </div>
       </div>
-      <Link
-        to={`/events/${event.slug}`}
-        aria-label="Open the event page"
-        className="relative flex size-8 shrink-0 items-center justify-center rounded text-white state-layer-surface"
-      >
-        <Icon name="dash-external" className="size-4 fill-current" />
-      </Link>
     </div>
   );
 }

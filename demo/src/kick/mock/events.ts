@@ -43,17 +43,21 @@ export type KickEvent = {
   chat: EventChatSettings;
 };
 
-// A host who uploads nothing gets one of the committed posters, picked at random.
+// A host who uploads nothing gets a plain plate, never one of the nine posters. A poster carries
+// the name of the event it was drawn for, so handing it to a second event contradicts both.
 const POSTER_PLATES = [
-  "poster-final-showdown",
-  "poster-power-play-arena",
-  "poster-arena-clash",
-  "poster-squad-rush",
-  "poster-battle-night-live",
-  "poster-cyber-warfare",
-  "poster-arena-champions",
-  "poster-fps-ultimate",
-  "poster-legends-awaken",
+  "cat-just-chatting",
+  "cat-old-school-runescape",
+  "cat-slots-casino",
+  "cat-irl",
+  "cat-gakuen-idolmaster",
+  "cat-just-sleeping",
+  "cat-league-of-legends",
+  "cat-minecraft",
+  "cat-music",
+  "cat-grand-theft-auto-v",
+  "cat-counter-strike-2",
+  "cat-vr-chat",
 ];
 
 export const randomPoster = () =>

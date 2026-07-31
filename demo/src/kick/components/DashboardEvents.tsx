@@ -167,7 +167,7 @@ function CreateEventForm({ wide }: { wide?: boolean }) {
             <p className="text-sm font-normal text-surface-onSurfaceSecondary">
               {upload
                 ? "This is your poster."
-                : "Portrait, 9 by 16. Upload nothing and this one comes with it."}
+                : "Portrait artwork works best. Upload nothing and this plate comes with it."}
             </p>
             {upload ? (
               <button

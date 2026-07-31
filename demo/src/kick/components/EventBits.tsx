@@ -111,24 +111,42 @@ export function StreamerRow({
 }) {
   const { channel, role, slot_title } = participant;
   const live = liveStreamFor(channel.slug);
+  // While the event runs, a seat with no stream is offline, and the sidebar already says what
+  // offline looks like: the avatar loses its colour and the name goes dim.
+  const offline = Boolean(eventLive) && !live;
 
   return (
     <li className="flex items-center gap-3 rounded px-1.5 py-2 state-layer-surface">
       <Link to={`/${channel.slug}`} className="shrink-0">
-        <img src={channel.avatar} alt={channel.username} className="size-11 rounded-full" />
+        <img
+          src={channel.avatar}
+          alt={channel.username}
+          className={`size-11 rounded-full ${offline ? "mix-blend-luminosity grayscale" : ""}`}
+        />
       </Link>
       <div className="flex min-w-0 grow flex-col gap-0.5">
         <div className="flex items-center gap-1.5">
           <Link
             to={`/${channel.slug}`}
-            className="truncate text-sm font-bold leading-5 text-white betterhover:hover:underline"
+            className={`truncate text-sm font-bold leading-5 betterhover:hover:underline ${
+              offline ? "text-neutral-700" : "text-white"
+            }`}
           >
             {channel.username}
           </Link>
-          {channel.verified && <Icon name="verified" className="size-4 shrink-0" />}
+          {channel.verified && (
+            <Icon
+              name="verified"
+              className={`size-4 shrink-0 ${offline ? "fill-neutral-700" : ""}`}
+            />
+          )}
           {role === "host" && <Pill>Host</Pill>}
         </div>
-        <span className="truncate text-sm font-normal leading-5 text-surface-onSurfaceSecondary">
+        <span
+          className={`truncate text-sm font-normal leading-5 ${
+            offline ? "text-neutral-700" : "text-surface-onSurfaceSecondary"
+          }`}
+        >
           {slot_title}
         </span>
       </div>

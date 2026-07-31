@@ -25,7 +25,7 @@ function Tile({
   onDragStart: (index: number) => void;
   onDrop: (index: number) => void;
 }) {
-  const { unpin, liveEmbeds } = useEvent();
+  const { unpin, closeMultiview, liveEmbeds } = useEvent();
   const navigate = useNavigate();
   const embedUrl = liveEmbeds ? embedUrlFor(stream.channel.slug, true) : undefined;
   const holderRef = useEmbedTarget(embedUrl ? stream.channel.slug : undefined);
@@ -75,7 +75,10 @@ function Tile({
             type="button"
             aria-label={`Watch ${stream.channel.username}`}
             title={`Watch ${stream.channel.username}`}
-            onClick={() => navigate(`/${stream.channel.slug}`)}
+            onClick={() => {
+              closeMultiview();
+              navigate(`/${stream.channel.slug}`);
+            }}
             className="flex size-9 items-center justify-center rounded-full bg-black/60 text-white/80 betterhover:hover:bg-black/85 betterhover:hover:text-white [&_svg]:fill-current"
           >
             <Icon name="play" className="size-4" />

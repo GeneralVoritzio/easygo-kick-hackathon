@@ -250,6 +250,29 @@
   .animate-pick-reveal { animation: pick-reveal 420ms ease-out }
   .animate-pick-glow { animation: pick-glow 2.4s ease-in-out infinite }
   .animate-toast-in { animation: toast-in 320ms cubic-bezier(0.16, 1, 0.3, 1) }
+  .animate-portal-flash { animation: portal-flash 700ms ease-out }
+  .animate-portal-appear { animation: portal-appear 700ms cubic-bezier(0.16, 1, 0.3, 1) forwards }
+  .animate-portal-drift {
+    animation-name: portal-drift;
+    animation-timing-function: ease-in-out;
+    animation-iteration-count: infinite;
+  }
+  .animate-cta-pulse { animation: cta-pulse 1.8s ease-out infinite }
+  .animate-portal-tunnel { animation: portal-tunnel 3.3s ease-in infinite }
+  .animate-portal-pull {
+    animation-name: portal-pull;
+    animation-timing-function: ease-in;
+    animation-iteration-count: infinite;
+  }
+  /* Two animations: a one-shot launch out to the landing spot (transform, held there via
+     "both" fill), then an infinite in-place float (the standalone translate property, which
+     composes with transform instead of overwriting it) once the mote has landed. */
+  .animate-portal-erupt {
+    animation-name: portal-erupt-launch, portal-erupt-float;
+    animation-timing-function: ease-out, ease-in-out;
+    animation-iteration-count: 1, infinite;
+    animation-fill-mode: both, none;
+  }
 
   .animate-emote-picker { animation: emote-picker-open 350ms ease-out }
   .animate-emote-picker-close { animation: emote-picker-close 350ms ease-out forwards }
@@ -339,11 +362,71 @@
   100% { opacity: 1; transform: translateY(0) scale(1) }
 }
 
+@keyframes portal-flash {
+  0% { opacity: 0 }
+  35% { opacity: 0.9 }
+  100% { opacity: 0 }
+}
+
+/* The backdrop dim, the ambient field and the portal's own size all grow continuously from 0
+   across the same reveal window (RaidPortal ties them to one shared progress value), so this
+   only adds a brief brightness flare for the moment it punches through. Fading the group's
+   opacity here too would race that shared timeline and make the background snap in faster
+   than the portal reaches full size. */
+@keyframes portal-appear {
+  0% { filter: brightness(1.8) }
+  100% { filter: brightness(1) }
+}
+
+@keyframes portal-drift {
+  0%, 100% { transform: translate(0, 0); opacity: 0.55 }
+  50% { transform: translate(var(--portal-dx), var(--portal-dy)); opacity: 1 }
+}
+
+@keyframes cta-pulse {
+  0% { box-shadow: 0 0 0 0 rgba(83, 252, 24, 0.55) }
+  70% { box-shadow: 0 0 0 16px rgba(83, 252, 24, 0) }
+  100% { box-shadow: 0 0 0 0 rgba(83, 252, 24, 0) }
+}
+
+@keyframes portal-tunnel {
+  0% { transform: scale(1.5); opacity: 0 }
+  15% { opacity: 1 }
+  100% { transform: scale(0.05); opacity: 0 }
+}
+
+@keyframes portal-pull {
+  0% { transform: translate(-50%, -50%) translate(var(--pull-x), var(--pull-y)); opacity: 0 }
+  15% { opacity: 1 }
+  100% { transform: translate(-50%, -50%) translate(0, 0); opacity: 0 }
+}
+
+@keyframes portal-erupt-launch {
+  0% { transform: translate(-50%, -50%) translate(0, 0) scale(0.6); opacity: 0 }
+  15% { opacity: 1 }
+  100% {
+    transform: translate(-50%, -50%) translate(var(--erupt-land-x), var(--erupt-land-y)) scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes portal-erupt-float {
+  0%, 100% { translate: 0 0 }
+  50% { translate: var(--erupt-float-x) var(--erupt-float-y) }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .animate-leaderboards-marquee { animation: none }
   .animate-pick-reveal { animation: none }
   .animate-pick-glow { animation: none }
   .animate-toast-in { animation: none }
+  .animate-portal-flash { animation: none }
+  .animate-portal-appear { animation: none; filter: none }
+  .animate-portal-drift { animation: none }
+  .animate-cta-pulse { animation: none }
+  .animate-portal-tunnel { animation: none }
+  .animate-portal-pull { animation: none }
+  .animate-portal-erupt { animation: none }
 }
 
 button:not(:disabled),

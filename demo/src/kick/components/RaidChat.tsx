@@ -122,7 +122,7 @@ function PollRows({ raid, poll }: { raid: Raid; poll: Poll }) {
 // Section 5.3: the winner is revealed by a spin reel inside the chat card, never a takeover.
 // A depleting ring around the target's avatar, so the countdown reads at a glance instead of
 // needing to be read as digits. Same visual language as the dialog roulette's landed ring.
-function CountdownRing({ seconds, total, size = 64 }: { seconds: number; total: number; size?: number }) {
+export function CountdownRing({ seconds, total, size = 64 }: { seconds: number; total: number; size?: number }) {
   const stroke = 3;
   const radius = (size - stroke) / 2;
   const circumference = 2 * Math.PI * radius;

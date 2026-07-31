@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
 import { Link } from "react-router-dom";
 import { Icon } from "../Icon";
-import { chatLines, chatters, colorFor } from "./ChannelChat";
+import { chatLines, chatters, colorFor } from "../engine/chat";
 import { formatViewers, liveStreamFor } from "../mock/api";
 import { formatClipAge, formatDuration, type Clip } from "../mock/clips";
 

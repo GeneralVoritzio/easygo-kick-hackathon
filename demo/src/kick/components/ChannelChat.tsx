@@ -1339,15 +1339,8 @@ function HypeDemoRow({ slug }: { slug: string }) {
         <HypeStars tier={tier} size="size-4" />
         <div className="ml-auto flex items-center gap-2">
           {tier > 0 && (
-            <span
-              aria-label={`${clock} of hype left`}
-              className="tooltip-bottom flex size-6 cursor-default items-center justify-center rounded-full border-2 text-xs leading-none transition-colors duration-1000"
-              style={{
-                borderColor:
-                  secondsLeft > 75 ? "#53fc18" : secondsLeft > 30 ? "#ffd700" : "#ff5050",
-              }}
-            >
-              🐌
+            <span className="text-xs font-semibold tabular-nums text-white">
+              {clock}
             </span>
           )}
           <span className="text-sm font-bold text-white">

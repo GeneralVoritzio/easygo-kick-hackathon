@@ -12,7 +12,7 @@ import { Icon, type KickIconName } from "../Icon";
 import { BoostNoticeCards } from "../events/BoostNotice";
 import { useEvent } from "../events/EventProvider";
 import { FollowPromptCard } from "../events/FollowPrompt";
-import { PixelStar } from "../events/HypeStars";
+import { HypeStars, PixelStar } from "../events/HypeStars";
 import { avatarFor, currentUser } from "../mock/api";
 import {
   eventStreamers,
@@ -1336,6 +1336,7 @@ function HypeDemoRow({ slug }: { slug: string }) {
         <span className="whitespace-nowrap font-[KickFont] text-base leading-none text-white">
           HYPE
         </span>
+        <HypeStars tier={tier} size="size-4" />
         <div className="ml-auto flex items-center gap-2">
           {tier > 0 && (
             <span className="text-xs font-semibold tabular-nums text-white">
@@ -1345,13 +1346,15 @@ function HypeDemoRow({ slug }: { slug: string }) {
           <span className="text-sm font-bold text-white">
             {HYPE_PERCENTS[tier]}%
           </span>
-          <span className="cursor-default font-[KickFont] text-sm leading-none text-primary-base">
+          <span
+            aria-label={`Channel Points Multiplier: ${HYPE_MULTIPLIERS[tier]}`}
+            className="tooltip-bottom tooltip-end cursor-default font-[KickFont] text-sm leading-none text-primary-base"
+          >
             {HYPE_MULTIPLIERS[tier]}
           </span>
         </div>
       </div>
-      <div className="group/bar relative mb-1.5 cursor-default">
-        <div className="flex h-4 items-stretch gap-[3px] border-2 border-neutral-400 bg-surface-lowest p-[3px]">
+      <div className="mb-1.5 flex h-4 items-stretch gap-[3px] border-2 border-neutral-400 bg-surface-lowest p-[3px]">
         {(() => {
           const filled = Math.round((HYPE_PERCENTS[tier] / 100) * 24);
           return Array.from({ length: 24 }, (_, i) => (
@@ -1365,28 +1368,6 @@ function HypeDemoRow({ slug }: { slug: string }) {
             />
           ));
         })()}
-        </div>
-        <div className="z-popover pointer-events-none absolute left-1/2 top-full mt-1.5 flex -translate-x-1/2 flex-col items-start gap-0.5 whitespace-nowrap rounded-md bg-surface-highest px-2.5 py-1.5 text-sm font-medium text-white shadow-[0_4px_12px_rgba(0,0,0,0.5)] opacity-0 transition-opacity group-hover/bar:opacity-100">
-          <span className="font-bold">Hype Progress</span>
-          {tier < 3 ? (
-            <span className="font-bold text-surface-onSurfaceSecondary">
-              <span className={tier > 0 ? `hype-shimmer hype-tier-${tier}` : undefined}>
-                Tier {tier}
-              </span>
-              {" : "}
-              {HYPE_PERCENTS[tier + 1] - HYPE_PERCENTS[tier]}% till{" "}
-              <span className={`hype-shimmer hype-tier-${tier + 1}`}>Tier {tier + 1}</span>
-            </span>
-          ) : (
-            <span className="font-bold text-surface-onSurfaceSecondary">
-              <span className="hype-shimmer hype-tier-3">Tier 3</span>
-              {" : Max level"}
-            </span>
-          )}
-          <span className="text-surface-onSurfaceSecondary">
-            Channel Points Multiplier: {HYPE_MULTIPLIERS[tier]}
-          </span>
-        </div>
       </div>
       {controlsOpen && (
         <div className="flex items-center gap-2 px-1">

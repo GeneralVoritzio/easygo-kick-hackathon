@@ -7,8 +7,11 @@ import { StreamGrid } from "../components/StreamCard";
 import { CategoryGrid } from "../components/CategoryCard";
 import { ClipGrid } from "../components/ClipCard";
 import { Pill, Section } from "../components/CardBits";
+import { EventGrid } from "../components/EventBits";
+import { useEvents } from "../EventsStore";
 import { livestreams, categories, formatViewers, streamPills } from "../mock/api";
 import { clips } from "../mock/clips";
+import { publicUpcoming } from "../mock/events";
 import { HeroChatFeed } from "../components/ChannelChat";
 
 const heroStreams = livestreams.slice(0, 6);
@@ -221,6 +224,7 @@ function CategoryRow({ slug }: { slug: string }) {
 }
 
 export function Home() {
+  const { events } = useEvents();
   const popularClips = [...clips].sort((a, b) => b.view_count - a.view_count);
 
   return (
@@ -228,6 +232,10 @@ export function Home() {
       <div className="flex w-full flex-col gap-3">
         <HeroCarousel />
       </div>
+
+      <Section cyan="Events" white="For You" viewAllHref="/browse/events">
+        <EventGrid events={publicUpcoming(events)} oneRow />
+      </Section>
 
       <Section cyan="Streams" white="For You" showMore>
         <StreamGrid streams={livestreams} oneRow />

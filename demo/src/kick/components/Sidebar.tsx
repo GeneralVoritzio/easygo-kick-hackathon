@@ -2,6 +2,10 @@ import { useState } from "react";
 import { NavLink, Link } from "react-router-dom";
 import { Icon, type KickIconName } from "../Icon";
 import { followedChannels, livestreams, formatViewers } from "../mock/api";
+import { eventForChannel, type KickEvent } from "../mock/events";
+import { useEvents } from "../EventsStore";
+import { useEvent } from "../events/EventProvider";
+import { HypeStars } from "../events/HypeStars";
 
 const navItems: { to: string; label: string; icon: KickIconName; activeIcon: KickIconName }[] = [
   { to: "/", label: "Home", icon: "nav-home", activeIcon: "nav-home-active" },
@@ -20,6 +24,7 @@ function ChannelRow({
   viewers,
   live,
   testId,
+  event,
 }: {
   slug: string;
   username: string;
@@ -28,13 +33,15 @@ function ChannelRow({
   viewers?: number;
   live: boolean;
   testId?: string;
+  event?: KickEvent;
 }) {
+  const { hypeTiers } = useEvent();
+  const hypeTier = live ? (hypeTiers[slug] ?? 0) : 0;
   return (
-    <Link
-      to={`/${slug}`}
-      data-testid={testId}
-      className="flex h-11 w-full flex-row items-center gap-x-2 rounded px-1.5 py-1 state-layer-surface"
-    >
+    // The event chip is a link of its own, so the channel link stretches over the row instead of
+    // wrapping it. A link cannot hold a link. The stretched link comes last, so it paints above the
+    // row content, and the chip lifts itself back above the link.
+    <div className="relative flex h-11 w-full flex-row items-center gap-x-2 rounded px-1.5 py-1 state-layer-surface">
       <div className="relative size-7 shrink-0">
         <img
           src={avatar}
@@ -44,22 +51,35 @@ function ChannelRow({
           }`}
         />
       </div>
-      <div className="flex min-w-0 max-w-full shrink grow flex-col gap-0.5">
+      <div className="relative flex min-w-0 max-w-full shrink grow flex-col gap-0.5">
         <span
-          className={`shrink truncate text-sm font-bold leading-[1.2] ${
+          className={`flex min-w-0 items-center gap-1 text-sm font-bold leading-[1.2] ${
             live ? "text-white" : "text-neutral-700"
           }`}
         >
-          {username}
+          <span className="truncate">{username}</span>
+          {hypeTier > 0 && <HypeStars tier={hypeTier} size="size-3.5" />}
         </span>
-        {category && (
-          <span className="truncate text-xs font-bold leading-normal text-subtle">
-            {category}
-          </span>
+        {event ? (
+          <Link
+            to={`/events/${event.slug}`}
+            data-testid="sidebar-event-chip"
+            title={event.title}
+            className="relative z-10 flex w-fit max-w-full items-center gap-1 truncate text-xs font-bold leading-normal text-surface-onSurfacePrimary betterhover:hover:underline"
+          >
+            <Icon name="event" className="size-3 shrink-0 fill-current" />
+            <span className="truncate">{event.title}</span>
+          </Link>
+        ) : (
+          category && (
+            <span className="truncate text-xs font-bold leading-normal text-subtle">
+              {category}
+            </span>
+          )
         )}
       </div>
       {live ? (
-        <div className="flex w-fit shrink-0 flex-nowrap items-center gap-x-1 self-start text-white">
+        <div className="relative flex w-fit shrink-0 flex-nowrap items-center gap-x-1 self-start text-white">
           <div className="h-2 w-2 rounded-full bg-green-500" />
           <span className="text-sm font-semibold">
             {viewers === undefined ? "LIVE" : formatViewers(viewers)}
@@ -68,7 +88,13 @@ function ChannelRow({
       ) : (
         <Icon name="heart-slash" className="size-4 shrink-0 self-start fill-neutral-700" />
       )}
-    </Link>
+      <Link
+        to={`/${slug}`}
+        data-testid={testId}
+        aria-label={username}
+        className="absolute inset-0"
+      />
+    </div>
   );
 }
 
@@ -99,6 +125,8 @@ function RailRow({ slug, username, avatar, live }: { slug: string; username: str
 
 export function Sidebar({ collapsed }: { collapsed: boolean }) {
   const [shown, setShown] = useState(10);
+  const { events } = useEvents();
+  const eventFor = (slug: string) => eventForChannel(events, slug);
 
   if (collapsed) {
     return (
@@ -203,6 +231,7 @@ export function Sidebar({ collapsed }: { collapsed: boolean }) {
                 key={c.slug}
                 {...c}
                 category={c.live ? c.category : undefined}
+                event={eventFor(c.slug)}
                 testId={`sidebar-following-channel-${i + 1}`}
               />
             ))}
@@ -219,6 +248,7 @@ export function Sidebar({ collapsed }: { collapsed: boolean }) {
                 username={s.channel.username}
                 avatar={s.channel.avatar}
                 category={s.category.name}
+                event={eventFor(s.channel.slug)}
                 viewers={s.hide_viewer_count ? undefined : s.viewer_count}
                 live
                 testId={`sidebar-recommended-channel-${i + 1}`}

@@ -1,16 +1,23 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Icon } from "../Icon";
+import { useEvent } from "../events/EventProvider";
+import { HypeStars } from "../events/HypeStars";
 import { Pill } from "./CardBits";
 import { formatFollowers, type Livestream } from "../mock/api";
+import type { KickEvent } from "../mock/events";
 
 export function ChannelBar({
   stream,
   showFollowers,
+  event,
 }: {
   stream: Livestream;
   showFollowers?: boolean;
+  event?: KickEvent;
 }) {
+  const { hypeTiers } = useEvent();
+  const hypeTier = hypeTiers[stream.channel.slug] ?? 0;
   const [following, setFollowing] = useState(false);
   const [subscribed, setSubscribed] = useState(false);
   const { channel } = stream;
@@ -19,7 +26,11 @@ export function ChannelBar({
     <div className="flex w-full min-w-0 max-w-full flex-col justify-between gap-3 pb-3 pt-2 lg:flex-row lg:gap-12 lg:pb-0 lg:pt-0">
       <div className="flex min-w-0 gap-3 lg:gap-4">
         <Link to={`/${channel.slug}/home`} className="relative flex size-12 shrink-0 items-center lg:size-16">
-          <div className="aspect-square w-full overflow-hidden rounded-full border-2 border-green-500 lg:border-4">
+          <div
+            className={`aspect-square w-full overflow-hidden rounded-full border-2 border-green-500 lg:border-4${
+              hypeTier > 0 ? ` hype-shimmer hype-shimmer-round hype-tier-${hypeTier}` : ""
+            }`}
+          >
             <img
               src={channel.avatar}
               alt={channel.username}
@@ -37,6 +48,7 @@ export function ChannelBar({
               {channel.username}
             </Link>
             {channel.verified && <Icon name="verified" className="size-5 shrink-0" />}
+            {hypeTier > 0 && <HypeStars tier={hypeTier} size="size-5" />}
           </h1>
           {showFollowers ? (
             <span className="truncate text-sm font-bold leading-[1.2] text-subtle">
@@ -51,6 +63,17 @@ export function ChannelBar({
             </p>
           )}
           <div className="flex min-w-0 max-w-full flex-wrap items-center gap-2 overflow-hidden">
+            {event && (
+              <Link
+                to={`/events/${event.slug}`}
+                data-testid="channel-event-chip"
+                title={event.title}
+                className="flex h-[22px] max-w-full shrink-0 items-center gap-1 truncate whitespace-nowrap rounded-full bg-secondary-base px-2 text-sm font-semibold leading-none text-surface-onSurfacePrimary transition-colors betterhover:hover:bg-neutral-700"
+              >
+                <Icon name="event" className="size-3.5 shrink-0 fill-current" />
+                <span className="truncate">{event.title}</span>
+              </Link>
+            )}
             <button
               type="button"
               className="text-sm font-normal leading-[1.2] text-surface-onSurfacePrimary betterhover:hover:underline"

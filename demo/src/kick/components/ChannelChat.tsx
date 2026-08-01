@@ -1,5 +1,6 @@
 import {
   useEffect,
+  useMemo,
   useRef,
   useState,
   type CSSProperties,
@@ -8,7 +9,21 @@ import {
   type ReactNode,
 } from "react";
 import { Icon, type KickIconName } from "../Icon";
-import { currentUser } from "../mock/api";
+import { BoostNoticeCards } from "../events/BoostNotice";
+import { useEvent } from "../events/EventProvider";
+import { FollowPromptCard } from "../events/FollowPrompt";
+import { HYPE_TIER_MAX } from "../events/events";
+import { HypeStars } from "../events/HypeStars";
+import { avatarFor, currentUser } from "../mock/api";
+import {
+  eventStreamers,
+  slugInEvent,
+  type EventParticipant,
+  type KickEvent,
+} from "../mock/events";
+import { useRaid } from "../raid/RaidProvider";
+import { PinnedCard } from "./PinnedCard";
+import { RaidBanner, RaidPanel } from "./RaidChat";
 import identityBadge from "../icons/identity-badge.png";
 
 // Identity colours resolved from assets/reference/kick-neon-tokens.css (--neon-identity-*).
@@ -31,14 +46,24 @@ const identityColors = [
   "#d8a0fe", // violet
 ];
 
-export function colorFor(username: string) {
+function hashOf(username: string) {
   let hash = 0;
-  for (let i = 0; i < username.length; i++) hash = (hash * 31 + username.charCodeAt(i)) >>> 0;
-  return identityColors[hash % identityColors.length];
+  for (let i = 0; i < username.length; i++)
+    hash = (hash * 31 + username.charCodeAt(i)) >>> 0;
+  return hash;
+}
+
+export function colorFor(username: string) {
+  return identityColors[hashOf(username) % identityColors.length];
 }
 
 type BadgeName =
-  "moderator" | "og" | "sub_gifter" | "sub_gifter_teal" | "sub_gifter_purple" | "verified";
+  | "moderator"
+  | "og"
+  | "sub_gifter"
+  | "sub_gifter_teal"
+  | "sub_gifter_purple"
+  | "verified";
 
 // Read off kick.com/odablock on 27 July 2026: a badge sits in
 // `flex items-center gap-1 self-center pr-1` and is `size-[calc(1em*(18/13))]`, so 19px at 14px.
@@ -73,7 +98,9 @@ const emotes = [
 ].map((emote) => {
   const url = emoteFiles[`../emotes/${emote.name}.gif`];
   if (!url)
-    throw new Error(`No emote for ${emote.name}. Add demo/src/kick/emotes/${emote.name}.gif`);
+    throw new Error(
+      `No emote for ${emote.name}. Add demo/src/kick/emotes/${emote.name}.gif`,
+    );
   return { ...emote, url };
 });
 
@@ -146,24 +173,98 @@ export const chatLines = [
   "how many hours in ironman now",
   "sub goal when",
   "run it back",
+  "anyone holding a kraken eye",
+  "wtb kraken eye, paying in wyvern fang",
+  "carl stop hoarding the kraken eyes",
 ];
+
+// The event room spans every channel on the running order, so its regulars and its lines are
+// about the running order and not about one stream.
+const eventChatters: { username: string; badges: BadgeName[] }[] = [
+  { username: "GavelGoblin", badges: ["og"] },
+  { username: "MotionToVibe", badges: ["sub_gifter_purple"] },
+  { username: "RunningOrderRhi", badges: [] },
+  { username: "SeatSwapSam", badges: ["sub_gifter"] },
+  { username: "CrossChatCass", badges: [] },
+  { username: "RelayRefLarry", badges: ["og"] },
+  { username: "TinderboxTina", badges: ["sub_gifter_teal"] },
+  { username: "DenMotherDot", badges: [] },
+  { username: "CashoutCarl", badges: [] },
+  { username: "PillowFortPam", badges: ["sub_gifter"] },
+  { username: "QuietHoursQuinn", badges: [] },
+  { username: "SpatulaSheriff", badges: [] },
+  { username: "MiseEnPlaceMo", badges: ["sub_gifter_teal"] },
+  { username: "AwningAndy", badges: [] },
+  { username: "DieselDaphne", badges: ["verified"] },
+  { username: "HandoverHana", badges: ["sub_gifter_purple"] },
+  { username: "BracketBrett", badges: [] },
+  { username: "SlotOneSteve", badges: [] },
+];
+
+const eventChatLines = [
+  "who is up next",
+  "seat two starts in ten",
+  "handing over now, go go go",
+  "following all four of these already",
+  "this running order is stacked",
+  "whoever loses the vote hands it over",
+  "one room for every channel is so good",
+  "someone tell seat three to unmute",
+  "that handover was clean",
+  "the host set slow mode for a reason",
+  "first event chat and i am staying",
+  "seat four is going to win this",
+  "switching over now, brb",
+  "we are all in the same room right now",
+  "vote is in, next seat up",
+  "reminder set for the next one",
+  "half of chat came from the other stream",
+  "the relay rules are chaos and i love it",
+];
+
+type MessagePool = { chatters: typeof chatters; lines: string[] };
+
+const streamPool: MessagePool = { chatters, lines: chatLines };
+
+// The event chat inherits its moderators from the host, so only those names carry the badge.
+function eventPool(moderators: string[]): MessagePool {
+  return {
+    chatters: eventChatters.map((chatter) =>
+      moderators.includes(chatter.username)
+        ? { ...chatter, badges: ["moderator" as BadgeName, ...chatter.badges] }
+        : chatter,
+    ),
+    lines: eventChatLines,
+  };
+}
 
 const pick = <T,>(list: T[]) => list[Math.floor(Math.random() * list.length)];
 
-type Message = {
+type ChatterMessage = {
   id: number;
+  kind?: undefined;
   username: string;
   badges: BadgeName[];
   color: string;
   body: string;
 };
 
+// A command's own reply to the person who typed it. It never comes from a chatter, so it
+// carries no username, badges or colour, and it renders in italic grey instead of a name line.
+type SystemMessage = {
+  id: number;
+  kind: "system";
+  body: string;
+};
+
+type Message = ChatterMessage | SystemMessage;
+
 let nextId = 1;
 
-function randomMessage(): Message {
-  const chatter = pick(chatters);
+function randomMessage(pool: MessagePool): Message {
+  const chatter = pick(pool.chatters);
   const emote = pick(emotes);
-  const line = pick(chatLines);
+  const line = pick(pool.lines);
   const roll = Math.random();
   const body =
     roll < 0.2
@@ -174,8 +275,8 @@ function randomMessage(): Message {
   return { id: nextId++, ...chatter, color: colorFor(chatter.username), body };
 }
 
-function seedMessages(count: number): Message[] {
-  return Array.from({ length: count }, randomMessage);
+function seedMessages(count: number, pool: MessagePool): Message[] {
+  return Array.from({ length: count }, () => randomMessage(pool));
 }
 
 // KICK serves the rank medals from kick.com itself, which blocks any client that is not a
@@ -207,7 +308,68 @@ const topGifters: {
   },
 ];
 
-function ChatHeader({ onCollapse }: { onCollapse?: () => void }) {
+function ChatModeMenu({
+  onClose,
+  eventName,
+}: {
+  onClose: () => void;
+  eventName: string;
+}) {
+  const { chatMode, setChatMode } = useEvent();
+  const rows = [
+    {
+      mode: "stream" as const,
+      label: "Stream chat",
+      detail: "Chat with this channel",
+    },
+    { mode: "event" as const, label: "Event chat", detail: eventName },
+  ];
+  return (
+    <div
+      data-testid="chat-mode-menu"
+      className="absolute left-1/2 top-full z-popover mt-1 w-60 -translate-x-1/2 rounded bg-surface-base p-1 shadow-[0_8px_24px_rgba(0,0,0,0.6)]"
+    >
+      {rows.map((row) => (
+        <button
+          key={row.mode}
+          type="button"
+          onClick={() => {
+            setChatMode(row.mode);
+            onClose();
+          }}
+          className="flex w-full items-center gap-2 rounded px-2 py-1.5 text-left state-layer-surface"
+        >
+          <div className="min-w-0 flex-1">
+            <span className="block text-sm font-bold text-white">
+              {row.label}
+            </span>
+            <span className="block truncate text-xs text-surface-onSurfaceSecondary">
+              {row.detail}
+            </span>
+          </div>
+          {chatMode === row.mode && (
+            <span className="size-1.5 shrink-0 rounded-full bg-primary-base" />
+          )}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function ChatHeader({
+  onCollapse,
+  eventName,
+  channelName,
+}: {
+  onCollapse?: () => void;
+  eventName?: string;
+  channelName?: string;
+}) {
+  const { chatMode } = useEvent();
+  const [menuOpen, setMenuOpen] = useState(false);
+  // Stream mode is "chat with this channel" (the mode menu says so too), so the label
+  // names the channel instead of a bare, unchanging "Chat" that never says who.
+  const streamLabel = channelName ?? "Chat";
   return (
     <div className="relative flex min-h-[38px] shrink-0 items-center justify-between border-b-2 border-[#24272c] px-3 py-1.5">
       <button
@@ -218,9 +380,36 @@ function ChatHeader({ onCollapse }: { onCollapse?: () => void }) {
       >
         <Icon name="collapse-chat" className="size-4" />
       </button>
-      <span className="absolute left-1/2 -translate-x-1/2 text-sm font-bold lg:text-base">
-        Chat
-      </span>
+      {eventName ? (
+        // The translate makes this wrapper a stacking context, so the z-index must
+        // sit here, or the chat messages paint over the open menu.
+        <div className="z-popover absolute left-1/2 -translate-x-1/2">
+          <button
+            type="button"
+            data-testid="chat-mode-button"
+            onClick={() => setMenuOpen((v) => !v)}
+            className="state-layer-surface flex items-center gap-1.5 rounded px-2 py-1 text-sm font-bold text-white lg:text-base"
+          >
+            {chatMode === "event" ? "Event chat" : streamLabel}
+            <Icon
+              name="chevron-right"
+              className={`size-3 shrink-0 transition-transform ${
+                menuOpen ? "-rotate-90" : "rotate-90"
+              }`}
+            />
+          </button>
+          {menuOpen && (
+            <ChatModeMenu
+              onClose={() => setMenuOpen(false)}
+              eventName={eventName}
+            />
+          )}
+        </div>
+      ) : (
+        <span className="absolute left-1/2 -translate-x-1/2 text-sm font-bold lg:text-base">
+          {streamLabel}
+        </span>
+      )}
       <button
         type="button"
         aria-label="Viewer list"
@@ -232,14 +421,135 @@ function ChatHeader({ onCollapse }: { onCollapse?: () => void }) {
   );
 }
 
+type CardUser = { username: string; badges: BadgeName[] };
+
+const monthNames = [
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
+];
+
+const DAY = 24 * 60 * 60 * 1000;
+const CARD_NOW = new Date("2026-07-26T13:30:00Z").getTime();
+
+function cardDate(daysAgo: number) {
+  const d = new Date(CARD_NOW - daysAgo * DAY);
+  return `${monthNames[d.getUTCMonth()]} ${d.getUTCDate()}, ${d.getUTCFullYear()}`;
+}
+
+// The live card shows real dates. Ours derive from the username, so they hold still
+// between renders without a per-chatter fixture.
+function cardDates(username: string) {
+  const hash = hashOf(username);
+  const followedDaysAgo = 14 + (hash % 320);
+  return {
+    followed: cardDate(followedDaysAgo),
+    joined: cardDate(followedDaysAgo + 60 + ((hash >>> 3) % 600)),
+  };
+}
+
+// Read off the screenshot of the live card: avatar and username on top, followed and
+// joined dates in two columns, the badge row with a tooltip, then the action buttons.
+// Trade is ours, and it is the only new control on the card.
+function ChatUserCard({
+  user,
+  onClose,
+}: {
+  user: CardUser;
+  onClose: () => void;
+}) {
+  const dates = cardDates(user.username);
+  return (
+    <div className="absolute inset-x-2 bottom-[120px] z-popover rounded border border-outline-decorative bg-surface-base p-4">
+      <div className="flex items-start justify-between gap-2">
+        <div className="flex items-center gap-3">
+          <img
+            src={avatarFor(user.username.toLowerCase())}
+            alt=""
+            className="size-12 shrink-0 rounded-full"
+          />
+          <span className="min-w-0 truncate text-base font-bold text-white">
+            {user.username}
+          </span>
+        </div>
+        <button
+          type="button"
+          aria-label="Close user card"
+          onClick={onClose}
+          className="state-layer-surface flex size-8 shrink-0 items-center justify-center rounded text-white"
+        >
+          <Icon name="close" className="size-3.5" />
+        </button>
+      </div>
+
+      <div className="mt-3 grid grid-cols-2 gap-2">
+        <div>
+          <span className="block text-sm font-bold text-white">
+            Followed on
+          </span>
+          <span className="block text-sm text-white">{dates.followed}</span>
+        </div>
+        <div>
+          <span className="block text-sm font-bold text-white">Joined on</span>
+          <span className="block text-sm text-white">{dates.joined}</span>
+        </div>
+      </div>
+
+      {user.badges.length > 0 && (
+        <div className="mt-3 flex items-center gap-2">
+          <span className="text-sm font-bold text-white">Badges</span>
+          {user.badges.map((name) => (
+            <span key={name} className="group/badge relative flex">
+              <Icon name={badges[name].icon} className="size-5" />
+              <span className="pointer-events-none absolute bottom-full left-1/2 mb-1.5 -translate-x-1/2 whitespace-nowrap rounded bg-white px-2 py-1 text-xs font-bold text-black opacity-0 transition-opacity group-hover/badge:opacity-100">
+                {badges[name].label}
+              </span>
+            </span>
+          ))}
+        </div>
+      )}
+
+      <div className="mt-3 flex flex-wrap gap-2">
+        <button
+          type="button"
+          className="flex h-9 items-center gap-1.5 rounded bg-secondary-base px-3 text-sm font-semibold text-secondary-onSecondary betterhover:hover:bg-surface-highest"
+        >
+          <Icon name="heart" className="size-4" />
+          Follow
+        </button>
+        <button
+          type="button"
+          className="flex h-9 items-center gap-1.5 rounded bg-secondary-base px-3 text-sm font-semibold text-secondary-onSecondary betterhover:hover:bg-surface-highest"
+        >
+          <Icon name="gift" className="size-4" />
+          Gift a Sub
+        </button>
+      </div>
+    </div>
+  );
+}
+
 function GifterEntry({ gifter }: { gifter: (typeof topGifters)[number] }) {
   return (
     <div className="flex shrink-0 flex-row flex-nowrap items-center justify-center gap-1">
       <Icon name={gifter.medal} className="size-5" />
-      <span className={`whitespace-nowrap text-sm font-semibold ${gifter.nameClass}`}>
+      <span
+        className={`whitespace-nowrap text-sm font-semibold ${gifter.nameClass}`}
+      >
         {gifter.username}
       </span>
-      <span className="text-sm font-normal text-neutral-500">{gifter.amount}</span>
+      <span className="text-sm font-normal text-neutral-500">
+        {gifter.amount}
+      </span>
     </div>
   );
 }
@@ -270,9 +580,36 @@ function GifterLeaderboard() {
   );
 }
 
-function ChatMessage({ message }: { message: Message }) {
+function ChatMessage({
+  message,
+  onOpen,
+  hypeTier = 0,
+}: {
+  message: Message;
+  onOpen?: (user: CardUser) => void;
+  hypeTier?: number;
+}) {
+  if (message.kind === "system") {
+    return (
+      <div className="group relative px-2 lg:px-3">
+        <div className="w-full min-w-0 shrink-0 break-words rounded-lg px-2 py-[var(--chatroom-message-spacing)] text-[length:var(--chatroom-font-size)] italic leading-[1.5] text-surface-onSurfaceSecondary">
+          {message.body}
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="group relative px-2 lg:px-3">
+    <div
+      className={`group relative px-2 lg:px-3${
+        hypeTier > 0 ? ` hype-shimmer hype-tier-${hypeTier}` : ""
+      }`}
+      // The rows shimmer out of phase, so the band ripples down the chat
+      // instead of lighting every line at once.
+      style={
+        { "--hype-delay": `${(message.id % 8) * -0.45}s` } as CSSProperties
+      }
+    >
       <div className="betterhover:group-hover:bg-surface-highest w-full min-w-0 shrink-0 break-words rounded-lg px-2 py-[var(--chatroom-message-spacing)] text-[length:var(--chatroom-font-size)] leading-[1.5]">
         <div className="inline-flex min-w-0 flex-nowrap items-baseline rounded transition-colors betterhover:hover:bg-[#474f54]">
           {message.badges.length > 0 && (
@@ -287,20 +624,39 @@ function ChatMessage({ message }: { message: Message }) {
               ))}
             </div>
           )}
-          <button type="button" className="inline font-bold" style={{ color: message.color }}>
+          <button
+            type="button"
+            onClick={() =>
+              onOpen?.({ username: message.username, badges: message.badges })
+            }
+            className="inline font-bold"
+            style={{ color: message.color }}
+          >
             {message.username}
           </button>
         </div>
         {/* A plain space dies twice here: JSX trims it, and inline-flex drops a trailing
             space in a text node. The nbsp survives both, which is the gap KICK shows. */}
         <span className="inline-flex font-bold">{": "}</span>
-        <span className="font-normal leading-[1.55]">{renderBody(message.body)}</span>
+        <span className="font-normal leading-[1.55]">
+          {renderBody(message.body)}
+        </span>
       </div>
     </div>
   );
 }
 
-function ChatMessages({ messages, surface }: { messages: Message[]; surface: string }) {
+function ChatMessages({
+  messages,
+  surface,
+  onOpen,
+  hypeTier,
+}: {
+  messages: Message[];
+  surface: string;
+  onOpen?: (user: CardUser) => void;
+  hypeTier?: number;
+}) {
   const listRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -310,24 +666,40 @@ function ChatMessages({ messages, surface }: { messages: Message[]; surface: str
 
   return (
     <div className={`relative shrink grow overflow-hidden ${surface}`}>
-      <div ref={listRef} id="chatroom-messages" className="relative h-full w-full overflow-y-auto">
+      <div
+        ref={listRef}
+        id="chatroom-messages"
+        className="relative h-full w-full overflow-y-auto"
+      >
         {messages.map((message) => (
-          <ChatMessage key={message.id} message={message} />
+          <ChatMessage
+            key={message.id}
+            message={message}
+            onOpen={onOpen}
+            hypeTier={hypeTier}
+          />
         ))}
       </div>
     </div>
   );
 }
 
-function useFlowingMessages() {
-  const [messages, setMessages] = useState<Message[]>(() => seedMessages(22));
+function useFlowingMessages(pool: MessagePool = streamPool) {
+  const [messages, setMessages] = useState<Message[]>(() =>
+    seedMessages(22, pool),
+  );
+
+  // A room switch reseeds, because the event chat is a different room.
+  useEffect(() => {
+    setMessages(seedMessages(22, pool));
+  }, [pool]);
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setMessages((prev) => [...prev.slice(-149), randomMessage()]);
+      setMessages((prev) => [...prev.slice(-149), randomMessage(pool)]);
     }, 2200);
     return () => clearInterval(interval);
-  }, []);
+  }, [pool]);
 
   return [messages, setMessages] as const;
 }
@@ -410,7 +782,9 @@ function EmotePicker({
   const [query, setQuery] = useState("");
   const [tab, setTab] = useState(0);
   const match = (set: typeof emotes) =>
-    query ? set.filter((e) => e.name.toLowerCase().includes(query.toLowerCase())) : set;
+    query
+      ? set.filter((e) => e.name.toLowerCase().includes(query.toLowerCase()))
+      : set;
 
   return (
     <div
@@ -420,14 +794,20 @@ function EmotePicker({
       <div
         // The body's fade bubbles up here too, and it is the shorter of the two. Wait for the
         // panel's own animation by name, or the close is cut off 50ms early.
-        onAnimationEnd={(e) => e.animationName === "emote-picker-close" && onClosed()}
+        onAnimationEnd={(e) =>
+          e.animationName === "emote-picker-close" && onClosed()
+        }
         className={`bg-surface-base relative flex h-auto max-h-[50vh] w-full flex-col overflow-hidden rounded-t ${
-          closing ? "animate-emote-picker-close min-h-0" : "animate-emote-picker min-h-[50px]"
+          closing
+            ? "animate-emote-picker-close min-h-0"
+            : "animate-emote-picker min-h-[50px]"
         }`}
       >
         <div
           className={`overflow-y-auto pt-1 ${
-            closing ? "animate-emote-picker-body-close" : "animate-emote-picker-body"
+            closing
+              ? "animate-emote-picker-body-close"
+              : "animate-emote-picker-body"
           }`}
         >
           <div className="grid gap-1">
@@ -484,7 +864,11 @@ function EmotePicker({
                     set={match(emotes.slice(0, 6))}
                     onPick={onPick}
                   />
-                  <EmoteGrid label="Global" set={match(emotes)} onPick={onPick} />
+                  <EmoteGrid
+                    label="Global"
+                    set={match(emotes)}
+                    onPick={onPick}
+                  />
                 </div>
               </div>
             </div>
@@ -513,12 +897,79 @@ function EmoteBar({ onSend }: { onSend: (body: string) => void }) {
                 onClick={() => onSend(emoteToken(emote.id, emote.name))}
                 className="betterhover:hover:bg-white/10 relative aspect-square h-full shrink-0 rounded-sm p-0.5"
               >
-                <img src={emote.url} alt={emote.name} className="h-full w-full" />
+                <img
+                  src={emote.url}
+                  alt={emote.name}
+                  className="h-full w-full"
+                />
               </button>
             </div>
           ))}
         </div>
       </div>
+    </div>
+  );
+}
+
+// Matches while the draft is still just the command: "/boost", "/boost i", "/boost ironvow".
+// A trailing space after a finished name falls out of the match, which is what closes the panel.
+const BOOST_COMMAND = /^\/boost(?:\s+(\S*))?$/i;
+
+function BoostSuggest({
+  anchor,
+  query,
+  candidates,
+  selectedIndex,
+  onPick,
+}: {
+  anchor: DOMRect;
+  query: string;
+  candidates: EventParticipant[];
+  selectedIndex: number;
+  onPick: (username: string) => void;
+}) {
+  return (
+    // Fixed, not absolute: the footer's own padded box clips its overflow (the comment on
+    // EmotePicker above explains why), and a panel nested inside chat-input-wrapper sits
+    // inside that box too. Anchoring to the wrapper's own screen rect skips the clip entirely.
+    <div
+      id="boost-suggest-panel"
+      className="fixed z-popover max-h-52 overflow-y-auto rounded bg-surface-base py-1 shadow-lg ring-1 ring-outline-decorative"
+      style={{
+        left: anchor.left,
+        width: anchor.width,
+        bottom: window.innerHeight - anchor.top + 8,
+      }}
+    >
+      {candidates.length === 0 ? (
+        <p className="px-3 py-2 text-sm text-surface-onSurfaceSecondary">
+          No streamer called &quot;{query}&quot; in this event.
+        </p>
+      ) : (
+        candidates.map((p, i) => (
+          <button
+            key={p.channel.slug}
+            type="button"
+            data-testid={`boost-suggest-${p.channel.slug}`}
+            // mousedown, not click: it fires before the textarea blurs, so focus never leaves
+            // the field and the caret stays put for the next keystroke.
+            onMouseDown={(e) => {
+              e.preventDefault();
+              onPick(p.channel.username);
+            }}
+            className={`flex w-full items-center gap-2 px-3 py-1.5 text-left text-sm text-white ${
+              i === selectedIndex ? "bg-surface-highest" : ""
+            }`}
+          >
+            <img
+              src={p.channel.avatar}
+              alt=""
+              className="size-5 shrink-0 rounded-full"
+            />
+            <span className="truncate">{p.channel.username}</span>
+          </button>
+        ))
+      )}
     </div>
   );
 }
@@ -529,17 +980,44 @@ function ChatFooter({
   onChange,
   onSend,
   onSubmit,
+  boostTargets,
 }: {
   draft: string;
   dashboard?: boolean;
   onChange: (value: string) => void;
   onSend: (body: string) => void;
   onSubmit: () => void;
+  boostTargets: EventParticipant[] | null;
 }) {
   const [picker, setPicker] = useState<"closed" | "open" | "closing">("closed");
+  const [boostIndex, setBoostIndex] = useState(0);
   const fieldRef = useRef<HTMLTextAreaElement>(null);
+  const wrapperRef = useRef<HTMLDivElement>(null);
   const pickerOpen = picker !== "closed";
-  const closePicker = () => setPicker((state) => (state === "open" ? "closing" : state));
+  const closePicker = () =>
+    setPicker((state) => (state === "open" ? "closing" : state));
+
+  const boostMatch = boostTargets ? BOOST_COMMAND.exec(draft) : null;
+  const boosting = boostMatch !== null;
+  const boostQuery = boostMatch?.[1] ?? "";
+  const boostCandidates = boosting
+    ? (boostTargets ?? []).filter((p) =>
+        p.channel.username.toLowerCase().startsWith(boostQuery.toLowerCase()),
+      )
+    : [];
+  const boostIndexClamped = Math.min(
+    boostIndex,
+    Math.max(0, boostCandidates.length - 1),
+  );
+
+  useEffect(() => {
+    setBoostIndex(0);
+  }, [boostQuery]);
+
+  function pickBoostTarget(username: string) {
+    onChange(`/boost ${username} `);
+    fieldRef.current?.focus();
+  }
 
   // KICK's field grows with the text and stops at 150px, then scrolls. A textarea only reports
   // the height it needs once it has been collapsed, so measure from auto every time.
@@ -551,6 +1029,25 @@ function ChatFooter({
   }, [draft]);
 
   function onKeyDown(e: KeyboardEvent<HTMLTextAreaElement>) {
+    if (boosting && boostCandidates.length > 0) {
+      if (e.key === "ArrowDown") {
+        e.preventDefault();
+        setBoostIndex((i) => (i + 1) % boostCandidates.length);
+        return;
+      }
+      if (e.key === "ArrowUp") {
+        e.preventDefault();
+        setBoostIndex(
+          (i) => (i - 1 + boostCandidates.length) % boostCandidates.length,
+        );
+        return;
+      }
+      if (e.key === "Tab" || (e.key === "Enter" && !e.shiftKey)) {
+        e.preventDefault();
+        pickBoostTarget(boostCandidates[boostIndexClamped].channel.username);
+        return;
+      }
+    }
     if (e.key !== "Enter" || e.shiftKey) return;
     e.preventDefault();
     closePicker();
@@ -560,7 +1057,10 @@ function ChatFooter({
   return (
     // The panel is a sibling of the padded box, never a child of it. The box clips its own
     // overflow, so a panel inside it would be cut off at the footer edge.
-    <div id="chatroom-footer" className="relative flex w-full shrink-0 flex-col">
+    <div
+      id="chatroom-footer"
+      className="relative flex w-full shrink-0 flex-col"
+    >
       {pickerOpen && (
         <EmotePicker
           closing={picker === "closing"}
@@ -580,8 +1080,18 @@ function ChatFooter({
         <div className="flex flex-col gap-2">
           <div
             id="chat-input-wrapper"
-            className="betterhover:hover:border-neutral-400 flex w-full items-center rounded border-2 border-neutral-700 pl-2 pr-1 transition-colors duration-200 ease-in-out focus-within:border-transparent focus-within:bg-[#070809] focus-within:outline-none focus-within:ring-1 focus-within:ring-[#F4F5F6] focus-within:ring-offset-1 focus-within:hover:border-transparent"
+            ref={wrapperRef}
+            className="betterhover:hover:border-neutral-400 relative flex w-full items-center rounded border-2 border-neutral-700 pl-2 pr-1 transition-colors duration-200 ease-in-out focus-within:border-transparent focus-within:bg-[#070809] focus-within:outline-none focus-within:ring-1 focus-within:ring-[#F4F5F6] focus-within:ring-offset-1 focus-within:hover:border-transparent"
           >
+            {boosting && wrapperRef.current && (
+              <BoostSuggest
+                anchor={wrapperRef.current.getBoundingClientRect()}
+                query={boostQuery}
+                candidates={boostCandidates}
+                selectedIndex={boostIndexClamped}
+                onPick={pickBoostTarget}
+              />
+            )}
             <button
               type="button"
               aria-label="Chat identity"
@@ -611,7 +1121,9 @@ function ChatFooter({
             <button
               type="button"
               aria-label="Emotes"
-              onClick={() => setPicker((state) => (state === "closed" ? "open" : "closing"))}
+              onClick={() =>
+                setPicker((state) => (state === "closed" ? "open" : "closing"))
+              }
               className="state-layer-surface flex size-9 shrink-0 items-center justify-center rounded text-white"
             >
               <Icon name="emotes" className="size-4" />
@@ -676,13 +1188,53 @@ function ChatFooter({
 
 // The dashboard panels are lighter than the page under them, so the chat runs on surface-base
 // there. On the channel page one surface runs across the whole site, so it runs on surface-lowest.
-export function ChatFeed({ header, dashboard }: { header?: ReactNode; dashboard?: boolean }) {
+export function ChatFeed({
+  header,
+  pinned,
+  dashboard,
+  pool,
+  event,
+  hypeSlug,
+}: {
+  header?: ReactNode;
+  pinned?: ReactNode;
+  dashboard?: boolean;
+  pool?: MessagePool;
+  event?: KickEvent;
+  hypeSlug?: string;
+}) {
   const surface = dashboard ? "bg-surface-base" : "bg-surface-lowest";
-  const [messages, setMessages] = useFlowingMessages();
+  const { chatMode, boost, hypeTiers } = useEvent();
+  const hypeTier = hypeSlug ? (hypeTiers[hypeSlug] ?? 0) : 0;
+  const eventMode = Boolean(event) && chatMode === "event";
+  const [messages, setMessages] = useFlowingMessages(pool);
   const [draft, setDraft] = useState("");
+  const { raid } = useRaid();
+  const [panelOpen, setPanelOpen] = useState(true);
+  const [cardUser, setCardUser] = useState<CardUser | null>(null);
 
   function send(body: string) {
     if (!body) return;
+    // The event chat takes moderator commands, and the demo viewer is always a
+    // moderator. A command never echoes into the room, only its own reply does.
+    if (eventMode && event && body.toLowerCase().startsWith("/boost ")) {
+      const name = body.slice(7).trim();
+      const slug = slugInEvent(event, name);
+      const target =
+        slug && eventStreamers(event).find((p) => p.channel.slug === slug);
+      setMessages((prev) => [
+        ...prev.slice(-149),
+        {
+          id: nextId++,
+          kind: "system",
+          body: target
+            ? `You boosted ${target.channel.username}.`
+            : `No streamer called "${name}" in this event.`,
+        },
+      ]);
+      if (slug) boost(slug, event.event_id);
+      return;
+    }
     setMessages((prev) => [
       ...prev.slice(-149),
       {
@@ -706,10 +1258,24 @@ export function ChatFeed({ header, dashboard }: { header?: ReactNode; dashboard?
       onSubmit={sendDraft}
       // KICK exposes the spacing as a viewer setting. Their default is 4px, we run compact.
       style={{ "--chatroom-message-spacing": "2px" } as CSSProperties}
-      className={`${surface} flex h-full w-full flex-col overflow-hidden`}
+      className={`${surface} relative flex h-full w-full flex-col overflow-hidden`}
     >
       {header}
-      <ChatMessages messages={messages} surface={surface} />
+      <RaidBanner open={panelOpen} onToggle={() => setPanelOpen((v) => !v)} />
+      <div className="relative flex min-h-0 shrink grow flex-col">
+        <ChatMessages
+          messages={messages}
+          surface={surface}
+          onOpen={setCardUser}
+          hypeTier={hypeTier}
+        />
+        {pinned && (
+          <div className="pointer-events-none absolute inset-x-2 top-2 z-[5] flex flex-col gap-2">
+            {pinned}
+          </div>
+        )}
+      </div>
+      {raid && panelOpen && <RaidPanel onClose={() => setPanelOpen(false)} />}
       <ChatFooter
         draft={draft}
         dashboard={dashboard}
@@ -719,18 +1285,173 @@ export function ChatFeed({ header, dashboard }: { header?: ReactNode; dashboard?
           send(draft.trim());
           setDraft("");
         }}
+        boostTargets={eventMode && event ? eventStreamers(event) : null}
       />
+      {cardUser && (
+        <ChatUserCard user={cardUser} onClose={() => setCardUser(null)} />
+      )}
     </form>
   );
 }
 
-export function ChannelChat({ onCollapse }: { onCollapse?: () => void }) {
+const HYPE_MULTIPLIERS = ["1x", "1.2x", "1.5x", "2x"];
+const HYPE_PERCENTS = [12, 42, 68, 100];
+
+function HypeDemoRow({ slug }: { slug: string }) {
+  const { hypeTiers, setHypeTier } = useEvent();
+  const tier = hypeTiers[slug] ?? 0;
+  const [controlsOpen, setControlsOpen] = useState(false);
+  const [secondsLeft, setSecondsLeft] = useState(151);
+
+  useEffect(() => {
+    function onKey(e: globalThis.KeyboardEvent) {
+      const target = e.target as HTMLElement;
+      if (
+        e.key !== "m" ||
+        target.tagName === "INPUT" ||
+        target.tagName === "TEXTAREA"
+      )
+        return;
+      setControlsOpen((v) => !v);
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
+
+  useEffect(() => {
+    setSecondsLeft(151);
+    if (tier === 0) return;
+    const id = setInterval(
+      () => setSecondsLeft((v) => (v > 0 ? v - 1 : 0)),
+      1000,
+    );
+    return () => clearInterval(id);
+  }, [tier]);
+
+  const clock = `${Math.floor(secondsLeft / 60)}:${String(secondsLeft % 60).padStart(2, "0")}`;
+
+  return (
+    <PinnedCard>
+      <div className="flex items-center gap-1.5">
+        <span className="whitespace-nowrap font-[KickFont] text-base leading-none text-white">
+          HYPE
+        </span>
+        <HypeStars tier={tier} size="size-4" />
+        <div className="ml-auto flex items-center gap-2">
+          {tier > 0 && (
+            <span className="text-xs font-semibold tabular-nums text-white">
+              {clock}
+            </span>
+          )}
+          <span className="text-sm font-bold text-white">
+            {HYPE_PERCENTS[tier]}%
+          </span>
+          <span
+            aria-label={`Channel Points Multiplier: ${HYPE_MULTIPLIERS[tier]}`}
+            className="tooltip-bottom tooltip-end cursor-default font-[KickFont] text-sm leading-none text-primary-base"
+          >
+            {HYPE_MULTIPLIERS[tier]} CP
+          </span>
+          {tier === HYPE_TIER_MAX && (
+            <span
+              aria-label="Boosted XP Rate: 2x"
+              className="tooltip-bottom tooltip-end cursor-default font-[KickFont] text-sm leading-none text-[#ff5050]"
+            >
+              2x XP
+            </span>
+          )}
+        </div>
+      </div>
+      <div className="mb-1.5 flex h-4 items-stretch gap-[3px] border-2 border-neutral-400 bg-surface-lowest p-[3px]">
+        {(() => {
+          const filled = Math.round((HYPE_PERCENTS[tier] / 100) * 24);
+          return Array.from({ length: 24 }, (_, i) => (
+            <div
+              key={i}
+              className={`flex-1 ${
+                i < filled
+                  ? `bg-primary-base ${i === filled - 1 ? "hype-bar-blink" : ""}`
+                  : "bg-surface-highest"
+              }`}
+            />
+          ));
+        })()}
+      </div>
+      {controlsOpen && (
+        <div className="flex items-center gap-2 px-1">
+          <span className="text-xs uppercase text-surface-onSurfaceSecondary">
+            Demo
+          </span>
+          {Array.from({ length: 4 }, (_, t) => (
+            <button
+              key={t}
+              type="button"
+              onClick={() => setHypeTier(slug, t)}
+              className={`h-6 rounded px-1.5 text-xs font-semibold ${
+                tier === t
+                  ? "bg-primary-base text-primary-onPrimary"
+                  : "bg-secondary-base text-secondary-onSecondary"
+              }`}
+            >
+              {t === 0 ? "Off" : `T${t}`}
+            </button>
+          ))}
+        </div>
+      )}
+    </PinnedCard>
+  );
+}
+
+export function ChannelChat({
+  onCollapse,
+  event,
+  slug,
+  channelName,
+}: {
+  onCollapse?: () => void;
+  event?: KickEvent;
+  slug: string;
+  channelName: string;
+}) {
+  // The room lives in the event provider, because the multiview and the /boost command read it too.
+  const { chatMode } = useEvent();
+  const inEvent = Boolean(event) && chatMode === "event";
+  // Event chat is one shared room for every seat, so switching the active multiview tile
+  // never touches this pool. Stream chat is "chat with this channel" (ChatHeader says so),
+  // so it gets a fresh pool object per active channel: useFlowingMessages already reseeds
+  // itself whenever the pool it holds changes identity, so a new object is all this needs.
+  // A key on ChatFeed would remount the whole panel instead, losing the draft, the raid
+  // panel state and the scroll position on every single tile switch.
+  const pool = useMemo(
+    () =>
+      inEvent && event ? eventPool(event.chat.moderators) : { ...streamPool },
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- slug forces a new pool identity, unread by design
+    [inEvent, event, slug],
+  );
+
   return (
     <ChatFeed
+      // A stream/event switch is a different room, so the feed reseeds and its local UI
+      // state (draft, raid panel) resets instead of showing the old room's tail.
+      key={chatMode}
+      pool={pool}
+      event={event}
+      hypeSlug={slug}
       header={
         <>
-          <ChatHeader onCollapse={onCollapse} />
-          <GifterLeaderboard />
+          <ChatHeader
+            onCollapse={onCollapse}
+            eventName={event?.title}
+            channelName={channelName}
+          />
+          {!inEvent && <GifterLeaderboard />}
+        </>
+      }
+      pinned={
+        <>
+          {slug && <HypeDemoRow slug={slug} />}
+          <BoostNoticeCards currentSlug={slug} />
+          <FollowPromptCard />
         </>
       }
     />

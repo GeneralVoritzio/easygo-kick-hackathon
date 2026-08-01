@@ -4,6 +4,7 @@ export type Channel = {
   avatar: string;
   verified: boolean;
   followers: number;
+  is_partner: boolean;
 };
 
 export type Livestream = {
@@ -26,7 +27,8 @@ const avatarFiles = import.meta.glob("../avatars/*.svg", {
   import: "default",
 }) as Record<string, string>;
 
-const art = import.meta.glob("../art/*.svg", {
+// The plates are SVG and the event posters are JPEG, so the glob has to name both.
+const art = import.meta.glob("../art/*.{svg,jpg}", {
   eager: true,
   query: "?url",
   import: "default",
@@ -38,18 +40,46 @@ const avatar = (slug: string) => {
   return url;
 };
 
+export const avatarFor = avatar;
+
 // ponytail: category tiles and stream stills are still our own art. Replace them with the
 // official kick.com artwork and real frames, captured with kick-page-clone.
-const artUrl = (name: string) => art[`../art/${name}.svg`] ?? "";
+const artUrl = (name: string) => art[`../art/${name}.svg`] ?? art[`../art/${name}.jpg`] ?? "";
 
 export const bannerFor = (seed: string) => artUrl(`banner-${seed}`);
+
+// A real event carries artwork the host uploads, which we cannot invent, so event artwork is one of
+// the committed plates. The plate is named in full, so a reader can see which file it is.
+export const artFor = (plate: string) => artUrl(plate);
+
+const partnerSlugs = new Set([
+  "ironvow",
+  "couchsenate",
+  "wanderfuse",
+  "nocturnalnorm",
+  "spinvicar",
+  "midnightden",
+  "charcoalchef",
+  "superdude1337",
+  "panfriedpaul",
+  "notadoc",
+  "snoozebaron",
+  "tiltcabinet",
+]);
 
 const channel = (
   slug: string,
   username: string,
   followers: number,
   verified = false,
-): Channel => ({ slug, username, avatar: avatar(slug), verified, followers });
+): Channel => ({
+  slug,
+  username,
+  avatar: avatar(slug),
+  verified,
+  followers,
+  is_partner: partnerSlugs.has(slug),
+});
 
 export type Category = {
   name: string;
@@ -77,6 +107,13 @@ export const categories: Category[] = [
 export const cat = (slug: string) => {
   const c = categories.find((x) => x.slug === slug) ?? categories[0];
   return { name: c.name, slug: c.slug, thumbnail: c.thumbnail };
+};
+
+export const streamInfo = {
+  session_title: "My first stream.",
+  category: cat("just-chatting"),
+  language: "English",
+  is_mature: false,
 };
 
 export const ironvow = channel("ironvow", "IronVow", 184203, true);
@@ -285,6 +322,44 @@ export const livestreams: Livestream[] = [
     language: "English",
     thumbnail: artUrl("thumb-irl-3"),
     started_at: "2026-07-26T12:30:00Z",
+    is_mature: false,
+  },
+  // These two hold a seat on the running order of the event that is on now, so they are live.
+  {
+    id: 18,
+    channel: channel("couchsenate", "CouchSenate", 283204, true),
+    session_title: "SENATE IS IN SESSION, MOTION ONE ON THE FLOOR",
+    category: cat("just-chatting"),
+    viewer_count: 9204,
+    is_live: true,
+    language: "English",
+    thumbnail: artUrl("thumb-just-chatting-2"),
+    started_at: "2026-07-26T12:00:00Z",
+    is_mature: false,
+  },
+  {
+    id: 19,
+    channel: channel("charcoalchef", "CharcoalChef", 30211),
+    session_title: "senate lunch, i am grilling for four channels",
+    category: cat("irl"),
+    viewer_count: 1508,
+    is_live: true,
+    language: "English",
+    thumbnail: artUrl("thumb-irl-2"),
+    started_at: "2026-07-26T13:05:00Z",
+    is_mature: false,
+  },
+  // The running order for the hackathon event that is on now, so this seat is live too.
+  {
+    id: 20,
+    channel: channel("superdude1337", "SuperDude1337", 18430),
+    session_title: "building the hype tracker live, Easygo Mini Hackathon",
+    category: cat("just-chatting"),
+    viewer_count: 612,
+    is_live: true,
+    language: "English",
+    thumbnail: artUrl("thumb-just-chatting-3"),
+    started_at: "2026-07-26T09:00:00Z",
     is_mature: false,
   },
 ];
@@ -592,6 +667,38 @@ export const channelProfiles: ChannelProfile[] = [
     ]),
     recent_categories: [catTile("slots-casino")],
   },
+  {
+    channel: channel("cluecrawler", "ClueCrawler", 38914),
+    banner: "",
+    bio: "Master clues, every casket, no shortcuts. A third age drops eventually, probably.",
+    last_live_at: "2026-07-26T08:05:00Z",
+    socials: [{ icon: "discord", handle: "cluecrawler" }],
+    panels: [
+      { kind: "text", title: "Clue log", body: "Every casket opens on stream. The log resets the day a third age piece finally drops." },
+      { kind: "image", art: artUrl("panel-community"), alt: "Discord community panel" },
+    ],
+    videos: videos("old-school-runescape", [
+      ["master clue marathon, casket seventeen", 7200, 21400, "2026-07-24T08:00:00Z"],
+      ["hard clue speedrun, no teleports", 5400, 15800, "2026-07-22T09:15:00Z"],
+    ]),
+    recent_categories: [catTile("old-school-runescape")],
+  },
+  {
+    channel: channel("superdude1337", "SuperDude1337", 18430),
+    banner: artUrl("banner-midnightden"),
+    bio: "Team Fortress. Building the hype tracker live for the Easygo Mini Hackathon, powered by KICK.",
+    last_live_at: "2026-07-26T09:00:00Z",
+    socials: [{ icon: "discord", handle: "superdude1337" }, { icon: "x", handle: "SuperDude1337" }],
+    panels: [
+      { kind: "text", title: "Easygo Mini Hackathon", body: "Challenge 1, live build. The running order is whatever chat wants to see shipped next." },
+      { kind: "image", art: artUrl("panel-community"), alt: "Discord community panel" },
+    ],
+    videos: videos("just-chatting", [
+      ["hackathon prep, wiring up the mock data", 9000, 4200, "2026-07-24T09:00:00Z"],
+      ["dry run of the overlay before the real thing", 6300, 3100, "2026-07-22T09:30:00Z"],
+    ]),
+    recent_categories: [catTile("just-chatting")],
+  },
 ];
 
 export const profileFor = (slug: string) =>
@@ -641,13 +748,39 @@ export function timeAgo(iso: string): string {
   return `${years} ${years === 1 ? "year" : "years"} ago`;
 }
 
+export const superdude = channel("superdude1337", "SuperDude1337", 18430);
+
 export const currentUser = {
-  username: "SuperDude1337",
-  avatar: avatar("superdude1337"),
-  followers: 1,
+  ...superdude,
   bio: "SuperDude1337's Kick Channel",
   banner: artUrl("banner-midnightden"),
   offlineBanner: artUrl("thumb-just-chatting-1"),
+};
+
+// The dashboard runs on a live session, because a raid starts when a stream ends.
+export const currentSession = {
+  title: "last stream before the break, chat picks where we go next",
+  viewer_count: 1240,
+  subscriber_count: 312,
+  time_live: "3:15:22",
+  thumbnail: artUrl("thumb-just-chatting-1"),
+};
+
+const knownChannels = [
+  superdude,
+  ...channelProfiles.map((p) => p.channel),
+  ...livestreams.map((s) => s.channel),
+];
+
+export const channelBySlug = (slug: string) => {
+  const found = knownChannels.find((c) => c.slug === slug);
+  if (!found) throw new Error(`No channel for ${slug}. Add it to livestreams or channelProfiles.`);
+  return found;
+};
+
+export const channelByUsername = (username: string) => {
+  const wanted = username.trim().toLowerCase();
+  return knownChannels.find((c) => c.username.toLowerCase() === wanted);
 };
 
 export function streamPills(stream: Livestream): string[] {

@@ -1,7 +1,12 @@
 import { useEffect, useState, type PointerEvent as ReactPointerEvent } from "react";
 import { useSearchParams } from "react-router-dom";
 import { Icon } from "../Icon";
+import { useAudibleEmbed, useEmbedTarget } from "../events/EmbedLayer";
+import { embedUrlFor } from "../events/embeds";
+import { useEvent } from "../events/EventProvider";
 import type { Livestream } from "../mock/api";
+import type { KickEvent } from "../mock/events";
+import { RaidStage } from "./RaidStage";
 
 function formatElapsed(totalSeconds: number) {
   const h = Math.floor(totalSeconds / 3600);
@@ -35,7 +40,11 @@ function liveSeconds(startedAt: string) {
   return Math.max(0, Math.floor((Date.now() - new Date(startedAt).getTime()) / 1000));
 }
 
-export function ChannelPlayer({ stream }: { stream: Livestream }) {
+export function ChannelPlayer({ stream, event }: { stream: Livestream; event?: KickEvent }) {
+  const { openMultiview, liveEmbeds } = useEvent();
+  const embedUrl = liveEmbeds ? embedUrlFor(stream.channel.slug, false) : undefined;
+  const embedRef = useEmbedTarget(embedUrl ? stream.channel.slug : undefined);
+  useAudibleEmbed(embedUrl ? stream.channel.slug : undefined);
   const [params] = useSearchParams();
   const startAt = Number(params.get("t"));
   const [playing, setPlaying] = useState(true);
@@ -72,13 +81,36 @@ export function ChannelPlayer({ stream }: { stream: Livestream }) {
 
       <div
         id="injected-channel-player"
-        className="group/player z-player relative m-auto aspect-video max-h-full max-w-full bg-black"
+        className={`group/player z-player relative m-auto aspect-video max-h-full max-w-full ${
+          embedUrl ? "" : "bg-black"
+        }`}
       >
+      {embedUrl ? (
+        <>
+          {/* The z-player container paints above the embed layer, so the video
+              area stays transparent and the frame shows through it. */}
+          <div ref={embedRef} className="h-full w-full" />
+          <RaidStage />
+          <div className="z-controls absolute right-3 top-3">
+            <button
+              type="button"
+              onClick={() => openMultiview(stream.channel.slug, event?.event_id)}
+              className="flex items-center gap-1.5 rounded bg-surface-base/90 px-3 py-2 text-sm font-semibold text-white betterhover:hover:bg-surface-highest"
+            >
+              <Icon name="browse" className="size-4 fill-current" />
+              Multiview
+            </button>
+          </div>
+        </>
+      ) : (
+      <>
       <img
         src={stream.thumbnail}
         alt={stream.session_title}
         className="h-full w-full object-contain brightness-125"
       />
+
+      <RaidStage />
 
       <div className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-150 betterhover:group-hover/player:pointer-events-auto betterhover:group-hover/player:opacity-100 focus-within:pointer-events-auto focus-within:opacity-100">
         <div className="z-controls absolute inset-x-0 bottom-0 flex h-11 flex-row items-center justify-between gap-2 bg-gradient-to-t from-black/80 to-transparent px-2 xl:px-5">
@@ -162,6 +194,14 @@ export function ChannelPlayer({ stream }: { stream: Livestream }) {
           </div>
 
           <div className="flex shrink-0 items-center">
+            <button
+              type="button"
+              aria-label="Multiview"
+              onClick={() => openMultiview(stream.channel.slug, event?.event_id)}
+              className={controlButtonClass}
+            >
+              <Icon name="browse" />
+            </button>
             <button type="button" aria-label="Picture in Picture" className={controlButtonClass}>
               <Icon name="pip" />
             </button>
@@ -188,6 +228,8 @@ export function ChannelPlayer({ stream }: { stream: Livestream }) {
           </div>
         </div>
       </div>
+      </>
+      )}
       </div>
     </div>
   );

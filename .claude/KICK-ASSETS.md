@@ -16,7 +16,7 @@ Nothing is fetched from the network, at build time or at run time.
 |---|---|---|
 | Inter variable, with `OFL.txt` | `demo/src/kick/fonts/`, `pitch/src/assets/fonts/inter/`, `prototypes/kick-timelines-2/assets/fonts/` | Every UI |
 | Archivo variable, with `OFL.txt` | `pitch/src/assets/fonts/archivo/` | The deck |
-| KICK display font, with its licence | `pitch/src/assets/fonts/kick-font/` | The deck |
+| KICK display font, with its licence | `pitch/src/assets/fonts/kick-font/`, `demo/src/kick/fonts/kick-font/` | The deck, the HYPE title in the chat hype card |
 | The wordmark `kick-logo.svg` | `demo/src/kick/brand/`, `pitch/src/assets/brand/`, `prototypes/hypeprops/src/assets/` | Every surface |
 | Favicon and social logos | `pitch/src/assets/brand/` | The deck |
 | Border devices and patterns | `pitch/src/assets/brand/devices/`, `pitch/src/assets/brand/patterns/` | The deck |
@@ -120,6 +120,60 @@ a badge, but it is not the badge KICK shows.
 194 KB. It is stock artwork, not chrome, so the same rule that keeps the campaign plates out keeps
 it out. The clone shows KICK's own offline card on black instead.
 
+### `demo/src/kick/art/poster-*.jpg`: the nine event posters, ours
+
+Supplied by the user on **31 July 2026**, generated with ChatGPT, and dropped in the repository
+root. They are e-sports event posters with their own title, date and time set into the artwork.
+
+| File | What the poster says | Native size |
+|---|---|---|
+| `poster-final-showdown.jpg` | FINAL SHOWDOWN, championship stream, LIVE TONIGHT | 1122x1402 |
+| `poster-power-play-arena.jpg` | POWER PLAY ARENA, Nightfury against Valor Prime, 8:30 PM | 1122x1402 |
+| `poster-arena-clash.jpg` | ARENA CLASH, Friday 9 PM | 1122x1402 |
+| `poster-squad-rush.jpg` | SQUAD RUSH, four squads, starts 7 PM | 1122x1402 |
+| `poster-battle-night-live.jpg` | BATTLE NIGHT LIVE, Saturday 8 PM | 1122x1402 |
+| `poster-cyber-warfare.jpg` | CYBER WARFARE, tournament final, Oct 12 | 948x1659 |
+| `poster-arena-champions.jpg` | ARENA CHAMPIONS, grand final, Oct 20 | 948x1659 |
+| `poster-fps-ultimate.jpg` | FPS ULTIMATE, pro showdown, Oct 28 | 948x1659 |
+| `poster-legends-awaken.jpg` | LEGENDS AWAKEN, epic battle, Nov 01 | 948x1659 |
+
+Each one arrived as a 2.2 to 2.5 MB PNG, 21 MB for the nine. They are committed as JPEG capped at
+1200px on the long edge, which is 3.0 MB for the nine and still more than twice the size a poster
+renders at.
+
+**A poster carries its own title and date, so the fixture has to agree with it.** Every event in
+`demo/src/kick/mock/events.ts` is named after its poster and dated to match: the four that print a
+date sit on that date in 2026, and the five that say Friday, Saturday or tonight sit on a day that
+is that weekday. An event page that shows one name in the artwork and another in the heading reads
+as a mock up.
+
+**Two ratios, so a poster is never cropped to a box.** The detail page sets the height and lets the
+width follow the image. A card is landscape, so it crops the poster from the top, where the title
+is.
+
+`demo/public/favicon.svg` is KICK's own mark on KICK's green, replacing the Vite lightning bolt the
+template shipped. The path is `kick-mark.svg` verbatim, on a `#53fc18` square with a 6px radius,
+which is what the browser tab shows on kick.com. The page title is Kick for the same reason.
+
+**Three icons in this folder are ours, drawn 31 July 2026 for the events feature.** KICK has none of
+them, so each one is drawn on KICK's 32 grid with a solid fill and `fill="currentColor"`.
+
+| File | What it is | Where it is used |
+|---|---|---|
+| `calendar.svg` | A calendar: two tabs, a solid top bar, a frame and five day squares | The Calendar button on the browse events tab, and that dialog header |
+| `event.svg` | A ticket: a block with a notch on each side | The dashboard Events nav item, the sidebar event chip, the stream title chip, the event chat switch |
+| `plus.svg` | A plus, inset to 3 and 29 so it matches the weight of the set | Create event, and Invite streamer |
+
+`event.svg` is a ticket and not a marker on a rule. A diamond or a pin collapses at 14px, which is
+the size the chips use, and a pin already means a place.
+
+**Do not present these three as KICK's.** They join `pause` and `timeline` as our own drawings.
+
+`demo/src/kick/icons.ts` is generated from this folder by
+`.claude/skills/kick-page-clone/scripts/build-icons.mjs`. Seven entries once lived in the generated
+file with no SVG behind them (`hero-mute`, `hide-chat`, `chevron-down` and the four `drop-*`), so the
+generator deleted them. They are now files, like everything else. **Never hand edit `icons.ts`.**
+
 ### `brand/devices/`: the edge bar
 
 | File | Size |
@@ -145,10 +199,11 @@ Brand Identity Section 5 holds the wordmark rule.
 They show KICK's still-life language (Brand Identity Section 5), but they are KICK photography and
 we cannot use them in the deck. Read them on the site. Do not commit them.
 
-## `demo/src/kick/avatars/`: channel avatars, 16 files
+## `demo/src/kick/avatars/`: channel and viewer avatars, 45 files
 
 **Not KICK's.** These stand in for the profile pictures the API returns, so the demo needs no
-account and no network. Read **27 July 2026**.
+account and no network. Channel files read **27 July 2026**. Viewer files for the chat user
+card (one per chatter username slug) read **30 July 2026**.
 
 | Property | Value |
 |---|---|
@@ -351,3 +406,12 @@ that slot and read as item art, which is what the slot holds.
 | `reward-club-jersey` | a numbered jersey |
 
 Licence: ours. No attribution needed, and nothing loads from the network.
+
+## The pixel star in the chat hype meter
+
+**Not KICK's.** The path is inlined in `demo/src/kick/components/ChannelChat.tsx`. Read **1 August 2026**.
+
+| Property | Value |
+|---|---|
+| Source | [thenounproject.com/icon/135344](https://thenounproject.com/icon/135344) "Pixel Star" |
+| Licence | Noun Project, CC BY 3.0 without a purchase. A public build needs the attribution or a licence |

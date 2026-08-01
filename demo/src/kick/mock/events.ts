@@ -51,8 +51,8 @@ export type KickEvent = {
 
 const TODAY_CATEGORY: EventCategory = { name: "Today", slug: "today" };
 
-// A host who uploads nothing gets a plain plate, never one of the nine posters. A poster carries
-// the name of the event it was drawn for, so handing it to a second event contradicts both.
+// A host who uploads nothing gets a plain plate, never one of the fourteen drawn posters. A poster
+// carries the name of the event it was drawn for, so handing it to a second event contradicts both.
 const POSTER_PLATES = [
   "cat-just-chatting",
   "cat-old-school-runescape",
@@ -371,6 +371,141 @@ const coreEvents: KickEvent[] = [
       is_followers_only: false,
     },
   },
+  {
+    event_id: "01k9event0062",
+    slug: "nexus-clash",
+    title: "Nexus Clash",
+    description:
+      "The grand final, and the prize pool is 750,000 dollars. Four channels hold four lanes of the same nexus fight, and chat calls the objective timers.",
+    host_channel: channelBySlug("ironvow"),
+    category: cat("league-of-legends"),
+    start_at: "2026-12-06T20:00:00Z",
+    end_at: "2026-12-06T23:30:00Z",
+    poster: artFor("poster-nexus-clash"),
+    visibility: "public",
+    reminder_count: 31460,
+    is_partner_only: true,
+    participants: [
+      host("ironvow", "Mid lane and the draft"),
+      guest("couchsenate", "Top lane"),
+      guest("charcoalchef", "Bottom lane"),
+      guest("snoozebaron", "The jungle cam"),
+    ],
+    chat: {
+      moderators: ["BracketBrett", "RunningOrderRhi"],
+      slow_mode_seconds: 5,
+      is_subscribers_only: false,
+      is_followers_only: true,
+    },
+  },
+  {
+    event_id: "01k9event0063",
+    slug: "turbo-circuit",
+    title: "Turbo Circuit",
+    description:
+      "The championship round on the night circuit. Every channel carries one car camera, so pick a driver and ride the whole race with them.",
+    host_channel: channelBySlug("wanderfuse"),
+    category: cat("grand-theft-auto-v"),
+    start_at: "2026-12-12T21:00:00Z",
+    end_at: "2026-12-13T00:00:00Z",
+    poster: artFor("poster-turbo-circuit"),
+    visibility: "public",
+    reminder_count: 12730,
+    is_partner_only: true,
+    participants: [
+      host("wanderfuse", "Car 07 and the grid walk"),
+      guest("tiltcabinet", "Car 12"),
+      guest("superdude1337", "The pit lane"),
+      guest("spinvicar", "Standby seat", "pending"),
+    ],
+    chat: {
+      moderators: ["SeatSwapSam", "DieselDaphne"],
+      slow_mode_seconds: 3,
+      is_subscribers_only: false,
+      is_followers_only: true,
+    },
+  },
+  {
+    event_id: "01k9event0064",
+    slug: "king-of-combos",
+    title: "King of Combos",
+    description:
+      "The final match of the pro showdown, red corner against blue corner. Special guests break down every round, and the winner picks the last stage.",
+    host_channel: channelBySlug("superdude1337"),
+    category: cat("counter-strike-2"),
+    start_at: "2026-12-14T19:30:00Z",
+    end_at: "2026-12-14T23:00:00Z",
+    poster: artFor("poster-king-of-combos"),
+    visibility: "public",
+    reminder_count: 19080,
+    is_partner_only: true,
+    participants: [
+      host("superdude1337", "Red corner and the stage pick"),
+      guest("spinvicar", "Blue corner"),
+      guest("tiltcabinet", "The frame data desk"),
+      guest("notadoc", "Special guest seat", "pending"),
+    ],
+    chat: {
+      moderators: ["BracketBrett", "CrossChatCass"],
+      slow_mode_seconds: 5,
+      is_subscribers_only: false,
+      is_followers_only: true,
+    },
+  },
+  {
+    event_id: "01k9event0065",
+    slug: "virtual-cup",
+    title: "Virtual Cup",
+    description:
+      "The world series final. Top teams, one trophy, and each channel holds a different camera on the pitch. Chat votes the player of the match.",
+    host_channel: channelBySlug("notadoc"),
+    category: cat("just-chatting"),
+    start_at: "2026-12-18T20:00:00Z",
+    end_at: "2026-12-18T23:00:00Z",
+    poster: artFor("poster-virtual-cup"),
+    visibility: "public",
+    reminder_count: 27510,
+    is_partner_only: true,
+    participants: [
+      host("notadoc", "The desk and the team news"),
+      guest("couchsenate", "Home end camera"),
+      guest("panfriedpaul", "Away end camera"),
+      guest("midnightden", "The trophy lift"),
+    ],
+    chat: {
+      moderators: ["RunningOrderRhi", "HandoverHana"],
+      slow_mode_seconds: 10,
+      is_subscribers_only: false,
+      is_followers_only: true,
+    },
+  },
+  {
+    event_id: "01k9event0066",
+    slug: "arcane-decks",
+    title: "Arcane Decks",
+    description:
+      "The championship stream for the card meta. Two channels show the board and one shows the hands, so you see every play as it lands.",
+    host_channel: channelBySlug("midnightden"),
+    category: cat("slots-casino"),
+    start_at: "2026-12-20T20:30:00Z",
+    end_at: "2026-12-21T00:00:00Z",
+    poster: artFor("poster-arcane-decks"),
+    visibility: "public",
+    reminder_count: 14290,
+    is_partner_only: true,
+    participants: [
+      host("midnightden", "The board cam"),
+      guest("nocturnalnorm", "The hand cam"),
+      guest("snoozebaron", "The deck list desk", "pending"),
+      guest("charcoalchef", "Asked to join", "requested"),
+    ],
+    chat: {
+      moderators: ["SlotOneSteve", "CrossChatCass"],
+      slow_mode_seconds: 5,
+      is_subscribers_only: true,
+      is_followers_only: true,
+    },
+  },
 ];
 
 type NewEventSeed = {
@@ -389,7 +524,7 @@ type NewEventSeed = {
 };
 
 // Each of these carries its own poster, one per slug, built on the same typographic template
-// as the nine bespoke posters above rather than the flat category plate.
+// as the fourteen bespoke posters above rather than the flat category plate.
 const buildEvent = (seed: NewEventSeed): KickEvent => ({
   event_id: seed.id,
   slug: seed.slug,

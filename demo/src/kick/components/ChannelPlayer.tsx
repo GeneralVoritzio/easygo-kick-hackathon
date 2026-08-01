@@ -4,6 +4,7 @@ import { Icon } from "../Icon";
 import { useAudibleEmbed, useEmbedTarget } from "../events/EmbedLayer";
 import { embedUrlFor } from "../events/embeds";
 import { useEvent } from "../events/EventProvider";
+import { StreamFootage } from "../events/StreamFootage";
 import type { Livestream } from "../mock/api";
 import type { KickEvent } from "../mock/events";
 import { RaidStage } from "./RaidStage";
@@ -104,9 +105,10 @@ export function ChannelPlayer({ stream, event }: { stream: Livestream; event?: K
         </>
       ) : (
       <>
-      <img
-        src={stream.thumbnail}
-        alt={stream.session_title}
+      <StreamFootage
+        stream={stream}
+        paused={!playing}
+        muted={muted}
         className="h-full w-full object-contain brightness-125"
       />
 

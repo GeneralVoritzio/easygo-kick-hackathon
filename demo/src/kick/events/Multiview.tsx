@@ -12,6 +12,7 @@ import { useAudibleEmbed, useEmbedTarget } from "./EmbedLayer";
 import { embedUrlFor } from "./embeds";
 import { useEvent } from "./EventProvider";
 import { HypeStars } from "./HypeStars";
+import { StreamFootage } from "./StreamFootage";
 
 function formatElapsed(totalSeconds: number) {
   const h = Math.floor(totalSeconds / 3600);
@@ -117,9 +118,10 @@ function Tile({
       {embedUrl ? (
         <div ref={holderRef} className="h-full w-full bg-black" />
       ) : (
-        <img
-          src={stream.thumbnail}
-          alt={stream.session_title}
+        <StreamFootage
+          stream={stream}
+          paused={paused}
+          muted={!audible}
           className="h-full w-full object-cover brightness-110"
         />
       )}

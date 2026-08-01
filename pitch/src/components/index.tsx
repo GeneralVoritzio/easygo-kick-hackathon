@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import paperPlane from '../assets/brand/devices/paper-plane.png'
 import wordmark from '../assets/brand/kick-logo.svg'
 
 export { Slide } from './Slide'
@@ -77,6 +78,15 @@ export function Marquee({
       </div>
     </div>
   )
+}
+
+/*
+  KICK's graffiti paper plane. It bleeds off the right edge, so it goes in the
+  slide overlay rather than the body: an absolute child of the centred content
+  block would anchor to the block, not to the slide.
+*/
+export function PaperPlane() {
+  return <img className="plane" src={paperPlane} alt="" aria-hidden="true" data-anim="riseIn" />
 }
 
 export function Sticker({ text }: { text: string }) {

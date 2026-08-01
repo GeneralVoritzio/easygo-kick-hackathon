@@ -4,6 +4,10 @@ export function Flood() {
   return <div className="bg-flood" />
 }
 
+export function Pattern15() {
+  return <div className="bg-pattern15" />
+}
+
 export function Halftone() {
   return (
     <div className="bg-flood">

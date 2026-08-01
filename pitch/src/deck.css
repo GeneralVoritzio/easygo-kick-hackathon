@@ -181,4 +181,27 @@ body,.reveal-viewport{
 .wordmark--lg{width:27vw;height:7.3vw}
 .wordmark--sm{width:12.5vw;height:3.3vw}
 
+/*
+  Cover only. The Logo folder wordmark ships as black art, which is already the
+  ink colourway a flood wants, so it is drawn as an img rather than masked. Its
+  aspect differs from the masked logo, so it gets its own width. A fixed width in
+  a stretch column lands at the cross start, so it needs the auto margins to sit
+  under .slide--centre.
+*/
+.cover__wordmark{display:block;width:32vw;height:auto;margin:0 auto}
+
+/*
+  The paper plane. Sits against the slide edge and runs off it, the way the
+  sticker does, so the slide reads as a surface the device was thrown onto
+  rather than a box it was placed in.
+*/
+.plane{
+  position:absolute;
+  right:-5vw;
+  bottom:-3vw;
+  width:36vw;
+  transform:rotate(-8deg);
+  pointer-events:none;
+}
+
 .notes{display:none}

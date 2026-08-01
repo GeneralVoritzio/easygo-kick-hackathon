@@ -11,11 +11,15 @@ import { join } from 'node:path'
 const DESIGN_SYSTEM = '../.claude/KICK-DESIGN-SYSTEM.md'
 const BANNED = ['seamless', 'leverage', 'empower', 'solution', 'unlock', 'journey', 'revolutionis', 'ecosystem']
 const WORD_LIMIT = 25
-const FLOODS = 2
+// Three since the deck gained a Pattern15 cover: the plate, the hook, the close.
+const FLOODS = 3
 
 const failures = []
 const fail = (rule, detail) => failures.push(`${rule}: ${detail}`)
 const read = (p) => readFileSync(p, 'utf8')
+// Checked out with CRLF on Windows, so every pattern below would otherwise have
+// to spell \r?\n. Normalise once at the read instead.
+const eol = (s) => s.replace(/\r\n/g, '\n')
 const stripComments = (css) => css.replace(/\/\*[\s\S]*?\*\//g, '')
 
 const SOURCE = ['.ts', '.tsx', '.css']
@@ -34,10 +38,13 @@ const deckCss = read('src/deck.css')
 const mainTsx = read('src/main.tsx')
 
 // Tokens are copied, so a drift means the deck and the Design System disagree.
-const block = read(DESIGN_SYSTEM)
-  .slice(read(DESIGN_SYSTEM).indexOf('## 9. Drop-in tokens'))
-  .match(/```css\n([\s\S]*?)```/)[1]
-if (!read('src/tokens.css').endsWith(block)) {
+const designSystem = eol(read(DESIGN_SYSTEM))
+const block = designSystem
+  .slice(designSystem.indexOf('## 9. Drop-in tokens'))
+  .match(/```css\n([\s\S]*?)```/)
+if (!block) {
+  fail('tokens', `${DESIGN_SYSTEM} has no css block under Section 9`)
+} else if (!eol(read('src/tokens.css')).endsWith(block[1])) {
   fail('tokens', 'src/tokens.css no longer matches Design System Section 9')
 }
 
@@ -92,10 +99,10 @@ for (const part of each) {
 
   if (!part.includes('notes=')) fail('notes', `${name} has no speaker notes`)
 
-  if (part.includes('<Halftone') || part.includes('<Flood')) floods++
+  if (part.includes('<Halftone') || part.includes('<Flood') || part.includes('<Pattern15')) floods++
 
   // Section 5 of the Brand Identity: loud devices do not stack.
-  const loud = ['<Macroblock', '<Sticker'].filter((d) => part.includes(d))
+  const loud = ['<Macroblock', '<Sticker', '<PaperPlane'].filter((d) => part.includes(d))
   if (loud.length > 1) fail('devices', `${name} stacks loud devices: ${loud.join(' and ')}`)
 
   for (const frame of part.match(/<Frame[^>]*>/g) ?? []) {

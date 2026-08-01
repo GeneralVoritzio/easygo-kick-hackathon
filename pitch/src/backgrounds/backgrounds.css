@@ -6,6 +6,18 @@
 .bg-flood{background:var(--media-flood)}
 .bg-dark{background:var(--bg-base)}
 
+/*
+  Pattern15, KICK's own macroblock flood. The only background here that is art
+  rather than drawn in code, so it is the one surface we cannot regenerate.
+  Square source, cropped to the slide.
+*/
+.bg-pattern15{
+  position:absolute;inset:0;
+  background-image:url('../assets/brand/patterns/pattern-15.svg');
+  background-size:cover;
+  background-position:center;
+}
+
 .bg-halftone{
   position:absolute;inset:0;
   background-image:radial-gradient(var(--media-cyan) 42%,transparent 44%);

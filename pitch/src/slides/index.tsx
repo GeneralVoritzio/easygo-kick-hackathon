@@ -1,8 +1,55 @@
-import { Dark, Flood, Halftone, Macroblock } from '../backgrounds'
-import { CamcorderHud, Frame, HeroStat, Marquee, Slide, Split, Stack, Sticker, Wordmark } from '../components'
+import wordmarkBlack from '../assets/brand/wordmark-black.svg'
+import { Dark, Flood, Halftone, Macroblock, Pattern15 } from '../backgrounds'
+import {
+  CamcorderHud,
+  Frame,
+  HeroStat,
+  Marquee,
+  PaperPlane,
+  Slide,
+  Split,
+  Stack,
+  Sticker,
+  Wordmark,
+} from '../components'
 import { ChannelBar, ChatPeek, DecisionCard, TimelineTrack } from '../mock'
 import { beats, channel } from '../mock/fixture'
 import { team } from './team'
+
+/*
+  Title plate. Pattern15 from the Background folder, with the black wordmark from
+  the Logo folder over it. Both are art KICK gave us, so this is the one slide
+  that is not drawn in code.
+*/
+export function Cover() {
+  return (
+    <Slide
+      centre
+      onFlood
+      notes="We are team 5, also known as Hype 5, and we are solving challenge 1 today. Say it, then advance. The screen is already saying it with you, so do not read it out."
+      background={<Pattern15 />}
+    >
+      <img className="cover__wordmark" src={wordmarkBlack} alt="KICK" data-anim="slamIn" />
+      <p className="label" data-anim="riseIn">
+        Challenge 1 · Team Hype 5
+      </p>
+    </Slide>
+  )
+}
+
+export function OneLiner() {
+  return (
+    <Slide
+      centre
+      notes="The biggest, baddest and most memorable moments in streaming happen live. Watching chat fly past, feeling part of something bigger. What if you could follow that feeling, seeing the epic moments first hand, right now. That is why we built Kick Front Row, a way for you to see and follow that hype wherever you go, live on Kick."
+      background={<Dark />}
+    >
+      <h1 className="display h1" data-anim="slamIn">
+        Follow the hype, live.
+      </h1>
+    </Slide>
+  )
+}
 
 export function Cold() {
   return (
@@ -28,14 +75,14 @@ export function Hook() {
       onFlood
       notes="Matt. Name the product once. Do not explain it yet."
       background={<Halftone />}
-      overlay={<Marquee onFlood phrase="Every stream writes its own timeline  ·  " duration={38} />}
+      overlay={<Marquee onFlood phrase="Every stream has a front row  ·  " duration={38} />}
     >
       <p className="label" data-anim="riseIn">
         Easygo Mini Hackathon, powered by KICK
       </p>
-      <Stack lines={['Every stream', 'writes its own', 'timeline']} />
+      <Stack lines={['Every stream', 'has a', 'front row']} />
       <p className="body" data-anim="riseIn">
-        kick-timelines. A companion UI that records a live stream while it happens.
+        Front Row. A companion UI that finds the hype while it happens.
       </p>
     </Slide>
   )
@@ -64,7 +111,11 @@ export function Problem() {
 
 export function Fix() {
   return (
-    <Slide notes="One sentence. Then advance. Do not list features here, the demo does that." background={<Dark />}>
+    <Slide
+      notes="One sentence. Then advance. Do not list features here, the demo does that."
+      background={<Dark />}
+      overlay={<PaperPlane />}
+    >
       <p className="label" data-anim="riseIn">
         The fix
       </p>
@@ -234,7 +285,7 @@ export function Close() {
         Record it. Find it. Own it.
       </h1>
       <p className="body" data-anim="riseIn">
-        kick-timelines. Give us the webhooks and we ship it.
+        Kick Front Row. Give us the webhooks and we ship it.
       </p>
     </Slide>
   )

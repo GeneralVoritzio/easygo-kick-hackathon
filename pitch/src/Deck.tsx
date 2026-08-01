@@ -1,7 +1,20 @@
 import { useEffect, useRef } from 'react'
 import Reveal from 'reveal.js'
 import RevealNotes from 'reveal.js/plugin/notes/notes.esm.js'
-import { Close, Cold, Demo, Fix, HowItWorks, Hook, Native, Problem, Team, Wow } from './slides'
+import {
+  Close,
+  Cold,
+  Cover,
+  Demo,
+  Fix,
+  HowItWorks,
+  Hook,
+  Native,
+  OneLiner,
+  Problem,
+  Team,
+  Wow,
+} from './slides'
 
 export function Deck() {
   const root = useRef<HTMLDivElement>(null)
@@ -35,6 +48,8 @@ export function Deck() {
   return (
     <div className="reveal" ref={root}>
       <div className="slides">
+        <Cover />
+        <OneLiner />
         <Cold />
         <Hook />
         <Problem />

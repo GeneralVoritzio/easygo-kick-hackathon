@@ -1124,11 +1124,19 @@ function HypeDemoRow({ slug }: { slug: string }) {
           </button>
         </div>
       </div>
-      <div className="h-2.5 w-full bg-surface-highest">
-        <div
-          className="h-full bg-primary-base transition-[width] duration-300"
-          style={{ width: `${HYPE_PERCENTS[tier]}%` }}
-        />
+      <div className="bg-surface-lowest px-3 pb-2.5">
+        <div className="flex h-4 items-stretch gap-[3px] border-2 border-neutral-400 bg-surface-lowest p-[3px]">
+          {Array.from({ length: 24 }, (_, i) => (
+            <div
+              key={i}
+              className={`flex-1 ${
+                i < Math.round((HYPE_PERCENTS[tier] / 100) * 24)
+                  ? "bg-primary-base"
+                  : "bg-surface-highest"
+              }`}
+            />
+          ))}
+        </div>
       </div>
       {open && (
         <div className="flex flex-col gap-2 bg-surface-base p-2">

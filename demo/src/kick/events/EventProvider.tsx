@@ -10,9 +10,9 @@ import {
   type ReactNode,
 } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { profileFor, liveStreamFor } from "../mock/api";
+import { profileFor, liveStreamFor, type Channel } from "../mock/api";
 import { EmbedLayer } from "./EmbedLayer";
-import { BOOST_MINUTES, MULTIVIEW_CAP } from "./events";
+import { BOOST_MINUTES, BOOST_NOTICE_SECONDS, FOLLOW_PROMPT_SECONDS, MULTIVIEW_CAP } from "./events";
 
 export type ChatMode = "stream" | "event";
 
@@ -23,6 +23,25 @@ type Multiview = {
   // has to guess its own event by asking eventForChannel(slug), and a channel that runs in
   // more than one live event at once can guess a different one on every tile.
   eventId: string | null;
+};
+
+// fake-kick events.boost.created: a boost also raises a global, short-lived notice, so a
+// viewer anywhere in the app can jump to the streamer who just got boosted, not only one
+// watching the event chat where the /boost command ran. Named Boost, not Hype, because
+// hypeTiers/HypeStars is the unrelated per-channel points multiplier meter.
+export type BoostNotice = {
+  id: number;
+  slug: string;
+  eventId: string;
+  createdAt: number;
+};
+
+// A mod or the event manager switching their own view, offered to the viewer as a pinned
+// notice in their own chat. Held here, not local to whatever fired it, because the demo
+// control panel that triggers it lives outside the chat panel that has to show it.
+export type DirectorPrompt = {
+  director: Channel;
+  createdAt: number;
 };
 
 type EventContextValue = {
@@ -36,7 +55,12 @@ type EventContextValue = {
   audibleSlug: string | undefined;
   setAudible: (slug: string | undefined) => void;
   boosts: Record<string, number>;
-  boost: (slug: string) => void;
+  boost: (slug: string, eventId?: string) => void;
+  boostNotices: BoostNotice[];
+  dismissBoostNotice: (id: number) => void;
+  directorPrompt: DirectorPrompt | null;
+  showDirectorPrompt: (director: Channel) => void;
+  dismissDirectorPrompt: () => void;
   hypeTiers: Record<string, number>;
   setHypeTier: (slug: string, tier: number) => void;
   openMultiview: (slug: string, eventId?: string) => void;
@@ -126,10 +150,37 @@ export function EventProvider({ children }: { children: ReactNode }) {
   const setAudible = useCallback((slug: string | undefined) => setAudibleSlug(slug), []);
 
   const [boosts, setBoosts] = useState<Record<string, number>>({});
+  const [boostNotices, setBoostNotices] = useState<BoostNotice[]>([]);
+  const nextBoostNoticeId = useRef(0);
 
-  const boost = useCallback((slug: string) => {
+  const boost = useCallback((slug: string, eventId?: string) => {
     setBoosts((prev) => ({ ...prev, [slug]: Date.now() + BOOST_MINUTES * 60_000 }));
+    if (eventId) {
+      setBoostNotices((prev) => [
+        ...prev,
+        { id: nextBoostNoticeId.current++, slug, eventId, createdAt: Date.now() },
+      ]);
+    }
   }, []);
+
+  const dismissBoostNotice = useCallback((id: number) => {
+    setBoostNotices((prev) => prev.filter((n) => n.id !== id));
+  }, []);
+
+  const [directorPrompt, setDirectorPrompt] = useState<DirectorPrompt | null>(null);
+
+  const showDirectorPrompt = useCallback((director: Channel) => {
+    setDirectorPrompt({ director, createdAt: Date.now() });
+  }, []);
+
+  const dismissDirectorPrompt = useCallback(() => setDirectorPrompt(null), []);
+
+  // Auto dismiss: nothing is chosen, nothing is remembered, same as clicking the X.
+  useEffect(() => {
+    if (!directorPrompt) return;
+    const id = setTimeout(() => setDirectorPrompt(null), FOLLOW_PROMPT_SECONDS * 1000);
+    return () => clearTimeout(id);
+  }, [directorPrompt]);
 
   const [hypeTiers, setHypeTiers] = useState<Record<string, number>>({});
 
@@ -145,6 +196,17 @@ export function EventProvider({ children }: { children: ReactNode }) {
         return live.length === Object.keys(prev).length ? prev : Object.fromEntries(live);
       });
     }, 5000);
+    return () => clearInterval(id);
+  }, []);
+
+  useEffect(() => {
+    const id = setInterval(() => {
+      setBoostNotices((prev) => {
+        const now = Date.now();
+        const live = prev.filter((n) => now - n.createdAt < BOOST_NOTICE_SECONDS * 1000);
+        return live.length === prev.length ? prev : live;
+      });
+    }, 1000);
     return () => clearInterval(id);
   }, []);
 
@@ -197,6 +259,11 @@ export function EventProvider({ children }: { children: ReactNode }) {
       setAudible,
       boosts,
       boost,
+      boostNotices,
+      dismissBoostNotice,
+      directorPrompt,
+      showDirectorPrompt,
+      dismissDirectorPrompt,
       hypeTiers,
       setHypeTier,
       openMultiview: (slug, eventId) =>
@@ -231,6 +298,11 @@ export function EventProvider({ children }: { children: ReactNode }) {
       setAudible,
       boosts,
       boost,
+      boostNotices,
+      dismissBoostNotice,
+      directorPrompt,
+      showDirectorPrompt,
+      dismissDirectorPrompt,
       hypeTiers,
       setHypeTier,
     ],

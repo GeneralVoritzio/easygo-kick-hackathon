@@ -8,19 +8,20 @@ import {
   type KeyboardEvent,
   type ReactNode,
 } from "react";
-import { Link } from "react-router-dom";
 import { Icon, type KickIconName } from "../Icon";
+import { BoostNoticeCards } from "../events/BoostNotice";
 import { useEvent } from "../events/EventProvider";
+import { FollowPromptCard } from "../events/FollowPrompt";
 import { PixelStar } from "../events/HypeStars";
 import { avatarFor, currentUser } from "../mock/api";
 import {
   eventStreamers,
-  formatSlowMode,
   slugInEvent,
   type EventParticipant,
   type KickEvent,
 } from "../mock/events";
 import { useRaid } from "../raid/RaidProvider";
+import { PinnedCard } from "./PinnedCard";
 import { RaidBanner, RaidPanel } from "./RaidChat";
 import identityBadge from "../icons/identity-badge.png";
 
@@ -1134,7 +1135,7 @@ export function ChatFeed({
             : `No streamer called "${name}" in this event.`,
         },
       ]);
-      if (slug) boost(slug);
+      if (slug) boost(slug, event.event_id);
       return;
     }
     setMessages((prev) => [
@@ -1248,16 +1249,19 @@ function HypeDemoRow({ slug }: { slug: string }) {
         </div>
       </div>
       <div className="mb-1.5 flex h-4 items-stretch gap-[3px] border-2 border-neutral-400 bg-surface-lowest p-[3px]">
-        {Array.from({ length: 24 }, (_, i) => (
-          <div
-            key={i}
-            className={`flex-1 ${
-              i < Math.round((HYPE_PERCENTS[tier] / 100) * 24)
-                ? "bg-primary-base"
-                : "bg-surface-highest"
-            }`}
-          />
-        ))}
+        {(() => {
+          const filled = Math.round((HYPE_PERCENTS[tier] / 100) * 24);
+          return Array.from({ length: 24 }, (_, i) => (
+            <div
+              key={i}
+              className={`flex-1 ${
+                i < filled
+                  ? `bg-primary-base ${i === filled - 1 ? "hype-bar-blink" : ""}`
+                  : "bg-surface-highest"
+              }`}
+            />
+          ));
+        })()}
       </div>
       {open && (
         <div className="flex flex-col gap-2">
@@ -1289,98 +1293,6 @@ function HypeDemoRow({ slug }: { slug: string }) {
         </div>
       )}
     </PinnedCard>
-  );
-}
-
-// The floating pinned card, copied from the live chat pinned message: a rounded
-// bordered card over the top of the feed, a "Sent by" row, then the message row.
-function PinnedCard({ children }: { children: ReactNode }) {
-  return (
-    <div className="pointer-events-auto flex flex-col gap-1.5 rounded border-2 border-[#4a5158] bg-surface-base px-3 py-2.5 shadow-[0_4px_16px_rgba(0,0,0,0.4)]">
-      {children}
-    </div>
-  );
-}
-
-function EventChatStrip({ event }: { event: KickEvent }) {
-  const mods = event.chat.moderators;
-  // The pill names who really holds the badge, not the host again.
-  const modLabel =
-    mods.length === 0
-      ? null
-      : mods.length === 1
-        ? mods[0]
-        : `${mods[0]} +${mods.length - 1}`;
-  const host = event.host_channel;
-  const [open, setOpen] = useState(false);
-  const [hidden, setHidden] = useState(false);
-
-  if (hidden) return null;
-
-  return (
-    <div data-testid="event-chat-strip">
-      <PinnedCard>
-        <div className="flex items-center gap-1.5">
-          <Icon name="pin" className="size-3.5 shrink-0 fill-white" />
-          <span className="text-sm font-medium text-surface-onSurfaceSecondary">Sent by</span>
-          <Icon name="verified" className="size-[18px] shrink-0" />
-          <span
-            className="min-w-0 truncate text-sm font-bold"
-            style={{ color: colorFor(host.username) }}
-          >
-            {host.username}
-          </span>
-          <button
-            type="button"
-            aria-label="Hide the pinned message"
-            onClick={() => setHidden(true)}
-            className="state-layer-surface ml-auto flex size-7 shrink-0 items-center justify-center rounded text-white"
-          >
-            <Icon name="hide" className="size-4" />
-          </button>
-        </div>
-        <div className="flex items-center gap-2">
-          <Link
-            to={`/events/${event.slug}`}
-            className="min-w-0 grow truncate text-sm font-semibold text-white underline decoration-white/60 underline-offset-2 betterhover:hover:decoration-white"
-          >
-            Event chat, hosted by {host.username}
-          </Link>
-          <button
-            type="button"
-            aria-label={open ? "Collapse" : "Expand"}
-            onClick={() => setOpen((v) => !v)}
-            className="state-layer-surface flex size-7 shrink-0 items-center justify-center rounded text-white"
-          >
-            <Icon
-              name="chevron-right"
-              className={`size-3.5 transition-transform ${open ? "-rotate-90" : "rotate-90"}`}
-            />
-          </button>
-        </div>
-        {open && (
-          <div className="flex flex-wrap items-center gap-1">
-            {modLabel && (
-              <span
-                title={`Moderators: ${mods.join(", ")}`}
-                className="flex items-center gap-1 whitespace-nowrap rounded-full bg-secondary-base px-2 py-0.5 text-xs font-semibold text-secondary-onSecondary"
-              >
-                <Icon name="chat-settings" className="size-3 shrink-0 fill-current" />
-                Moderated by {modLabel}
-              </span>
-            )}
-            <span className="whitespace-nowrap rounded-full bg-secondary-base px-2 py-0.5 text-xs font-semibold text-secondary-onSecondary">
-              {formatSlowMode(event.chat.slow_mode_seconds)}
-            </span>
-            {event.chat.is_subscribers_only && (
-              <span className="whitespace-nowrap rounded-full bg-secondary-base px-2 py-0.5 text-xs font-semibold text-secondary-onSecondary">
-                Subscribers only
-              </span>
-            )}
-          </div>
-        )}
-      </PinnedCard>
-    </div>
   );
 }
 
@@ -1425,12 +1337,11 @@ export function ChannelChat({
         </>
       }
       pinned={
-        inEvent || slug ? (
-          <>
-            {inEvent && event && <EventChatStrip event={event} />}
-            {slug && <HypeDemoRow slug={slug} />}
-          </>
-        ) : undefined
+        <>
+          {slug && <HypeDemoRow slug={slug} />}
+          <BoostNoticeCards currentSlug={slug} />
+          <FollowPromptCard />
+        </>
       }
     />
   );

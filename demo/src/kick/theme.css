@@ -418,6 +418,11 @@
   50% { fill: #ffd700 }
 }
 .hype-star-blink { animation: hype-star-blink 1.1s ease-in-out infinite }
+@keyframes hype-bar-blink {
+  0%, 100% { opacity: 1 }
+  50% { opacity: 0.35 }
+}
+.hype-bar-blink { animation: hype-bar-blink 1.1s ease-in-out infinite }
 @keyframes hype-star-rainbow {
   0%, 100% { fill: #ff5050 }
   25% { fill: #ffd700 }
@@ -436,6 +441,7 @@
   .animate-leaderboards-marquee { animation: none }
   .hype-shimmer::after { animation: none }
   .hype-star-blink, .hype-star-rainbow { animation: none; fill: #ffd700 }
+  .hype-bar-blink { animation: none; opacity: 1 }
 }
 
 button:not(:disabled),

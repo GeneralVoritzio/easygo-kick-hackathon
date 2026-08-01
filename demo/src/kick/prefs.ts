@@ -1,11 +1,17 @@
 import { useEffect, useState } from "react";
 
+export type FollowDirectorChoice = "ask" | "always" | "never";
+
 export type Prefs = {
   hidePools: boolean;
   hideSlots: boolean;
   hideVrChat: boolean;
   joinTanks: boolean;
   autoRaid: boolean;
+  // Whether a mod or the event manager switching their own view also switches the
+  // viewer's. "ask" prompts every time, until the viewer picks Allow or Don't show me
+  // again from the prompt.
+  followDirector: FollowDirectorChoice;
 };
 
 const KEY = "kick-preferences";
@@ -19,6 +25,7 @@ const defaults: Prefs = {
   hideVrChat: false,
   joinTanks: true,
   autoRaid: true,
+  followDirector: "ask",
 };
 
 export function readPrefs(): Prefs {

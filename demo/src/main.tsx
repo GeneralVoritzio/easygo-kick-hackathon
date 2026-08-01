@@ -17,6 +17,7 @@ import { DropsAllCampaigns } from './kick/pages/DropsAllCampaigns'
 import { CreatorDashboard } from './kick/pages/CreatorDashboard'
 import { EventsProvider } from './kick/EventsStore'
 import { EventProvider } from './kick/events/EventProvider'
+import { DemoControls } from './kick/events/DemoControls'
 import { RaidProvider } from './kick/raid/RaidProvider'
 import { RaidDialog } from './kick/components/RaidDialog'
 import { EventPage } from './kick/pages/EventPage'
@@ -29,6 +30,7 @@ createRoot(document.getElementById('root')!).render(
       <EventProvider>
       <RaidProvider>
         <RaidDialog />
+        <DemoControls />
         <Routes>
           <Route path="/demo" element={<Demo />} />
           <Route path="/dashboard" element={<CreatorDashboard />} />

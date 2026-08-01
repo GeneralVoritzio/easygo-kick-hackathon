@@ -5,13 +5,16 @@ import { currentUser } from "../mock/api";
 import { setJoinsTanks } from "../mock/raids";
 import { usePrefs, type Prefs } from "../prefs";
 
-const contentRows: { key: keyof Prefs; label: string }[] = [
+// followDirector is not boolean, so it never shows up as a row a plain switch can drive.
+type BooleanPrefKey = { [K in keyof Prefs]: Prefs[K] extends boolean ? K : never }[keyof Prefs];
+
+const contentRows: { key: BooleanPrefKey; label: string }[] = [
   { key: "hidePools", label: "Hide Pools, Hot Tubs & Bikinis" },
   { key: "hideSlots", label: "Hide Slots & Casino" },
   { key: "hideVrChat", label: "Hide VR Chat" },
 ];
 
-const raidRows: { key: keyof Prefs; label: string; description: string }[] = [
+const raidRows: { key: BooleanPrefKey; label: string; description: string }[] = [
   {
     key: "joinTanks",
     label: "Join raid tanks",

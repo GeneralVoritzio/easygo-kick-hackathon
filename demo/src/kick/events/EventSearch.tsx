@@ -9,8 +9,8 @@ import {
   liveStreamFor,
   type Livestream,
 } from "../mock/api";
-import { formatBoostLeft, MULTIVIEW_CAP } from "./events";
-import { useBoostLeft, useEvent } from "./EventProvider";
+import { MULTIVIEW_CAP } from "./events";
+import { useEvent } from "./EventProvider";
 import { HypeStars } from "./HypeStars";
 import { useEvents } from "../EventsStore";
 import {
@@ -21,19 +21,6 @@ import {
   publicUpcoming,
   type KickEvent,
 } from "../mock/events";
-
-function BoostBadge({ slug }: { slug: string }) {
-  const left = useBoostLeft(slug);
-  if (left === null) return null;
-  return (
-    <span
-      aria-label={`Streamer is Boosted, ${formatBoostLeft(left)} left`}
-      className="tooltip-bottom tooltip-end flex shrink-0 cursor-default items-center rounded bg-surface-highest px-1.5 py-1 text-xs leading-none"
-    >
-      🔥
-    </span>
-  );
-}
 
 function ResultRow({
   stream,
@@ -70,7 +57,6 @@ function ResultRow({
           {stream.category.name}
         </span>
       </div>
-      <BoostBadge slug={stream.channel.slug} />
       <span className="flex shrink-0 items-center gap-1 text-xs font-semibold text-white">
         <span className="size-1.5 rounded-full bg-green-500" />
         {formatViewers(stream.viewer_count)}

@@ -4,9 +4,9 @@ import { Icon } from "../Icon";
 import { PinnedCard } from "../components/PinnedCard";
 import { liveStreamFor } from "../mock/api";
 import { useEvents } from "../EventsStore";
-import { BOOST_NOTICE_SECONDS, formatBoostLeft, HYPE_TIER_MAX, MULTIVIEW_CAP } from "./events";
+import { BOOST_NOTICE_SECONDS, formatBoostLeft, MULTIVIEW_CAP } from "./events";
 import { useEvent, type BoostNotice } from "./EventProvider";
-import { HypeStars } from "./HypeStars";
+import { PixelStar } from "./HypeStars";
 
 // The notice's own countdown ticks independently of the provider's expiry sweep, which only
 // re-renders when a notice actually drops out of the list, not every second.
@@ -35,28 +35,27 @@ function BoostNoticeCard({ notice }: { notice: BoostNotice }) {
 
   return (
     <PinnedCard>
-      <div className="flex items-start gap-2">
-        <div className="min-w-0 flex-1">
-          <span className="block truncate text-sm font-bold text-white">
-            {stream.channel.username} is hyping!
-          </span>
-          <span className="block truncate text-xs text-surface-onSurfaceSecondary">
-            {event.title}
-          </span>
-        </div>
-        {/* Being boosted is the hyping signal this card exists to carry, so all three stars
-            show gold here, not the streamer's own hypeTiers value, which can sit at 0. */}
-        <div className="mt-[3px]">
-          <HypeStars tier={HYPE_TIER_MAX} size="size-3.5" />
-        </div>
+      <div className="flex items-center gap-1.5">
+        <PixelStar size="size-4" fillClass="fill-[#ffd700]" />
+        <span className="whitespace-nowrap font-[KickFont] text-base leading-none text-white">
+          MAX HYPE
+        </span>
         <button
           type="button"
           aria-label="Dismiss"
           onClick={() => dismissBoostNotice(notice.id)}
-          className="state-layer-surface flex size-7 shrink-0 items-center justify-center rounded text-white"
+          className="state-layer-surface ml-auto flex size-7 shrink-0 items-center justify-center rounded text-white"
         >
           <Icon name="close" className="size-3.5" />
         </button>
+      </div>
+      <div className="min-w-0">
+        <span className="block truncate text-sm font-bold text-white">
+          {stream.channel.username}
+        </span>
+        <span className="block truncate text-xs text-surface-onSurfaceSecondary">
+          {event.title}
+        </span>
       </div>
       <div className="h-1 w-full overflow-hidden rounded-full bg-white/10">
         <div

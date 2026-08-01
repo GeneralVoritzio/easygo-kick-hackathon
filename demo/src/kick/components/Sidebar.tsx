@@ -6,7 +6,6 @@ import { eventForChannel, type KickEvent } from "../mock/events";
 import { useEvents } from "../EventsStore";
 import { useEvent } from "../events/EventProvider";
 import { HypeStars } from "../events/HypeStars";
-import { BoostBadge } from "./EventBits";
 
 const navItems: { to: string; label: string; icon: KickIconName; activeIcon: KickIconName }[] = [
   { to: "/", label: "Home", icon: "nav-home", activeIcon: "nav-home-active" },
@@ -60,7 +59,6 @@ function ChannelRow({
         >
           <span className="truncate">{username}</span>
           {hypeTier > 0 && <HypeStars tier={hypeTier} size="size-3.5" />}
-          <BoostBadge slug={slug} />
         </span>
         {event ? (
           <Link

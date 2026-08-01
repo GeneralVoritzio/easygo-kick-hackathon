@@ -3,7 +3,8 @@ import { Icon } from "../Icon";
 import { CornerMarks, Pill, ThumbBadge } from "./CardBits";
 import { oneRowGrid } from "./Layout";
 import { useEvents } from "../EventsStore";
-import { useBoostLeft } from "../events/EventProvider";
+import { HypeStars } from "../events/HypeStars";
+import { useBoostLeft, useEvent } from "../events/EventProvider";
 import { formatBoostLeft } from "../events/events";
 import { formatViewers, liveStreamFor } from "../mock/api";
 import {
@@ -109,13 +110,14 @@ export function RemindButton({ event, wide }: { event: KickEvent; wide?: boolean
 // shows up while they hold a seat on an event, not only the multiview tile.
 export function BoostBadge({ slug }: { slug: string }) {
   const boostLeft = useBoostLeft(slug);
+  const { hypeTiers } = useEvent();
   if (boostLeft === null) return null;
   return (
     <span
       aria-label={`Streamer is Boosted, ${formatBoostLeft(boostLeft)} left`}
-      className="tooltip-bottom cursor-default text-[11px] leading-none"
+      className="tooltip-bottom cursor-default leading-none"
     >
-      🔥
+      <HypeStars tier={Math.max(hypeTiers[slug] ?? 0, 1)} size="size-3.5" />
     </span>
   );
 }

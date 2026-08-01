@@ -10,8 +10,7 @@ import { Icon } from "../Icon";
 import { formatViewers, liveStreamFor, type Livestream } from "../mock/api";
 import { useAudibleEmbed, useEmbedTarget } from "./EmbedLayer";
 import { embedUrlFor } from "./embeds";
-import { formatBoostLeft } from "./events";
-import { useBoostLeft, useEvent } from "./EventProvider";
+import { useEvent } from "./EventProvider";
 import { HypeStars } from "./HypeStars";
 
 function formatElapsed(totalSeconds: number) {
@@ -93,7 +92,6 @@ function Tile({
   const { unpin, closeMultiview, liveEmbeds, audibleSlug, setAudible, hypeTiers } = useEvent();
   const hypeTier = hypeTiers[stream.channel.slug] ?? 0;
   const navigate = useNavigate();
-  const boostLeft = useBoostLeft(stream.channel.slug);
   const embedUrl = liveEmbeds ? embedUrlFor(stream.channel.slug, true) : undefined;
   const holderRef = useEmbedTarget(embedUrl ? stream.channel.slug : undefined);
   const audible = audibleSlug === stream.channel.slug;
@@ -139,14 +137,7 @@ function Tile({
       <div className="absolute left-1.5 top-1.5 z-[2] flex items-center gap-1 rounded bg-black/60 px-1.5 py-1 text-xs font-semibold leading-none text-white/90">
         <span className="size-1.5 rounded-full bg-green-500" />
         {formatViewers(stream.viewer_count)}
-        {boostLeft !== null && (
-          <span
-            aria-label={`Streamer is Boosted, ${formatBoostLeft(boostLeft)} left`}
-            className="tooltip-bottom tooltip-start cursor-default text-[11px] leading-none"
-          >
-            🔥
-          </span>
-        )}
+
       </div>
       <div className="absolute inset-x-0 bottom-0 z-[2] flex items-center gap-1 bg-gradient-to-t from-black/80 to-transparent p-1.5 pt-4">
         <span className="min-w-0 truncate text-xs font-bold text-white">

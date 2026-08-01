@@ -40,11 +40,25 @@ function BoostNoticeCard({ notice }: { notice: BoostNotice }) {
         <span className="whitespace-nowrap font-[KickFont] text-base leading-none text-white">
           MAX HYPE
         </span>
+        <div className="ml-auto flex items-center gap-2">
+          <span
+            aria-label="Channel Points Multiplier: 2x"
+            className="tooltip-bottom cursor-default font-[KickFont] text-sm leading-none text-primary-base"
+          >
+            2x CP
+          </span>
+          <span
+            aria-label="Boosted XP Rate: 2x"
+            className="tooltip-bottom tooltip-end cursor-default font-[KickFont] text-sm leading-none text-[#ff5050]"
+          >
+            2x XP
+          </span>
+        </div>
         <button
           type="button"
           aria-label="Dismiss"
           onClick={() => dismissBoostNotice(notice.id)}
-          className="state-layer-surface ml-auto flex size-7 shrink-0 items-center justify-center rounded text-white"
+          className="state-layer-surface flex size-7 shrink-0 items-center justify-center rounded text-white"
         >
           <Icon name="close" className="size-3.5" />
         </button>

@@ -1350,7 +1350,7 @@ function HypeDemoRow({ slug }: { slug: string }) {
             aria-label={`Channel Points Multiplier: ${HYPE_MULTIPLIERS[tier]}`}
             className="tooltip-bottom tooltip-end cursor-default font-[KickFont] text-sm leading-none text-primary-base"
           >
-            {HYPE_MULTIPLIERS[tier]}
+            {HYPE_MULTIPLIERS[tier]} CP
           </span>
           {tier === HYPE_TIER_MAX && (
             <span

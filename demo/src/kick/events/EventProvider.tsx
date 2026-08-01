@@ -79,18 +79,6 @@ export function useEvent() {
 }
 
 // Pins survive a close and a reload, so a viewer's grid is one click away.
-const SLOTS_KEY = "multiview-slots";
-
-function storedSlots(): string[] {
-  try {
-    const raw = JSON.parse(localStorage.getItem(SLOTS_KEY) ?? "[]");
-    if (!Array.isArray(raw)) return [];
-    return raw.filter((slug): slug is string => typeof slug === "string" && Boolean(liveStreamFor(slug)));
-  } catch {
-    return [];
-  }
-}
-
 const pages = new Set([
   "",
   "browse",
@@ -115,7 +103,7 @@ type Guard =
 export function EventProvider({ children }: { children: ReactNode }) {
   const [multiview, setMultiview] = useState<Multiview>(() => ({
     active: false,
-    slots: storedSlots(),
+    slots: [],
     eventId: null,
   }));
   const [chatMode, setChatMode] = useState<ChatMode>("stream");
@@ -211,10 +199,6 @@ export function EventProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
-    localStorage.setItem(SLOTS_KEY, JSON.stringify(multiview.slots));
-  }, [multiview.slots]);
-
-  useEffect(() => {
     localStorage.setItem("multiview-live-embeds", liveEmbeds ? "1" : "0");
   }, [liveEmbeds]);
   const [guard, setGuard] = useState<Guard | null>(null);
@@ -266,12 +250,20 @@ export function EventProvider({ children }: { children: ReactNode }) {
       dismissDirectorPrompt,
       hypeTiers,
       setHypeTier,
+      // A fresh multiview always starts as one stream. While it runs, an open
+      // on another channel joins the grid instead of resetting it.
       openMultiview: (slug, eventId) =>
-        setMultiview((m) => ({
-          active: true,
-          slots: m.slots.includes(slug) ? m.slots : [slug, ...m.slots].slice(0, MULTIVIEW_CAP),
-          eventId: eventId ?? m.eventId,
-        })),
+        setMultiview((m) =>
+          m.active
+            ? {
+                ...m,
+                slots: m.slots.includes(slug)
+                  ? m.slots
+                  : [slug, ...m.slots].slice(0, MULTIVIEW_CAP),
+                eventId: eventId ?? m.eventId,
+              }
+            : { active: true, slots: [slug], eventId: eventId ?? null },
+        ),
       closeMultiview: () => setMultiview((m) => ({ ...m, active: false })),
       pin: (slug) =>
         setMultiview((m) =>

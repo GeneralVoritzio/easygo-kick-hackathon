@@ -33,8 +33,15 @@ function BoostNoticeCard({ notice }: { notice: BoostNotice }) {
   const pinned = multiview.slots.includes(notice.slug);
   const full = multiview.slots.length >= MULTIVIEW_CAP;
 
+  const timeColor =
+    remaining > BOOST_NOTICE_SECONDS / 2
+      ? "#53fc18"
+      : remaining > BOOST_NOTICE_SECONDS / 4
+        ? "#ffd700"
+        : "#ff5050";
+
   return (
-    <PinnedCard>
+    <PinnedCard borderColor={timeColor}>
       <div className="flex items-center gap-1.5">
         <PixelStar size="size-4" fillClass="fill-[#ffd700]" />
         <span className="hype-shimmer hype-tier-3 whitespace-nowrap font-[KickFont] text-base leading-none text-white">
@@ -71,24 +78,10 @@ function BoostNoticeCard({ notice }: { notice: BoostNotice }) {
           {event.title}
         </span>
       </div>
-      <div className="h-1 w-full overflow-hidden rounded-full bg-white/10">
-        <div
-          className="h-full rounded-full bg-primary-base transition-[width] duration-1000 ease-linear"
-          style={{ width: `${(remaining / BOOST_NOTICE_SECONDS) * 100}%` }}
-        />
-      </div>
       <div className="flex items-center justify-between gap-2">
         <span
           aria-label={`${formatBoostLeft(remaining)} left`}
-          className="tooltip-top flex size-6 cursor-default items-center justify-center rounded-full border-2 text-xs leading-none transition-colors duration-1000"
-          style={{
-            borderColor:
-              remaining > BOOST_NOTICE_SECONDS / 2
-                ? "#53fc18"
-                : remaining > BOOST_NOTICE_SECONDS / 4
-                  ? "#ffd700"
-                  : "#ff5050",
-          }}
+          className="tooltip-top cursor-default text-sm leading-none"
         >
           🐌
         </span>

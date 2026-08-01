@@ -349,6 +349,19 @@ export const livestreams: Livestream[] = [
     started_at: "2026-07-26T13:05:00Z",
     is_mature: false,
   },
+  // The running order for the hackathon event that is on now, so this seat is live too.
+  {
+    id: 20,
+    channel: channel("superdude1337", "SuperDude1337", 18430),
+    session_title: "building the hype tracker live, Easygo Mini Hackathon",
+    category: cat("just-chatting"),
+    viewer_count: 612,
+    is_live: true,
+    language: "English",
+    thumbnail: artUrl("thumb-just-chatting-3"),
+    started_at: "2026-07-26T09:00:00Z",
+    is_mature: false,
+  },
 ];
 
 export type ChannelVideo = {
@@ -653,6 +666,38 @@ export const channelProfiles: ChannelProfile[] = [
       ["chasing one bonus for six hours straight", 21600, 58700, "2026-07-20T01:00:00Z"],
     ]),
     recent_categories: [catTile("slots-casino")],
+  },
+  {
+    channel: channel("cluecrawler", "ClueCrawler", 38914),
+    banner: "",
+    bio: "Master clues, every casket, no shortcuts. A third age drops eventually, probably.",
+    last_live_at: "2026-07-26T08:05:00Z",
+    socials: [{ icon: "discord", handle: "cluecrawler" }],
+    panels: [
+      { kind: "text", title: "Clue log", body: "Every casket opens on stream. The log resets the day a third age piece finally drops." },
+      { kind: "image", art: artUrl("panel-community"), alt: "Discord community panel" },
+    ],
+    videos: videos("old-school-runescape", [
+      ["master clue marathon, casket seventeen", 7200, 21400, "2026-07-24T08:00:00Z"],
+      ["hard clue speedrun, no teleports", 5400, 15800, "2026-07-22T09:15:00Z"],
+    ]),
+    recent_categories: [catTile("old-school-runescape")],
+  },
+  {
+    channel: channel("superdude1337", "SuperDude1337", 18430),
+    banner: artUrl("banner-midnightden"),
+    bio: "Team Fortress. Building the hype tracker live for the Easygo Mini Hackathon, powered by KICK.",
+    last_live_at: "2026-07-26T09:00:00Z",
+    socials: [{ icon: "discord", handle: "superdude1337" }, { icon: "x", handle: "SuperDude1337" }],
+    panels: [
+      { kind: "text", title: "Easygo Mini Hackathon", body: "Challenge 1, live build. The running order is whatever chat wants to see shipped next." },
+      { kind: "image", art: artUrl("panel-community"), alt: "Discord community panel" },
+    ],
+    videos: videos("just-chatting", [
+      ["hackathon prep, wiring up the mock data", 9000, 4200, "2026-07-24T09:00:00Z"],
+      ["dry run of the overlay before the real thing", 6300, 3100, "2026-07-22T09:30:00Z"],
+    ]),
+    recent_categories: [catTile("just-chatting")],
   },
 ];
 

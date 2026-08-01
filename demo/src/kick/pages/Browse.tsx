@@ -67,7 +67,7 @@ function BrowseEvents() {
             data-testid={`events-view-${item.view}`}
             onClick={() => setView(item.view)}
             className={`flex h-9 items-center gap-1.5 rounded px-3 text-sm font-semibold ${
-              view === item.view ? "bg-surface-highest text-white" : "text-subtle"
+              view === item.view ? "bg-surface-highest text-white" : "text-white"
             }`}
           >
             <Icon name={item.icon} className="size-4 shrink-0 fill-current" />

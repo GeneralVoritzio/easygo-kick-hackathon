@@ -28,7 +28,7 @@ function BoostBadge({ slug }: { slug: string }) {
   return (
     <span
       aria-label={`Streamer is Boosted, ${formatBoostLeft(left)} left`}
-      className="tooltip-top flex shrink-0 cursor-default items-center rounded bg-surface-highest px-1.5 py-1 text-xs leading-none"
+      className="tooltip-bottom tooltip-end flex shrink-0 cursor-default items-center rounded bg-surface-highest px-1.5 py-1 text-xs leading-none"
     >
       🔥
     </span>

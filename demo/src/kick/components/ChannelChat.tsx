@@ -13,7 +13,13 @@ import { Icon, type KickIconName } from "../Icon";
 import { useEvent } from "../events/EventProvider";
 import { PixelStar } from "../events/HypeStars";
 import { avatarFor, currentUser } from "../mock/api";
-import { formatSlowMode, slugInEvent, type KickEvent } from "../mock/events";
+import {
+  eventStreamers,
+  formatSlowMode,
+  slugInEvent,
+  type EventParticipant,
+  type KickEvent,
+} from "../mock/events";
 import { useRaid } from "../raid/RaidProvider";
 import { RaidBanner, RaidPanel } from "./RaidChat";
 import identityBadge from "../icons/identity-badge.png";
@@ -224,13 +230,24 @@ function eventPool(moderators: string[]): MessagePool {
 
 const pick = <T,>(list: T[]) => list[Math.floor(Math.random() * list.length)];
 
-type Message = {
+type ChatterMessage = {
   id: number;
+  kind?: undefined;
   username: string;
   badges: BadgeName[];
   color: string;
   body: string;
 };
+
+// A command's own reply to the person who typed it. It never comes from a chatter, so it
+// carries no username, badges or colour, and it renders in italic grey instead of a name line.
+type SystemMessage = {
+  id: number;
+  kind: "system";
+  body: string;
+};
+
+type Message = ChatterMessage | SystemMessage;
 
 let nextId = 1;
 
@@ -320,12 +337,17 @@ function ChatModeMenu({ onClose, eventName }: { onClose: () => void; eventName: 
 function ChatHeader({
   onCollapse,
   eventName,
+  channelName,
 }: {
   onCollapse?: () => void;
   eventName?: string;
+  channelName?: string;
 }) {
   const { chatMode } = useEvent();
   const [menuOpen, setMenuOpen] = useState(false);
+  // Stream mode is "chat with this channel" (the mode menu says so too), so the label
+  // names the channel instead of a bare, unchanging "Chat" that never says who.
+  const streamLabel = channelName ?? "Chat";
   return (
     <div className="relative flex min-h-[38px] shrink-0 items-center justify-between border-b-2 border-[#24272c] px-3 py-1.5">
       <button
@@ -346,7 +368,7 @@ function ChatHeader({
             onClick={() => setMenuOpen((v) => !v)}
             className="state-layer-surface flex items-center gap-1.5 rounded px-2 py-1 text-sm font-bold text-white lg:text-base"
           >
-            {chatMode === "event" ? "Event chat" : "Chat"}
+            {chatMode === "event" ? "Event chat" : streamLabel}
             <Icon
               name="chevron-right"
               className={`size-3 shrink-0 transition-transform ${
@@ -360,7 +382,7 @@ function ChatHeader({
         </div>
       ) : (
         <span className="absolute left-1/2 -translate-x-1/2 text-sm font-bold lg:text-base">
-          Chat
+          {streamLabel}
         </span>
       )}
       <button
@@ -518,6 +540,16 @@ function ChatMessage({
   onOpen?: (user: CardUser) => void;
   hypeTier?: number;
 }) {
+  if (message.kind === "system") {
+    return (
+      <div className="group relative px-2 lg:px-3">
+        <div className="w-full min-w-0 shrink-0 break-words rounded-lg px-2 py-[var(--chatroom-message-spacing)] text-[length:var(--chatroom-font-size)] italic leading-[1.5] text-surface-onSurfaceSecondary">
+          {message.body}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div
       className={`group relative px-2 lg:px-3${
@@ -797,23 +829,105 @@ function EmoteBar({ onSend }: { onSend: (body: string) => void }) {
   );
 }
 
+// Matches while the draft is still just the command: "/boost", "/boost i", "/boost ironvow".
+// A trailing space after a finished name falls out of the match, which is what closes the panel.
+const BOOST_COMMAND = /^\/boost(?:\s+(\S*))?$/i;
+
+function BoostSuggest({
+  anchor,
+  query,
+  candidates,
+  selectedIndex,
+  onPick,
+}: {
+  anchor: DOMRect;
+  query: string;
+  candidates: EventParticipant[];
+  selectedIndex: number;
+  onPick: (username: string) => void;
+}) {
+  return (
+    // Fixed, not absolute: the footer's own padded box clips its overflow (the comment on
+    // EmotePicker above explains why), and a panel nested inside chat-input-wrapper sits
+    // inside that box too. Anchoring to the wrapper's own screen rect skips the clip entirely.
+    <div
+      id="boost-suggest-panel"
+      className="fixed z-popover max-h-52 overflow-y-auto rounded bg-surface-base py-1 shadow-lg ring-1 ring-outline-decorative"
+      style={{
+        left: anchor.left,
+        width: anchor.width,
+        bottom: window.innerHeight - anchor.top + 8,
+      }}
+    >
+      {candidates.length === 0 ? (
+        <p className="px-3 py-2 text-sm text-surface-onSurfaceSecondary">
+          No streamer called &quot;{query}&quot; in this event.
+        </p>
+      ) : (
+        candidates.map((p, i) => (
+          <button
+            key={p.channel.slug}
+            type="button"
+            data-testid={`boost-suggest-${p.channel.slug}`}
+            // mousedown, not click: it fires before the textarea blurs, so focus never leaves
+            // the field and the caret stays put for the next keystroke.
+            onMouseDown={(e) => {
+              e.preventDefault();
+              onPick(p.channel.username);
+            }}
+            className={`flex w-full items-center gap-2 px-3 py-1.5 text-left text-sm text-white ${
+              i === selectedIndex ? "bg-surface-highest" : ""
+            }`}
+          >
+            <img src={p.channel.avatar} alt="" className="size-5 shrink-0 rounded-full" />
+            <span className="truncate">{p.channel.username}</span>
+          </button>
+        ))
+      )}
+    </div>
+  );
+}
+
 function ChatFooter({
   draft,
   dashboard,
   onChange,
   onSend,
   onSubmit,
+  boostTargets,
 }: {
   draft: string;
   dashboard?: boolean;
   onChange: (value: string) => void;
   onSend: (body: string) => void;
   onSubmit: () => void;
+  boostTargets: EventParticipant[] | null;
 }) {
   const [picker, setPicker] = useState<"closed" | "open" | "closing">("closed");
+  const [boostIndex, setBoostIndex] = useState(0);
   const fieldRef = useRef<HTMLTextAreaElement>(null);
+  const wrapperRef = useRef<HTMLDivElement>(null);
   const pickerOpen = picker !== "closed";
   const closePicker = () => setPicker((state) => (state === "open" ? "closing" : state));
+
+  const boostMatch = boostTargets ? BOOST_COMMAND.exec(draft) : null;
+  const boosting = boostMatch !== null;
+  const boostQuery = boostMatch?.[1] ?? "";
+  const boostCandidates = boosting
+    ? (boostTargets ?? []).filter((p) =>
+        p.channel.username.toLowerCase().startsWith(boostQuery.toLowerCase()),
+      )
+    : [];
+  const boostIndexClamped = Math.min(boostIndex, Math.max(0, boostCandidates.length - 1));
+
+  useEffect(() => {
+    setBoostIndex(0);
+  }, [boostQuery]);
+
+  function pickBoostTarget(username: string) {
+    onChange(`/boost ${username} `);
+    fieldRef.current?.focus();
+  }
 
   // KICK's field grows with the text and stops at 150px, then scrolls. A textarea only reports
   // the height it needs once it has been collapsed, so measure from auto every time.
@@ -825,6 +939,23 @@ function ChatFooter({
   }, [draft]);
 
   function onKeyDown(e: KeyboardEvent<HTMLTextAreaElement>) {
+    if (boosting && boostCandidates.length > 0) {
+      if (e.key === "ArrowDown") {
+        e.preventDefault();
+        setBoostIndex((i) => (i + 1) % boostCandidates.length);
+        return;
+      }
+      if (e.key === "ArrowUp") {
+        e.preventDefault();
+        setBoostIndex((i) => (i - 1 + boostCandidates.length) % boostCandidates.length);
+        return;
+      }
+      if (e.key === "Tab" || (e.key === "Enter" && !e.shiftKey)) {
+        e.preventDefault();
+        pickBoostTarget(boostCandidates[boostIndexClamped].channel.username);
+        return;
+      }
+    }
     if (e.key !== "Enter" || e.shiftKey) return;
     e.preventDefault();
     closePicker();
@@ -854,8 +985,18 @@ function ChatFooter({
         <div className="flex flex-col gap-2">
           <div
             id="chat-input-wrapper"
-            className="betterhover:hover:border-neutral-400 flex w-full items-center rounded border-2 border-neutral-700 pl-2 pr-1 transition-colors duration-200 ease-in-out focus-within:border-transparent focus-within:bg-[#070809] focus-within:outline-none focus-within:ring-1 focus-within:ring-[#F4F5F6] focus-within:ring-offset-1 focus-within:hover:border-transparent"
+            ref={wrapperRef}
+            className="betterhover:hover:border-neutral-400 relative flex w-full items-center rounded border-2 border-neutral-700 pl-2 pr-1 transition-colors duration-200 ease-in-out focus-within:border-transparent focus-within:bg-[#070809] focus-within:outline-none focus-within:ring-1 focus-within:ring-[#F4F5F6] focus-within:ring-offset-1 focus-within:hover:border-transparent"
           >
+            {boosting && wrapperRef.current && (
+              <BoostSuggest
+                anchor={wrapperRef.current.getBoundingClientRect()}
+                query={boostQuery}
+                candidates={boostCandidates}
+                selectedIndex={boostIndexClamped}
+                onPick={pickBoostTarget}
+              />
+            )}
             <button
               type="button"
               aria-label="Chat identity"
@@ -978,9 +1119,21 @@ export function ChatFeed({
   function send(body: string) {
     if (!body) return;
     // The event chat takes moderator commands, and the demo viewer is always a
-    // moderator. A command never echoes into the room.
+    // moderator. A command never echoes into the room, only its own reply does.
     if (eventMode && event && body.toLowerCase().startsWith("/boost ")) {
-      const slug = slugInEvent(event, body.slice(7));
+      const name = body.slice(7).trim();
+      const slug = slugInEvent(event, name);
+      const target = slug && eventStreamers(event).find((p) => p.channel.slug === slug);
+      setMessages((prev) => [
+        ...prev.slice(-149),
+        {
+          id: nextId++,
+          kind: "system",
+          body: target
+            ? `You boosted ${target.channel.username}.`
+            : `No streamer called "${name}" in this event.`,
+        },
+      ]);
       if (slug) boost(slug);
       return;
     }
@@ -1034,6 +1187,7 @@ export function ChatFeed({
           send(draft.trim());
           setDraft("");
         }}
+        boostTargets={eventMode && event ? eventStreamers(event) : null}
       />
       {cardUser && <ChatUserCard user={cardUser} onClose={() => setCardUser(null)} />}
     </form>
@@ -1150,6 +1304,13 @@ function PinnedCard({ children }: { children: ReactNode }) {
 
 function EventChatStrip({ event }: { event: KickEvent }) {
   const mods = event.chat.moderators;
+  // The pill names who really holds the badge, not the host again.
+  const modLabel =
+    mods.length === 0
+      ? null
+      : mods.length === 1
+        ? mods[0]
+        : `${mods[0]} +${mods.length - 1}`;
   const host = event.host_channel;
   const [open, setOpen] = useState(false);
   const [hidden, setHidden] = useState(false);
@@ -1199,13 +1360,15 @@ function EventChatStrip({ event }: { event: KickEvent }) {
         </div>
         {open && (
           <div className="flex flex-wrap items-center gap-1">
-            <span
-              title={mods.length > 0 ? `Moderators: ${mods.join(", ")}` : undefined}
-              className="flex items-center gap-1 whitespace-nowrap rounded-full bg-secondary-base px-2 py-0.5 text-xs font-semibold text-secondary-onSecondary"
-            >
-              <Icon name="chat-settings" className="size-3 shrink-0 fill-current" />
-              Moderated by {host.username}
-            </span>
+            {modLabel && (
+              <span
+                title={`Moderators: ${mods.join(", ")}`}
+                className="flex items-center gap-1 whitespace-nowrap rounded-full bg-secondary-base px-2 py-0.5 text-xs font-semibold text-secondary-onSecondary"
+              >
+                <Icon name="chat-settings" className="size-3 shrink-0 fill-current" />
+                Moderated by {modLabel}
+              </span>
+            )}
             <span className="whitespace-nowrap rounded-full bg-secondary-base px-2 py-0.5 text-xs font-semibold text-secondary-onSecondary">
               {formatSlowMode(event.chat.slow_mode_seconds)}
             </span>
@@ -1225,30 +1388,39 @@ export function ChannelChat({
   onCollapse,
   event,
   slug,
+  channelName,
 }: {
   onCollapse?: () => void;
   event?: KickEvent;
-  slug?: string;
+  slug: string;
+  channelName: string;
 }) {
   // The room lives in the event provider, because the multiview and the /boost command read it too.
   const { chatMode } = useEvent();
   const inEvent = Boolean(event) && chatMode === "event";
-  // A fresh pool object on every render would retrigger the reseed effect, so hold it steady.
+  // Event chat is one shared room for every seat, so switching the active multiview tile
+  // never touches this pool. Stream chat is "chat with this channel" (ChatHeader says so),
+  // so it gets a fresh pool object per active channel: useFlowingMessages already reseeds
+  // itself whenever the pool it holds changes identity, so a new object is all this needs.
+  // A key on ChatFeed would remount the whole panel instead, losing the draft, the raid
+  // panel state and the scroll position on every single tile switch.
   const pool = useMemo(
-    () => (inEvent && event ? eventPool(event.chat.moderators) : undefined),
-    [inEvent, event],
+    () => (inEvent && event ? eventPool(event.chat.moderators) : { ...streamPool }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- slug forces a new pool identity, unread by design
+    [inEvent, event, slug],
   );
 
   return (
     <ChatFeed
-      // A switch is a different room, so the feed reseeds instead of showing the old room's tail.
+      // A stream/event switch is a different room, so the feed reseeds and its local UI
+      // state (draft, raid panel) resets instead of showing the old room's tail.
       key={chatMode}
       pool={pool}
       event={event}
       hypeSlug={slug}
       header={
         <>
-          <ChatHeader onCollapse={onCollapse} eventName={event?.title} />
+          <ChatHeader onCollapse={onCollapse} eventName={event?.title} channelName={channelName} />
           {!inEvent && <GifterLeaderboard />}
         </>
       }

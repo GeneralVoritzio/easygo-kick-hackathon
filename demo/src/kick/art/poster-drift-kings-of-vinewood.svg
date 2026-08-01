@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="1200" viewBox="0 0 960 1200">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#2b1206"/>
+      <stop offset="0.55" stop-color="#0B0B0C"/>
+      <stop offset="1" stop-color="#000000"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="50%" cy="22%" r="55%">
+      <stop offset="0" stop-color="#FF7A1A" stop-opacity="0.35"/>
+      <stop offset="1" stop-color="#FF7A1A" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="scrim" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0.6" stop-color="#000000" stop-opacity="0"/>
+      <stop offset="1" stop-color="#000000" stop-opacity="0.75"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="960" height="1200" fill="url(#bg)"/>
+  <rect width="960" height="1200" fill="url(#glow)"/>
+
+  <!-- corner devices, the same bracket-and-spark language as the nine bespoke posters -->
+  <g stroke="#FF7A1A" stroke-width="3" fill="none" opacity="0.85">
+    <path d="M60 110 H150 M60 110 V170"/>
+    <path d="M900 110 H810 M900 110 V170"/>
+  </g>
+  <g fill="#FF7A1A" opacity="0.9">
+    <circle cx="150" cy="70" r="4"/>
+    <circle cx="810" cy="70" r="4"/>
+    <circle cx="480" cy="52" r="5"/>
+  </g>
+
+  <!-- diagonal accent bars, low on the poster, under the wordmark strip -->
+  <g opacity="0.5">
+    <rect x="-40" y="960" width="1040" height="10" fill="#FF7A1A" transform="rotate(-2 480 965)"/>
+  </g>
+
+  <!-- a quiet mark for the space below the fold, where the card crop never reaches -->
+  <g stroke="#FF7A1A" stroke-width="2" fill="none" opacity="0.22">
+    <rect x="330" y="600" width="300" height="300" transform="rotate(45 480 750)"/>
+    <rect x="380" y="650" width="200" height="200" transform="rotate(45 480 750)"/>
+  </g>
+
+  <text x="480" y="260" text-anchor="middle" font-family="Arial, Helvetica, sans-serif"
+        font-weight="800" font-size="28" letter-spacing="6" fill="#FF7A1A">
+    GRAND THEFT AUTO V
+  </text>
+
+  <text text-anchor="middle" font-family="Arial Black, Arial, Helvetica, sans-serif"
+        font-weight="900" font-size="72" fill="#FFFFFF">
+    <tspan x="480" y="350">DRIFT KINGS</tspan><tspan x="480" y="432.8">OF VINEWOOD</tspan>
+  </text>
+
+  <rect width="960" height="1200" fill="url(#scrim)"/>
+
+  <g transform="translate(480 1080)">
+    <rect x="-190" y="-34" width="380" height="60" rx="6" fill="#000000" fill-opacity="0.55" stroke="#FF7A1A" stroke-width="2"/>
+    <circle cx="-150" cy="-4" r="6" fill="#FB1818"/>
+    <text x="-125" y="4" font-family="Arial, Helvetica, sans-serif" font-weight="800" font-size="24"
+          letter-spacing="2" fill="#FFFFFF">LIVE ON KICK</text>
+  </g>
+</svg>

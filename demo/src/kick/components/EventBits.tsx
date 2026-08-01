@@ -3,6 +3,8 @@ import { Icon } from "../Icon";
 import { CornerMarks, Pill, ThumbBadge } from "./CardBits";
 import { oneRowGrid } from "./Layout";
 import { useEvents } from "../EventsStore";
+import { useBoostLeft } from "../events/EventProvider";
+import { formatBoostLeft } from "../events/events";
 import { formatViewers, liveStreamFor } from "../mock/api";
 import {
   attendance,
@@ -103,6 +105,21 @@ export function RemindButton({ event, wide }: { event: KickEvent; wide?: boolean
   );
 }
 
+// A /boost in the event chat lands here too: everywhere a boosted streamer's avatar
+// shows up while they hold a seat on an event, not only the multiview tile.
+export function BoostBadge({ slug }: { slug: string }) {
+  const boostLeft = useBoostLeft(slug);
+  if (boostLeft === null) return null;
+  return (
+    <span
+      aria-label={`Streamer is Boosted, ${formatBoostLeft(boostLeft)} left`}
+      className="tooltip-bottom cursor-default text-[11px] leading-none"
+    >
+      🔥
+    </span>
+  );
+}
+
 export function StreamerRow({
   participant,
   eventLive,
@@ -142,6 +159,7 @@ export function StreamerRow({
             />
           )}
           {role === "host" && <Pill>Host</Pill>}
+          <BoostBadge slug={channel.slug} />
         </div>
         <span
           className={`truncate text-sm font-normal leading-5 ${
@@ -181,12 +199,16 @@ function AvatarStack({ participants }: { participants: EventParticipant[] }) {
         .slice(0, 4)
         .reverse()
         .map((p) => (
-          <img
-            key={p.channel.slug}
-            src={p.channel.avatar}
-            alt={p.channel.username}
-            className="-ml-2 size-6 rounded-full ring-2 ring-surface-lowest"
-          />
+          <div key={p.channel.slug} className="relative -ml-2">
+            <img
+              src={p.channel.avatar}
+              alt={p.channel.username}
+              className="size-6 rounded-full ring-2 ring-surface-lowest"
+            />
+            <span className="absolute -bottom-0.5 -right-0.5 leading-none">
+              <BoostBadge slug={p.channel.slug} />
+            </span>
+          </div>
         ))}
     </div>
   );
@@ -306,3 +328,4 @@ export function EventGrid({ events, oneRow }: { events: KickEvent[]; oneRow?: bo
     </section>
   );
 }
+

@@ -3,6 +3,7 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -18,6 +19,10 @@ export type ChatMode = "stream" | "event";
 type Multiview = {
   active: boolean;
   slots: string[];
+  // The event this grid belongs to, set once when the grid opens. Without it, every tile
+  // has to guess its own event by asking eventForChannel(slug), and a channel that runs in
+  // more than one live event at once can guess a different one on every tile.
+  eventId: string | null;
 };
 
 type EventContextValue = {
@@ -28,11 +33,13 @@ type EventContextValue = {
   setLiveEmbeds: (on: boolean) => void;
   registerEmbedTarget: (slug: string, el: HTMLElement) => () => void;
   claimAudible: (slug: string) => () => void;
+  audibleSlug: string | undefined;
+  setAudible: (slug: string | undefined) => void;
   boosts: Record<string, number>;
   boost: (slug: string) => void;
   hypeTiers: Record<string, number>;
   setHypeTier: (slug: string, tier: number) => void;
-  openMultiview: (slug: string) => void;
+  openMultiview: (slug: string, eventId?: string) => void;
   closeMultiview: () => void;
   pin: (slug: string) => void;
   unpin: (slug: string) => void;
@@ -85,6 +92,7 @@ export function EventProvider({ children }: { children: ReactNode }) {
   const [multiview, setMultiview] = useState<Multiview>(() => ({
     active: false,
     slots: storedSlots(),
+    eventId: null,
   }));
   const [chatMode, setChatMode] = useState<ChatMode>("stream");
   const [liveEmbeds, setLiveEmbeds] = useState(
@@ -111,6 +119,11 @@ export function EventProvider({ children }: { children: ReactNode }) {
     setAudibleSlug(slug);
     return () => setAudibleSlug((current) => (current === slug ? undefined : current));
   }, []);
+
+  // A tile's own audio button, or a number key, calls this directly: no cleanup to run, it
+  // just picks who is loud. It stands apart from claimAudible, which a tile claims on mount
+  // or on selection and gives back on unmount.
+  const setAudible = useCallback((slug: string | undefined) => setAudibleSlug(slug), []);
 
   const [boosts, setBoosts] = useState<Record<string, number>>({});
 
@@ -149,7 +162,11 @@ export function EventProvider({ children }: { children: ReactNode }) {
 
   // The leave guard from the spec: while multiview runs, any navigation away
   // prompts to leave or to add the streamer. A slot switch passes through.
-  useEffect(() => {
+  // Layout, not a plain effect: the router has already committed the new page to the DOM
+  // by the time either kind of effect runs, but a layout effect still runs before the
+  // browser paints that frame. Setting the guard here means the viewer never sees the
+  // destination page at all, only the multiview screen and then the dialog over it.
+  useLayoutEffect(() => {
     if (!multiview.active) {
       lastAllowed.current = location.pathname;
       return;
@@ -176,14 +193,17 @@ export function EventProvider({ children }: { children: ReactNode }) {
       setLiveEmbeds,
       registerEmbedTarget,
       claimAudible,
+      audibleSlug,
+      setAudible,
       boosts,
       boost,
       hypeTiers,
       setHypeTier,
-      openMultiview: (slug) =>
+      openMultiview: (slug, eventId) =>
         setMultiview((m) => ({
           active: true,
           slots: m.slots.includes(slug) ? m.slots : [slug, ...m.slots].slice(0, MULTIVIEW_CAP),
+          eventId: eventId ?? m.eventId,
         })),
       closeMultiview: () => setMultiview((m) => ({ ...m, active: false })),
       pin: (slug) =>
@@ -201,7 +221,19 @@ export function EventProvider({ children }: { children: ReactNode }) {
           return { ...m, slots };
         }),
     }),
-    [multiview, chatMode, liveEmbeds, registerEmbedTarget, claimAudible, boosts, boost, hypeTiers, setHypeTier],
+    [
+      multiview,
+      chatMode,
+      liveEmbeds,
+      registerEmbedTarget,
+      claimAudible,
+      audibleSlug,
+      setAudible,
+      boosts,
+      boost,
+      hypeTiers,
+      setHypeTier,
+    ],
   );
 
   function addAndWatch(slug: string) {

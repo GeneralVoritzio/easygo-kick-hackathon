@@ -1,5 +1,5 @@
 import { createContext, useContext, useState } from "react";
-import { channelByUsername, currentUser } from "./mock/api";
+import { cat, channelByUsername, currentUser } from "./mock/api";
 import {
   EVENTS_NOW,
   events as seedEvents,
@@ -85,6 +85,7 @@ export function EventsProvider({ children }: { children: React.ReactNode }) {
       title: draft.title,
       description: draft.description,
       host_channel: currentUser,
+      category: cat("just-chatting"),
       start_at: draft.start_at,
       end_at: draft.end_at,
       poster: draft.poster,

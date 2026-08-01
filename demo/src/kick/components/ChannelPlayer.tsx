@@ -5,6 +5,7 @@ import { useAudibleEmbed, useEmbedTarget } from "../events/EmbedLayer";
 import { embedUrlFor } from "../events/embeds";
 import { useEvent } from "../events/EventProvider";
 import type { Livestream } from "../mock/api";
+import type { KickEvent } from "../mock/events";
 import { RaidStage } from "./RaidStage";
 
 function formatElapsed(totalSeconds: number) {
@@ -39,7 +40,7 @@ function liveSeconds(startedAt: string) {
   return Math.max(0, Math.floor((Date.now() - new Date(startedAt).getTime()) / 1000));
 }
 
-export function ChannelPlayer({ stream }: { stream: Livestream }) {
+export function ChannelPlayer({ stream, event }: { stream: Livestream; event?: KickEvent }) {
   const { openMultiview, liveEmbeds } = useEvent();
   const embedUrl = liveEmbeds ? embedUrlFor(stream.channel.slug, false) : undefined;
   const embedRef = useEmbedTarget(embedUrl ? stream.channel.slug : undefined);
@@ -93,7 +94,7 @@ export function ChannelPlayer({ stream }: { stream: Livestream }) {
           <div className="z-controls absolute right-3 top-3">
             <button
               type="button"
-              onClick={() => openMultiview(stream.channel.slug)}
+              onClick={() => openMultiview(stream.channel.slug, event?.event_id)}
               className="flex items-center gap-1.5 rounded bg-surface-base/90 px-3 py-2 text-sm font-semibold text-white betterhover:hover:bg-surface-highest"
             >
               <Icon name="browse" className="size-4 fill-current" />
@@ -196,7 +197,7 @@ export function ChannelPlayer({ stream }: { stream: Livestream }) {
             <button
               type="button"
               aria-label="Multiview"
-              onClick={() => openMultiview(stream.channel.slug)}
+              onClick={() => openMultiview(stream.channel.slug, event?.event_id)}
               className={controlButtonClass}
             >
               <Icon name="browse" />

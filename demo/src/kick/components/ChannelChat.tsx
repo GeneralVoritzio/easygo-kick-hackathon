@@ -1103,20 +1103,14 @@ function HypeDemoRow({ slug }: { slug: string }) {
 
   return (
     <div className="shrink-0 border-b border-outline-decorative">
-      <div className="flex items-stretch">
-        <div className="flex flex-col justify-center gap-1.5 bg-primary-base px-4 py-2.5">
-          <span className="whitespace-nowrap text-sm font-bold text-primary-onPrimary">
-            Hype Meter
-          </span>
-          <HypeStars tier={tier} />
-        </div>
-        <div className="flex flex-1 items-center justify-end gap-3 bg-surface-highest px-3 py-2">
-          <div className="flex flex-col items-end gap-0.5">
-            {tier > 0 && (
-              <span className="text-xs font-semibold tabular-nums text-white">{clock}</span>
-            )}
-            <span className="text-base font-bold text-white">{HYPE_PERCENTS[tier]}%</span>
-          </div>
+      <div className="flex items-center gap-3 bg-surface-lowest px-3 py-2.5">
+        <span className="whitespace-nowrap text-sm font-bold text-white">Hype Meter</span>
+        <HypeStars tier={tier} />
+        <div className="ml-auto flex items-center gap-2">
+          {tier > 0 && (
+            <span className="text-xs font-semibold tabular-nums text-white">{clock}</span>
+          )}
+          <span className="text-base font-bold text-white">{HYPE_PERCENTS[tier]}%</span>
           <button
             type="button"
             aria-label={open ? "Close the hype meter" : "Open the hype meter"}
@@ -1129,6 +1123,12 @@ function HypeDemoRow({ slug }: { slug: string }) {
             />
           </button>
         </div>
+      </div>
+      <div className="h-2.5 w-full bg-surface-highest">
+        <div
+          className="h-full bg-primary-base transition-[width] duration-300"
+          style={{ width: `${HYPE_PERCENTS[tier]}%` }}
+        />
       </div>
       {open && (
         <div className="flex flex-col gap-2 bg-surface-base p-2">

@@ -2,7 +2,7 @@
 // event model in the app and not two.
 //   fake-kick POST /public/v1/events/{event_id}/boosts
 //   fake-kick events.boost.created, events.boost.expired
-//   fake-kick GET /public/v1/channels/{broadcaster_user_id}/hype, tier 0 to 3
+//   fake-kick GET /public/v1/channels/{broadcaster_user_id}/hype, tier 0 to 3, xp_rate 1 or 2
 //   fake-kick channel.hype.updated
 
 export const MULTIVIEW_CAP = 9;

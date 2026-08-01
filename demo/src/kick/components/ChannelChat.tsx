@@ -12,6 +12,7 @@ import { Icon, type KickIconName } from "../Icon";
 import { BoostNoticeCards } from "../events/BoostNotice";
 import { useEvent } from "../events/EventProvider";
 import { FollowPromptCard } from "../events/FollowPrompt";
+import { HYPE_TIER_MAX } from "../events/events";
 import { HypeStars } from "../events/HypeStars";
 import { avatarFor, currentUser } from "../mock/api";
 import {
@@ -1351,6 +1352,14 @@ function HypeDemoRow({ slug }: { slug: string }) {
           >
             {HYPE_MULTIPLIERS[tier]}
           </span>
+          {tier === HYPE_TIER_MAX && (
+            <span
+              aria-label="Boosted XP Rate: 2x"
+              className="tooltip-bottom tooltip-end cursor-default font-[KickFont] text-sm leading-none text-[#ff5050]"
+            >
+              2x XP
+            </span>
+          )}
         </div>
       </div>
       <div className="mb-1.5 flex h-4 items-stretch gap-[3px] border-2 border-neutral-400 bg-surface-lowest p-[3px]">

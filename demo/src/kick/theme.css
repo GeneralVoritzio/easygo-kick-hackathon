@@ -329,8 +329,6 @@
   .tooltip-start::before { left: 0; translate: none }
   .tooltip-end::before { left: auto; right: 0; translate: none }
   .tooltip-bottom { position: relative }
-  .tooltip-top.tooltip-pre::before,
-  .tooltip-bottom.tooltip-pre::before { white-space: pre-line; text-align: center }
   .tooltip-bottom::before {
     content: attr(aria-label);
     font-family: "Inter", sans-serif;

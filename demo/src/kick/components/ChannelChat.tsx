@@ -1353,12 +1353,8 @@ function HypeDemoRow({ slug }: { slug: string }) {
           </span>
         </div>
       </div>
-      <div
-        aria-label={`Hype Level: ${"\u2605".repeat(tier)}${"\u2606".repeat(3 - tier)}\n${
-          tier < 3 ? `${HYPE_PERCENTS[tier + 1] - HYPE_PERCENTS[tier]}% to next level` : "Max level"
-        }`}
-        className="tooltip-bottom tooltip-pre mb-1.5 flex h-4 cursor-default items-stretch gap-[3px] border-2 border-neutral-400 bg-surface-lowest p-[3px]"
-      >
+      <div className="group/bar relative mb-1.5 cursor-default">
+        <div className="flex h-4 items-stretch gap-[3px] border-2 border-neutral-400 bg-surface-lowest p-[3px]">
         {(() => {
           const filled = Math.round((HYPE_PERCENTS[tier] / 100) * 24);
           return Array.from({ length: 24 }, (_, i) => (
@@ -1372,6 +1368,19 @@ function HypeDemoRow({ slug }: { slug: string }) {
             />
           ));
         })()}
+        </div>
+        <div className="z-popover pointer-events-none absolute left-1/2 top-full mt-1.5 flex -translate-x-1/2 items-center gap-1 whitespace-nowrap rounded-md bg-white px-2 py-1 text-sm font-medium text-black opacity-0 transition-opacity group-hover/bar:opacity-100">
+          {tier < 3 ? (
+            <>
+              {HYPE_PERCENTS[tier + 1] - HYPE_PERCENTS[tier]}% till
+              {Array.from({ length: tier + 1 }, (_, star) => (
+                <PixelStar key={star} size="size-3.5" fillClass="fill-[#ffd700]" />
+              ))}
+            </>
+          ) : (
+            "Max level"
+          )}
+        </div>
       </div>
       {controlsOpen && (
         <div className="flex items-center gap-2 px-1">

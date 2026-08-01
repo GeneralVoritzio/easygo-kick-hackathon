@@ -37,7 +37,7 @@ function BoostNoticeCard({ notice }: { notice: BoostNotice }) {
     <PinnedCard>
       <div className="flex items-center gap-1.5">
         <PixelStar size="size-4" fillClass="fill-[#ffd700]" />
-        <span className="whitespace-nowrap font-[KickFont] text-base leading-none text-white">
+        <span className="hype-shimmer hype-tier-3 whitespace-nowrap font-[KickFont] text-base leading-none text-white">
           MAX HYPE
         </span>
         <div className="ml-auto flex items-center gap-2">
@@ -71,11 +71,20 @@ function BoostNoticeCard({ notice }: { notice: BoostNotice }) {
           {event.title}
         </span>
       </div>
-      <div className="h-1 w-full overflow-hidden rounded-full bg-white/10">
-        <div
-          className="h-full rounded-full bg-primary-base transition-[width] duration-1000 ease-linear"
-          style={{ width: `${(remaining / BOOST_NOTICE_SECONDS) * 100}%` }}
-        />
+      <div className="flex h-4 items-stretch gap-[3px] border-2 border-neutral-400 bg-surface-lowest p-[3px]">
+        {(() => {
+          const filled = Math.round((remaining / BOOST_NOTICE_SECONDS) * 24);
+          return Array.from({ length: 24 }, (_, i) => (
+            <div
+              key={i}
+              className={`flex-1 ${
+                i < filled
+                  ? `bg-primary-base ${i === filled - 1 ? "hype-bar-blink" : ""}`
+                  : "bg-surface-highest"
+              }`}
+            />
+          ));
+        })()}
       </div>
       <div className="flex items-center justify-between gap-2">
         <span className="tabular text-[11px] font-semibold text-surface-onSurfaceSecondary">

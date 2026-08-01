@@ -12,6 +12,11 @@ dist
 dist-ssr
 *.local
 
+# Multiview tile footage. These are third-party stream recordings, so Brand
+# Identity Section 7 blocks them from the repository. Keep them on the demo
+# machine only. See public/multiview/README.md.
+public/multiview/*.mp4
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

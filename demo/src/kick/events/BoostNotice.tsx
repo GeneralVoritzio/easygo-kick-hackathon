@@ -8,13 +8,16 @@ import { BOOST_NOTICE_SECONDS, formatBoostLeft, MULTIVIEW_CAP } from "./events";
 import { useEvent, type BoostNotice } from "./EventProvider";
 import { PixelStar } from "./HypeStars";
 
-// The notice's own countdown ticks independently of the provider's expiry sweep, which only
-// re-renders when a notice actually drops out of the list, not every second.
+// The notice's own countdown runs on animation frames, so the border ring
+// unwraps smoothly instead of stepping on a timer tick.
 function useTick() {
-  const [, setNow] = useState(() => Date.now());
+  const [, setFrame] = useState(0);
   useEffect(() => {
-    const id = setInterval(() => setNow(Date.now()), 1000);
-    return () => clearInterval(id);
+    let raf = requestAnimationFrame(function loop() {
+      setFrame((n) => n + 1);
+      raf = requestAnimationFrame(loop);
+    });
+    return () => cancelAnimationFrame(raf);
   }, []);
 }
 
@@ -39,9 +42,29 @@ function BoostNoticeCard({ notice }: { notice: BoostNotice }) {
       : remaining > BOOST_NOTICE_SECONDS / 4
         ? "#ffd700"
         : "#ff5050";
+  const fracLeft =
+    Math.max(0, BOOST_NOTICE_SECONDS * 1000 - (Date.now() - notice.createdAt)) /
+    (BOOST_NOTICE_SECONDS * 1000);
+  // A conic sweep clipped to a 2px ring over the card border, so the accent
+  // unwraps around the card as the time drains.
+  const ringMask = "linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)";
 
   return (
-    <PinnedCard borderColor={timeColor}>
+    <PinnedCard>
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -inset-[2px] rounded"
+        style={{
+          padding: 2,
+          background: `conic-gradient(${timeColor} ${fracLeft * 360}deg, transparent ${
+            fracLeft * 360
+          }deg)`,
+          WebkitMask: ringMask,
+          WebkitMaskComposite: "xor",
+          mask: ringMask,
+          maskComposite: "exclude",
+        }}
+      />
       <div className="flex items-center gap-1.5">
         <PixelStar size="size-4" fillClass="fill-[#ffd700]" />
         <span className="hype-shimmer hype-tier-3 whitespace-nowrap font-[KickFont] text-base leading-none text-white">
@@ -79,11 +102,8 @@ function BoostNoticeCard({ notice }: { notice: BoostNotice }) {
         </span>
       </div>
       <div className="flex items-center justify-between gap-2">
-        <span
-          aria-label={`${formatBoostLeft(remaining)} left`}
-          className="tooltip-top cursor-default text-sm leading-none"
-        >
-          🐌
+        <span className="tabular text-[11px] font-semibold text-surface-onSurfaceSecondary">
+          {formatBoostLeft(remaining)} left
         </span>
         <div className="flex shrink-0 gap-1.5">
           <button

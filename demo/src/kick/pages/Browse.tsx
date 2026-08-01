@@ -44,6 +44,7 @@ const eventGroups: { bucket: EventBucket; title: string }[] = [
   { bucket: "today", title: "Today" },
   { bucket: "week", title: "This week" },
   { bucket: "month", title: "This month" },
+  { bucket: "later", title: "Later" },
 ];
 
 const eventViews = [

@@ -1345,10 +1345,7 @@ function HypeDemoRow({ slug }: { slug: string }) {
           <span className="text-sm font-bold text-white">
             {HYPE_PERCENTS[tier]}%
           </span>
-          <span
-            aria-label={`Channel Point Multiplier: ${HYPE_MULTIPLIERS[tier]}`}
-            className="tooltip-bottom tooltip-end cursor-default font-[KickFont] text-sm leading-none text-primary-base"
-          >
+          <span className="cursor-default font-[KickFont] text-sm leading-none text-primary-base">
             {HYPE_MULTIPLIERS[tier]}
           </span>
         </div>
@@ -1369,17 +1366,19 @@ function HypeDemoRow({ slug }: { slug: string }) {
           ));
         })()}
         </div>
-        <div className="z-popover pointer-events-none absolute left-1/2 top-full mt-1.5 flex -translate-x-1/2 items-center gap-1 whitespace-nowrap rounded-md bg-white px-2 py-1 text-sm font-medium text-black opacity-0 transition-opacity group-hover/bar:opacity-100">
+        <div className="z-popover pointer-events-none absolute left-1/2 top-full mt-1.5 flex -translate-x-1/2 flex-col items-start gap-0.5 whitespace-nowrap rounded-md bg-white px-2.5 py-1.5 text-sm font-medium text-black opacity-0 transition-opacity group-hover/bar:opacity-100">
+          <span className="font-bold">Hype Progress</span>
           {tier < 3 ? (
-            <>
+            <span className="flex items-center gap-1">
               {HYPE_PERCENTS[tier + 1] - HYPE_PERCENTS[tier]}% till
               {Array.from({ length: tier + 1 }, (_, star) => (
                 <PixelStar key={star} size="size-3.5" fillClass="fill-[#ffd700]" />
               ))}
-            </>
+            </span>
           ) : (
-            "Max level"
+            <span>Max level</span>
           )}
+          <span>Channel Points Multiplier: {HYPE_MULTIPLIERS[tier]}</span>
         </div>
       </div>
       {controlsOpen && (

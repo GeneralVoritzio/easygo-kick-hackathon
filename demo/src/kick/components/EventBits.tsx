@@ -57,9 +57,11 @@ export function PartnerNotice() {
 }
 
 // A live event does not need a reminder, it needs a way in. A finished one needs neither.
+// Joining pins the live seat, the one flow that adds a multiview slot by itself.
 export function EventAction({ event }: { event: KickEvent }) {
   const live = isLiveWindow(event);
   const joinable = live ? liveParticipant(event) : undefined;
+  const { pin } = useEvent();
 
   if (hasFinished(event)) return null;
 
@@ -67,6 +69,7 @@ export function EventAction({ event }: { event: KickEvent }) {
     return joinable ? (
       <Link
         to={`/${joinable.channel.slug}`}
+        onClick={() => pin(joinable.channel.slug)}
         data-testid="join-event"
         className="flex h-10 shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded bg-primary-base px-3 py-2 text-base font-semibold text-primary-onPrimary transition-all select-none state-layer-base betterhover:active:scale-[0.98]"
       >

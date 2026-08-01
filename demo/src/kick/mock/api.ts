@@ -699,6 +699,70 @@ export const channelProfiles: ChannelProfile[] = [
     ]),
     recent_categories: [catTile("just-chatting")],
   },
+  {
+    channel: channel("spinvicar", "SpinVicar", 103470, true),
+    banner: "",
+    bio: "Every spin gets a blessing first. The machine listens, chat. It listens.",
+    last_live_at: "2026-07-26T09:50:00Z",
+    socials: [{ icon: "x", handle: "SpinVicar" }, { icon: "instagram", handle: "spinvicar" }],
+    panels: [
+      { kind: "text", title: "The blessing schedule", body: "One blessing per spin. Two on Sundays. The machine knows the difference." },
+    ],
+    videos: videos("slots-casino", [
+      ["THE MACHINE HEARD ME, MAX WIN ON STREAM", 12400, 96100, "2026-07-24T20:00:00Z"],
+      ["cold machine, hot sermon, we ride at dawn", 15900, 41200, "2026-07-22T21:30:00Z"],
+      ["blessing marathon until it pays out", 20100, 38800, "2026-07-19T19:00:00Z"],
+    ]),
+    recent_categories: [catTile("slots-casino"), catTile("just-chatting")],
+  },
+  {
+    channel: channel("couchsermon", "CouchSermon", 57330),
+    banner: "",
+    bio: "Hot takes from the couch, five nights a week. You are all wrong and the couch agrees with me.",
+    last_live_at: "2026-07-26T11:05:00Z",
+    socials: [{ icon: "x", handle: "CouchSermon" }, { icon: "discord", handle: "couchsermon" }],
+    panels: [
+      { kind: "text", title: "Sermon rules", body: "One take at a time. Chat gets one rebuttal each. The couch has final say." },
+    ],
+    videos: videos("just-chatting", [
+      ["the cereal debate that ended three friendships", 9800, 51200, "2026-07-25T12:00:00Z"],
+      ["ranking every chat member by vibes alone", 11200, 33400, "2026-07-23T13:15:00Z"],
+      ["i was wrong once and it was not this", 8700, 27900, "2026-07-21T12:45:00Z"],
+    ]),
+    recent_categories: [catTile("just-chatting")],
+  },
+  {
+    channel: channel("yapmerchant", "YapMerchant", 24885),
+    banner: "",
+    bio: "Professional yapper. Six hours a day, no notes, no points, no refunds.",
+    last_live_at: "2026-07-26T10:20:00Z",
+    socials: [{ icon: "x", handle: "yapmerchant" }],
+    panels: [
+      { kind: "text", title: "Yap hours", body: "Live every day from noon. The yap ends when the voice does." },
+    ],
+    videos: videos("just-chatting", [
+      ["six hour yap, zero points, personal best", 21600, 18700, "2026-07-25T12:00:00Z"],
+      ["chat tried to make me get to the point", 13400, 15200, "2026-07-22T12:30:00Z"],
+      ["story time with no story and no time", 10900, 12800, "2026-07-20T13:00:00Z"],
+    ]),
+    recent_categories: [catTile("just-chatting")],
+  },
+  {
+    channel: channel("vanlifevoid", "VanlifeVoid", 61228),
+    banner: "",
+    bio: "Living out of the van until the van stops living. Chat navigates, I drive.",
+    last_live_at: "2026-07-26T08:30:00Z",
+    socials: [{ icon: "instagram", handle: "vanlifevoid" }, { icon: "youtube", handle: "VanlifeVoid" }],
+    panels: [
+      { kind: "text", title: "The route", body: "No plan past the next fuel stop. Chat picks the turn at every junction." },
+    ],
+    videos: videos("irl", [
+      ["the van broke down in the best possible place", 14700, 44600, "2026-07-24T08:00:00Z"],
+      ["chat navigated us onto a ferry somehow", 16800, 39100, "2026-07-22T09:20:00Z"],
+      ["cooking dinner on the engine block again", 9500, 21400, "2026-07-19T18:40:00Z"],
+    ]),
+    recent_categories: [catTile("irl"), catTile("just-chatting")],
+  },
 ];
 
 export const profileFor = (slug: string) =>

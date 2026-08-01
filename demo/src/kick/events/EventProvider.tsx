@@ -142,6 +142,8 @@ export function EventProvider({ children }: { children: ReactNode }) {
   const nextBoostNoticeId = useRef(0);
 
   const boost = useCallback((slug: string, eventId?: string) => {
+    // A notice must never point at a channel the router cannot resolve.
+    if (!profileFor(slug) || !liveStreamFor(slug)) return;
     setBoosts((prev) => ({ ...prev, [slug]: Date.now() + BOOST_MINUTES * 60_000 }));
     if (eventId) {
       setBoostNotices((prev) => [

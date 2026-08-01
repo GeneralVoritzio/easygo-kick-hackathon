@@ -451,7 +451,7 @@ export function MultiviewGrid({ stream }: { stream: Livestream }) {
       {hover && controlsVisible && (
         <div
           aria-hidden
-          className="pointer-events-none fixed z-popover flex w-72 items-start gap-2 rounded bg-black/90 p-2 shadow-lg ring-1 ring-outline-decorative"
+          className="pointer-events-none fixed z-popover flex w-72 items-start gap-2 rounded bg-surface-highest p-2 shadow-lg ring-1 ring-outline-decorative"
           style={{
             left: Math.min(hover.x + 18, window.innerWidth - 296),
             top: Math.min(hover.y + 18, window.innerHeight - 160),

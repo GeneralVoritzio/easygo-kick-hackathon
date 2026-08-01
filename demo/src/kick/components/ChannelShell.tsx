@@ -11,7 +11,7 @@ import { ChannelChat } from "./ChannelChat";
 import { ChannelOffline } from "./ChannelOffline";
 import { ChannelAboutCard } from "./ChannelSections";
 import { useEvents } from "../EventsStore";
-import { eventForChannel } from "../mock/events";
+import { eventForChannel, eventStreamers } from "../mock/events";
 
 const MIN_CHAT_WIDTH = 260;
 const MAX_CHAT_WIDTH = 480;
@@ -85,7 +85,13 @@ export function ChannelShell({
   const lockedEvent = multiview.eventId
     ? events.find((e) => e.event_id === multiview.eventId)
     : undefined;
-  const event = multiview.active && lockedEvent ? lockedEvent : perChannelEvent;
+  // A tile that joined the grid without a seat on the locked event (added straight from a
+  // channel URL, not pinned from the event's own pool) is not part of it, so it falls back
+  // to its own event, if it has one, same as outside multiview.
+  const lockedEventHasSeat =
+    lockedEvent !== undefined &&
+    eventStreamers(lockedEvent).some((p) => p.channel.slug === profile.channel.slug);
+  const event = multiview.active && lockedEvent && lockedEventHasSeat ? lockedEvent : perChannelEvent;
 
   // M brings the grid back after Escape or Enter closed it. It only fires on a live channel
   // page, on the same running order Escape just closed, never over chat or a form field.

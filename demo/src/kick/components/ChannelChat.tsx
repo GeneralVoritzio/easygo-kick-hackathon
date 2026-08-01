@@ -1179,22 +1179,15 @@ function EventChatStrip({ event }: { event: KickEvent }) {
   return (
     <div
       data-testid="event-chat-strip"
-      className="relative flex shrink-0 items-center gap-3 overflow-hidden border-y border-outline-decorative bg-surface-base px-3 py-3"
+      className="relative mx-3 mt-3 flex shrink-0 items-center gap-3 overflow-hidden rounded-lg border border-outline-decorative bg-surface-highest p-3"
     >
-      {/* A soft green spotlight behind the avatar, not a flood: the design system's own
-          limit on how much of a surface the brand green is allowed to cover. */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute -left-8 -top-8 size-28 rounded-full bg-primary-base/25 blur-2xl"
-      />
-
       <Link to={`/${event.host_channel.slug}/home`} className="relative shrink-0">
         <img
           src={event.host_channel.avatar}
           alt={event.host_channel.username}
           className="size-10 rounded-full ring-2 ring-primary-base"
         />
-        <span className="absolute -bottom-0.5 -right-0.5 flex size-3.5 items-center justify-center rounded-full bg-surface-base">
+        <span className="absolute -bottom-0.5 -right-0.5 flex size-3.5 items-center justify-center rounded-full bg-surface-highest">
           <span className="size-2 animate-pulse rounded-full bg-primary-base" />
         </span>
       </Link>

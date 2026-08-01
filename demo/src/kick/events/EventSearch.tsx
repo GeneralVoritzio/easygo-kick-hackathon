@@ -16,7 +16,6 @@ import { useEvents } from "../EventsStore";
 import {
   eventForChannel,
   eventStreamers,
-  isLiveWindow,
   liveSeats,
   publicUpcoming,
   type KickEvent,
@@ -227,8 +226,13 @@ export function EventSearch() {
   const slug = location.pathname.split("/")[1] ?? "";
   // The chip follows the event of the channel you are on. Multiview keeps it while it is open.
   const onChannelEvent = eventForChannel(events, slug);
+  // While multiview runs, only the event the grid was opened for counts. A grid
+  // with no event never borrows an unrelated live one.
   const contextEvent: KickEvent | undefined =
-    onChannelEvent ?? (multiview.active ? events.find(isLiveWindow) : undefined);
+    onChannelEvent ??
+    (multiview.active && multiview.eventId
+      ? events.find((e) => e.event_id === multiview.eventId)
+      : undefined);
   const inEventContext = Boolean(contextEvent);
   const chipOn = inEventContext && !chipDismissed;
   const full = multiview.slots.length >= MULTIVIEW_CAP;

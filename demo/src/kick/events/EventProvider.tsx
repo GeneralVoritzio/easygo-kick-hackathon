@@ -170,7 +170,13 @@ export function EventProvider({ children }: { children: ReactNode }) {
     return () => clearTimeout(id);
   }, [directorPrompt]);
 
-  const [hypeTiers, setHypeTiers] = useState<Record<string, number>>({});
+  // Live tiers seeded as if fake-kick GET /public/v1/channels/{id}/hype answered
+  // on load, so the star system shows without the demo controls.
+  const [hypeTiers, setHypeTiers] = useState<Record<string, number>>({
+    couchsenate: 3,
+    nocturnalnorm: 2,
+    wanderfuse: 1,
+  });
 
   const setHypeTier = useCallback((slug: string, tier: number) => {
     setHypeTiers((prev) => ({ ...prev, [slug]: tier }));

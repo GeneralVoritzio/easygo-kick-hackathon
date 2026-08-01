@@ -112,7 +112,8 @@ function Section({ label, children }: { label: string; children: ReactNode }) {
 function GlobalResults({ query, onOpen }: { query: string; onOpen: (to: string) => void }) {
   const q = query.toLowerCase();
   const { events: allEvents } = useEvents();
-  const { hypeTiers } = useEvent();
+  const { hypeTiers, multiview, pin } = useEvent();
+  const full = multiview.slots.length >= MULTIVIEW_CAP;
   const channels = channelProfiles
     .filter((p) => p.channel.username.toLowerCase().includes(q))
     .slice(0, 3);
@@ -147,6 +148,19 @@ function GlobalResults({ query, onOpen }: { query: string; onOpen: (to: string) 
                 )}
               </span>
               {liveStreamFor(p.channel.slug) && <LivePill />}
+              {liveStreamFor(p.channel.slug) && (
+                <button
+                  type="button"
+                  disabled={multiview.slots.includes(p.channel.slug) || full}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    pin(p.channel.slug);
+                  }}
+                  className="h-7 shrink-0 rounded bg-secondary-base px-2 text-xs font-semibold text-secondary-onSecondary disabled:bg-disabled-base disabled:text-disabled-onSurface"
+                >
+                  {multiview.slots.includes(p.channel.slug) ? "Pinned" : "Pin"}
+                </button>
+              )}
             </Row>
           ))}
         </Section>

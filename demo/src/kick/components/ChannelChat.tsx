@@ -12,7 +12,7 @@ import { Icon, type KickIconName } from "../Icon";
 import { BoostNoticeCards } from "../events/BoostNotice";
 import { useEvent } from "../events/EventProvider";
 import { FollowPromptCard } from "../events/FollowPrompt";
-import { HypeStars, PixelStar } from "../events/HypeStars";
+import { HypeStars } from "../events/HypeStars";
 import { avatarFor, currentUser } from "../mock/api";
 import {
   eventStreamers,
@@ -1332,7 +1332,6 @@ function HypeDemoRow({ slug }: { slug: string }) {
   return (
     <PinnedCard>
       <div className="flex items-center gap-1.5">
-        <PixelStar size="size-4" fillClass="fill-[#ffd700]" />
         <span className="whitespace-nowrap font-[KickFont] text-base leading-none text-white">
           HYPE
         </span>

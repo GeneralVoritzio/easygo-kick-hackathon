@@ -1366,7 +1366,7 @@ function HypeDemoRow({ slug }: { slug: string }) {
           ));
         })()}
         </div>
-        <div className="z-popover pointer-events-none absolute left-1/2 top-full mt-1.5 flex -translate-x-1/2 flex-col items-start gap-0.5 whitespace-nowrap rounded-md bg-white px-2.5 py-1.5 text-sm font-medium text-black opacity-0 transition-opacity group-hover/bar:opacity-100">
+        <div className="z-popover pointer-events-none absolute left-1/2 top-full mt-1.5 flex -translate-x-1/2 flex-col items-start gap-0.5 whitespace-nowrap rounded-md bg-surface-highest px-2.5 py-1.5 text-sm font-medium text-white shadow-[0_4px_12px_rgba(0,0,0,0.5)] opacity-0 transition-opacity group-hover/bar:opacity-100">
           <span className="font-bold">Hype Progress</span>
           {tier < 3 ? (
             <span className="flex items-center gap-1">

@@ -6,6 +6,7 @@ import { useAudibleEmbed, useEmbedTarget } from "./EmbedLayer";
 import { embedUrlFor } from "./embeds";
 import { formatBoostLeft } from "./events";
 import { useBoostLeft, useEvent } from "./EventProvider";
+import { HypeStars } from "./HypeStars";
 
 function gridCols(count: number) {
   if (count <= 1) return "grid-cols-1";
@@ -26,7 +27,8 @@ function Tile({
   onDragStart: (index: number) => void;
   onDrop: (index: number) => void;
 }) {
-  const { unpin, closeMultiview, liveEmbeds } = useEvent();
+  const { unpin, closeMultiview, liveEmbeds, hypeTiers } = useEvent();
+  const hypeTier = hypeTiers[stream.channel.slug] ?? 0;
   const navigate = useNavigate();
   const boostLeft = useBoostLeft(stream.channel.slug);
   const embedUrl = liveEmbeds ? embedUrlFor(stream.channel.slug, true) : undefined;
@@ -69,10 +71,11 @@ function Tile({
           </span>
         )}
       </div>
-      <div className="absolute inset-x-0 bottom-0 z-[2] flex items-center bg-gradient-to-t from-black/80 to-transparent p-1.5 pt-4">
+      <div className="absolute inset-x-0 bottom-0 z-[2] flex items-center gap-1 bg-gradient-to-t from-black/80 to-transparent p-1.5 pt-4">
         <span className="min-w-0 truncate text-xs font-bold text-white">
           {stream.channel.username}
         </span>
+        {hypeTier > 0 && <HypeStars tier={hypeTier} size="size-3" />}
       </div>
       {/* The switch lives behind an explicit button, so a stray click on the
           tile never moves the main stream. */}

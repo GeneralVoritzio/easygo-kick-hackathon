@@ -11,7 +11,7 @@ import {
 import { Link } from "react-router-dom";
 import { Icon, type KickIconName } from "../Icon";
 import { useEvent } from "../events/EventProvider";
-import { HYPE_TIER_MAX } from "../events/events";
+import { PixelStar } from "../events/HypeStars";
 import { avatarFor, currentUser } from "../mock/api";
 import { formatSlowMode, slugInEvent, type KickEvent } from "../mock/events";
 import { useRaid } from "../raid/RaidProvider";
@@ -952,12 +952,14 @@ function ChatFooter({
 // there. On the channel page one surface runs across the whole site, so it runs on surface-lowest.
 export function ChatFeed({
   header,
+  pinned,
   dashboard,
   pool,
   event,
   hypeSlug,
 }: {
   header?: ReactNode;
+  pinned?: ReactNode;
   dashboard?: boolean;
   pool?: MessagePool;
   event?: KickEvent;
@@ -1009,12 +1011,19 @@ export function ChatFeed({
     >
       {header}
       <RaidBanner open={panelOpen} onToggle={() => setPanelOpen((v) => !v)} />
-      <ChatMessages
-        messages={messages}
-        surface={surface}
-        onOpen={setCardUser}
-        hypeTier={hypeTier}
-      />
+      <div className="relative flex min-h-0 shrink grow flex-col">
+        <ChatMessages
+          messages={messages}
+          surface={surface}
+          onOpen={setCardUser}
+          hypeTier={hypeTier}
+        />
+        {pinned && (
+          <div className="pointer-events-none absolute inset-x-2 top-2 z-[5] flex flex-col gap-2">
+            {pinned}
+          </div>
+        )}
+      </div>
       {raid && panelOpen && <RaidPanel onClose={() => setPanelOpen(false)} />}
       <ChatFooter
         draft={draft}
@@ -1031,49 +1040,9 @@ export function ChatFeed({
   );
 }
 
-// The pixel star from the Noun Project icon 135344, inlined, attribution in
-// KICK-ASSETS.md. The outline is the glyph, so a lit star colours the glyph.
-function PixelStar({ fillClass }: { fillClass: string }) {
-  return (
-    <svg viewBox="12 10 76 80" className="size-6 shrink-0" aria-hidden>
-      <polygon points="50.0,20.5 57.9,40.1 79.0,41.6 62.8,55.2 67.9,75.7 50.0,64.5 32.1,75.7 37.2,55.2 21.0,41.6 42.1,40.1" className={fillClass} />
-      <path fill="#ffd700" d="M82.087,37.159v8.557h-4.273v-4.285H60.7v-4.272H82.087z M69.257,79.945v4.284h12.83v-8.557h-4.273v4.273H69.257z M73.53,75.672h4.284v-8.557H73.53V75.672z M73.53,50.012h4.284v-4.296H73.53V50.012z M69.257,67.115h4.273v-8.546h-4.273V67.115z M69.257,54.285h4.273v-4.273h-4.273V54.285z M60.7,75.672v4.273h8.557v-4.273H60.7z M64.984,58.569h4.273v-4.284h-4.273V58.569z M52.131,71.399v4.273H60.7v-4.273H52.131z M56.427,37.159H60.7v-8.558h-4.273V37.159z M52.131,54.285h4.296V41.431h-4.296V54.285z M52.131,28.601h4.296v-8.545h-4.296V28.601z M47.846,67.115v4.284h4.285v-4.284H47.846z M52.131,15.771h-4.285v4.285h4.285V15.771z M43.574,54.285h4.272V41.431h-4.272V54.285z M47.846,20.056h-4.272v8.545h4.272V20.056z M39.301,71.399v4.273h8.545v-4.273H39.301z M43.574,28.601h-4.273v8.558h4.273V28.601z M30.744,75.672v4.273h8.557v-4.273H30.744z M35.016,54.285h-4.272v4.284h4.272V54.285z M30.744,58.569h-4.273v8.546h4.273V58.569z M26.471,50.012v4.273h4.273v-4.273H26.471z M22.186,79.945v-4.273h-4.273v8.557h12.831v-4.284H22.186z M26.471,67.115h-4.285v8.557h4.285V67.115z M22.186,45.716v4.296h4.285v-4.296H22.186z M39.301,41.431v-4.272H17.913v8.557h4.273v-4.285H39.301z" />
-    </svg>
-  );
-}
-
-function HypeStars({ tier }: { tier: number }) {
-  return (
-    <div className="hype-stars flex items-center gap-1">
-      {[0, 1, 2].map((i) => {
-        const fillClass =
-          tier === HYPE_TIER_MAX
-            ? "hype-star-rainbow"
-            : i < tier
-              ? "fill-[#ffd700]"
-              : i === tier
-                ? "hype-star-blink"
-                : "fill-transparent";
-        return <PixelStar key={i} fillClass={fillClass} />;
-      })}
-    </div>
-  );
-}
 
 const HYPE_MULTIPLIERS = ["1x", "1.2x", "1.5x", "2x"];
 const HYPE_PERCENTS = [12, 42, 68, 100];
-
-function HypeQuickAction({ icon, amount }: { icon: string; amount: number }) {
-  return (
-    <button
-      type="button"
-      className="flex items-center gap-2 rounded-lg border-2 border-primary-base/60 bg-surface-highest px-3 py-1.5 betterhover:hover:border-primary-base"
-    >
-      <img src={icon} alt="" className="size-6" />
-      <span className="text-sm font-bold text-white">{amount}</span>
-    </button>
-  );
-}
 
 function HypeDemoRow({ slug }: { slug: string }) {
   const { hypeTiers, setHypeTier } = useEvent();
@@ -1102,20 +1071,20 @@ function HypeDemoRow({ slug }: { slug: string }) {
   const clock = `${Math.floor(secondsLeft / 60)}:${String(secondsLeft % 60).padStart(2, "0")}`;
 
   return (
-    <div className="shrink-0 border-b border-outline-decorative">
-      <div className="flex items-center gap-3 bg-surface-lowest px-3 py-2.5">
-        <span className="whitespace-nowrap text-sm font-bold text-white">Hype Meter</span>
-        <HypeStars tier={tier} />
+    <PinnedCard>
+      <div className="flex items-center gap-1.5">
+        <PixelStar size="size-4" fillClass="fill-[#ffd700]" />
+        <span className="whitespace-nowrap font-[KickFont] text-base leading-none text-white">HYPE</span>
         <div className="ml-auto flex items-center gap-2">
           {tier > 0 && (
             <span className="text-xs font-semibold tabular-nums text-white">{clock}</span>
           )}
-          <span className="text-base font-bold text-white">{HYPE_PERCENTS[tier]}%</span>
+          <span className="text-sm font-bold text-white">{HYPE_PERCENTS[tier]}%</span>
           <button
             type="button"
             aria-label={open ? "Close the hype meter" : "Open the hype meter"}
             onClick={() => setOpen((v) => !v)}
-            className="state-layer-surface flex size-8 shrink-0 items-center justify-center rounded-full bg-surface-base text-white"
+            className="state-layer-surface flex size-7 shrink-0 items-center justify-center rounded text-white"
           >
             <Icon
               name="chevron-right"
@@ -1124,39 +1093,30 @@ function HypeDemoRow({ slug }: { slug: string }) {
           </button>
         </div>
       </div>
-      <div className="bg-surface-lowest px-3 pb-2.5">
-        <div className="flex h-4 items-stretch gap-[3px] border-2 border-neutral-400 bg-surface-lowest p-[3px]">
-          {Array.from({ length: 24 }, (_, i) => (
-            <div
-              key={i}
-              className={`flex-1 ${
-                i < Math.round((HYPE_PERCENTS[tier] / 100) * 24)
-                  ? "bg-primary-base"
-                  : "bg-surface-highest"
-              }`}
-            />
-          ))}
-        </div>
+      <div className="mb-1.5 flex h-4 items-stretch gap-[3px] border-2 border-neutral-400 bg-surface-lowest p-[3px]">
+        {Array.from({ length: 24 }, (_, i) => (
+          <div
+            key={i}
+            className={`flex-1 ${
+              i < Math.round((HYPE_PERCENTS[tier] / 100) * 24)
+                ? "bg-primary-base"
+                : "bg-surface-highest"
+            }`}
+          />
+        ))}
       </div>
       {open && (
-        <div className="flex flex-col gap-2 bg-surface-base p-2">
+        <div className="flex flex-col gap-2">
           <div className="flex items-center justify-between rounded-lg bg-surface-highest px-3 py-2.5">
             <span className="text-sm font-semibold text-white">Channel Points Multiplier</span>
-            <span className="text-base font-bold text-primary-base">
+            <span className="font-[KickFont] text-base leading-none text-primary-base">
               {HYPE_MULTIPLIERS[tier]}
             </span>
-          </div>
-          <div className="flex flex-col gap-2 rounded-lg bg-surface-highest px-3 py-2.5">
-            <span className="text-sm font-semibold text-white">Send KICKs to raise the hype</span>
-            <div className="flex items-center gap-2">
-              <HypeQuickAction icon={emotes[6].url} amount={100} />
-              <HypeQuickAction icon={emotes[8].url} amount={500} />
-            </div>
           </div>
           {controlsOpen && (
             <div className="flex items-center gap-2 px-1">
               <span className="text-xs uppercase text-surface-onSurfaceSecondary">Demo</span>
-              {Array.from({ length: HYPE_TIER_MAX + 1 }, (_, t) => (
+              {Array.from({ length: 4 }, (_, t) => (
                 <button
                   key={t}
                   type="button"
@@ -1174,51 +1134,89 @@ function HypeDemoRow({ slug }: { slug: string }) {
           )}
         </div>
       )}
+    </PinnedCard>
+  );
+}
+
+// The floating pinned card, copied from the live chat pinned message: a rounded
+// bordered card over the top of the feed, a "Sent by" row, then the message row.
+function PinnedCard({ children }: { children: ReactNode }) {
+  return (
+    <div className="pointer-events-auto flex flex-col gap-1.5 rounded border-2 border-[#4a5158] bg-surface-base px-3 py-2.5 shadow-[0_4px_16px_rgba(0,0,0,0.4)]">
+      {children}
     </div>
   );
 }
 
 function EventChatStrip({ event }: { event: KickEvent }) {
   const mods = event.chat.moderators;
+  const host = event.host_channel;
+  const [open, setOpen] = useState(false);
+  const [hidden, setHidden] = useState(false);
+
+  if (hidden) return null;
 
   return (
-    <div
-      data-testid="event-chat-strip"
-      className="flex shrink-0 items-center gap-2 border-y border-outline-decorative px-3 py-2"
-    >
-      <img src={event.host_channel.avatar} alt="" className="size-7 shrink-0 rounded-full" />
-      <div className="flex min-w-0 grow flex-col gap-1">
-        <Link
-          to={`/events/${event.slug}`}
-          className="truncate text-sm font-bold text-white betterhover:hover:underline"
-        >
-          Event chat, hosted by {event.host_channel.username}
-        </Link>
-        <div className="flex flex-wrap items-center gap-1">
+    <div data-testid="event-chat-strip">
+      <PinnedCard>
+        <div className="flex items-center gap-1.5">
+          <Icon name="pin" className="size-3.5 shrink-0 fill-white" />
+          <span className="text-sm font-medium text-surface-onSurfaceSecondary">Sent by</span>
+          <Icon name="verified" className="size-[18px] shrink-0" />
           <span
-            title={mods.length > 0 ? `Moderators: ${mods.join(", ")}` : undefined}
-            className="flex items-center gap-1 whitespace-nowrap rounded-full bg-secondary-base px-2 py-0.5 text-xs font-semibold text-secondary-onSecondary"
+            className="min-w-0 truncate text-sm font-bold"
+            style={{ color: colorFor(host.username) }}
           >
-            <Icon name="chat-settings" className="size-3 shrink-0 fill-current" />
-            Moderated by {event.host_channel.username}
+            {host.username}
           </span>
-          <span className="whitespace-nowrap rounded-full bg-secondary-base px-2 py-0.5 text-xs font-semibold text-secondary-onSecondary">
-            {formatSlowMode(event.chat.slow_mode_seconds)}
-          </span>
-          {event.chat.is_subscribers_only && (
-            <span className="whitespace-nowrap rounded-full bg-secondary-base px-2 py-0.5 text-xs font-semibold text-secondary-onSecondary">
-              Subscribers only
-            </span>
-          )}
+          <button
+            type="button"
+            aria-label="Hide the pinned message"
+            onClick={() => setHidden(true)}
+            className="state-layer-surface ml-auto flex size-7 shrink-0 items-center justify-center rounded text-white"
+          >
+            <Icon name="hide" className="size-4" />
+          </button>
         </div>
-      </div>
-      <Link
-        to={`/events/${event.slug}`}
-        aria-label="Open the event page"
-        className="flex size-8 shrink-0 items-center justify-center rounded text-white state-layer-surface"
-      >
-        <Icon name="dash-external" className="size-4 fill-current" />
-      </Link>
+        <div className="flex items-center gap-2">
+          <Link
+            to={`/events/${event.slug}`}
+            className="min-w-0 grow truncate text-sm font-semibold text-white underline decoration-white/60 underline-offset-2 betterhover:hover:decoration-white"
+          >
+            Event chat, hosted by {host.username}
+          </Link>
+          <button
+            type="button"
+            aria-label={open ? "Collapse" : "Expand"}
+            onClick={() => setOpen((v) => !v)}
+            className="state-layer-surface flex size-7 shrink-0 items-center justify-center rounded text-white"
+          >
+            <Icon
+              name="chevron-right"
+              className={`size-3.5 transition-transform ${open ? "-rotate-90" : "rotate-90"}`}
+            />
+          </button>
+        </div>
+        {open && (
+          <div className="flex flex-wrap items-center gap-1">
+            <span
+              title={mods.length > 0 ? `Moderators: ${mods.join(", ")}` : undefined}
+              className="flex items-center gap-1 whitespace-nowrap rounded-full bg-secondary-base px-2 py-0.5 text-xs font-semibold text-secondary-onSecondary"
+            >
+              <Icon name="chat-settings" className="size-3 shrink-0 fill-current" />
+              Moderated by {host.username}
+            </span>
+            <span className="whitespace-nowrap rounded-full bg-secondary-base px-2 py-0.5 text-xs font-semibold text-secondary-onSecondary">
+              {formatSlowMode(event.chat.slow_mode_seconds)}
+            </span>
+            {event.chat.is_subscribers_only && (
+              <span className="whitespace-nowrap rounded-full bg-secondary-base px-2 py-0.5 text-xs font-semibold text-secondary-onSecondary">
+                Subscribers only
+              </span>
+            )}
+          </div>
+        )}
+      </PinnedCard>
     </div>
   );
 }
@@ -1251,9 +1249,16 @@ export function ChannelChat({
       header={
         <>
           <ChatHeader onCollapse={onCollapse} eventName={event?.title} />
-          {inEvent && event ? <EventChatStrip event={event} /> : <GifterLeaderboard />}
-          {slug && <HypeDemoRow slug={slug} />}
+          {!inEvent && <GifterLeaderboard />}
         </>
+      }
+      pinned={
+        inEvent || slug ? (
+          <>
+            {inEvent && event && <EventChatStrip event={event} />}
+            {slug && <HypeDemoRow slug={slug} />}
+          </>
+        ) : undefined
       }
     />
   );

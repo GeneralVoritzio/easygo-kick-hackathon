@@ -4,6 +4,8 @@ import { Icon, type KickIconName } from "../Icon";
 import { followedChannels, livestreams, formatViewers } from "../mock/api";
 import { eventForChannel, type KickEvent } from "../mock/events";
 import { useEvents } from "../EventsStore";
+import { useEvent } from "../events/EventProvider";
+import { HypeStars } from "../events/HypeStars";
 
 const navItems: { to: string; label: string; icon: KickIconName; activeIcon: KickIconName }[] = [
   { to: "/", label: "Home", icon: "nav-home", activeIcon: "nav-home-active" },
@@ -33,6 +35,8 @@ function ChannelRow({
   testId?: string;
   event?: KickEvent;
 }) {
+  const { hypeTiers } = useEvent();
+  const hypeTier = live ? (hypeTiers[slug] ?? 0) : 0;
   return (
     // The event chip is a link of its own, so the channel link stretches over the row instead of
     // wrapping it. A link cannot hold a link. The stretched link comes last, so it paints above the
@@ -54,6 +58,7 @@ function ChannelRow({
           }`}
         >
           <span className="truncate">{username}</span>
+          {hypeTier > 0 && <HypeStars tier={hypeTier} size="size-3.5" />}
         </span>
         {event ? (
           <Link

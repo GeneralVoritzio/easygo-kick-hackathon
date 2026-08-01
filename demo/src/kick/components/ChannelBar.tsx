@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Icon } from "../Icon";
 import { useEvent } from "../events/EventProvider";
+import { HypeStars } from "../events/HypeStars";
 import { Pill } from "./CardBits";
 import { formatFollowers, type Livestream } from "../mock/api";
 import type { KickEvent } from "../mock/events";
@@ -47,6 +48,7 @@ export function ChannelBar({
               {channel.username}
             </Link>
             {channel.verified && <Icon name="verified" className="size-5 shrink-0" />}
+            {hypeTier > 0 && <HypeStars tier={hypeTier} size="size-5" />}
           </h1>
           {showFollowers ? (
             <span className="truncate text-sm font-bold leading-[1.2] text-subtle">

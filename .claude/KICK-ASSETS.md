@@ -16,7 +16,7 @@ Nothing is fetched from the network, at build time or at run time.
 |---|---|---|
 | Inter variable, with `OFL.txt` | `demo/src/kick/fonts/`, `pitch/src/assets/fonts/inter/`, `prototypes/kick-timelines-2/assets/fonts/` | Every UI |
 | Archivo variable, with `OFL.txt` | `pitch/src/assets/fonts/archivo/` | The deck |
-| KICK display font, with its licence | `pitch/src/assets/fonts/kick-font/` | The deck |
+| KICK display font, with its licence | `pitch/src/assets/fonts/kick-font/`, `demo/src/kick/fonts/kick-font/` | The deck, the HYPE title in the chat hype card |
 | The wordmark `kick-logo.svg` | `demo/src/kick/brand/`, `pitch/src/assets/brand/`, `prototypes/hypeprops/src/assets/` | Every surface |
 | Favicon and social logos | `pitch/src/assets/brand/` | The deck |
 | Border devices and patterns | `pitch/src/assets/brand/devices/`, `pitch/src/assets/brand/patterns/` | The deck |

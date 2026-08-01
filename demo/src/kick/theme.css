@@ -20,6 +20,12 @@
 }
 
 @font-face {
+  font-family: "KickFont";
+  src: url("./fonts/kick-font/kick-font.ttf") format("truetype");
+  font-display: swap;
+}
+
+@font-face {
   font-family: "Inter";
   src: url("./fonts/inter-variable-latin.woff2") format("woff2");
   font-weight: 100 900;

@@ -11,6 +11,7 @@ import {
 } from "../mock/api";
 import { formatBoostLeft, MULTIVIEW_CAP } from "./events";
 import { useBoostLeft, useEvent } from "./EventProvider";
+import { HypeStars } from "./HypeStars";
 import { useEvents } from "../EventsStore";
 import {
   eventForChannel,
@@ -47,6 +48,8 @@ function ResultRow({
   onPin: () => void;
   onOpen: () => void;
 }) {
+  const { hypeTiers } = useEvent();
+  const hypeTier = hypeTiers[stream.channel.slug] ?? 0;
   return (
     <div
       role="button"
@@ -57,8 +60,11 @@ function ResultRow({
     >
       <img src={stream.channel.avatar} alt="" className="size-7 shrink-0 rounded-full" />
       <div className="min-w-0 flex-1">
-        <span className="block truncate text-sm font-bold text-white">
-          {stream.channel.username}
+        <span className="flex min-w-0 items-center gap-1">
+          <span className="truncate text-sm font-bold text-white">
+            {stream.channel.username}
+          </span>
+          {hypeTier > 0 && <HypeStars tier={hypeTier} size="size-3.5" />}
         </span>
         <span className="block truncate text-xs text-surface-onSurfaceSecondary">
           {stream.category.name}
@@ -120,6 +126,7 @@ function Section({ label, children }: { label: string; children: ReactNode }) {
 function GlobalResults({ query, onOpen }: { query: string; onOpen: (to: string) => void }) {
   const q = query.toLowerCase();
   const { events: allEvents } = useEvents();
+  const { hypeTiers } = useEvent();
   const channels = channelProfiles
     .filter((p) => p.channel.username.toLowerCase().includes(q))
     .slice(0, 3);
@@ -149,6 +156,9 @@ function GlobalResults({ query, onOpen }: { query: string; onOpen: (to: string) 
                   {p.channel.username}
                 </span>
                 {p.channel.verified && <Icon name="verified" className="size-4 shrink-0" />}
+                {(hypeTiers[p.channel.slug] ?? 0) > 0 && (
+                  <HypeStars tier={hypeTiers[p.channel.slug]} size="size-3.5" />
+                )}
               </span>
               {liveStreamFor(p.channel.slug) && <LivePill />}
             </Row>

@@ -1,6 +1,27 @@
 import { useEffect, useRef, useState } from "react";
 import type { Livestream } from "../mock/api";
 
+// The footage on this machine, named by channel slug. A channel without its own
+// file borrows one by hash, so every surface moves. See demo/public/multiview/README.md.
+const localFootage = [
+  "capequest",
+  "flickgremlin",
+  "ironvow",
+  "mudbrickmage",
+  "notadoc",
+  "panfriedpaul",
+  "reelgoblin",
+  "snoozebaron",
+  "wanderfuse",
+];
+
+function footageSlug(slug: string) {
+  if (localFootage.includes(slug)) return slug;
+  let hash = 0;
+  for (let i = 0; i < slug.length; i++) hash = (hash * 31 + slug.charCodeAt(i)) >>> 0;
+  return localFootage[hash % localFootage.length];
+}
+
 // A stream loops public/multiview/<slug>.mp4. That footage is third-party, so Brand Identity
 // Section 7 keeps it out of the repository: a machine without the file falls back to the mock
 // still. See demo/public/multiview/README.md.
@@ -17,6 +38,10 @@ export function StreamFootage({
 }) {
   const [hasFootage, setHasFootage] = useState(true);
   const videoRef = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    setHasFootage(true);
+  }, [stream.channel.slug]);
 
   useEffect(() => {
     const video = videoRef.current;
@@ -43,7 +68,7 @@ export function StreamFootage({
   return (
     <video
       ref={videoRef}
-      src={`/multiview/${stream.channel.slug}.mp4`}
+      src={`/multiview/${footageSlug(stream.channel.slug)}.mp4`}
       loop
       autoPlay
       playsInline

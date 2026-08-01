@@ -13,6 +13,7 @@ import { livestreams, categories, formatViewers, streamPills } from "../mock/api
 import { clips } from "../mock/clips";
 import { publicUpcoming } from "../mock/events";
 import { HeroChatFeed } from "../components/ChannelChat";
+import { StreamFootage } from "../events/StreamFootage";
 
 const heroStreams = livestreams.slice(0, 6);
 
@@ -51,9 +52,11 @@ function HeroCarousel() {
       />
       <div className="absolute inset-0 flex w-full gap-3">
         <div className="relative min-w-0 flex-1 overflow-hidden rounded-lg bg-surface-base">
-          <img
-            src={stream.thumbnail}
-            alt={stream.session_title}
+          <StreamFootage
+            key={stream.id}
+            stream={stream}
+            paused={false}
+            muted={muted}
             className="absolute inset-0 h-full w-full object-cover brightness-[0.55] contrast-125 saturate-150"
           />
           <div aria-hidden="true" className="absolute inset-0" style={{ background: streamGrade }} />

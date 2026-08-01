@@ -1369,14 +1369,19 @@ function HypeDemoRow({ slug }: { slug: string }) {
         <div className="z-popover pointer-events-none absolute left-1/2 top-full mt-1.5 flex -translate-x-1/2 flex-col items-start gap-0.5 whitespace-nowrap rounded-md bg-surface-highest px-2.5 py-1.5 text-sm font-medium text-white shadow-[0_4px_12px_rgba(0,0,0,0.5)] opacity-0 transition-opacity group-hover/bar:opacity-100">
           <span className="font-bold">Hype Progress</span>
           {tier < 3 ? (
-            <span className="flex items-center gap-1">
-              {HYPE_PERCENTS[tier + 1] - HYPE_PERCENTS[tier]}% till
-              {Array.from({ length: tier + 1 }, (_, star) => (
-                <PixelStar key={star} size="size-3.5" fillClass="fill-[#ffd700]" />
-              ))}
+            <span className="font-bold">
+              <span className={tier > 0 ? `hype-shimmer hype-tier-${tier}` : undefined}>
+                Tier {tier}
+              </span>
+              {" : "}
+              {HYPE_PERCENTS[tier + 1] - HYPE_PERCENTS[tier]}% till{" "}
+              <span className={`hype-shimmer hype-tier-${tier + 1}`}>Tier {tier + 1}</span>
             </span>
           ) : (
-            <span>Max level</span>
+            <span className="font-bold">
+              <span className="hype-shimmer hype-tier-3">Tier 3</span>
+              {" : Max level"}
+            </span>
           )}
           <span>Channel Points Multiplier: {HYPE_MULTIPLIERS[tier]}</span>
         </div>

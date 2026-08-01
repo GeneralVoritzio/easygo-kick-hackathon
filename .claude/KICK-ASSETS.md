@@ -406,3 +406,12 @@ that slot and read as item art, which is what the slot holds.
 | `reward-club-jersey` | a numbered jersey |
 
 Licence: ours. No attribution needed, and nothing loads from the network.
+
+## The pixel star in the chat hype meter
+
+**Not KICK's.** The path is inlined in `demo/src/kick/components/ChannelChat.tsx`. Read **1 August 2026**.
+
+| Property | Value |
+|---|---|
+| Source | [thenounproject.com/icon/135344](https://thenounproject.com/icon/135344) "Pixel Star" |
+| Licence | Noun Project, CC BY 3.0 without a purchase. A public build needs the attribution or a licence |

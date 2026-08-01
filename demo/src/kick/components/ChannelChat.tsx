@@ -1032,28 +1032,71 @@ export function ChatFeed({
   );
 }
 
+// The pixel star from the Noun Project icon 135344, inlined, attribution in
+// KICK-ASSETS.md. The outline is the glyph, so a lit star colours the glyph.
+function PixelStar({ className }: { className?: string }) {
+  return (
+    <svg viewBox="12 10 76 80" className={className} aria-hidden>
+      <path fill="currentColor" d="M82.087,37.159v8.557h-4.273v-4.285H60.7v-4.272H82.087z M69.257,79.945v4.284h12.83v-8.557h-4.273v4.273H69.257z M73.53,75.672h4.284v-8.557H73.53V75.672z M73.53,50.012h4.284v-4.296H73.53V50.012z M69.257,67.115h4.273v-8.546h-4.273V67.115z M69.257,54.285h4.273v-4.273h-4.273V54.285z M60.7,75.672v4.273h8.557v-4.273H60.7z M64.984,58.569h4.273v-4.284h-4.273V58.569z M52.131,71.399v4.273H60.7v-4.273H52.131z M56.427,37.159H60.7v-8.558h-4.273V37.159z M52.131,54.285h4.296V41.431h-4.296V54.285z M52.131,28.601h4.296v-8.545h-4.296V28.601z M47.846,67.115v4.284h4.285v-4.284H47.846z M52.131,15.771h-4.285v4.285h4.285V15.771z M43.574,54.285h4.272V41.431h-4.272V54.285z M47.846,20.056h-4.272v8.545h4.272V20.056z M39.301,71.399v4.273h8.545v-4.273H39.301z M43.574,28.601h-4.273v8.558h4.273V28.601z M30.744,75.672v4.273h8.557v-4.273H30.744z M35.016,54.285h-4.272v4.284h4.272V54.285z M30.744,58.569h-4.273v8.546h4.273V58.569z M26.471,50.012v4.273h4.273v-4.273H26.471z M22.186,79.945v-4.273h-4.273v8.557h12.831v-4.284H22.186z M26.471,67.115h-4.285v8.557h4.285V67.115z M22.186,45.716v4.296h4.285v-4.296H22.186z M39.301,41.431v-4.272H17.913v8.557h4.273v-4.285H39.301z" />
+    </svg>
+  );
+}
+
+function HypeStars({ tier }: { tier: number }) {
+  return (
+    <div className="flex items-center gap-1">
+      {[0, 1, 2].map((i) => {
+        const cls =
+          tier === HYPE_TIER_MAX
+            ? "hype-star-rainbow"
+            : i < tier
+              ? "text-[#ffd700]"
+              : i === tier
+                ? "hype-star-blink"
+                : "text-neutral-600";
+        return <PixelStar key={i} className={`size-6 shrink-0 ${cls}`} />;
+      })}
+    </div>
+  );
+}
+
 function HypeDemoRow({ slug }: { slug: string }) {
   const { hypeTiers, setHypeTier } = useEvent();
   const tier = hypeTiers[slug] ?? 0;
+  const [controlsOpen, setControlsOpen] = useState(false);
+
+  useEffect(() => {
+    function onKey(e: globalThis.KeyboardEvent) {
+      const target = e.target as HTMLElement;
+      if (e.key !== "m" || target.tagName === "INPUT" || target.tagName === "TEXTAREA") return;
+      setControlsOpen((v) => !v);
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
 
   return (
     <div className="flex shrink-0 items-center gap-2 border-t border-outline-decorative px-3 py-2">
-      <span className="text-xs uppercase text-surface-onSurfaceSecondary">Demo</span>
-      <span className="text-xs text-surface-onSurfaceSecondary">Chat hype</span>
-      {Array.from({ length: HYPE_TIER_MAX + 1 }, (_, t) => (
-        <button
-          key={t}
-          type="button"
-          onClick={() => setHypeTier(slug, t)}
-          className={`h-7 rounded px-2 text-xs font-semibold ${
-            tier === t
-              ? "bg-primary-base text-primary-onPrimary"
-              : "bg-secondary-base text-secondary-onSecondary"
-          }`}
-        >
-          {t === 0 ? "Off" : `Tier ${t}`}
-        </button>
-      ))}
+      <HypeStars tier={tier} />
+      {controlsOpen && (
+        <>
+          <span className="ml-auto text-xs uppercase text-surface-onSurfaceSecondary">Demo</span>
+          {Array.from({ length: HYPE_TIER_MAX + 1 }, (_, t) => (
+            <button
+              key={t}
+              type="button"
+              onClick={() => setHypeTier(slug, t)}
+              className={`h-7 rounded px-2 text-xs font-semibold ${
+                tier === t
+                  ? "bg-primary-base text-primary-onPrimary"
+                  : "bg-secondary-base text-secondary-onSecondary"
+              }`}
+            >
+              {t === 0 ? "Off" : `Tier ${t}`}
+            </button>
+          ))}
+        </>
+      )}
     </div>
   );
 }

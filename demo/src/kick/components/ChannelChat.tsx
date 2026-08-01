@@ -47,7 +47,8 @@ const identityColors = [
 
 function hashOf(username: string) {
   let hash = 0;
-  for (let i = 0; i < username.length; i++) hash = (hash * 31 + username.charCodeAt(i)) >>> 0;
+  for (let i = 0; i < username.length; i++)
+    hash = (hash * 31 + username.charCodeAt(i)) >>> 0;
   return hash;
 }
 
@@ -56,7 +57,12 @@ export function colorFor(username: string) {
 }
 
 type BadgeName =
-  "moderator" | "og" | "sub_gifter" | "sub_gifter_teal" | "sub_gifter_purple" | "verified";
+  | "moderator"
+  | "og"
+  | "sub_gifter"
+  | "sub_gifter_teal"
+  | "sub_gifter_purple"
+  | "verified";
 
 // Read off kick.com/odablock on 27 July 2026: a badge sits in
 // `flex items-center gap-1 self-center pr-1` and is `size-[calc(1em*(18/13))]`, so 19px at 14px.
@@ -91,7 +97,9 @@ const emotes = [
 ].map((emote) => {
   const url = emoteFiles[`../emotes/${emote.name}.gif`];
   if (!url)
-    throw new Error(`No emote for ${emote.name}. Add demo/src/kick/emotes/${emote.name}.gif`);
+    throw new Error(
+      `No emote for ${emote.name}. Add demo/src/kick/emotes/${emote.name}.gif`,
+    );
   return { ...emote, url };
 });
 
@@ -299,10 +307,20 @@ const topGifters: {
   },
 ];
 
-function ChatModeMenu({ onClose, eventName }: { onClose: () => void; eventName: string }) {
+function ChatModeMenu({
+  onClose,
+  eventName,
+}: {
+  onClose: () => void;
+  eventName: string;
+}) {
   const { chatMode, setChatMode } = useEvent();
   const rows = [
-    { mode: "stream" as const, label: "Stream chat", detail: "Chat with this channel" },
+    {
+      mode: "stream" as const,
+      label: "Stream chat",
+      detail: "Chat with this channel",
+    },
     { mode: "event" as const, label: "Event chat", detail: eventName },
   ];
   return (
@@ -321,7 +339,9 @@ function ChatModeMenu({ onClose, eventName }: { onClose: () => void; eventName: 
           className="flex w-full items-center gap-2 rounded px-2 py-1.5 text-left state-layer-surface"
         >
           <div className="min-w-0 flex-1">
-            <span className="block text-sm font-bold text-white">{row.label}</span>
+            <span className="block text-sm font-bold text-white">
+              {row.label}
+            </span>
             <span className="block truncate text-xs text-surface-onSurfaceSecondary">
               {row.detail}
             </span>
@@ -378,7 +398,10 @@ function ChatHeader({
             />
           </button>
           {menuOpen && (
-            <ChatModeMenu onClose={() => setMenuOpen(false)} eventName={eventName} />
+            <ChatModeMenu
+              onClose={() => setMenuOpen(false)}
+              eventName={eventName}
+            />
           )}
         </div>
       ) : (
@@ -400,8 +423,18 @@ function ChatHeader({
 type CardUser = { username: string; badges: BadgeName[] };
 
 const monthNames = [
-  "January", "February", "March", "April", "May", "June",
-  "July", "August", "September", "October", "November", "December",
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
 ];
 
 const DAY = 24 * 60 * 60 * 1000;
@@ -426,7 +459,13 @@ function cardDates(username: string) {
 // Read off the screenshot of the live card: avatar and username on top, followed and
 // joined dates in two columns, the badge row with a tooltip, then the action buttons.
 // Trade is ours, and it is the only new control on the card.
-function ChatUserCard({ user, onClose }: { user: CardUser; onClose: () => void }) {
+function ChatUserCard({
+  user,
+  onClose,
+}: {
+  user: CardUser;
+  onClose: () => void;
+}) {
   const dates = cardDates(user.username);
   return (
     <div className="absolute inset-x-2 bottom-[120px] z-popover rounded border border-outline-decorative bg-surface-base p-4">
@@ -437,7 +476,9 @@ function ChatUserCard({ user, onClose }: { user: CardUser; onClose: () => void }
             alt=""
             className="size-12 shrink-0 rounded-full"
           />
-          <span className="min-w-0 truncate text-base font-bold text-white">{user.username}</span>
+          <span className="min-w-0 truncate text-base font-bold text-white">
+            {user.username}
+          </span>
         </div>
         <button
           type="button"
@@ -451,7 +492,9 @@ function ChatUserCard({ user, onClose }: { user: CardUser; onClose: () => void }
 
       <div className="mt-3 grid grid-cols-2 gap-2">
         <div>
-          <span className="block text-sm font-bold text-white">Followed on</span>
+          <span className="block text-sm font-bold text-white">
+            Followed on
+          </span>
           <span className="block text-sm text-white">{dates.followed}</span>
         </div>
         <div>
@@ -498,10 +541,14 @@ function GifterEntry({ gifter }: { gifter: (typeof topGifters)[number] }) {
   return (
     <div className="flex shrink-0 flex-row flex-nowrap items-center justify-center gap-1">
       <Icon name={gifter.medal} className="size-5" />
-      <span className={`whitespace-nowrap text-sm font-semibold ${gifter.nameClass}`}>
+      <span
+        className={`whitespace-nowrap text-sm font-semibold ${gifter.nameClass}`}
+      >
         {gifter.username}
       </span>
-      <span className="text-sm font-normal text-neutral-500">{gifter.amount}</span>
+      <span className="text-sm font-normal text-neutral-500">
+        {gifter.amount}
+      </span>
     </div>
   );
 }
@@ -558,7 +605,9 @@ function ChatMessage({
       }`}
       // The rows shimmer out of phase, so the band ripples down the chat
       // instead of lighting every line at once.
-      style={{ "--hype-delay": `${(message.id % 8) * -0.45}s` } as CSSProperties}
+      style={
+        { "--hype-delay": `${(message.id % 8) * -0.45}s` } as CSSProperties
+      }
     >
       <div className="betterhover:group-hover:bg-surface-highest w-full min-w-0 shrink-0 break-words rounded-lg px-2 py-[var(--chatroom-message-spacing)] text-[length:var(--chatroom-font-size)] leading-[1.5]">
         <div className="inline-flex min-w-0 flex-nowrap items-baseline rounded transition-colors betterhover:hover:bg-[#474f54]">
@@ -576,7 +625,9 @@ function ChatMessage({
           )}
           <button
             type="button"
-            onClick={() => onOpen?.({ username: message.username, badges: message.badges })}
+            onClick={() =>
+              onOpen?.({ username: message.username, badges: message.badges })
+            }
             className="inline font-bold"
             style={{ color: message.color }}
           >
@@ -586,7 +637,9 @@ function ChatMessage({
         {/* A plain space dies twice here: JSX trims it, and inline-flex drops a trailing
             space in a text node. The nbsp survives both, which is the gap KICK shows. */}
         <span className="inline-flex font-bold">{": "}</span>
-        <span className="font-normal leading-[1.55]">{renderBody(message.body)}</span>
+        <span className="font-normal leading-[1.55]">
+          {renderBody(message.body)}
+        </span>
       </div>
     </div>
   );
@@ -612,9 +665,18 @@ function ChatMessages({
 
   return (
     <div className={`relative shrink grow overflow-hidden ${surface}`}>
-      <div ref={listRef} id="chatroom-messages" className="relative h-full w-full overflow-y-auto">
+      <div
+        ref={listRef}
+        id="chatroom-messages"
+        className="relative h-full w-full overflow-y-auto"
+      >
         {messages.map((message) => (
-          <ChatMessage key={message.id} message={message} onOpen={onOpen} hypeTier={hypeTier} />
+          <ChatMessage
+            key={message.id}
+            message={message}
+            onOpen={onOpen}
+            hypeTier={hypeTier}
+          />
         ))}
       </div>
     </div>
@@ -622,7 +684,9 @@ function ChatMessages({
 }
 
 function useFlowingMessages(pool: MessagePool = streamPool) {
-  const [messages, setMessages] = useState<Message[]>(() => seedMessages(22, pool));
+  const [messages, setMessages] = useState<Message[]>(() =>
+    seedMessages(22, pool),
+  );
 
   // A room switch reseeds, because the event chat is a different room.
   useEffect(() => {
@@ -717,7 +781,9 @@ function EmotePicker({
   const [query, setQuery] = useState("");
   const [tab, setTab] = useState(0);
   const match = (set: typeof emotes) =>
-    query ? set.filter((e) => e.name.toLowerCase().includes(query.toLowerCase())) : set;
+    query
+      ? set.filter((e) => e.name.toLowerCase().includes(query.toLowerCase()))
+      : set;
 
   return (
     <div
@@ -727,14 +793,20 @@ function EmotePicker({
       <div
         // The body's fade bubbles up here too, and it is the shorter of the two. Wait for the
         // panel's own animation by name, or the close is cut off 50ms early.
-        onAnimationEnd={(e) => e.animationName === "emote-picker-close" && onClosed()}
+        onAnimationEnd={(e) =>
+          e.animationName === "emote-picker-close" && onClosed()
+        }
         className={`bg-surface-base relative flex h-auto max-h-[50vh] w-full flex-col overflow-hidden rounded-t ${
-          closing ? "animate-emote-picker-close min-h-0" : "animate-emote-picker min-h-[50px]"
+          closing
+            ? "animate-emote-picker-close min-h-0"
+            : "animate-emote-picker min-h-[50px]"
         }`}
       >
         <div
           className={`overflow-y-auto pt-1 ${
-            closing ? "animate-emote-picker-body-close" : "animate-emote-picker-body"
+            closing
+              ? "animate-emote-picker-body-close"
+              : "animate-emote-picker-body"
           }`}
         >
           <div className="grid gap-1">
@@ -791,7 +863,11 @@ function EmotePicker({
                     set={match(emotes.slice(0, 6))}
                     onPick={onPick}
                   />
-                  <EmoteGrid label="Global" set={match(emotes)} onPick={onPick} />
+                  <EmoteGrid
+                    label="Global"
+                    set={match(emotes)}
+                    onPick={onPick}
+                  />
                 </div>
               </div>
             </div>
@@ -820,7 +896,11 @@ function EmoteBar({ onSend }: { onSend: (body: string) => void }) {
                 onClick={() => onSend(emoteToken(emote.id, emote.name))}
                 className="betterhover:hover:bg-white/10 relative aspect-square h-full shrink-0 rounded-sm p-0.5"
               >
-                <img src={emote.url} alt={emote.name} className="h-full w-full" />
+                <img
+                  src={emote.url}
+                  alt={emote.name}
+                  className="h-full w-full"
+                />
               </button>
             </div>
           ))}
@@ -880,7 +960,11 @@ function BoostSuggest({
               i === selectedIndex ? "bg-surface-highest" : ""
             }`}
           >
-            <img src={p.channel.avatar} alt="" className="size-5 shrink-0 rounded-full" />
+            <img
+              src={p.channel.avatar}
+              alt=""
+              className="size-5 shrink-0 rounded-full"
+            />
             <span className="truncate">{p.channel.username}</span>
           </button>
         ))
@@ -909,7 +993,8 @@ function ChatFooter({
   const fieldRef = useRef<HTMLTextAreaElement>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
   const pickerOpen = picker !== "closed";
-  const closePicker = () => setPicker((state) => (state === "open" ? "closing" : state));
+  const closePicker = () =>
+    setPicker((state) => (state === "open" ? "closing" : state));
 
   const boostMatch = boostTargets ? BOOST_COMMAND.exec(draft) : null;
   const boosting = boostMatch !== null;
@@ -919,7 +1004,10 @@ function ChatFooter({
         p.channel.username.toLowerCase().startsWith(boostQuery.toLowerCase()),
       )
     : [];
-  const boostIndexClamped = Math.min(boostIndex, Math.max(0, boostCandidates.length - 1));
+  const boostIndexClamped = Math.min(
+    boostIndex,
+    Math.max(0, boostCandidates.length - 1),
+  );
 
   useEffect(() => {
     setBoostIndex(0);
@@ -948,7 +1036,9 @@ function ChatFooter({
       }
       if (e.key === "ArrowUp") {
         e.preventDefault();
-        setBoostIndex((i) => (i - 1 + boostCandidates.length) % boostCandidates.length);
+        setBoostIndex(
+          (i) => (i - 1 + boostCandidates.length) % boostCandidates.length,
+        );
         return;
       }
       if (e.key === "Tab" || (e.key === "Enter" && !e.shiftKey)) {
@@ -966,7 +1056,10 @@ function ChatFooter({
   return (
     // The panel is a sibling of the padded box, never a child of it. The box clips its own
     // overflow, so a panel inside it would be cut off at the footer edge.
-    <div id="chatroom-footer" className="relative flex w-full shrink-0 flex-col">
+    <div
+      id="chatroom-footer"
+      className="relative flex w-full shrink-0 flex-col"
+    >
       {pickerOpen && (
         <EmotePicker
           closing={picker === "closing"}
@@ -1027,7 +1120,9 @@ function ChatFooter({
             <button
               type="button"
               aria-label="Emotes"
-              onClick={() => setPicker((state) => (state === "closed" ? "open" : "closing"))}
+              onClick={() =>
+                setPicker((state) => (state === "closed" ? "open" : "closing"))
+              }
               className="state-layer-surface flex size-9 shrink-0 items-center justify-center rounded text-white"
             >
               <Icon name="emotes" className="size-4" />
@@ -1124,7 +1219,8 @@ export function ChatFeed({
     if (eventMode && event && body.toLowerCase().startsWith("/boost ")) {
       const name = body.slice(7).trim();
       const slug = slugInEvent(event, name);
-      const target = slug && eventStreamers(event).find((p) => p.channel.slug === slug);
+      const target =
+        slug && eventStreamers(event).find((p) => p.channel.slug === slug);
       setMessages((prev) => [
         ...prev.slice(-149),
         {
@@ -1190,11 +1286,12 @@ export function ChatFeed({
         }}
         boostTargets={eventMode && event ? eventStreamers(event) : null}
       />
-      {cardUser && <ChatUserCard user={cardUser} onClose={() => setCardUser(null)} />}
+      {cardUser && (
+        <ChatUserCard user={cardUser} onClose={() => setCardUser(null)} />
+      )}
     </form>
   );
 }
-
 
 const HYPE_MULTIPLIERS = ["1x", "1.2x", "1.5x", "2x"];
 const HYPE_PERCENTS = [12, 42, 68, 100];
@@ -1202,14 +1299,18 @@ const HYPE_PERCENTS = [12, 42, 68, 100];
 function HypeDemoRow({ slug }: { slug: string }) {
   const { hypeTiers, setHypeTier } = useEvent();
   const tier = hypeTiers[slug] ?? 0;
-  const [open, setOpen] = useState(false);
   const [controlsOpen, setControlsOpen] = useState(false);
   const [secondsLeft, setSecondsLeft] = useState(151);
 
   useEffect(() => {
     function onKey(e: globalThis.KeyboardEvent) {
       const target = e.target as HTMLElement;
-      if (e.key !== "m" || target.tagName === "INPUT" || target.tagName === "TEXTAREA") return;
+      if (
+        e.key !== "m" ||
+        target.tagName === "INPUT" ||
+        target.tagName === "TEXTAREA"
+      )
+        return;
       setControlsOpen((v) => !v);
     }
     window.addEventListener("keydown", onKey);
@@ -1219,7 +1320,10 @@ function HypeDemoRow({ slug }: { slug: string }) {
   useEffect(() => {
     setSecondsLeft(151);
     if (tier === 0) return;
-    const id = setInterval(() => setSecondsLeft((v) => (v > 0 ? v - 1 : 0)), 1000);
+    const id = setInterval(
+      () => setSecondsLeft((v) => (v > 0 ? v - 1 : 0)),
+      1000,
+    );
     return () => clearInterval(id);
   }, [tier]);
 
@@ -1229,26 +1333,32 @@ function HypeDemoRow({ slug }: { slug: string }) {
     <PinnedCard>
       <div className="flex items-center gap-1.5">
         <PixelStar size="size-4" fillClass="fill-[#ffd700]" />
-        <span className="whitespace-nowrap font-[KickFont] text-base leading-none text-white">HYPE</span>
+        <span className="whitespace-nowrap font-[KickFont] text-base leading-none text-white">
+          HYPE
+        </span>
         <div className="ml-auto flex items-center gap-2">
           {tier > 0 && (
-            <span className="text-xs font-semibold tabular-nums text-white">{clock}</span>
+            <span className="text-xs font-semibold tabular-nums text-white">
+              {clock}
+            </span>
           )}
-          <span className="text-sm font-bold text-white">{HYPE_PERCENTS[tier]}%</span>
-          <button
-            type="button"
-            aria-label={open ? "Close the hype meter" : "Open the hype meter"}
-            onClick={() => setOpen((v) => !v)}
-            className="state-layer-surface flex size-7 shrink-0 items-center justify-center rounded text-white"
+          <span className="text-sm font-bold text-white">
+            {HYPE_PERCENTS[tier]}%
+          </span>
+          <span
+            aria-label={`Channel Point Multiplier: ${HYPE_MULTIPLIERS[tier]}`}
+            className="tooltip-bottom tooltip-end cursor-default font-[KickFont] text-sm leading-none text-primary-base"
           >
-            <Icon
-              name="chevron-right"
-              className={`size-3.5 transition-transform ${open ? "-rotate-90" : "rotate-90"}`}
-            />
-          </button>
+            {HYPE_MULTIPLIERS[tier]}
+          </span>
         </div>
       </div>
-      <div className="mb-1.5 flex h-4 items-stretch gap-[3px] border-2 border-neutral-400 bg-surface-lowest p-[3px]">
+      <div
+        aria-label={`Hype Level: ${"\u2605".repeat(tier)}${"\u2606".repeat(3 - tier)}\n${
+          tier < 3 ? `${HYPE_PERCENTS[tier + 1] - HYPE_PERCENTS[tier]}% to next level` : "Max level"
+        }`}
+        className="tooltip-bottom tooltip-pre mb-1.5 flex h-4 cursor-default items-stretch gap-[3px] border-2 border-neutral-400 bg-surface-lowest p-[3px]"
+      >
         {(() => {
           const filled = Math.round((HYPE_PERCENTS[tier] / 100) * 24);
           return Array.from({ length: 24 }, (_, i) => (
@@ -1263,33 +1373,25 @@ function HypeDemoRow({ slug }: { slug: string }) {
           ));
         })()}
       </div>
-      {open && (
-        <div className="flex flex-col gap-2">
-          <div className="flex items-center justify-between rounded-lg bg-surface-highest px-3 py-2.5">
-            <span className="text-sm font-semibold text-white">Channel Points Multiplier</span>
-            <span className="font-[KickFont] text-base leading-none text-primary-base">
-              {HYPE_MULTIPLIERS[tier]}
-            </span>
-          </div>
-          {controlsOpen && (
-            <div className="flex items-center gap-2 px-1">
-              <span className="text-xs uppercase text-surface-onSurfaceSecondary">Demo</span>
-              {Array.from({ length: 4 }, (_, t) => (
-                <button
-                  key={t}
-                  type="button"
-                  onClick={() => setHypeTier(slug, t)}
-                  className={`h-6 rounded px-1.5 text-xs font-semibold ${
-                    tier === t
-                      ? "bg-primary-base text-primary-onPrimary"
-                      : "bg-secondary-base text-secondary-onSecondary"
-                  }`}
-                >
-                  {t === 0 ? "Off" : `T${t}`}
-                </button>
-              ))}
-            </div>
-          )}
+      {controlsOpen && (
+        <div className="flex items-center gap-2 px-1">
+          <span className="text-xs uppercase text-surface-onSurfaceSecondary">
+            Demo
+          </span>
+          {Array.from({ length: 4 }, (_, t) => (
+            <button
+              key={t}
+              type="button"
+              onClick={() => setHypeTier(slug, t)}
+              className={`h-6 rounded px-1.5 text-xs font-semibold ${
+                tier === t
+                  ? "bg-primary-base text-primary-onPrimary"
+                  : "bg-secondary-base text-secondary-onSecondary"
+              }`}
+            >
+              {t === 0 ? "Off" : `T${t}`}
+            </button>
+          ))}
         </div>
       )}
     </PinnedCard>
@@ -1317,7 +1419,8 @@ export function ChannelChat({
   // A key on ChatFeed would remount the whole panel instead, losing the draft, the raid
   // panel state and the scroll position on every single tile switch.
   const pool = useMemo(
-    () => (inEvent && event ? eventPool(event.chat.moderators) : { ...streamPool }),
+    () =>
+      inEvent && event ? eventPool(event.chat.moderators) : { ...streamPool },
     // eslint-disable-next-line react-hooks/exhaustive-deps -- slug forces a new pool identity, unread by design
     [inEvent, event, slug],
   );
@@ -1332,7 +1435,11 @@ export function ChannelChat({
       hypeSlug={slug}
       header={
         <>
-          <ChatHeader onCollapse={onCollapse} eventName={event?.title} channelName={channelName} />
+          <ChatHeader
+            onCollapse={onCollapse}
+            eventName={event?.title}
+            channelName={channelName}
+          />
           {!inEvent && <GifterLeaderboard />}
         </>
       }

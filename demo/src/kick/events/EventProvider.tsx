@@ -250,20 +250,14 @@ export function EventProvider({ children }: { children: ReactNode }) {
       dismissDirectorPrompt,
       hypeTiers,
       setHypeTier,
-      // A fresh multiview always starts as one stream. While it runs, an open
-      // on another channel joins the grid instead of resetting it.
+      // Slots only ever hold this session's own pins, so an open keeps them.
+      // With no stored slots, a first open is one stream by itself.
       openMultiview: (slug, eventId) =>
-        setMultiview((m) =>
-          m.active
-            ? {
-                ...m,
-                slots: m.slots.includes(slug)
-                  ? m.slots
-                  : [slug, ...m.slots].slice(0, MULTIVIEW_CAP),
-                eventId: eventId ?? m.eventId,
-              }
-            : { active: true, slots: [slug], eventId: eventId ?? null },
-        ),
+        setMultiview((m) => ({
+          active: true,
+          slots: m.slots.includes(slug) ? m.slots : [slug, ...m.slots].slice(0, MULTIVIEW_CAP),
+          eventId: eventId ?? m.eventId,
+        })),
       closeMultiview: () => setMultiview((m) => ({ ...m, active: false })),
       pin: (slug) =>
         setMultiview((m) =>

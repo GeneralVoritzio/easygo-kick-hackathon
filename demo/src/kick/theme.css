@@ -408,19 +408,19 @@
 }
 .hype-shimmer-round::after { inset: 0; border-radius: 999px }
 @keyframes hype-star-blink {
-  0%, 100% { color: #606971 }
-  50% { color: #ffd700 }
+  0%, 100% { fill: transparent }
+  50% { fill: #ffd700 }
 }
 .hype-star-blink { animation: hype-star-blink 1.1s ease-in-out infinite }
 @keyframes hype-star-rainbow {
-  0%, 100% { color: #ff5050 }
-  25% { color: #ffd700 }
-  50% { color: #4be34b }
-  75% { color: #58b7ff }
+  0%, 100% { fill: #ff5050 }
+  25% { fill: #ffd700 }
+  50% { fill: #4be34b }
+  75% { fill: #58b7ff }
 }
 .hype-star-rainbow { animation: hype-star-rainbow 1.4s linear infinite }
-.hype-star-rainbow:nth-child(2) { animation-delay: -0.45s }
-.hype-star-rainbow:nth-child(3) { animation-delay: -0.9s }
+.hype-stars svg:nth-child(2) .hype-star-rainbow { animation-delay: -0.45s }
+.hype-stars svg:nth-child(3) .hype-star-rainbow { animation-delay: -0.9s }
 @keyframes hype-shimmer {
   from { background-position: 200% 0 }
   to { background-position: -100% 0 }
@@ -429,7 +429,7 @@
 @media (prefers-reduced-motion: reduce) {
   .animate-leaderboards-marquee { animation: none }
   .hype-shimmer::after { animation: none }
-  .hype-star-blink, .hype-star-rainbow { animation: none; color: #ffd700 }
+  .hype-star-blink, .hype-star-rainbow { animation: none; fill: #ffd700 }
 }
 
 button:not(:disabled),

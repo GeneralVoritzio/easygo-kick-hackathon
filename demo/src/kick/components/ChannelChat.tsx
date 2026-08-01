@@ -1060,10 +1060,27 @@ function HypeStars({ tier }: { tier: number }) {
   );
 }
 
+const HYPE_MULTIPLIERS = ["1x", "1.2x", "1.5x", "2x"];
+const HYPE_PERCENTS = [12, 42, 68, 100];
+
+function HypeQuickAction({ icon, amount }: { icon: string; amount: number }) {
+  return (
+    <button
+      type="button"
+      className="flex items-center gap-2 rounded-lg border-2 border-primary-base/60 bg-surface-highest px-3 py-1.5 betterhover:hover:border-primary-base"
+    >
+      <img src={icon} alt="" className="size-6" />
+      <span className="text-sm font-bold text-white">{amount}</span>
+    </button>
+  );
+}
+
 function HypeDemoRow({ slug }: { slug: string }) {
   const { hypeTiers, setHypeTier } = useEvent();
   const tier = hypeTiers[slug] ?? 0;
+  const [open, setOpen] = useState(false);
   const [controlsOpen, setControlsOpen] = useState(false);
+  const [secondsLeft, setSecondsLeft] = useState(151);
 
   useEffect(() => {
     function onKey(e: globalThis.KeyboardEvent) {
@@ -1075,28 +1092,79 @@ function HypeDemoRow({ slug }: { slug: string }) {
     return () => window.removeEventListener("keydown", onKey);
   }, []);
 
+  useEffect(() => {
+    setSecondsLeft(151);
+    if (tier === 0) return;
+    const id = setInterval(() => setSecondsLeft((v) => (v > 0 ? v - 1 : 0)), 1000);
+    return () => clearInterval(id);
+  }, [tier]);
+
+  const clock = `${Math.floor(secondsLeft / 60)}:${String(secondsLeft % 60).padStart(2, "0")}`;
+
   return (
-    <div className="flex h-9 shrink-0 items-center justify-center gap-2 border-b border-outline-decorative px-5">
-      <span className="whitespace-nowrap text-sm font-semibold text-white">Hype Meter:</span>
-      <HypeStars tier={tier} />
-      {controlsOpen && (
-        <>
-          <span className="ml-2 text-xs uppercase text-surface-onSurfaceSecondary">Demo</span>
-          {Array.from({ length: HYPE_TIER_MAX + 1 }, (_, t) => (
-            <button
-              key={t}
-              type="button"
-              onClick={() => setHypeTier(slug, t)}
-              className={`h-6 rounded px-1.5 text-xs font-semibold ${
-                tier === t
-                  ? "bg-primary-base text-primary-onPrimary"
-                  : "bg-secondary-base text-secondary-onSecondary"
-              }`}
-            >
-              {t === 0 ? "Off" : `T${t}`}
-            </button>
-          ))}
-        </>
+    <div className="shrink-0 border-b border-outline-decorative">
+      <div className="flex items-stretch">
+        <div className="flex flex-col justify-center gap-1.5 bg-primary-base px-4 py-2.5">
+          <span className="whitespace-nowrap text-sm font-bold text-primary-onPrimary">
+            Hype Meter
+          </span>
+          <HypeStars tier={tier} />
+        </div>
+        <div className="flex flex-1 items-center justify-end gap-3 bg-surface-highest px-3 py-2">
+          <div className="flex flex-col items-end gap-0.5">
+            {tier > 0 && (
+              <span className="text-xs font-semibold tabular-nums text-white">{clock}</span>
+            )}
+            <span className="text-base font-bold text-white">{HYPE_PERCENTS[tier]}%</span>
+          </div>
+          <button
+            type="button"
+            aria-label={open ? "Close the hype meter" : "Open the hype meter"}
+            onClick={() => setOpen((v) => !v)}
+            className="state-layer-surface flex size-8 shrink-0 items-center justify-center rounded-full bg-surface-base text-white"
+          >
+            <Icon
+              name="chevron-right"
+              className={`size-3.5 transition-transform ${open ? "-rotate-90" : "rotate-90"}`}
+            />
+          </button>
+        </div>
+      </div>
+      {open && (
+        <div className="flex flex-col gap-2 bg-surface-base p-2">
+          <div className="flex items-center justify-between rounded-lg bg-surface-highest px-3 py-2.5">
+            <span className="text-sm font-semibold text-white">Channel Points Multiplier</span>
+            <span className="text-base font-bold text-primary-base">
+              {HYPE_MULTIPLIERS[tier]}
+            </span>
+          </div>
+          <div className="flex flex-col gap-2 rounded-lg bg-surface-highest px-3 py-2.5">
+            <span className="text-sm font-semibold text-white">Send KICKs to raise the hype</span>
+            <div className="flex items-center gap-2">
+              <HypeQuickAction icon={emotes[6].url} amount={100} />
+              <HypeQuickAction icon={emotes[8].url} amount={500} />
+            </div>
+          </div>
+          {controlsOpen && (
+            <div className="flex items-center gap-2 px-1">
+              <span className="text-xs uppercase text-surface-onSurfaceSecondary">Demo</span>
+              {Array.from({ length: HYPE_TIER_MAX + 1 }, (_, t) => (
+                <button
+                  key={t}
+                  type="button"
+                  onClick={() => setHypeTier(slug, t)}
+                  className={`h-6 rounded px-1.5 text-xs font-semibold ${
+                    tier === t
+                      ? "bg-primary-base text-primary-onPrimary"
+                      : "bg-secondary-base text-secondary-onSecondary"
+                  }`}
+                >
+                  {t === 0 ? "Off" : `T${t}`}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
       )}
     </div>
   );

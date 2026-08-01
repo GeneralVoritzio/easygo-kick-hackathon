@@ -1369,7 +1369,7 @@ function HypeDemoRow({ slug }: { slug: string }) {
         <div className="z-popover pointer-events-none absolute left-1/2 top-full mt-1.5 flex -translate-x-1/2 flex-col items-start gap-0.5 whitespace-nowrap rounded-md bg-surface-highest px-2.5 py-1.5 text-sm font-medium text-white shadow-[0_4px_12px_rgba(0,0,0,0.5)] opacity-0 transition-opacity group-hover/bar:opacity-100">
           <span className="font-bold">Hype Progress</span>
           {tier < 3 ? (
-            <span className="font-bold">
+            <span className="font-bold text-surface-onSurfaceSecondary">
               <span className={tier > 0 ? `hype-shimmer hype-tier-${tier}` : undefined}>
                 Tier {tier}
               </span>
@@ -1378,12 +1378,14 @@ function HypeDemoRow({ slug }: { slug: string }) {
               <span className={`hype-shimmer hype-tier-${tier + 1}`}>Tier {tier + 1}</span>
             </span>
           ) : (
-            <span className="font-bold">
+            <span className="font-bold text-surface-onSurfaceSecondary">
               <span className="hype-shimmer hype-tier-3">Tier 3</span>
               {" : Max level"}
             </span>
           )}
-          <span>Channel Points Multiplier: {HYPE_MULTIPLIERS[tier]}</span>
+          <span className="text-surface-onSurfaceSecondary">
+            Channel Points Multiplier: {HYPE_MULTIPLIERS[tier]}
+          </span>
         </div>
       </div>
       {controlsOpen && (

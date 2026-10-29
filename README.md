@@ -75,4 +75,4 @@ Multiview tiles play local footage from `demo/public/multiview/` if it's there, 
 
 ## Team
 
-Built by the contributors listed on [GitHub](https://github.com/GeneralVoritzio/hypeprops/graphs/contributors).
+Built by the contributors listed on [GitHub](https://github.com/GeneralVoritzio/easygo-kick-hackathon/graphs/contributors).

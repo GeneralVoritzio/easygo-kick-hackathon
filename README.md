@@ -13,6 +13,18 @@ We didn't win. Then KICK shipped every piece of it on kick.com: the events hub, 
 | **Event multiview.** Watch several of an event's streams at once in a grid. Only the focused tile plays audio. You can switch the main stream from a tile and use keyboard navigation and fullscreen, and your pins survive a reload. | [`events/Multiview.tsx`](demo/src/kick/events/Multiview.tsx), [`events/EventProvider.tsx`](demo/src/kick/events/EventProvider.tsx) | **Multiview.** Announced in September 2026 with the Prodigy GTA RP partnership, and launched on desktop with the Events Hub. Up to four streams in a grid or focus layout, and only the focused stream plays audio. [win.gg](https://win.gg/kick-events-hub-announced/) · [Axee Tech](https://axeetech.com/kick-launches-events-hub-with-multiview-watch-four-streams-at-once-2026/) |
 | **Getting an event listed.** In the creator dashboard, a streamer creates an event, uploads a poster and invites other channels. The invited channels accept or ask to join. An event stays private until every invite has an answer. | [`components/DashboardEvents.tsx`](demo/src/kick/components/DashboardEvents.tsx) (`/dashboard/events`) | **Curated submissions.** Organisers apply through a portal, and KICK reviews each event before it is featured. [SSBCrack](https://news.ssbcrack.com/everything-to-know-about-kick-events-the-livestreaming-platforms-hub/) |
 
+### The receipts
+
+> the biggest events in streaming have a new home
+>
+> — [@kick, 16 October 2026](https://x.com/kick/status/2110883752306151819)
+
+> never miss an upcoming stream
+>
+> — [@kick, 19 October 2026](https://x.com/kick/status/2111970634821718491)
+
+![Search summary: KICK launched its Events Hub in October 2026, with ProdigyRP x KICK and multiview support](docs/kick-shipped/events-hub-launch.png)
+
 The dates in the right-hand column come from KICK's posts and the press coverage linked in each row. Our dates come from this repository's commit history:
 
 ```bash

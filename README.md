@@ -15,13 +15,16 @@ We didn't win. Then KICK shipped every piece of it on kick.com: the events hub, 
 
 ### The receipts
 
-> the biggest events in streaming have a new home
->
-> — [@kick, 16 October 2026](https://x.com/kick/status/2110883752306151819)
-
-> never miss an upcoming stream
->
-> — [@kick, 19 October 2026](https://x.com/kick/status/2111970634821718491)
+<table>
+<tr>
+<td width="50%"><a href="https://x.com/kick/status/2110883752306151819"><img src="docs/kick-shipped/tweet-events-hub-2026-10-16.png" alt="@kick, 16 Oct 2026: the biggest events in streaming have a new home"></a></td>
+<td width="50%"><a href="https://x.com/kick/status/2111970634821718491"><img src="docs/kick-shipped/tweet-upcoming-streams-2026-10-19.png" alt="@kick, 19 Oct 2026: never miss an upcoming stream"></a></td>
+</tr>
+<tr>
+<td align="center"><b>Events Hub</b>, 16 Oct 2026</td>
+<td align="center"><b>Upcoming streams calendar</b>, 19 Oct 2026</td>
+</tr>
+</table>
 
 ![Search summary: KICK launched its Events Hub in October 2026, with ProdigyRP x KICK and multiview support](docs/kick-shipped/events-hub-launch.png)
 

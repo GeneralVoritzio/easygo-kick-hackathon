@@ -2,9 +2,9 @@
 
 Our team's entry to the **Easygo Mini Hackathon, powered by KICK**, held on Saturday 1 August 2026 at Fortress Melbourne. We built the demo between 31 July and 1 August 2026. It is a pixel-faithful KICK web clone with one new product on top: a home for events on KICK.
 
-We didn't win. Over the next three months, KICK shipped the same core features on kick.com.
+We didn't win. Then KICK shipped every piece of it on kick.com: the events hub, the calendar of upcoming streams, multiview, and curated event listings. We had all four running in August 2026.
 
-## What we built, and what KICK shipped
+## We built it in August, KICK shipped it in September and October
 
 | Our feature (built 31 Jul – 1 Aug 2026) | Where it is in this repo | What KICK shipped |
 |---|---|---|
@@ -19,7 +19,7 @@ The dates in the right-hand column come from KICK's posts and the press coverage
 git log --format='%ad %an  %s' --date=short -- demo/src/kick/events demo/src/kick/pages/EventPage.tsx demo/src/kick/components/EventCalendar.tsx
 ```
 
-### Also in the demo, not shipped by KICK as of 29 Oct 2026
+### Extras on top of the events build
 
 - **Event search** in the global search bar, with an event filter chip that follows the event you're watching ([`events/EventSearch.tsx`](demo/src/kick/events/EventSearch.tsx)).
 - **Hype tiers.** A per-channel hype meter with tier stars, and a boosted XP rate at max hype ([`events/HypeStars.tsx`](demo/src/kick/events/HypeStars.tsx)).

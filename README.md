@@ -1,5 +1,9 @@
 # KICK Events, Calendar and Multiview — Easygo Mini Hackathon 2026
 
+![Our team pitching the KICK demo at the Easygo Mini Hackathon](docs/images/team-pitching.jpeg)
+
+*This is us pitching at the Easygo Mini Hackathon.*
+
 Our team's entry to the **Easygo Mini Hackathon, powered by KICK**, held on Saturday 1 August 2026 at Fortress Melbourne. We built the demo between 31 July and 1 August 2026. It is a pixel-faithful KICK web clone with one new product on top: a home for events on KICK.
 
 We didn't win. Then KICK shipped every piece of it on kick.com: the events hub, the calendar of upcoming streams, multiview, and curated event listings. We had all four running in August 2026.
